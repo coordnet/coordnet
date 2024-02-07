@@ -1,0 +1,9 @@
+# Default code owners
+*	@betamax @JannKleen
+
+# Frontend
+*.js	@betamax
+*.ts	@betamax
+
+# Backend
+*.py	@JannKleen
