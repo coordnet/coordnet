@@ -1,0 +1,15 @@
+# Distribution
+dist
+out
+build
+
+# Logs
+*.log*
+logs
+
+# Environment
+*.env*
+!.env.example
+
+# Misc
+.DS_Store

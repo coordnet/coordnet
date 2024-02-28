@@ -1,0 +1,53 @@
+{
+  "name": "@coordnet/hocuspocus-server",
+  "version": "0.0.1",
+  "author": "Coordination.network",
+  "license": "MIT",
+  "homepage": "https://github.com/coordnet/coordnet/frontent/packages/hocuspocus-server",
+  "keywords": [
+    "coordination",
+    "hocuspocus",
+    "websockets",
+    "server"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coordnet/coordnet",
+    "directory": "frontent/packages/hocuspocus-server"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "migrate": "knex migrate:latest"
+  },
+  "dependencies": {
+    "@hocuspocus/extension-database": "^2.11.1",
+    "@hocuspocus/server": "^2.11.1",
+    "@hocuspocus/transformer": "^2.11.1",
+    "@tiptap/starter-kit": "^2.2.2",
+    "dotenv": "^16.4.4",
+    "envalid": "^8.0.0",
+    "knex": "^3.1.0",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.3",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser"
+  },
+  "prettier": {
+    "printWidth": 100
+  }
+}
