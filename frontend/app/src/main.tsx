@@ -8,12 +8,17 @@ import { Toaster } from "sonner";
 
 import App from "./App";
 import ErrorPage from "./components/ErrorPage";
+import { QuickViewProvider } from "./hooks/useQuickView/provider";
 import { SpaceProvider } from "./hooks/useSpace/provider";
 
 const queryClient = new QueryClient();
 
 const addProviders = (element: ReactNode) => {
-  return <SpaceProvider>{element}</SpaceProvider>;
+  return (
+    <QuickViewProvider>
+      <SpaceProvider>{element}</SpaceProvider>
+    </QuickViewProvider>
+  );
 };
 
 export const router = createBrowserRouter([

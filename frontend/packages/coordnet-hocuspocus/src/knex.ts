@@ -35,7 +35,12 @@ export class Knex extends Database {
     },
     store: async ({ documentName, state, document }) => {
       let json = {};
-      if (documentName.startsWith("node-graph-")) {
+      if (documentName.startsWith("space-")) {
+        json = {
+          nodes: document.getMap("nodes").toJSON(),
+          deletedNodes: document.getArray("deletedNodes").toJSON(),
+        };
+      } else if (documentName.startsWith("node-graph-")) {
         json = {
           nodes: document.getMap("nodes").toJSON(),
           edges: document.getMap("edges").toJSON(),

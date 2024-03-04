@@ -6,6 +6,8 @@ import { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
 
+import Node from "./Node";
+
 export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, readOnly = false) => {
   const extensions: Extensions = [Link];
 
@@ -19,6 +21,8 @@ export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, read
   } else {
     extensions.push(StarterKit.configure({}));
   }
+
+  extensions.push(Node);
 
   return extensions;
 };
