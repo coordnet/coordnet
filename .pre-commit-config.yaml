@@ -1,5 +1,10 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+exclude: "^docs/|/migrations/"
+default_stages: [commit]
+default_language_version:
+  python: python3.11
+
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.1.0
@@ -8,22 +13,30 @@ repos:
         stages: [commit-msg]
         args: []
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+      - id: check-toml
+      - id: check-xml
       - id: check-yaml
         exclude: ^pnpm-lock.yaml
       - id: check-added-large-files
         args: ["--maxkb=750"]
       - id: detect-aws-credentials
         args: ["--allow-missing-credentials"]
+      - id: debug-statements
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
       - id: detect-private-key
       - id: mixed-line-ending
       - id: check-merge-conflict
       - id: check-symlinks
       - id: fix-encoding-pragma
       - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-added-large-files
   - repo: https://gitlab.com/bmares/check-json5
     rev: v1.0.0
     hooks:
@@ -44,3 +57,28 @@ repos:
     hooks:
       - id: prettier
         exclude: ^pnpm-lock.yaml|.git
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: "1.16.0"
+    hooks:
+      - id: django-upgrade
+        args: ["--target-version", "5.0"]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.1
+    hooks:
+      - id: pyupgrade
+        args: [--py311-plus]
+  - repo: https://github.com/Riverside-Healthcare/djLint
+    rev: v1.34.1
+    hooks:
+      - id: djlint-reformat-django
+      - id: djlint-django
+
+# sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
+ci:
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

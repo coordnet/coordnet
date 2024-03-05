@@ -1,0 +1,21 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.{js,py}]
+charset = utf-8
+
+[*.py]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = True
+trim_trailing_whitespace = True
+insert_final_newline = True
