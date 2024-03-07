@@ -1,0 +1,79 @@
+version: "3"
+
+volumes:
+  coordnet_local_postgres_data: {}
+  coordnet_local_postgres_data_backups: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: compose/django/Dockerfile
+    image: coordnet_local_django
+    container_name: coordnet_local_django
+    depends_on:
+      - postgres
+      - redis
+      - mailpit
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "8000:8000"
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: compose/postgres/Dockerfile
+    image: coordnet_production_postgres
+    container_name: coordnet_local_postgres
+    volumes:
+      - coordnet_local_postgres_data:/var/lib/postgresql/data
+      - coordnet_local_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+    ports:
+      - "5433:5432"
+
+  mailpit:
+    image: axllent/mailpit:v1.8
+    container_name: coordnet_local_mailpit
+    ports:
+      - "8025:8025"
+
+  redis:
+    image: redis:6
+    container_name: coordnet_local_redis
+
+  celeryworker:
+    <<: *django
+    image: coordnet_local_celeryworker
+    container_name: coordnet_local_celeryworker
+    depends_on:
+      - redis
+      - postgres
+      - mailpit
+    ports: []
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: coordnet_local_celerybeat
+    container_name: coordnet_local_celerybeat
+    depends_on:
+      - redis
+      - postgres
+      - mailpit
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: coordnet_local_flower
+    container_name: coordnet_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower

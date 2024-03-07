@@ -1,0 +1,38 @@
+python-slugify==8.0.1  # https://github.com/un33k/python-slugify
+Pillow==10.1.0  # https://github.com/python-pillow/Pillow
+argon2-cffi==23.1.0  # https://github.com/hynek/argon2_cffi
+whitenoise==6.6.0  # https://github.com/evansd/whitenoise
+redis==5.0.1  # https://github.com/redis/redis-py
+hiredis==2.2.3  # https://github.com/redis/hiredis-py
+celery==5.3.6  # pyup: < 6.0  # https://github.com/celery/celery
+django-celery-beat==2.5.0  # https://github.com/celery/django-celery-beat
+flower==2.0.1  # https://github.com/mher/flower
+
+# Django
+# ------------------------------------------------------------------------------
+django==4.2.7  # pyup: < 5.0  # https://www.djangoproject.com/
+django-environ==0.11.2  # https://github.com/joke2k/django-environ
+django-model-utils==4.3.1  # https://github.com/jazzband/django-model-utils
+django-allauth==0.58.2  # https://github.com/pennersr/django-allauth
+django-crispy-forms==2.1  # https://github.com/django-crispy-forms/django-crispy-forms
+crispy-bootstrap5==2023.10  # https://github.com/django-crispy-forms/crispy-bootstrap5
+django-redis==5.4.0  # https://github.com/jazzband/django-redis
+# Django REST Framework
+djangorestframework==3.14.0  # https://github.com/encode/django-rest-framework
+django-cors-headers==4.3.1  # https://github.com/adamchainz/django-cors-headers
+# DRF-spectacular for api documentation
+drf-spectacular==0.27.0  # https://github.com/tfranzel/drf-spectacular
+# DRY REST Permissions for easier permission management
+django-dry-rest-permissions==1.2.0  # https://github.com/FJNR-inc/dry-rest-permissions
+# Django Filter for filtering on api endpoints
+django-filter==23.3  # https://github.com/carltongibson/django-filter
+# Secure DRF token authentication
+django-rest-knox==4.2.0  # https://github.com/jazzband/django-rest-knox
+# DRF Password Reset for password reset functionality
+django-rest-passwordreset==1.3.0  # https://github.com/anexia-it/django-rest-passwordreset
+# Django PG trigger for database triggers
+django-pgtrigger==4.11.0  # https://github.com/Opus10/django-pgtrigger
+
+# LLM
+# ------------------------------------------------------------------------------
+tiktoken==0.6.0  # https://github.com/openai/tiktoken
