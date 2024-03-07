@@ -1,0 +1,5 @@
+# Ignore django templates since prettier doesn't support them. See:
+# https://github.com/prettier/prettier/issues/5581
+
+# TODO: Specify backend folder once we have a backend folder
+**/templates/**/*.html

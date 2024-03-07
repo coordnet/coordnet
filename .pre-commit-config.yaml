@@ -61,6 +61,8 @@ repos:
     rev: 24.2.0
     hooks:
       - id: black
+        args:
+          - --line-length=100
   - repo: https://github.com/adamchainz/django-upgrade
     rev: "1.16.0"
     hooks:
@@ -76,6 +78,27 @@ repos:
     hooks:
       - id: djlint-reformat-django
       - id: djlint-django
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        language: python
+        language_version: python3.11
+        types: [python]
+        require_serial: true
+        entry: bash .pre-commit-run.sh ruff
+      - id: mypy
+        name: mypy
+        entry: bash .pre-commit-run.sh mypy
+        language: python
+        language_version: python3.11
+        types: [python]
+        require_serial: true
+        additional_dependencies: []
+        args:
+          - --show-error-codes
+          - --ignore-missing-imports
+          - --disallow-untyped-defs
 
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:
