@@ -1,8 +1,10 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import React, { useEffect, useMemo, useState } from "react";
+import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import * as Y from "yjs";
 
+import { getSpace } from "@/api";
 import { SpaceNode } from "@/types";
 
 import { SpaceContext } from "./context";
@@ -16,13 +18,22 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const [connected, setConnected] = useState<boolean>(false);
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
 
-  const roomName = `space-${spaceId}`;
-  const ydoc = useMemo(() => (roomName ? new Y.Doc({ guid: roomName }) : undefined), [roomName]);
+  const { data: space, isError } = useQuery({
+    queryKey: ["space", spaceId],
+    queryFn: ({ signal }) => getSpace(signal, spaceId),
+    enabled: Boolean(spaceId),
+    retry: false,
+  });
+
+  const ydoc = useMemo(
+    () => (space ? new Y.Doc({ guid: `space-${space.id}` }) : undefined),
+    [space],
+  );
   const provider = useMemo(() => {
-    if (!roomName || !ydoc) return;
+    if (!space || !ydoc) return;
     return new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
-      name: roomName,
+      name: `space-${space.id}`,
       document: ydoc,
       onSynced() {
         setSynced(true);
@@ -31,12 +42,12 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
         setConnected(data.status == "connected");
       },
     });
-  }, [roomName, ydoc]);
+  }, [space, ydoc]);
 
   const nodesMap = ydoc?.getMap<SpaceNode>("nodes");
   const deletedNodes = ydoc?.getArray<string>("deletedNodes");
 
-  // here we are observing the nodesMap and updating the nodes state whenever the map changes.
+  // Here we are observing the nodesMap and updating the nodes state whenever the map changes.
   useEffect(() => {
     if (!nodesMap) return;
     const observer = () => {
@@ -47,9 +58,18 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     nodesMap.observe(observer);
 
     return () => nodesMap.unobserve(observer);
-  }, [setNodes]);
+  }, [nodesMap, setNodes]);
 
-  const value = { space: spaceId, nodes, nodesMap, deletedNodes, synced, connected, provider };
+  const value = {
+    space,
+    spaceError: isError,
+    nodes,
+    nodesMap,
+    deletedNodes,
+    synced,
+    connected,
+    provider,
+  };
 
   return <SpaceContext.Provider value={value}>{children}</SpaceContext.Provider>;
 };

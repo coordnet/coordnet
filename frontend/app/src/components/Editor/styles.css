@@ -1,3 +1,6 @@
+.tiptap {
+  height: 100%;
+}
 .ProseMirror {
   padding: 10px;
 }

@@ -2,10 +2,11 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { createContext } from "react";
 import * as Y from "yjs";
 
-import { SpaceNode } from "@/types";
+import { Space, SpaceNode } from "@/types";
 
 type SpaceContextType = {
-  space: string | undefined;
+  space: Space | undefined;
+  spaceError: boolean;
   nodesMap: Y.Map<SpaceNode> | undefined;
   nodes: SpaceNode[];
   synced: boolean;

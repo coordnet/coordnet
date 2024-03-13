@@ -1,44 +1,34 @@
 import "./Editor/styles.css";
 
-import { useEditor } from "@tiptap/react";
 import clsx from "clsx";
-import { useEffect } from "react";
 import { ReactFlowProvider } from "reactflow";
+import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import useNode from "@/hooks/useNode";
 import { NodeProvider } from "@/hooks/useNode/provider";
 
-import { Graph } from "./";
-import Editor from "./Editor";
-import { loadExtensions } from "./Editor/extensions";
+import { Graph, Loader } from "./";
 
 type NodeProps = { id: string; className?: string };
 
 const Node = ({ id, className }: NodeProps) => {
-  const { connected, synced, editorYdoc, editorProvider } = useNode();
-
-  const editor = useEditor({
-    extensions: loadExtensions(editorProvider, editorYdoc),
+  const { connected, synced } = useNode();
+  const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
+    removeDefaultsFromUrl: true,
   });
 
-  useEffect(() => {
-    if (!editor || !synced || !editorYdoc) return;
-    // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
-  }, [editor, synced, editorYdoc]);
-
-  if (!synced) return <div>Loading node...</div>;
-  if (!connected) return <div>Obtaining connection to node...</div>;
+  if (!synced) return <Loader message="Loading node..." />;
+  if (!connected) return <Loader message="Obtaining connection to node..." />;
 
   return (
-    <div className={clsx("w-full", className)}>
-      Node {id}
-      <br />
-      <div className="mt-5 font-bold">Editor:</div>
-      {editor ? <Editor editor={editor} /> : <></>}
-      <div className="mt-5 font-bold">Graph:</div>
-      <div className="size-full h-96">
-        <Graph />
-      </div>
+    <div className={clsx("relative", className)}>
+      <button
+        className="absolute top-2 left-2 bg-gray-300 p-2 z-40"
+        onClick={() => setNodePage(nodePage == id ? "" : id)}
+      >
+        {nodePage == id ? "Hide" : "Show"} Editor
+      </button>
+      <Graph />
     </div>
   );
 };

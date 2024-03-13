@@ -1,4 +1,6 @@
+import { Maximize2, X } from "lucide-react";
 import ReactDOM from "react-dom";
+import { Link } from "react-router-dom";
 
 import useQuickView from "@/hooks/useQuickView";
 
@@ -10,25 +12,33 @@ const QuickView = () => {
   if (!isQuickViewOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+      style={{ animation: "bg 0.2s forwards" }}
+    >
       <div className="absolute inset-0" onClick={closeQuickView}></div>
 
       <div
-        className="relative z-10 max-w-xl w-full bg-white p-5 shadow-lg rounded-md transition-all transform duration-300 ease-in-out border"
+        className="relative z-10 bg-white h-[90vh] w-[80vw] shadow-lg rounded-md transition-all transform duration-300 ease-in-out border"
         style={{ animation: "scaleIn 0.2s forwards" }}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="text-lg font-semibold">Quick View</h4>
-          <div>
-            {/* <button onClick={onExpand} className="text-gray-600 hover:text-gray-800 mr-2">
-              Expand
-            </button> */}
-            <button onClick={closeQuickView} className="text-gray-600 hover:text-gray-800">
-              Close
-            </button>
-          </div>
+        {Boolean(nodeId) && <Node id={nodeId} className="size-full" />}
+
+        <div className="justify-between items-center absolute top-0 -right-9 z-50 flex flex-col gap-3">
+          <button
+            onClick={closeQuickView}
+            className="size-7 overflow-hidden rounded-full bg-black text-white flex items-center justify-center"
+          >
+            <X className="size-4" />
+          </button>
+          <Link
+            to={`/space/124/${nodeId}`}
+            onClick={closeQuickView}
+            className="size-7 overflow-hidden rounded-full bg-black hover:text-white text-white flex items-center justify-center"
+          >
+            <Maximize2 className="size-4" />
+          </Link>
         </div>
-        <Node id={nodeId} className="px-3 py-2 size-full" />
       </div>
     </div>,
     document.body,

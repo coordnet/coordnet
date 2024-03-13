@@ -1,12 +1,43 @@
-import { Editor as TipTapEditor, EditorContent } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import clsx from "clsx";
+import { X } from "lucide-react";
+import { useEffect } from "react";
+import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
+import { EditableNode } from "@/components";
+import useNode from "@/hooks/useNode";
+
+import { loadExtensions } from "./extensions";
 import { MenuBar } from "./MenuBar";
 
-const Editor = ({ editor }: { editor: TipTapEditor }) => {
+type EditorProps = { id: string; className?: string };
+
+const Editor = ({ id, className }: EditorProps) => {
+  const { synced, editorYdoc, editorProvider } = useNode();
+
+  const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
+    removeDefaultsFromUrl: true,
+  });
+
+  const editor = useEditor({ extensions: loadExtensions(editorProvider, editorYdoc) }, [id]);
+
+  useEffect(() => {
+    if (!editor || !synced || !editorYdoc) return;
+    // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
+  }, [editor, synced, editorYdoc]);
+
+  if (!id) return <></>;
+
   return (
-    <div className="border-gray-300 border">
+    <div className={clsx("border-gray-300 border-l overflow-auto", className)}>
+      <div className="p-3 font-medium text-lg">
+        <EditableNode id={id} className="w-full" />
+      </div>
+      <div className="absolute top-2 right-2 cursor-pointer" onClick={() => setNodePage("")}>
+        <X />
+      </div>
       <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
+      <EditorContent className="h-full" editor={editor} />
       {/* <FloatingMenu editor={editor}>This is the floating menu</FloatingMenu> */}
     </div>
   );

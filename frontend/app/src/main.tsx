@@ -1,10 +1,13 @@
 import "./index.css";
+import "react-tooltip/dist/react-tooltip.css";
 
 import React, { ReactNode } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
+import { QueryParamProvider } from "use-query-params";
+import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 
 import App from "./App";
 import ErrorPage from "./components/ErrorPage";
@@ -15,9 +18,11 @@ const queryClient = new QueryClient();
 
 const addProviders = (element: ReactNode) => {
   return (
-    <QuickViewProvider>
-      <SpaceProvider>{element}</SpaceProvider>
-    </QuickViewProvider>
+    <QueryParamProvider adapter={ReactRouter6Adapter}>
+      <QuickViewProvider>
+        <SpaceProvider>{element}</SpaceProvider>
+      </QuickViewProvider>
+    </QueryParamProvider>
   );
 };
 

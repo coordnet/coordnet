@@ -17,39 +17,37 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
 
   const editorRoomName = `node-editor-${id}`;
   const editorYdoc = useMemo(() => new Y.Doc({ guid: editorRoomName }), [editorRoomName]);
-  const editorProvider = useMemo(
-    () =>
-      new HocuspocusProvider({
-        url: import.meta.env.VITE_HOCUSPOCUS_URL,
-        name: editorRoomName,
-        document: editorYdoc,
-        onSynced() {
-          setEditorSynced(true);
-        },
-        onStatus(data) {
-          setEditorConnected(data.status == "connected");
-        },
-      }),
-    [editorRoomName, editorYdoc],
-  );
+  const editorProvider = useMemo(() => {
+    if (!id) return;
+    return new HocuspocusProvider({
+      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      name: editorRoomName,
+      document: editorYdoc,
+      onSynced() {
+        setEditorSynced(true);
+      },
+      onStatus(data) {
+        setEditorConnected(data.status == "connected");
+      },
+    });
+  }, [id, editorRoomName, editorYdoc]);
 
   const graphRoomName = `node-graph-${id}`;
   const graphYdoc = useMemo(() => new Y.Doc({ guid: graphRoomName }), [graphRoomName]);
-  useMemo(
-    () =>
-      new HocuspocusProvider({
-        url: import.meta.env.VITE_HOCUSPOCUS_URL,
-        name: graphRoomName,
-        document: graphYdoc,
-        onSynced() {
-          setGraphSynced(true);
-        },
-        onStatus(data) {
-          setGraphConnected(data.status == "connected");
-        },
-      }),
-    [graphRoomName, graphYdoc],
-  );
+  useMemo(() => {
+    if (!id) return;
+    return new HocuspocusProvider({
+      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      name: graphRoomName,
+      document: graphYdoc,
+      onSynced() {
+        setGraphSynced(true);
+      },
+      onStatus(data) {
+        setGraphConnected(data.status == "connected");
+      },
+    });
+  }, [id, graphRoomName, graphYdoc]);
 
   const nodesMap = graphYdoc.getMap<GraphNode>("nodes");
   const edgesMap = graphYdoc.getMap<GraphEdge>("edges");

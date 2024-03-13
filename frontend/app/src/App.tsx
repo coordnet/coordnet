@@ -1,25 +1,39 @@
-import { Loader, Node } from "./components";
-import QuickView from "./components/QuickView";
+import { useParams } from "react-router-dom";
+import { useQueryParam } from "use-query-params";
+
+import { EditableNode, Loader, Node, QuickView } from "@/components";
+
+import Editor from "./components/Editor";
+import { NodeProvider } from "./hooks/useNode/provider";
 import useSpace from "./hooks/useSpace";
 
 function App() {
-  const { space, synced: spaceSynced, connected: spaceConnected } = useSpace();
+  const { pageId } = useParams();
+  const { space, spaceError, synced: spaceSynced, connected: spaceConnected } = useSpace();
 
-  // useEffect(() => {
-  //   nodesMap?.set("node-1", { id: "node-1", title: "Node 1" });
-  //   nodesMap?.set("node-2", { id: "node-2", title: "Node 2" });
-  // }, []);
+  const [nodePage] = useQueryParam<string>("nodePage");
 
-  if (!space) return <>Not found</>;
+  if (!space && spaceError) return <>Not found</>;
   if (!spaceSynced) return <Loader message="Loading space..." />;
   if (!spaceConnected) return <Loader message="Obtaining connection for space..." />;
 
+  const nodeId = pageId ?? "bfa9d7af-b857-4a69-a4fe-71b909327843";
+
   return (
-    <div className="p-4">
-      <div>Space: {space}</div>
-      <div>Provider synced: {spaceSynced ? "yes" : "no"}</div>
-      <div>Provider connected: {spaceConnected ? "yes" : "no"}</div>
-      <Node id={"node-1"} className="px-3 py-2 size-full" />
+    <div className="h-full relative flex flex-col">
+      <div className="h-9 flex items-center px-4 border-b gap-2">
+        <div className="">{space?.title}</div>
+        <div className="">&raquo;</div>
+        <EditableNode id={nodeId} className="line-clamp-1 w-64" />
+      </div>
+      <Node key={nodeId} id={nodeId} className="flex-grow w-full" />
+      <NodeProvider id={nodePage}>
+        <Editor
+          id={nodePage}
+          key={nodePage}
+          className="absolute top-9 right-0 bottom-0 w-1/2 z-20 bg-white shadow-md"
+        />
+      </NodeProvider>
       <QuickView />
     </div>
   );

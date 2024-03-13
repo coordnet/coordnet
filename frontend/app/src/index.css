@@ -68,3 +68,12 @@ body {
     opacity: 1;
   }
 }
+
+@keyframes bg {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
