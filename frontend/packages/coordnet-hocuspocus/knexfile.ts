@@ -1,21 +1,24 @@
 import type { Knex } from "knex";
+import { settings } from "./src/settings";
 
 const config: { [key: string]: Knex.Config } = {
   development: {
     client: "postgresql",
     connection: {
-      database: "coordnet",
-      user: "coordnet",
-      password: "coordnet",
+      database: settings.POSTGRES_DATABASE,
+      port: settings.POSTGRES_PORT,
+      user: settings.POSTGRES_USER,
+      password: settings.POSTGRES_PASSWORD,
     },
   },
 
   staging: {
     client: "postgresql",
     connection: {
-      database: "my_db",
-      user: "username",
-      password: "password",
+      database: settings.POSTGRES_DATABASE,
+      port: settings.POSTGRES_PORT,
+      user: settings.POSTGRES_USER,
+      password: settings.POSTGRES_PASSWORD,
     },
     pool: {
       min: 2,
@@ -29,9 +32,10 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: "postgresql",
     connection: {
-      database: "my_db",
-      user: "username",
-      password: "password",
+      database: settings.POSTGRES_DATABASE,
+      port: settings.POSTGRES_PORT,
+      user: settings.POSTGRES_USER,
+      password: settings.POSTGRES_PASSWORD,
     },
     pool: {
       min: 2,

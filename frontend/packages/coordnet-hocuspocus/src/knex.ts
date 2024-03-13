@@ -14,15 +14,31 @@ export interface KnexConfiguration extends DatabaseConfiguration {
   config: string | knex.Knex.Config<unknown>;
 }
 
+const getDocumentType = (name: string) => {
+  if (name.startsWith("space-")) {
+    return "SPACE";
+  } else if (name.startsWith("node-graph-")) {
+    return "GRAPH";
+  } else if (name.startsWith("node-editor-")) {
+    return "EDITOR";
+  }
+};
+
+const cleanDocumentName = (name: string) => {
+  return name.replace(/^(node-graph-|space-|node-editor-)/, "");
+};
+
 export class Knex extends Database {
   db?: knex.Knex;
 
   configuration: KnexConfiguration = {
     config: {},
     fetch: async ({ documentName }) => {
+      const document_type = getDocumentType(documentName);
+      const public_id = cleanDocumentName(documentName);
       return new Promise((resolve, reject) => {
-        this.db("documents")
-          .where({ name: documentName })
+        this.db("nodes_document")
+          .where({ public_id, document_type })
           .orderBy("id", "desc")
           .first()
           .then((row) => {
@@ -34,18 +50,21 @@ export class Knex extends Database {
       });
     },
     store: async ({ documentName, state, document }) => {
+      const document_type = getDocumentType(documentName);
+      const public_id = cleanDocumentName(documentName);
+
       let json = {};
-      if (documentName.startsWith("space-")) {
+      if (document_type === "SPACE") {
         json = {
           nodes: document.getMap("nodes").toJSON(),
           deletedNodes: document.getArray("deletedNodes").toJSON(),
         };
-      } else if (documentName.startsWith("node-graph-")) {
+      } else if (document_type === "GRAPH") {
         json = {
           nodes: document.getMap("nodes").toJSON(),
           edges: document.getMap("edges").toJSON(),
         };
-      } else {
+      } else if (document_type === "EDITOR") {
         json = transformer.fromYdoc(document);
       }
       const data = {
@@ -53,16 +72,15 @@ export class Knex extends Database {
         json,
         updated_at: this.db.fn.now(),
       };
-      await this.db("documents")
+      await this.db("nodes_document")
         .insert({
-          name: documentName,
+          public_id,
+          document_type,
+          created_at: this.db.fn.now(),
           ...data,
         })
-        .onConflict("name")
-        .merge({
-          data: state,
-          ...data,
-        });
+        .onConflict(["public_id", "document_type"])
+        .merge({ ...data });
     },
   };
 

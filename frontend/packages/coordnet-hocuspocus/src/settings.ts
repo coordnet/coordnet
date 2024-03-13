@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { bool, cleanEnv, num } from "envalid";
+import { bool, cleanEnv, num, str } from "envalid";
 
 export const settings = cleanEnv(process.env, {
   HOCUSPOCUS_PORT: num({ default: 80 }),
@@ -8,6 +8,10 @@ export const settings = cleanEnv(process.env, {
   HOCUSPOCUS_DEBOUNCE: num({ default: 2000 }),
   HOCUSPOCUS_MAXDEBOUNCE: num({ default: 10000 }),
   HOCUSPOCUS_QUIET: bool({ default: false }),
+  POSTGRES_DATABASE: str(),
+  POSTGRES_PORT: num({ default: 5432 }),
+  POSTGRES_USER: str(),
+  POSTGRES_PASSWORD: str(),
 });
 
 export const hocuspocusSettings = {
