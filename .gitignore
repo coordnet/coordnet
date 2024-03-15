@@ -164,7 +164,7 @@ cython_debug/
 .DS_Store
 
 ### Project template
-coordnet/media/
+backend/coordnet/media/
 
 .pytest_cache/
 .ipython/
