@@ -7,9 +7,9 @@ watchfiles==0.21.0  # https://github.com/samuelcolvin/watchfiles
 
 # Testing
 # ------------------------------------------------------------------------------
-mypy==1.6.1  # https://github.com/python/mypy
-django-stubs[compatible-mypy]==4.2.6  # https://github.com/typeddjango/django-stubs
-djangorestframework-stubs[compatible-mypy]==3.14.4  # https://github.com/typeddjango/djangorestframework-stubs
+mypy==1.7.0  # https://github.com/python/mypy
+django-stubs[compatible-mypy]==4.2.7  # https://github.com/typeddjango/django-stubs
+djangorestframework-stubs[compatible-mypy]==3.14.5  # https://github.com/typeddjango/djangorestframework-stubs
 
 # Documentation
 # ------------------------------------------------------------------------------
