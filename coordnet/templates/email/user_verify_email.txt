@@ -1,0 +1,5 @@
+User: {{current_user}}
+Username: {{username}}
+Email: {{email}}
+Verify Password URL: {{verify_email_url}}
+Token: {{verify_token}}

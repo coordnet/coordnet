@@ -1,0 +1,7 @@
+# How to use the .python-version file:
+#steps:
+# - uses: actions/checkout@v4
+# - uses: actions/setup-python@v5
+#  with:
+#    python-version-file: '.python-version' # Read python version from a file .python-version
+# - run: python my_script.py
