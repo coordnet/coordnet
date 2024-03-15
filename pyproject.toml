@@ -7,6 +7,7 @@ line-length = 100
 fix = true
 show-fixes = true
 unfixable = []
+src = ["backend"]
 
 select = [
   # pyflakes
@@ -64,6 +65,8 @@ plugins = [
     "mypy_django_plugin.main",
     "mypy_drf_plugin.main",
 ]
+mypy_path = "backend/"
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 # Django migrations should not produce any errors:

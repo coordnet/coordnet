@@ -1,5 +1,4 @@
 import typing
-from typing import Any
 
 from django.contrib.auth import get_user_model, logout, update_session_auth_hash
 from django_rest_passwordreset.models import ResetPasswordToken
@@ -35,7 +34,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
     queryset = User.objects.all()
     lookup_field = "public_id"
 
-    def get_queryset(self, *args: "Any", **kwargs: "Any") -> "QuerySet[AbstractUser]":
+    def get_queryset(self, *args: typing.Any, **kwargs: typing.Any) -> "QuerySet[AbstractUser]":
         assert isinstance(self.request.user.id, int)
         return self.queryset.filter(id=self.request.user.id)
 
@@ -67,7 +66,7 @@ class LoginView(KnoxLoginView):
 class VerifyEmailView(APIView):
     permission_classes = (AllowAny,)
 
-    def get(self, request: "Request", *args: "Any", **kwargs: "Any") -> Response:
+    def get(self, request: "Request", *args: typing.Any, **kwargs: typing.Any) -> Response:
         return self.post(request, from_get=True)
 
     def post(self, request: "Request", from_get: bool = False) -> Response:
