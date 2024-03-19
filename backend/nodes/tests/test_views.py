@@ -38,6 +38,23 @@ class NodesViewTestCase(APITransactionTestCase):
         response = self.client.delete(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 405)
 
+    def test_filter_by_space(self) -> None:
+        space = factories.SpaceFactory.create()
+        another_space = factories.SpaceFactory.create()
+        node = factories.NodeFactory.create()
+        space.nodes.add(node)
+
+        response = self.client.get(reverse("nodes:nodes-list"), {"spaces": str(space.public_id)})
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], str(node.public_id))
+
+        response = self.client.get(
+            reverse("nodes:nodes-list"), {"spaces": str(another_space.public_id)}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
+
 
 class SpacesViewTestCase(APITransactionTestCase):
     def test_list(self) -> None:
