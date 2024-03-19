@@ -2,13 +2,14 @@ from nodes import models, serializers
 from utils import views
 
 
-class NodeModelViewSet(views.BaseModelViewSet):
+class NodeModelViewSet(views.BaseReadOnlyModelViewSet):
     """
     API endpoint that allows nodes to be viewed or edited.
     """
 
     queryset = models.Node.available_objects.all()
     serializer_class = serializers.NodeSerializer
+    filterset_fields = ("spaces",)
 
 
 class SpaceModelViewSet(views.BaseModelViewSet):
