@@ -1,7 +1,40 @@
-# How to use the .python-version file:
-#steps:
-# - uses: actions/checkout@v4
-# - uses: actions/setup-python@v5
-#  with:
-#    python-version-file: '.python-version' # Read python version from a file .python-version
-# - run: python my_script.py
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Build Docker Compose configuration
+      run: |
+        docker buildx bake --set *.cache-from=type=local,src=/tmp/.buildx-cache --set *.cache-to=type=local,dest=/tmp/.buildx-cache
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Run unit tests
+      run: docker compose run -e DJANGO_SETTINGS_MODULE=config.settings.test --rm django ./manage.py test --noinput
