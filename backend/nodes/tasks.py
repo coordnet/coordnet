@@ -42,8 +42,6 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             )
                         except models.Node.DoesNotExist:
                             node = models.Node(public_id=document_event.public_id)
-                            # TODO: Make fields nullable instead
-                            node.title = "Untitled"
                             node.title_token_count = utils.token_count(node.title)
 
                         node.content = document_event.new_data
@@ -128,7 +126,6 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
 
                             # 4. Create new nodes that didn't get their content synced yet
                             for node_id in nodes_in_project - nodes_existing:
-                                # TODO: Change once fields are nullable
                                 node = models.Node.objects.create(
                                     public_id=node_id,
                                     title=node_titles[node_id],
