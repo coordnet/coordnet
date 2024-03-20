@@ -7,11 +7,13 @@ import { GraphEdge, GraphNode } from "@/types";
 type NodeContextType = {
   connected: boolean;
   synced: boolean;
-  editorProvider: HocuspocusProvider;
+  editorProvider: HocuspocusProvider | undefined;
   editorYdoc: Y.Doc;
   graphYdoc: Y.Doc;
-  edgesMap: Y.Map<GraphEdge>;
   nodesMap: Y.Map<GraphNode>;
+  edgesMap: Y.Map<GraphEdge>;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 };
 
 /**

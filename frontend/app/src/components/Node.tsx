@@ -4,8 +4,7 @@ import clsx from "clsx";
 import { ReactFlowProvider } from "reactflow";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
-import useNode from "@/hooks/useNode";
-import { NodeProvider } from "@/hooks/useNode/provider";
+import { NodeProvider, useNode } from "@/hooks";
 
 import { Graph, Loader } from "./";
 

@@ -20,8 +20,32 @@ export default {
     },
     extend: {
       colors: {
-        "node-border": "#1a192b",
-        purple: "#650cd7",
+        purple: "#650CD7",
+        blue: {
+          DEFAULT: "#286AFF", // Base blue color
+          light: "#0DBFFF", // Light blue variant
+        },
+        green: "#52CE2A",
+        aqua: "#69E2CC",
+        red: "#FF5A34",
+        orange: "#FFA100",
+        yellow: "#FFDF00",
+        pink: "#FF3CE0",
+        lilac: "#C99EFF",
+        brown: "#BA672C",
+        black: "#000000",
+        white: "#FFFFFF",
+        gray: {
+          1: "#222222",
+          2: "#545454",
+          3: "#727272",
+          4: "#9A9A9A",
+          5: "#C2C2C2",
+          6: "#EEEEEE",
+          7: "#F7F7F7",
+        },
+        bg: "#F6F6F9",
+        border: "#D9D8D8",
       },
       boxShadow: {
         "node-selected": "0 0 0 6px rgb(191, 194, 255)",

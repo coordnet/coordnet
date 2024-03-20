@@ -2,18 +2,16 @@ import "reactflow/dist/style.css";
 import "./react-flow.css";
 
 import clsx from "clsx";
-import { DragEvent, useRef } from "react";
+import { DragEvent, useEffect, useRef } from "react";
 import ReactFlow, { Background, Controls, MiniMap, useReactFlow, XYPosition } from "reactflow";
 import { v4 as uuidv4 } from "uuid";
 
-import useNode from "@/hooks/useNode";
-import useSpace from "@/hooks/useSpace";
+import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
 import { GraphNode } from "@/types";
 
 import GraphNodeComponent from "./GraphNode";
 import Sidebar from "./Sidebar";
-import useEdgesStateSynced from "./useEdgesStateSynced";
-import useNodesStateSynced from "./useNodesStateSynced";
+import useYdocState from "./useYdocState";
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -26,21 +24,44 @@ const nodeTypes = {
 
 const Graph = ({ className }: { className?: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { nodesMap } = useNode();
+  const { nodes, edges, nodesMap } = useNode();
   const { nodesMap: spaceNodesMap } = useSpace();
-  const [nodes, onNodesChange] = useNodesStateSynced();
-  const [edges, onEdgesChange, onConnect] = useEdgesStateSynced();
-  const { screenToFlowPosition } = useReactFlow();
+  const { isQuickViewOpen } = useQuickView();
+  const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
+  const reactFlowInstance = useReactFlow();
+  const { setReactFlowInstance, setNodesMap, setNodes, setFocus } = useFocus();
+
+  useEffect(() => {
+    setReactFlowInstance(reactFlowInstance);
+    setNodesMap(nodesMap);
+    setNodes(nodes);
+
+    return () => {
+      setReactFlowInstance(undefined);
+      setNodesMap(undefined);
+      setNodes([]);
+    };
+  }, [
+    isQuickViewOpen,
+    setNodes,
+    nodes,
+    reactFlowInstance,
+    setReactFlowInstance,
+    nodesMap,
+    setNodesMap,
+  ]);
 
   // useEffect(() => {
   //   nodesMap.forEach((node) => {
-  //     nodesMap.set(node.id, { ...node, type: "GraphNode" });
+  //     // if (!node.position) nodesMap.delete(node.id);
+  //     // nodesMap.set(node.id, { ...node, type: "GraphNode" });
   //   });
   // }, []);
 
   const addNode = (position: XYPosition) => {
     const id = uuidv4();
-    const flowPosition = screenToFlowPosition(position);
+    const flowPosition = reactFlowInstance.screenToFlowPosition(position);
+    if (!flowPosition) alert("Failed to add node");
     const newNode: GraphNode = {
       id,
       type: "GraphNode",
@@ -64,7 +85,7 @@ const Graph = ({ className }: { className?: string }) => {
   };
 
   return (
-    <div className={clsx("h-full select-none", className)}>
+    <div className={clsx("h-full select-none", className)} onClick={() => setFocus("graph")}>
       <Sidebar className="absolute z-40 top-1/2 -translate-y-1/2" addNode={addNode} />
       <div className="grow h-full" ref={wrapperRef}>
         <ReactFlow

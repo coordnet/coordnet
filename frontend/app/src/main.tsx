@@ -9,19 +9,21 @@ import { Toaster } from "sonner";
 import { QueryParamProvider } from "use-query-params";
 import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 
+import { FocusProvider, QuickViewProvider, SpaceProvider } from "@/hooks";
+
 import App from "./App";
 import ErrorPage from "./components/ErrorPage";
-import { QuickViewProvider } from "./hooks/useQuickView/provider";
-import { SpaceProvider } from "./hooks/useSpace/provider";
 
 const queryClient = new QueryClient();
 
 const addProviders = (element: ReactNode) => {
   return (
     <QueryParamProvider adapter={ReactRouter6Adapter}>
-      <QuickViewProvider>
-        <SpaceProvider>{element}</SpaceProvider>
-      </QuickViewProvider>
+      <SpaceProvider>
+        <FocusProvider>
+          <QuickViewProvider>{element}</QuickViewProvider>
+        </FocusProvider>
+      </SpaceProvider>
     </QueryParamProvider>
   );
 };

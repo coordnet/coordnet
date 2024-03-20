@@ -1,26 +1,35 @@
 import { useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
-import { EditableNode, Loader, Node, QuickView } from "@/components";
-
-import Editor from "./components/Editor";
-import { NodeProvider } from "./hooks/useNode/provider";
-import useSpace from "./hooks/useSpace";
+import { EditableNode, Editor, Loader, Node, NodeRepository, QuickView } from "@/components";
+import { NodeProvider, useSpace } from "@/hooks";
 
 function App() {
   const { pageId } = useParams();
-  const { space, spaceError, synced: spaceSynced, connected: spaceConnected } = useSpace();
+  const {
+    space,
+    spaceError,
+    synced: spaceSynced,
+    connected: spaceConnected,
+    // deletedNodes,
+  } = useSpace();
 
   const [nodePage] = useQueryParam<string>("nodePage");
+
+  // useEffect(() => {
+  //   const toDelete = ["b597a0ac-1b6d-48e5-97a9-832961a26ac1"];
+  //   deletedNodes?.insert(0, toDelete);
+  // }, [deletedNodes]);
 
   if (!space && spaceError) return <>Not found</>;
   if (!spaceSynced) return <Loader message="Loading space..." />;
   if (!spaceConnected) return <Loader message="Obtaining connection for space..." />;
 
-  const nodeId = pageId ?? "bfa9d7af-b857-4a69-a4fe-71b909327843";
+  const nodeId = pageId ?? space?.default_node_id ?? "";
 
   return (
     <div className="h-full relative flex flex-col">
+      <NodeRepository />
       <div className="h-9 flex items-center px-4 border-b gap-2">
         <div className="">{space?.title}</div>
         <div className="">&raquo;</div>

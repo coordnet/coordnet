@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { EditableNode } from "@/components";
+import { useFocus } from "@/hooks";
 import useNode from "@/hooks/useNode";
 
 import { loadExtensions } from "./extensions";
@@ -14,17 +15,25 @@ type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
   const { synced, editorYdoc, editorProvider } = useNode();
+  const { setEditor, setFocus } = useFocus();
 
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
 
-  const editor = useEditor({ extensions: loadExtensions(editorProvider, editorYdoc) }, [id]);
+  const editor = useEditor(
+    {
+      extensions: loadExtensions(editorProvider, editorYdoc),
+      onFocus: () => setFocus("editor"),
+    },
+    [id],
+  );
 
   useEffect(() => {
     if (!editor || !synced || !editorYdoc) return;
     // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
-  }, [editor, synced, editorYdoc]);
+    setEditor(editor);
+  }, [editor, synced, editorYdoc, setEditor]);
 
   if (!id) return <></>;
 

@@ -23,6 +23,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     queryFn: ({ signal }) => getSpace(signal, spaceId),
     enabled: Boolean(spaceId),
     retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const ydoc = useMemo(
@@ -61,7 +62,9 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [nodesMap, setNodes]);
 
   const value = {
-    space,
+    space: space
+      ? { ...space, default_node_id: "bfa9d7af-b857-4a69-a4fe-71b909327843" }
+      : undefined,
     spaceError: isError,
     nodes,
     nodesMap,

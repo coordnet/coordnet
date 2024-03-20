@@ -17,15 +17,13 @@ const handleStyle: CSSProperties = {
   height: 10,
 };
 
-const GraphNodeComponent = ({
-  id,
-  data,
-  selected,
-}: {
+interface GraphNodeComponentProps {
   id: string;
   data: GraphNode["data"];
   selected: boolean;
-}) => {
+}
+
+const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => {
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
@@ -103,7 +101,7 @@ const GraphNodeComponent = ({
       <Handle id="target-left" type="target" position={Position.Left} style={handleStyle} />
       <div
         className={clsx(
-          "GraphNode group border border-node-border rounded-lg p-3 bg-white",
+          "GraphNode group border border-gray-1 rounded-lg p-3 bg-white",
           "size-full overflow-hidden flex items-center justify-center text-center text-sm",
           {
             "border-2": Boolean(data.borderColor),

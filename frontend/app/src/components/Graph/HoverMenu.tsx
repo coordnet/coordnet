@@ -10,8 +10,7 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import useNode from "@/hooks/useNode";
-import useQuickView from "@/hooks/useQuickView";
+import { useNode, useQuickView } from "@/hooks";
 import { GraphNode } from "@/types";
 
 const HoverMenu = ({
@@ -67,7 +66,7 @@ const HoverMenu = ({
       </Tooltip>
       <div className="border-r border-gray h-5"></div>
       <div className="size-4 flex items-center justify-center" data-tooltip-id="node-color">
-        <div className="cursor-pointer size-3 rounded-lg border-node-border border border-dashed"></div>
+        <div className="cursor-pointer size-3 rounded-lg border-gray-1 border border-dashed"></div>
       </div>
       <Tooltip id="node-color" className="!text-sm !px-3">
         Color
