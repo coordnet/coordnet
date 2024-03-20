@@ -6,7 +6,6 @@ from nodes.tests import factories
 
 class NodeModelTestCase(TestCase):
     def test_node_creation_and_deletion(self) -> None:
-        # TODO: Start using factories for creating test data.
         node = factories.NodeFactory.create(title="test")
         self.assertEqual(node.title, "test")
 
@@ -28,3 +27,19 @@ class NodeModelTestCase(TestCase):
         space_2 = models.Space.objects.create(title="test")
 
         self.assertNotEqual(space_1.title_slug, space_2.title_slug)
+
+    def test_node_token_calculation(self) -> None:
+        node = factories.NodeFactory.create(title="test", text="test")
+        node.refresh_from_db()
+        self.assertEqual(node.title_token_count, 1)
+        self.assertEqual(node.text_token_count, 1)
+
+        node.title = "test test"
+        node.save()
+        node.refresh_from_db()
+        self.assertEqual(node.title_token_count, 2)
+
+        node.content = factories.content_for_text("test test")
+        node.save(update_fields=["content"])
+        node.refresh_from_db()
+        self.assertEqual(node.text_token_count, 2)
