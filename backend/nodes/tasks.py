@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @shared_task(ignore_result=True)
 def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR0915
     """
-    Process document events and update the corresponding nodes and projects.
+    Process document events and update the corresponding Nodes and Spaces.
     TODO: Check whether we have an issue with Out of Order Processing.
     TODO: Reduce complexity of this function.
     """
@@ -67,7 +67,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                         models.DocumentEvent.EventType.UPDATE,
                     ):
                         with transaction.atomic():
-                            # 1. Update the project
+                            # 1. Update the space
                             deleted_nodes = (
                                 models.Node.all_objects.select_for_update()
                                 .filter(
@@ -76,7 +76,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 .defer("content", "text")
                             )
 
-                            # Extract nodes and titles from project data
+                            # Extract nodes and titles from space data
                             node_titles = {
                                 node_id: node_data.get("title")
                                 for node_id, node_data in document_event.new_data.get(
@@ -85,25 +85,24 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             }
 
                             try:
-                                project = models.Space.all_objects.select_for_update(
-                                    no_key=True
-                                ).get(public_id=document_event.public_id)
+                                space = models.Space.all_objects.select_for_update(no_key=True).get(
+                                    public_id=document_event.public_id
+                                )
                             except models.Space.DoesNotExist:
                                 logger.error(
-                                    f"Project {document_event.public_id} "
-                                    "does not exist. Ignoring..."
+                                    f"Space {document_event.public_id} does not exist. Ignoring..."
                                 )
                                 if raise_exception:
                                     raise
                                 continue
 
-                            project.deleted_nodes.set(deleted_nodes)
-                            project_nodes = (
+                            space.deleted_nodes.set(deleted_nodes)
+                            space_nodes = (
                                 models.Node.all_objects.select_for_update(no_key=True)
                                 .filter(public_id__in=node_titles.keys())
                                 .defer("content", "text")
                             )
-                            project.nodes.set(project_nodes)
+                            space.nodes.set(space_nodes)
 
                             # 2. Set the deleted nodes (and undelete if necessary)
                             for deleted_node in deleted_nodes:
@@ -113,25 +112,25 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     deleted_node.delete()
 
                             # 3. Update the node titles and token counts of existing nodes
-                            nodes_in_project = set(node_titles.keys())
+                            nodes_in_space = set(node_titles.keys())
                             nodes_existing = set(
-                                map(str, project_nodes.values_list("public_id", flat=True))
+                                map(str, space_nodes.values_list("public_id", flat=True))
                             )
 
-                            for node in project_nodes:
+                            for node in space_nodes:
                                 if node.title != node_titles[str(node.public_id)]:
                                     node.title = node_titles[str(node.public_id)]
                                     node.title_token_count = utils.token_count(node.title)
                                     node.save(update_fields=["title", "title_token_count"])
 
                             # 4. Create new nodes that didn't get their content synced yet
-                            for node_id in nodes_in_project - nodes_existing:
+                            for node_id in nodes_in_space - nodes_existing:
                                 node = models.Node.objects.create(
                                     public_id=node_id,
                                     title=node_titles[node_id],
                                     title_token_count=utils.token_count(node_titles[node_id]),
                                 )
-                                project.nodes.add(node)
+                                space.nodes.add(node)
 
                     elif document_event.action == models.DocumentEvent.EventType.DELETE:
                         logger.warning(
