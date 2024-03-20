@@ -152,6 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "django.middleware.gzip.GZipMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -385,6 +386,12 @@ SPECTACULAR_SETTINGS: dict[str, typing.Any] = {
 NODE_CRDT_KEY = env("NODE_CRDT_KEY", default="default")
 NODE_CRDT_EVENTS_INTERVAL = env.int("NODE_CRDT_INTERVAL", default=2)
 NODE_CRDT_EVENTS_TASK = env("NODE_CRDT_TASK", default="nodes.tasks.process_document_events")
+
+# The interval at which we create document snapshots.
+NODE_VERSIONING_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=60 * 5)
+# The interval at which the task is executed.
+NODE_VERSIONING_TASK_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=30)
+NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document_versioning")
 
 # TODO: This might only be needed as an override for local development, in production we'd want to
 #       host the frontend on the same domain as the backend.

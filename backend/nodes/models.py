@@ -1,4 +1,5 @@
 import typing
+import uuid
 
 import model_utils
 import pgtrigger
@@ -102,9 +103,24 @@ class Node(utils_models.BaseModel):
         return f"{self.public_id} - {self.title}"
 
 
+class DocumentVersion(utils_models.BaseModel):
+    """Task for storing the version of a document."""
+
+    public_id = models.UUIDField(editable=False, default=uuid.uuid4, db_index=True)
+    document_type = models.CharField(max_length=255, choices=DocumentType.choices)
+    document = models.ForeignKey("Document", on_delete=models.CASCADE, related_name="versions")
+    json_hash = models.CharField(max_length=255)
+    data = models.BinaryField()
+
+    def __str__(self) -> str:
+        return f"{self.document.public_id} - {self.created_at}"
+
+
 class Space(utils_models.BaseModel):
     title = models.CharField(max_length=255)
     title_slug = models.SlugField(max_length=255, unique=True)
+    # Setting the type hint manually is required because of a bug in the Django stubs.
+    # Reported here: https://github.com/typeddjango/django-stubs/issues/2011
     nodes: models.ManyToManyField = models.ManyToManyField(Node, related_name="spaces")
     deleted_nodes: models.ManyToManyField = models.ManyToManyField(
         Node, related_name="spaces_deleted"
@@ -124,7 +140,9 @@ class Space(utils_models.BaseModel):
         super().save(*args, **kwargs)
 
 
-class Document(models.Model):
+class Document(models.Model):  # type: ignore[django-manager-missing]
+    # The type ignore is required because of a bug in the Django stubs (I think).
+    # Possibly related to: https://github.com/typeddjango/django-stubs/issues/2011
     public_id = models.UUIDField(editable=False, db_index=True)
     document_type = models.CharField(max_length=255, choices=DocumentType.choices)
 

@@ -46,4 +46,4 @@ class BaseSerializer(serializers.ModelSerializer):
     class Meta:
         # Since we are using UUIDs as primary keys with the key `id`, we don't need to show the
         # `public_id` field.
-        exclude: typing.Sequence[str] = ("public_id", "is_removed")
+        exclude = ["public_id", "is_removed"]

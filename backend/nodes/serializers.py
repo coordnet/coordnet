@@ -34,3 +34,16 @@ class SpaceSerializer(coord_serializers.BaseSerializer):
     class Meta(coord_serializers.BaseSerializer.Meta):
         model = models.Space
         depth = 2
+
+
+class DocumentVersionSerializer(coord_serializers.BaseSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name="nodes:document-versions-detail", lookup_field="public_id"
+    )
+    crdt = serializers.HyperlinkedIdentityField(
+        view_name="nodes:document-versions-crdt", lookup_field="public_id"
+    )
+
+    class Meta(coord_serializers.BaseSerializer.Meta):
+        model = models.DocumentVersion
+        exclude = coord_serializers.BaseSerializer.Meta.exclude + ["data", "json_hash"]

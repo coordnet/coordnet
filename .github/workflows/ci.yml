@@ -36,5 +36,8 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
+    - name: Run migrations
+      run: docker compose run -e DJANGO_SETTINGS_MODULE=config.settings.test --rm django ./manage.py migrate
+
     - name: Run unit tests
       run: docker compose run -e DJANGO_SETTINGS_MODULE=config.settings.test --rm django ./manage.py test --noinput
