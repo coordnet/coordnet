@@ -1,5 +1,6 @@
 import typing
 
+import model_utils
 import pgtrigger
 from django.db import models
 from django.utils.text import slugify
@@ -32,6 +33,17 @@ class DocumentEvent(models.Model):
 
 
 class Node(utils_models.BaseModel):
+    """
+    A node in the graph.
+
+    Note:
+        The fields `title_token_count` and `text_token_count` are updated automatically when the
+        `title` and `text` fields are changed.
+        The field `text` is updated automatically when the `content` field is changed.
+        These fields are considered read-only / automatically managed and should not be updated
+        directly. The `save` method is overridden to handle these updates.
+    """
+
     title = models.CharField(max_length=1024, null=True)
     title_token_count = models.PositiveIntegerField(null=True)
     content = models.JSONField(null=True)
@@ -40,6 +52,43 @@ class Node(utils_models.BaseModel):
     subnodes: models.ManyToManyField = models.ManyToManyField(
         "self", related_name="parents", symmetrical=False, blank=True
     )
+
+    tracker = model_utils.FieldTracker()
+
+    @staticmethod
+    def __add_to_update_fields(
+        update_fields: typing.Iterable[str] | None, *fields: str
+    ) -> None | list[str]:
+        if update_fields is None:
+            return None
+        update_fields = set(update_fields)
+        update_fields.update(fields)
+        return list(update_fields)
+
+    @staticmethod
+    def __is_updated(update_fields: typing.Iterable[str] | None, field: str) -> bool:
+        return update_fields is None or field in update_fields
+
+    def save(
+        self,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: typing.Iterable[str] | None = None,
+    ) -> None:
+        add_to_update_fields: list[str] = []
+        if self.tracker.has_changed("content") and self.__is_updated(update_fields, "content"):
+            self.text = " ".join(utils.extract_text_from_node(self.content))
+            add_to_update_fields.append("text")
+            self.text_token_count = utils.token_count(self.text)
+            add_to_update_fields.append("text_token_count")
+        if self.tracker.has_changed("title") and self.__is_updated(update_fields, "title"):
+            self.title_token_count = utils.token_count(self.title)
+            add_to_update_fields.append("title_token_count")
+
+        update_fields = self.__add_to_update_fields(update_fields, *add_to_update_fields)
+
+        return super().save(force_insert, force_update, using, update_fields)
 
     @property
     def has_graph(self) -> bool:

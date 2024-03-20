@@ -1,10 +1,9 @@
 import logging
 
 from celery import shared_task
-from django.conf import settings
 from django.db import transaction
 
-from nodes import models, utils
+from nodes import models
 
 logger = logging.getLogger(__name__)
 
@@ -31,23 +30,14 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                         models.DocumentEvent.EventType.INSERT,
                         models.DocumentEvent.EventType.UPDATE,
                     ):
-                        node_text = " ".join(
-                            utils.extract_text_from_node(
-                                document_event.new_data[settings.NODE_CRDT_KEY]["content"]
-                            )
-                        )
                         try:
                             node = models.Node.all_objects.select_for_update(no_key=True).get(
                                 public_id=document_event.public_id
                             )
                         except models.Node.DoesNotExist:
                             node = models.Node(public_id=document_event.public_id)
-                            node.title_token_count = utils.token_count(node.title)
 
                         node.content = document_event.new_data
-                        if node.text != node_text:
-                            node.text = node_text
-                            node.text_token_count = utils.token_count(node_text)
                         node.save()
 
                     elif document_event.action == models.DocumentEvent.EventType.DELETE:
@@ -120,15 +110,13 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             for node in space_nodes:
                                 if node.title != node_titles[str(node.public_id)]:
                                     node.title = node_titles[str(node.public_id)]
-                                    node.title_token_count = utils.token_count(node.title)
-                                    node.save(update_fields=["title", "title_token_count"])
+                                    node.save(update_fields=["title"])
 
                             # 4. Create new nodes that didn't get their content synced yet
                             for node_id in nodes_in_space - nodes_existing:
                                 node = models.Node.objects.create(
                                     public_id=node_id,
                                     title=node_titles[node_id],
-                                    title_token_count=utils.token_count(node_titles[node_id]),
                                 )
                                 space.nodes.add(node)
 

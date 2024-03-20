@@ -127,7 +127,10 @@ class NodeEventTestCase(TransactionTestCase):
         factories.SpaceFactory.create(public_id=space_public_id)
 
         for key in fixtures.SPACE["nodes"]:
-            factories.NodeFactory.create(public_id=key)
+            factories.NodeFactory.create(public_id=key, title=None)
+
+        # All token counts should be None
+        self.assertFalse(models.Node.objects.exclude(title_token_count__isnull=True).exists())
 
         # TODO: Improve the way that the document event is created and task is triggered.
         factories.DocumentEventFactory.create(
@@ -138,6 +141,11 @@ class NodeEventTestCase(TransactionTestCase):
         )
 
         tasks.process_document_events(raise_exception=True)
+
+        self.assertEqual(models.Space.objects.count(), 1)
+        self.assertEqual(models.DocumentEvent.objects.count(), 0)
+        self.assertEqual(models.Node.objects.count(), 4)
+        self.assertEqual(models.Node.objects.exclude(title_token_count__isnull=True).count(), 4)
 
         factories.DocumentEventFactory.create(
             public_id=space_public_id,
