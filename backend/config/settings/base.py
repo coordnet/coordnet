@@ -383,6 +383,8 @@ SPECTACULAR_SETTINGS: dict[str, typing.Any] = {
 # CRDT Settings
 # ------------------------------------------------------------------------------
 NODE_CRDT_KEY = env("NODE_CRDT_KEY", default="default")
+NODE_CRDT_EVENTS_INTERVAL = env.int("NODE_CRDT_INTERVAL", default=2)
+NODE_CRDT_EVENTS_TASK = env("NODE_CRDT_TASK", default="nodes.tasks.process_document_events")
 
 # TODO: This might only be needed as an override for local development, in production we'd want to
 #       host the frontend on the same domain as the backend.
