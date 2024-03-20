@@ -56,8 +56,10 @@ def extract_text_from_node(node: dict[str, typing.Any] | list) -> list[str]:
     return texts
 
 
-def token_count(text: str, model: str = "gpt-4") -> int:
+def token_count(text: str | None, model: str = "gpt-4") -> int | None:
     """Count the number of tokens in a string."""
+    if text is None:
+        return None
     enc = tiktoken.encoding_for_model(model)
     return len(enc.encode(text))
 
