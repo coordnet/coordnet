@@ -35,6 +35,8 @@ class NodeFactory(DjangoModelFactory):
 
 
 class DocumentFactory(DjangoModelFactory):
+    public_id = factory.Faker("uuid4")
+
     class Meta:
         model = "nodes.Document"
 
@@ -49,3 +51,8 @@ class SpaceFactory(DjangoModelFactory):
 class DocumentEventFactory(DjangoModelFactory):
     class Meta:
         model = "nodes.DocumentEvent"
+
+
+class DocumentVersionFactory(DjangoModelFactory):
+    class Meta:
+        model = "nodes.DocumentVersion"
