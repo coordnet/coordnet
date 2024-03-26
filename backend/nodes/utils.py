@@ -3,43 +3,6 @@ import typing
 
 import tiktoken
 
-# def extract_nodes_from_json(
-#     json: dict[str, typing.Any], document_id: str
-# ) -> list[nodes_typing.NodeData]:
-#     """
-#     Extract nodes from a JSON object.
-#     This will recursively extract nodes from the JSON object.
-#     """
-#
-#     nodes: list[nodes_typing.NodeData] = [
-#         {
-#             "name": document_id,
-#             "content": json[settings.NODE_CRDT_KEY],
-#             "type": "document",
-#         }
-#     ]
-#     return nodes + extract_coord_nodes(json[settings.NODE_CRDT_KEY])
-
-
-# def extract_coord_nodes(data: dict | list) -> list[nodes_typing.NodeData]:
-#     """Recursively extract CoordNode objects from a nested dictionary."""
-#     nodes: list[nodes_typing.NodeData] = []
-#     if isinstance(data, dict):
-#         if data.get("type") == "CoordNode":
-#             nodes.append(
-#                 {
-#                     "name": data.get("attrs", {}).get("id"),
-#                     "content": data,
-#                     "type": "node",
-#                 }
-#             )
-#         for value in data.values():
-#             nodes.extend(extract_coord_nodes(value))
-#     elif isinstance(data, list):
-#         for item in data:
-#             nodes.extend(extract_coord_nodes(item))
-#     return nodes
-
 
 def extract_text_from_node(node: dict[str, typing.Any] | list) -> list[str]:
     """Extract text from a node."""

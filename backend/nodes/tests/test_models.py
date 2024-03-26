@@ -1,3 +1,5 @@
+from itertools import chain
+
 from django.test import TestCase
 
 from nodes import models
@@ -43,3 +45,83 @@ class NodeModelTestCase(TestCase):
         node.save(update_fields=["content"])
         node.refresh_from_db()
         self.assertEqual(node.text_token_count, 2)
+
+    def test_subnode_fetching(self) -> None:
+        """Test that subnodes are fetched by depth."""
+        third_level_subnodes = [factories.NodeFactory.create_batch(3) for _ in range(3)]
+        second_level_subnodes = factories.NodeFactory.create_batch(3)
+        for idx, node in enumerate(second_level_subnodes):
+            node.subnodes.add(*third_level_subnodes[idx])
+        node = factories.NodeFactory()
+        node.subnodes.add(*second_level_subnodes)
+
+        with self.assertNumQueries(4):
+            nodes_at_depth = node.fetch_subnodes(2)
+            self.assertEqual(len(nodes_at_depth[0]), 1)
+            self.assertEqual(len(nodes_at_depth[1]), 3)
+            self.assertEqual(len(nodes_at_depth[2]), 9)
+            self.assertNotIn(3, nodes_at_depth)
+
+    def test_node_as_str(self) -> None:
+        node = factories.NodeFactory.create(title="test", text="test text")
+        self.assertEqual(node.node_as_str(include_content=False), f"({node.public_id}) - test")
+        self.assertEqual(
+            node.node_as_str(include_content=True), f"({node.public_id}) - test - test text"
+        )
+
+        subnode = factories.NodeFactory.create(title="subnode")
+        node.subnodes.add(subnode)
+        self.assertEqual(
+            node.node_as_str(include_content=False),
+            f"({node.public_id}) - test",
+        )
+        self.assertEqual(
+            node.node_as_str(include_content=True),
+            f"({node.public_id}) - test - test text - Connects to: {subnode.public_id}",
+        )
+
+    def test_node_context_for_depth(self) -> None:
+        # TODO: To improve this test, make sure that all content is unique.
+        third_level_subnodes = [factories.NodeFactory.create_batch(3) for _ in range(3)]
+        second_level_subnodes = factories.NodeFactory.create_batch(3)
+        for idx, node in enumerate(second_level_subnodes):
+            node.subnodes.add(*third_level_subnodes[idx])
+        node = factories.NodeFactory()
+        node.subnodes.add(*second_level_subnodes)
+
+        context = node.node_context_for_depth(0)
+        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        for subnode in second_level_subnodes:
+            self.assertIn(subnode.title.replace("\n", " "), context)
+            self.assertNotIn(subnode.text.replace("\n", " "), context)
+        for subnode in chain(*third_level_subnodes):
+            self.assertNotIn(subnode.title.replace("\n", " "), context)
+            self.assertNotIn(subnode.text.replace("\n", " "), context)
+
+        context = node.node_context_for_depth(1)
+        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+
+        for subnode in second_level_subnodes:
+            self.assertIn(subnode.title.replace("\n", " "), context)
+            self.assertIn(subnode.text.replace("\n", " "), context)
+        for subnode in chain(*third_level_subnodes):
+            self.assertNotIn(subnode.title.replace("\n", " "), context)
+            self.assertNotIn(subnode.text.replace("\n", " "), context)
+
+        context = node.node_context_for_depth(2)
+        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        for subnode in second_level_subnodes:
+            self.assertIn(subnode.title.replace("\n", " "), context)
+            self.assertIn(subnode.text.replace("\n", " "), context)
+        for subnode in chain(*third_level_subnodes):
+            self.assertIn(subnode.title.replace("\n", " "), context)
+            self.assertNotIn(subnode.text.replace("\n", " "), context)
+
+        context = node.node_context_for_depth(3)
+        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        for subnode in second_level_subnodes:
+            self.assertIn(subnode.title.replace("\n", " "), context)
+            self.assertIn(subnode.text.replace("\n", " "), context)
+        for subnode in chain(*third_level_subnodes):
+            self.assertIn(subnode.title.replace("\n", " "), context)
+            self.assertIn(subnode.text.replace("\n", " "), context)
