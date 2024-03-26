@@ -91,13 +91,49 @@ class Node(utils_models.BaseModel):
 
         return super().save(force_insert, force_update, using, update_fields)
 
-    @property
-    def has_graph(self) -> bool:
-        return self.subnodes.exists()
+    def node_as_str(self, include_content: bool) -> str:
+        """Return a string representation of the node."""
+        single_line_title = self.title.replace("\n", " ").replace("\r", " ") if self.title else ""
+        single_line_text = self.text.replace("\n", " ").replace("\r", " ") if self.text else ""
+        node_str = f"({str(self.public_id)}) - {single_line_title}"
+        if include_content:
+            node_str += f" - {single_line_text}"
+            if subnode_ids := self.subnodes.values_list("public_id", flat=True):
+                node_str += f" - Connects to: {', '.join(map(str, subnode_ids))}"
+        return node_str
 
-    @property
-    def has_content(self) -> bool:
-        return bool(self.text_token_count)
+    def fetch_subnodes(self, depth: int) -> dict[int, list["Node"]]:
+        """Fetch subnodes of a node and return then by depth."""
+        nodes_at_depth = {0: [self]}
+        for i in range(1, depth + 1):
+            nodes_at_depth[i] = []
+            subnodes = Node.objects.filter(parents__in=nodes_at_depth[i - 1]).prefetch_related(
+                "subnodes"
+            )
+            nodes_at_depth[i].extend(list(subnodes))
+        return nodes_at_depth
+
+    def get_nodes_for_level(self, query_depth: int) -> dict[int, list["Node"]]:
+        """Get all nodes required for a certain level."""
+        if query_depth < 0:
+            raise NotImplementedError("Negative levels are not supported yet.")
+        return self.fetch_subnodes((query_depth // 2) + 1)
+
+    def node_context_for_depth(self, query_depth: int) -> str:
+        """Get the context of a node for a certain depth."""
+        nodes_at_depth = self.get_nodes_for_level(query_depth)
+        ignore_content_at_depth = (query_depth // 2) + 1 if query_depth % 2 == 0 else None
+        context = ""
+
+        for depth, nodes in nodes_at_depth.items():
+            include_content = True
+            if depth == ignore_content_at_depth:
+                include_content = False
+
+            for node in nodes:
+                context += node.node_as_str(include_content) + "\n"
+
+        return context
 
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"

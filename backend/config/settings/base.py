@@ -112,7 +112,7 @@ THIRD_PARTY_APPS = [
     "pgtrigger",
 ]
 
-LOCAL_APPS = ["users", "nodes"]
+LOCAL_APPS = ["users", "nodes", "buddies"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -152,7 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    "django.middleware.gzip.GZipMiddleware",
+    "utils.middlewares.SelectiveGZipMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -392,6 +392,10 @@ NODE_VERSIONING_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=60 * 5)
 # The interval at which the task is executed.
 NODE_VERSIONING_TASK_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=30)
 NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document_versioning")
+
+# LLMs
+# ------------------------------------------------------------------------------
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="fake-key")
 
 # TODO: This might only be needed as an override for local development, in production we'd want to
 #       host the frontend on the same domain as the backend.
