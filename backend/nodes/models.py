@@ -92,13 +92,14 @@ class Node(utils_models.BaseModel):
 
         return super().save(force_insert, force_update, using, update_fields)
 
-    def node_as_str(self, include_content: bool) -> str:
+    def node_as_str(self, include_content: bool, include_connections: bool) -> str:
         """Return a string representation of the node."""
         single_line_title = self.title.replace("\n", " ").replace("\r", " ") if self.title else ""
         single_line_text = self.text.replace("\n", " ").replace("\r", " ") if self.text else ""
         node_str = f"({str(self.public_id)}) - {single_line_title}"
         if include_content:
             node_str += f" - {single_line_text}"
+        if include_connections:
             if subnode_ids := self.subnodes.values_list("public_id", flat=True):
                 node_str += f" - Connects to: {', '.join(map(str, subnode_ids))}"
         return node_str
@@ -120,7 +121,11 @@ class Node(utils_models.BaseModel):
     ) -> str:
         """Get the context of a node for a certain depth."""
         node_depth = (query_depth // 2) + 1
-        if nodes_at_depth is None:
+        if nodes_at_depth:
+            nodes_at_depth = {
+                depth: nodes for depth, nodes in nodes_at_depth.items() if depth <= node_depth
+            }
+        else:
             nodes_at_depth = self.fetch_subnodes(node_depth)
 
         ignore_content_at_depth = node_depth if query_depth % 2 == 0 else None
@@ -132,7 +137,12 @@ class Node(utils_models.BaseModel):
                 include_content = False
 
             for node in nodes:
-                context += node.node_as_str(include_content) + "\n"
+                context += (
+                    node.node_as_str(
+                        include_content=include_content, include_connections=not depth == node_depth
+                    )
+                    + "\n"
+                )
 
         return context
 
