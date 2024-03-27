@@ -96,12 +96,12 @@ class Node(utils_models.BaseModel):
         """Return a string representation of the node."""
         single_line_title = self.title.replace("\n", " ").replace("\r", " ") if self.title else ""
         single_line_text = self.text.replace("\n", " ").replace("\r", " ") if self.text else ""
-        node_str = f"({str(self.public_id)}) - {single_line_title}"
+        node_str = f"({str(self.public_id)})\n - Title: {single_line_title}"
         if include_content:
-            node_str += f" - {single_line_text}"
+            node_str += f"\n - Content: {single_line_text}"
         if include_connections:
             if subnode_ids := self.subnodes.values_list("public_id", flat=True):
-                node_str += f" - Connects to: {', '.join(map(str, subnode_ids))}"
+                node_str += f"\n - Connects to: {', '.join(map(str, subnode_ids))}"
         return node_str
 
     def fetch_subnodes(self, depth: int) -> dict[int, list["Node"]]:
