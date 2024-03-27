@@ -4,6 +4,7 @@ from django.http import StreamingHttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from buddies import models, serializers
 from utils import middlewares, views
@@ -34,3 +35,16 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         return StreamingHttpResponse(
             buddy.query_model(node, level, message), content_type="text/event-stream"
         )
+
+    @action(detail=True, methods=["post"], serializer_class=serializers.BuddyQuerySerializer)
+    def token_counts(self, request: "Request", public_id: str | None = None) -> Response:
+        buddy = self.get_object()
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        node = validated_data.get("node")
+        max_depth = validated_data.get("level")
+        message = validated_data.get("message")
+
+        return Response(buddy.calculate_token_counts(node, max_depth, message))
