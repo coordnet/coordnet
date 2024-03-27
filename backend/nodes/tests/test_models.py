@@ -64,20 +64,33 @@ class NodeModelTestCase(TestCase):
 
     def test_node_as_str(self) -> None:
         node = factories.NodeFactory.create(title="test", text="test text")
-        self.assertEqual(node.node_as_str(include_content=False), f"({node.public_id}) - test")
         self.assertEqual(
-            node.node_as_str(include_content=True), f"({node.public_id}) - test - test text"
+            node.node_as_str(include_content=False, include_connections=True),
+            f"({node.public_id})\n - Title: test",
+        )
+        self.assertEqual(
+            node.node_as_str(include_content=True, include_connections=True),
+            f"({node.public_id})\n - Title: test\n - Content: test text",
         )
 
         subnode = factories.NodeFactory.create(title="subnode")
         node.subnodes.add(subnode)
         self.assertEqual(
-            node.node_as_str(include_content=False),
-            f"({node.public_id}) - test",
+            node.node_as_str(include_content=False, include_connections=True),
+            f"({node.public_id})\n - Title: test\n - Connects to: {subnode.public_id}",
         )
         self.assertEqual(
-            node.node_as_str(include_content=True),
-            f"({node.public_id}) - test - test text - Connects to: {subnode.public_id}",
+            node.node_as_str(include_content=True, include_connections=True),
+            f"({node.public_id})\n - Title: test\n - Content: test text"
+            f"\n - Connects to: {subnode.public_id}",
+        )
+        self.assertEqual(
+            node.node_as_str(include_content=False, include_connections=False),
+            f"({node.public_id})\n - Title: test",
+        )
+        self.assertEqual(
+            node.node_as_str(include_content=True, include_connections=False),
+            f"({node.public_id})\n - Title: test\n - Content: test text",
         )
 
     def test_node_context_for_depth(self) -> None:
@@ -90,7 +103,9 @@ class NodeModelTestCase(TestCase):
         node.subnodes.add(*second_level_subnodes)
 
         context = node.node_context_for_depth(0)
-        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        self.assertIn(
+            node.node_as_str(include_content=True, include_connections=False) + "\n", context
+        )
         for subnode in second_level_subnodes:
             self.assertIn(subnode.title.replace("\n", " "), context)
             self.assertNotIn(subnode.text.replace("\n", " "), context)
@@ -99,7 +114,9 @@ class NodeModelTestCase(TestCase):
             self.assertNotIn(subnode.text.replace("\n", " "), context)
 
         context = node.node_context_for_depth(1)
-        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        self.assertIn(
+            node.node_as_str(include_content=True, include_connections=False) + "\n", context
+        )
 
         for subnode in second_level_subnodes:
             self.assertIn(subnode.title.replace("\n", " "), context)
@@ -109,7 +126,9 @@ class NodeModelTestCase(TestCase):
             self.assertNotIn(subnode.text.replace("\n", " "), context)
 
         context = node.node_context_for_depth(2)
-        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        self.assertIn(
+            node.node_as_str(include_content=True, include_connections=False) + "\n", context
+        )
         for subnode in second_level_subnodes:
             self.assertIn(subnode.title.replace("\n", " "), context)
             self.assertIn(subnode.text.replace("\n", " "), context)
@@ -118,7 +137,9 @@ class NodeModelTestCase(TestCase):
             self.assertNotIn(subnode.text.replace("\n", " "), context)
 
         context = node.node_context_for_depth(3)
-        self.assertIn(node.node_as_str(include_content=True) + "\n", context)
+        self.assertIn(
+            node.node_as_str(include_content=True, include_connections=False) + "\n", context
+        )
         for subnode in second_level_subnodes:
             self.assertIn(subnode.title.replace("\n", " "), context)
             self.assertIn(subnode.text.replace("\n", " "), context)
