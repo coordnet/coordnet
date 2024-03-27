@@ -6,8 +6,9 @@ import pgtrigger
 from django.db import models
 from django.utils.text import slugify
 
-from nodes import utils
+from nodes import utils as nodes_utils
 from utils import models as utils_models
+from utils import tokens
 
 
 class DocumentType(models.TextChoices):
@@ -79,12 +80,12 @@ class Node(utils_models.BaseModel):
     ) -> None:
         add_to_update_fields: list[str] = []
         if self.tracker.has_changed("content") and self.__is_updated(update_fields, "content"):
-            self.text = " ".join(utils.extract_text_from_node(self.content))
+            self.text = " ".join(nodes_utils.extract_text_from_node(self.content))
             add_to_update_fields.append("text")
-            self.text_token_count = utils.token_count(self.text)
+            self.text_token_count = tokens.token_count(self.text)
             add_to_update_fields.append("text_token_count")
         if self.tracker.has_changed("title") and self.__is_updated(update_fields, "title"):
-            self.title_token_count = utils.token_count(self.title)
+            self.title_token_count = tokens.token_count(self.title)
             add_to_update_fields.append("title_token_count")
 
         update_fields = self.__add_to_update_fields(update_fields, *add_to_update_fields)
@@ -106,23 +107,23 @@ class Node(utils_models.BaseModel):
         """Fetch subnodes of a node and return then by depth."""
         nodes_at_depth = {0: [self]}
         for i in range(1, depth + 1):
-            nodes_at_depth[i] = []
             subnodes = Node.objects.filter(parents__in=nodes_at_depth[i - 1]).prefetch_related(
                 "subnodes"
             )
-            nodes_at_depth[i].extend(list(subnodes))
+            if not subnodes:
+                break
+            nodes_at_depth[i] = list(subnodes)
         return nodes_at_depth
 
-    def get_nodes_for_level(self, query_depth: int) -> dict[int, list["Node"]]:
-        """Get all nodes required for a certain level."""
-        if query_depth < 0:
-            raise NotImplementedError("Negative levels are not supported yet.")
-        return self.fetch_subnodes((query_depth // 2) + 1)
-
-    def node_context_for_depth(self, query_depth: int) -> str:
+    def node_context_for_depth(
+        self, query_depth: int, nodes_at_depth: dict[int, list["Node"]] | None = None
+    ) -> str:
         """Get the context of a node for a certain depth."""
-        nodes_at_depth = self.get_nodes_for_level(query_depth)
-        ignore_content_at_depth = (query_depth // 2) + 1 if query_depth % 2 == 0 else None
+        node_depth = (query_depth // 2) + 1
+        if nodes_at_depth is None:
+            nodes_at_depth = self.fetch_subnodes(node_depth)
+
+        ignore_content_at_depth = node_depth if query_depth % 2 == 0 else None
         context = ""
 
         for depth, nodes in nodes_at_depth.items():
@@ -171,7 +172,7 @@ class Space(utils_models.BaseModel):
             title_slug = slugify(self.title)
             self.title_slug = title_slug
             while Space.objects.filter(title_slug=self.title_slug).exists():
-                self.title_slug = f"{title_slug}-{utils.random_string(4)}"
+                self.title_slug = f"{title_slug}-{nodes_utils.random_string(4)}"
 
         super().save(*args, **kwargs)
 
