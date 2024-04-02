@@ -69,7 +69,7 @@ export const getLLMTokenCount = async (
 ): Promise<LLMTokenCount> => {
   const response = await api.post(
     `api/buddies/${buddyId}/token_counts/`,
-    { message: message && message != "" ? message : "X", node, level },
+    { message, node, level },
     { signal },
   );
   return response.data;

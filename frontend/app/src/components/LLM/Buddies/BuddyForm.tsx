@@ -52,7 +52,6 @@ const CreateBuddy = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
     if (buddy) {
       await updateBuddy(buddy.id, values);
     } else {

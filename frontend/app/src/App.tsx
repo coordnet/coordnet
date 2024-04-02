@@ -1,45 +1,46 @@
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
-import { EditableNode, Editor, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
+import { Editor, Header, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
 import { NodeProvider, useSpace } from "@/hooks";
 
 import ErrorPage from "./components/ErrorPage";
 
 function App() {
   const { pageId } = useParams();
-  const {
-    space,
-    spaceError,
-    synced: spaceSynced,
-    connected: spaceConnected,
-    // deletedNodes,
-  } = useSpace();
-
+  const { space, spaceError, synced, connected, breadcrumbs, setBreadcrumbs } = useSpace();
   const [nodePage] = useQueryParam<string>("nodePage");
 
-  // useEffect(() => {
-  //   const toDelete = ["b597a0ac-1b6d-48e5-97a9-832961a26ac1"];
-  //   deletedNodes?.insert(0, toDelete);
-  // }, [deletedNodes]);
+  const nodeId = pageId ?? space?.default_node?.public_id ?? "";
 
-  console.log(space, spaceError);
+  useEffect(() => {
+    if (!nodeId) return;
+    // If in an iframe (QuickView) don't add
+    if (window.self !== window.top) return;
+
+    // If at the default node, reset the breadcrumbs
+    if (nodeId == space?.default_node?.public_id) return setBreadcrumbs([]);
+
+    // Otherwise add the node to the breadcrumbs
+    setBreadcrumbs((prev) => {
+      if (prev[prev.length - 1] === nodeId) return prev;
+      // If the ID is lower down the chain then go back to it
+      const index = prev.indexOf(nodeId);
+      if (index !== -1) return prev.slice(0, index + 1);
+      return [...prev.filter((id) => id !== space?.default_node?.public_id), nodeId];
+    });
+  }, [breadcrumbs, setBreadcrumbs, nodeId]);
 
   if (!space && spaceError) return <ErrorPage error={spaceError} />;
-  if (!spaceSynced) return <Loader message="Loading space..." />;
-  if (!spaceConnected) return <Loader message="Obtaining connection for space..." />;
-
-  const nodeId = pageId ?? space?.default_node_id ?? "";
+  if (!synced) return <Loader message="Loading space..." />;
+  if (!connected) return <Loader message="Obtaining connection for space..." />;
 
   return (
     <div className="h-full relative flex flex-col">
       <NodeRepository />
       <LLM id={nodeId} />
-      <div className="h-9 flex items-center px-4 border-b gap-2">
-        <div className="">{space?.title}</div>
-        <div className="">&raquo;</div>
-        <EditableNode id={nodeId} className="line-clamp-1 w-64" />
-      </div>
+      <Header id={nodeId} />
       <Node key={nodeId} id={nodeId} className="flex-grow w-full" />
       <NodeProvider id={nodePage}>
         <Editor

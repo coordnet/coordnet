@@ -14,7 +14,7 @@ export interface Space {
   updated_at: Date;
   title: string;
   deleted_nodes: string[];
-  default_node_id: string;
+  default_node: Node | null;
 }
 
 export interface Node {

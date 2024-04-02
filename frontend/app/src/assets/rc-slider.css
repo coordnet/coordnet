@@ -23,7 +23,7 @@
 .rc-slider-tracks {
   position: absolute;
   height: 4px;
-  background-color: #c99eff;
+  background-color: #6e27d9;
   border-radius: 6px;
 }
 .rc-slider-track-draggable {
@@ -40,8 +40,8 @@
   width: 12px;
   height: 12px;
   margin-top: -4px;
-  background-color: #c99eff;
-  border: solid 1px #c99eff;
+  background-color: #6e27d9;
+  border: solid 1px #6e27d9;
   border-radius: 50%;
   cursor: pointer;
   cursor: -webkit-grab;
@@ -50,27 +50,27 @@
   touch-action: pan-x;
 }
 .rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
-  border-color: #c99eff;
-  box-shadow: 0 0 0 5px #c99eff;
+  border-color: #6e27d9;
+  box-shadow: 0 0 0 5px #6e27d9;
 }
 .rc-slider-handle:focus {
   outline: none;
   box-shadow: none;
 }
 .rc-slider-handle:focus-visible {
-  border-color: #c99eff;
-  box-shadow: 0 0 0 3px #c99eff;
+  border-color: #6e27d9;
+  box-shadow: 0 0 0 3px #6e27d9;
 }
 .rc-slider-handle-click-focused:focus {
-  border-color: #c99eff;
+  border-color: #6e27d9;
   box-shadow: unset;
 }
 .rc-slider-handle:hover {
-  border-color: #c99eff;
+  border-color: #6e27d9;
 }
 .rc-slider-handle:active {
-  border-color: #c99eff;
-  box-shadow: 0 0 5px #c99eff;
+  border-color: #6e27d9;
+  box-shadow: 0 0 5px #6e27d9;
   cursor: -webkit-grabbing;
   cursor: grabbing;
 }
@@ -105,7 +105,7 @@
   height: 12px;
   vertical-align: middle;
   background-color: #fff;
-  border: 1px solid #c99eff;
+  border: 1px solid #a78bfa;
   border-radius: 50%;
   cursor: pointer;
 }
@@ -113,8 +113,8 @@
   border-width: 2px;
 }
 .rc-slider-dot-active {
-  background-color: #c99eff;
-  border-color: #c99eff;
+  background-color: #6e27d9;
+  border-color: #6e27d9;
 }
 .rc-slider-dot-reverse {
   margin-right: -4px;

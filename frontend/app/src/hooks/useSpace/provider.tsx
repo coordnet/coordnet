@@ -2,6 +2,7 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import useLocalStorageState from "use-local-storage-state";
 import * as Y from "yjs";
 
 import { getSpace, getSpaceNodes } from "@/api";
@@ -25,6 +26,11 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  const [breadcrumbs, setBreadcrumbs] = useLocalStorageState<string[]>(
+    `coordnet:breadcrumbs-${spaceId}`,
+    { defaultValue: [] },
+  );
 
   const { data: backendNodes } = useQuery({
     queryKey: ["space", space?.id, "nodes"],
@@ -58,6 +64,15 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const nodesMap = ydoc?.getMap<SpaceNode>("nodes");
   const deletedNodes = ydoc?.getArray<string>("deletedNodes");
 
+  // useEffect(() => {
+  //   if (connected && nodesMap && space && !space?.default_node?.public_id) {
+  //     console.log("Space with no default page, so create it", space);
+  //     const id = uuid();
+  //     nodesMap.set(id, { id, title: "Home" });
+  //     // TODO: set default_node on space
+  //   }
+  // }, [space, nodesMap, connected]);
+
   // Here we are observing the nodesMap and updating the nodes state whenever the map changes.
   useEffect(() => {
     if (!nodesMap) return;
@@ -72,9 +87,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [nodesMap, setNodes]);
 
   const value = {
-    space: space
-      ? { ...space, default_node_id: "bfa9d7af-b857-4a69-a4fe-71b909327843" }
-      : undefined,
+    space: space,
     spaceError: error,
     nodes,
     nodesMap,
@@ -83,6 +96,8 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     connected,
     provider,
     backendNodes: backendNodes ?? [],
+    breadcrumbs,
+    setBreadcrumbs,
   };
 
   return <SpaceContext.Provider value={value}>{children}</SpaceContext.Provider>;

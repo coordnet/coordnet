@@ -17,13 +17,12 @@ const Depth = ({
           className="ml-2"
           min={0}
           step={1}
-          // onChange={(v) => setDepth(v as number)}
           onChangeComplete={(v) => setDepth(v as number)}
           dots
           max={5}
           defaultValue={depth}
         />
-        <span className="text-gray-3 font-bold text-xs ml-3 self-end">Depth</span>
+        <span className="text-neutral-500 font-bold text-xs ml-3 self-end">Depth</span>
       </div>
     </div>
   );

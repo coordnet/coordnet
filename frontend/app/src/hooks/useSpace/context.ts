@@ -14,6 +14,8 @@ type SpaceContextType = {
   provider: HocuspocusProvider | undefined;
   deletedNodes: Y.Array<string> | undefined;
   backendNodes: BackendNode[];
+  breadcrumbs: string[];
+  setBreadcrumbs: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 /**
