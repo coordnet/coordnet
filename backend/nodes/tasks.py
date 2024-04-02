@@ -96,6 +96,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 models.Node.all_objects.select_for_update(no_key=True)
                                 .filter(public_id__in=node_titles.keys())
                                 .defer("content", "text")
+                                .order_by("-created_at")
                             )
                             space.nodes.set(space_nodes)
 

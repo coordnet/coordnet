@@ -170,8 +170,9 @@ class Space(utils_models.BaseModel):
     # Reported here: https://github.com/typeddjango/django-stubs/issues/2011
     nodes: models.ManyToManyField = models.ManyToManyField(Node, related_name="spaces")
     deleted_nodes: models.ManyToManyField = models.ManyToManyField(
-        Node, related_name="spaces_deleted"
+        Node, related_name="spaces_deleted", blank=True
     )
+    default_node = models.ForeignKey("Node", on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
