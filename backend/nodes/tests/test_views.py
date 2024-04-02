@@ -85,7 +85,7 @@ class SpacesViewTestCase(APITransactionTestCase):
 
     def test_create(self) -> None:
         response = self.client.post(reverse("nodes:spaces-list"), {"title": "new space"})
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.data)
         self.assertEqual(response.data["title"], "new space")
         self.assertEqual(response.data["title_slug"], "new-space")
 
@@ -109,3 +109,14 @@ class SpacesViewTestCase(APITransactionTestCase):
         # Test that the space is soft deleted
         self.assertEqual(models.Space.all_objects.count(), 1)
         self.assertEqual(models.Space.available_objects.count(), 0)
+
+    def test_default_node_setting(self) -> None:
+        space = factories.SpaceFactory.create()
+        node = factories.NodeFactory.create()
+        response = self.client.patch(
+            reverse("nodes:spaces-detail", args=[space.public_id]),
+            {"default_node": str(node.public_id)},
+        )
+        self.assertEqual(response.status_code, 200)
+        space.refresh_from_db()
+        self.assertEqual(space.default_node, node)
