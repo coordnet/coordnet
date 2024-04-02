@@ -4,19 +4,18 @@ import { Search, View } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useFocus, useQuickView, useSpace } from "@/hooks";
-import { GraphNode, Node } from "@/types";
+import { BackendNode, GraphNode } from "@/types";
 
 type NodeProps = { className?: string };
 
 const NodeRepository = ({ className }: NodeProps) => {
-  const { space } = useSpace();
+  const { space, backendNodes } = useSpace();
   const { isQuickViewOpen } = useQuickView();
   const {
     nodeRepositoryVisible: visible,
     setNodeRepositoryVisible: setVisible,
     reactFlowInstance,
     nodesMap,
-    nodes,
     editor,
     focus,
   } = useFocus();
@@ -44,18 +43,18 @@ const NodeRepository = ({ className }: NodeProps) => {
   function getNodesFilter(inputValue: string) {
     const lowerCasedInputValue = inputValue.toLowerCase();
 
-    return function nodessFilter(node: Node) {
+    return function nodessFilter(node: BackendNode) {
       return !inputValue || node.title.toLowerCase().includes(lowerCasedInputValue);
     };
   }
 
-  const addNode = (node: Node) => {
+  const addNode = (node: BackendNode) => {
     if (focus === "graph") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
       const flowPosition = reactFlowInstance.screenToFlowPosition({ x: 100, y: 100 });
       if (!flowPosition) alert("Failed to add node");
-      const id = node.public_id;
+      const id = node.id;
       const newNode: GraphNode = {
         id,
         type: "GraphNode",
@@ -65,25 +64,26 @@ const NodeRepository = ({ className }: NodeProps) => {
       };
       nodesMap.set(id, newNode);
     } else if (focus === "editor") {
-      editor?.commands.insertContent(`<coord-node id="${node.public_id}"></coord-node><br/>`);
+      editor?.commands.insertContent(`<coord-node id="${node.id}"></coord-node><br/>`);
     } else {
       alert("Focus not found");
     }
   };
 
-  const listNodes = useMemo<Node[]>(
+  const listNodes = useMemo<BackendNode[]>(
     () =>
-      (space?.nodes ?? []).filter(
+      (backendNodes ?? []).filter(
         (node) =>
-          !nodes.map((n) => n.id).includes(node.public_id) &&
-          node.public_id !== space?.default_node_id,
+          !Array.from(nodesMap?.values() ?? [])
+            .map((n) => n.id)
+            .includes(node.id) && node.id !== space?.default_node_id,
       ),
-    [space, nodes],
+    [space, backendNodes],
   );
 
   const Combobox = () => {
     const { showQuickView } = useQuickView();
-    const [items, setItems] = useState<Node[]>(listNodes);
+    const [items, setItems] = useState<BackendNode[]>(listNodes);
 
     const { getMenuProps, getInputProps, highlightedIndex, getItemProps, selectedItem } =
       useCombobox({
@@ -120,7 +120,7 @@ const NodeRepository = ({ className }: NodeProps) => {
 
     return (
       <div
-        className={clsx("absolute top-0 left-0 h-dvh w-dvw z-50", className)}
+        className={clsx("absolute top-0 left-0 h-dvh w-dvw z-60", className)}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             e.stopPropagation();
@@ -151,7 +151,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                   selectedItem === item && "font-bold",
                   "text-sm p-1 rounded flex items-center",
                 )}
-                key={item.public_id}
+                key={item.id}
                 {...getItemProps({ item, index })}
               >
                 <div className="flex flex-col cursor-pointer">
@@ -164,7 +164,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                   className="size-6 ml-auto flex items-center"
                   onClick={(e) => {
                     e.stopPropagation();
-                    showQuickView(item.public_id);
+                    showQuickView(item.id);
                   }}
                 >
                   <View strokeWidth={2.75} className="size-4 text-gray-4 font-bold ml-auto" />

@@ -32,3 +32,31 @@ export type SpaceNode = {
 
 export type GraphNode = ReactFlowNode;
 export type GraphEdge = Edge;
+
+export interface BackendNode {
+  id: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
+  title: string;
+  title_token_count: number;
+  // content:           NodeContent | null;
+  text: null | string;
+  text_token_count: number | null;
+  subnodes: string[];
+}
+
+export interface Buddy {
+  id: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  description: string;
+  model: "gpt-4-turbo-preview";
+  system_message: string;
+}
+
+export interface LLMTokenCount {
+  [key: string]: number;
+}

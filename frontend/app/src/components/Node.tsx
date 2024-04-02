@@ -22,7 +22,7 @@ const Node = ({ id, className }: NodeProps) => {
   return (
     <div className={clsx("relative", className)}>
       <button
-        className="absolute top-2 left-2 bg-gray-300 p-2 z-40"
+        className="absolute top-2 left-2 bg-gray-300 p-2 z-20"
         onClick={() => setNodePage(nodePage == id ? "" : id)}
       >
         {nodePage == id ? "Hide" : "Show"} Editor

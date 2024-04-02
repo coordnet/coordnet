@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { Pencil } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
 import pSBC from "shade-blend-color";
@@ -8,6 +7,7 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { GraphNode } from "@/types";
 
 import { EditableNode } from "../";
+import Footer from "./Footer";
 import HoverMenu from "./HoverMenu";
 
 const handleStyle: CSSProperties = {
@@ -87,7 +87,7 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         isVisible={data.forceToolbarVisible || undefined}
         position={data.toolbarPosition}
       >
-        <HoverMenu id={id} data={data} />
+        <HoverMenu id={id} data={data} onClickEdit={onClickEdit} />
       </NodeToolbar>
       <NodeResizer
         color="transparent"
@@ -101,25 +101,22 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
       <Handle id="target-left" type="target" position={Position.Left} style={handleStyle} />
       <div
         className={clsx(
-          "GraphNode group border border-gray-1 rounded-lg p-3 bg-white",
+          "GraphNode border border-gray-1 rounded-lg p-3 bg-white",
           "size-full overflow-hidden flex items-center justify-center text-center text-sm",
-          {
-            "border-2": Boolean(data.borderColor),
-            "shadow-node-selected": selected,
-          },
+          { "border-2": Boolean(data.borderColor), "shadow-node-selected": selected },
         )}
         style={nodeStyle}
         ref={nodeRef}
         onDoubleClick={onDoubleClick}
       >
-        {!isEditing && (
+        {/* {!isEditing && (
           <button
             onClick={onClickEdit}
             className="hidden group-hover:flex absolute top-2 right-2 rounded border items-center px-2 py-1 bg-white text-xs"
           >
             <Pencil className="size-3 mr-1" /> Edit
           </button>
-        )}
+        )} */}
         <EditableNode
           id={id}
           ref={inputRef}
@@ -131,11 +128,7 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
             [`line-clamp-${lineClamp}`]: !isEditing,
           })}
         />
-        {Boolean(selected && data?.tokens) && (
-          <div className="bg-gray-100 absolute h-4 flex items-center rounded-lg border px-1 py-2 -bottom-2 right-3 text-[10px]">
-            {data?.tokens} tokens
-          </div>
-        )}
+        <Footer id={id} nodeStyle={nodeStyle} />
       </div>
       <Handle id="target-bottom" type="source" position={Position.Bottom} style={handleStyle} />
       <Handle id="target-right" type="source" position={Position.Right} style={handleStyle} />

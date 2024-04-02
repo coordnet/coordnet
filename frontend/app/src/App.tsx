@@ -1,8 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
-import { EditableNode, Editor, Loader, Node, NodeRepository, QuickView } from "@/components";
+import { EditableNode, Editor, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
 import { NodeProvider, useSpace } from "@/hooks";
+
+import ErrorPage from "./components/ErrorPage";
 
 function App() {
   const { pageId } = useParams();
@@ -21,7 +23,9 @@ function App() {
   //   deletedNodes?.insert(0, toDelete);
   // }, [deletedNodes]);
 
-  if (!space && spaceError) return <>Not found</>;
+  console.log(space, spaceError);
+
+  if (!space && spaceError) return <ErrorPage error={spaceError} />;
   if (!spaceSynced) return <Loader message="Loading space..." />;
   if (!spaceConnected) return <Loader message="Obtaining connection for space..." />;
 
@@ -30,6 +34,7 @@ function App() {
   return (
     <div className="h-full relative flex flex-col">
       <NodeRepository />
+      <LLM id={nodeId} />
       <div className="h-9 flex items-center px-4 border-b gap-2">
         <div className="">{space?.title}</div>
         <div className="">&raquo;</div>

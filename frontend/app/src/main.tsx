@@ -1,9 +1,10 @@
-import "./index.css";
 import "react-tooltip/dist/react-tooltip.css";
+import "./index.css";
+import "./assets/rc-slider.css";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { ReactNode } from "react";
 import ReactDOM from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
 import { QueryParamProvider } from "use-query-params";

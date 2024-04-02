@@ -58,6 +58,11 @@ body {
   margin: 0 auto;
 }
 
+.react-tooltip {
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+}
+
 @keyframes scaleIn {
   from {
     transform: scale(0.4);

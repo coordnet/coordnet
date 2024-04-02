@@ -1,4 +1,5 @@
 import tailwindcssAnimate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
 
 export default {
   darkMode: ["class"],
@@ -21,13 +22,10 @@ export default {
     extend: {
       colors: {
         purple: "#650CD7",
-        blue: {
-          DEFAULT: "#286AFF", // Base blue color
-          light: "#0DBFFF", // Light blue variant
-        },
+        blue: { DEFAULT: "#286AFF", light: "#0DBFFF" },
         green: "#52CE2A",
         aqua: "#69E2CC",
-        red: "#FF5A34",
+        // red: "#FF5A34",
         orange: "#FFA100",
         yellow: "#FFDF00",
         pink: "#FF3CE0",
@@ -47,7 +45,9 @@ export default {
         bg: "#F6F6F9",
         border: "#D9D8D8",
       },
+      zIndex: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i * 10, i * 10])),
       boxShadow: {
+        DEFAULT: "box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.05)",
         "node-selected": "0 0 0 6px rgb(191, 194, 255)",
         background: "0px 2px 5px 0px rgba(0, 0, 0, 0.2)",
       },
@@ -65,10 +65,21 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      ringWidth: {
+        DEFAULT: "1px",
+        2: "1px",
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: "100ch", // add required value here
+          },
+        },
+      },
     },
     // Add line clamps 1-20 for dynamic use in the graph to truncate node labels
     lineClamp: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [i + 1, i + 1])),
   },
   safelist: [{ pattern: /^line-clamp-(\d+)$/ }],
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, typography],
 };

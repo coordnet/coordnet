@@ -60,22 +60,20 @@ const Sidebar = ({
           onDragStart={(event: DragEvent) => onDragStart(event, "node-1")}
           draggable
           data-tooltip-id="add-node"
-          data-tooltip-content="Add Node"
           data-tooltip-place="right"
         >
           <Plus strokeWidth={2.8} className="text-gray-2 size-5" />
         </div>
-        <Tooltip id="add-node" className="!text-sm !px-3" />
+        <Tooltip id="add-node">Add Node</Tooltip>
         <div
           className="p-3 bg-white shadow-sm cursor-pointer border-gray-6 border rounded-lg"
           onClick={() => setNodeRepositoryVisible(true)}
           data-tooltip-id="node-repository"
-          data-tooltip-content="Node Repository"
           data-tooltip-place="right"
         >
           <Search strokeWidth={2.8} className="text-gray-2 size-5" />
         </div>
-        <Tooltip id="node-repository" className="!text-sm !px-3" />
+        <Tooltip id="node-repository">Node Repository</Tooltip>
       </div>
     </aside>
   );

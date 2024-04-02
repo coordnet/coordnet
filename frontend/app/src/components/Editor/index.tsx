@@ -25,6 +25,7 @@ const Editor = ({ id, className }: EditorProps) => {
     {
       extensions: loadExtensions(editorProvider, editorYdoc),
       onFocus: () => setFocus("editor"),
+      editorProps: { attributes: { class: "prose focus:outline-none" } },
     },
     [id],
   );
@@ -39,15 +40,17 @@ const Editor = ({ id, className }: EditorProps) => {
 
   return (
     <div className={clsx("border-gray-300 border-l overflow-auto", className)}>
-      <div className="p-3 font-medium text-lg">
-        <EditableNode id={id} className="w-full" />
+      <div className="pb-12">
+        <div className="p-3 font-medium text-lg mr-4">
+          <EditableNode id={id} className="w-full" />
+        </div>
+        <div className="absolute top-2 right-2 cursor-pointer" onClick={() => setNodePage("")}>
+          <X />
+        </div>
+        <MenuBar editor={editor} />
+        <EditorContent className="h-full w-full" editor={editor} />
+        {/* <FloatingMenu editor={editor}>This is the floating menu</FloatingMenu> */}
       </div>
-      <div className="absolute top-2 right-2 cursor-pointer" onClick={() => setNodePage("")}>
-        <X />
-      </div>
-      <MenuBar editor={editor} />
-      <EditorContent className="h-full" editor={editor} />
-      {/* <FloatingMenu editor={editor}>This is the floating menu</FloatingMenu> */}
     </div>
   );
 };

@@ -1,3 +1,9 @@
+import { HocuspocusProvider } from "@hocuspocus/provider";
+import { JSONContent } from "@tiptap/core";
+import { Schema } from "@tiptap/pm/model";
+import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
+import * as Y from "yjs";
+
 /*
  * Get a string representation of an error, whether it is a string, an Error instance, or an object
  * @param error - The error to get a string representation of
@@ -35,4 +41,15 @@ export const getErrorMessage = (error: any): string => {
   }
 
   return `An error occurred: ${String(error)}`;
+};
+
+export const setNodePageContent = (content: JSONContent, roomName: string, schema: Schema) => {
+  const ydoc = new Y.Doc({ guid: roomName });
+  new HocuspocusProvider({
+    url: import.meta.env.VITE_HOCUSPOCUS_URL,
+    name: roomName,
+    document: ydoc,
+  });
+  const xml = ydoc?.getXmlFragment("default");
+  prosemirrorJSONToYXmlFragment(schema, content, xml);
 };

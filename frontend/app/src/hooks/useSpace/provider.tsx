@@ -1,10 +1,10 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
+import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
-import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import * as Y from "yjs";
 
-import { getSpace } from "@/api";
+import { getSpace, getSpaceNodes } from "@/api";
 import { SpaceNode } from "@/types";
 
 import { SpaceContext } from "./context";
@@ -18,12 +18,22 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const [connected, setConnected] = useState<boolean>(false);
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
 
-  const { data: space, isError } = useQuery({
+  const { data: space, error } = useQuery({
     queryKey: ["space", spaceId],
     queryFn: ({ signal }) => getSpace(signal, spaceId),
     enabled: Boolean(spaceId),
     retry: false,
     refetchOnWindowFocus: false,
+  });
+
+  const { data: backendNodes } = useQuery({
+    queryKey: ["space", space?.id, "nodes"],
+    queryFn: ({ signal }) => getSpaceNodes(signal, space?.id),
+    enabled: Boolean(space),
+    retry: false,
+    initialData: [],
+    refetchOnWindowFocus: false,
+    refetchInterval: 1000,
   });
 
   const ydoc = useMemo(
@@ -65,13 +75,14 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     space: space
       ? { ...space, default_node_id: "bfa9d7af-b857-4a69-a4fe-71b909327843" }
       : undefined,
-    spaceError: isError,
+    spaceError: error,
     nodes,
     nodesMap,
     deletedNodes,
     synced,
     connected,
     provider,
+    backendNodes: backendNodes ?? [],
   };
 
   return <SpaceContext.Provider value={value}>{children}</SpaceContext.Provider>;

@@ -31,14 +31,14 @@ const QuickView = () => {
 
   return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40"
+      className="fixed inset-0 z-70 flex items-center justify-center bg-black bg-opacity-40"
       style={{ animation: "bg 0.2s forwards" }}
       tabIndex={0}
     >
       <div className="absolute inset-0" onClick={closeQuickView}></div>
 
       <div
-        className="relative z-10 bg-white h-[90vh] w-[80vw] shadow-lg rounded-md transition-all transform duration-300 ease-in-out border"
+        className="relative bg-white h-[90vh] w-[80vw] shadow-lg rounded-md transition-all transform duration-300 ease-in-out border"
         style={{ animation: "scaleIn 0.2s forwards" }}
       >
         {/* {Boolean(nodeId) && <Node id={nodeId} className="size-full" />} */}
@@ -50,7 +50,7 @@ const QuickView = () => {
           ></iframe>
         )}
 
-        <div className="justify-between items-center absolute top-0 -right-9 z-50 flex flex-col gap-3">
+        <div className="justify-between items-center absolute top-0 -right-9 flex flex-col gap-3">
           <button
             onClick={closeQuickView}
             className="size-7 overflow-hidden rounded-full bg-black text-white flex items-center justify-center"
@@ -59,7 +59,7 @@ const QuickView = () => {
           </button>
           <Link
             to={`/space/${space?.id}/${nodeId}`}
-            onClick={closeQuickView}
+            target="_top"
             className="size-7 overflow-hidden rounded-full bg-black hover:text-white text-white flex items-center justify-center"
           >
             <Maximize2 className="size-4" />
