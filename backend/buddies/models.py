@@ -42,7 +42,7 @@ class Buddy(utils_models.BaseModel):
     ) -> dict[int, int]:
         """Calculate the token counts for each level."""
         nodes_at_depth = node.fetch_subnodes((max_depth // 2) + 1)
-        max_depth_achieved = min(max(nodes_at_depth.keys()) * 2 - 1, max_depth)
+        max_depth_achieved = max(min(max(nodes_at_depth.keys()) * 2 - 1, max_depth), 0)
 
         token_counts: dict[int, int] = {}
         for depth in range(max_depth_achieved + 1):
