@@ -15,6 +15,6 @@ class BuddySerializer(coord_serializers.BaseSerializer):
 
 
 class BuddyQuerySerializer(serializers.Serializer):
-    message = serializers.CharField()
+    message = serializers.CharField(allow_blank=True, required=False)
     node = coord_serializers.PublicIdRelatedField(queryset=node_models.Node.available_objects.all())
     level = serializers.IntegerField(required=False)
