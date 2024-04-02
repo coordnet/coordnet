@@ -30,7 +30,7 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         validated_data = serializer.validated_data
         node = validated_data.get("node")
         level = validated_data.get("level")
-        message = validated_data.get("message")
+        message = validated_data.get("message") or ""
 
         return StreamingHttpResponse(
             buddy.query_model(node, level, message), content_type="text/event-stream"
@@ -45,6 +45,6 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         validated_data = serializer.validated_data
         node = validated_data.get("node")
         max_depth = validated_data.get("level")
-        message = validated_data.get("message")
+        message = validated_data.get("message") or ""
 
         return Response(buddy.calculate_token_counts(node, max_depth, message))
