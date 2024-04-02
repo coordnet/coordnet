@@ -22,24 +22,24 @@
     "migrate": "knex migrate:latest"
   },
   "dependencies": {
-    "@hocuspocus/extension-database": "^2.11.1",
-    "@hocuspocus/server": "^2.11.1",
-    "@hocuspocus/transformer": "^2.11.1",
-    "@tiptap/starter-kit": "^2.2.2",
-    "dotenv": "^16.4.4",
+    "@hocuspocus/extension-database": "^2.11.3",
+    "@hocuspocus/server": "^2.11.3",
+    "@hocuspocus/transformer": "^2.11.3",
+    "@tiptap/starter-kit": "^2.2.4",
+    "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "knex": "^3.1.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
-    "@typescript-eslint/eslint-plugin": "^7.0.1",
-    "@typescript-eslint/parser": "^7.0.1",
-    "eslint": "^8.56.0",
-    "nodemon": "^3.0.3",
+    "@types/node": "^20.12.2",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0",
+    "eslint": "^8.57.0",
+    "nodemon": "^3.1.0",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.3"
   },
   "eslintConfig": {
     "extends": [
