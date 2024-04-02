@@ -12,7 +12,7 @@ function App() {
   const { space, spaceError, synced, connected, breadcrumbs, setBreadcrumbs } = useSpace();
   const [nodePage] = useQueryParam<string>("nodePage");
 
-  const nodeId = pageId ?? space?.default_node?.public_id ?? "";
+  const nodeId = pageId ?? space?.default_node ?? "";
 
   useEffect(() => {
     if (!nodeId) return;
@@ -20,7 +20,10 @@ function App() {
     if (window.self !== window.top) return;
 
     // If at the default node, reset the breadcrumbs
-    if (nodeId == space?.default_node?.public_id) return setBreadcrumbs([]);
+    if (nodeId == space?.default_node) {
+      setBreadcrumbs([]);
+      return;
+    }
 
     // Otherwise add the node to the breadcrumbs
     setBreadcrumbs((prev) => {

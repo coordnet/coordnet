@@ -47,7 +47,7 @@ export default {
       },
       zIndex: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i * 10, i * 10])),
       boxShadow: {
-        DEFAULT: "box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.05)",
+        DEFAULT: "0px 3px 5px 0px rgba(0, 0, 0, 0.05)",
         "node-selected": "0 0 0 6px rgb(191, 194, 255)",
         background: "0px 2px 5px 0px rgba(0, 0, 0, 0.2)",
       },

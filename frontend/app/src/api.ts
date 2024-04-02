@@ -14,11 +14,16 @@ export const api = axios.create({
   },
 });
 
-export const getSpace = async (
-  signal: AbortSignal | undefined,
-  spaceId?: string,
+export const getSpace = async (signal: AbortSignal | undefined, id?: string): Promise<Space> => {
+  const response = await api.get(`api/nodes/spaces/${id}/`, { signal });
+  return response.data;
+};
+
+export const updateSpace = async (
+  id: string,
+  data: Pick<Space, "default_node">,
 ): Promise<Space> => {
-  const response = await api.get(`api/nodes/spaces/${spaceId}/`, { signal });
+  const response = await api.patch(`api/nodes/spaces/${id}/`, data);
   return response.data;
 };
 
@@ -27,9 +32,7 @@ export const getSpaceNodes = async (
   spaceId?: string,
 ): Promise<BackendNode[]> => {
   const response = await api.get("api/nodes/nodes/", {
-    params: {
-      spaces: spaceId,
-    },
+    params: { spaces: spaceId },
     signal,
   });
   return response.data;

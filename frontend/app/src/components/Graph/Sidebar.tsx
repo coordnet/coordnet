@@ -6,6 +6,8 @@ import { useOnViewportChange, XYPosition } from "reactflow";
 
 import { useFocus } from "@/hooks";
 
+import { Button } from "../ui/button";
+
 const onDragStart = (event: DragEvent, nodeType: string) => {
   event.dataTransfer.setData("application/reactflow", nodeType);
   event.dataTransfer.effectAllowed = "move";
@@ -54,25 +56,27 @@ const Sidebar = ({
   return (
     <aside className={clsx("p-2", className)}>
       <div className="flex flex-col gap-2">
-        <div
-          className="p-3 bg-white shadow-sm cursor-pointer border-gray-6 border rounded-lg"
+        <Button
+          variant="outline"
+          className="size-9 p-0 shadow"
           onClick={onClick}
           onDragStart={(event: DragEvent) => onDragStart(event, "node-1")}
           draggable
           data-tooltip-id="add-node"
           data-tooltip-place="right"
         >
-          <Plus strokeWidth={2.8} className="text-gray-2 size-5" />
-        </div>
+          <Plus strokeWidth={2.8} className="text-neutral-600 size-4" />
+        </Button>
         <Tooltip id="add-node">Add Node</Tooltip>
-        <div
-          className="p-3 bg-white shadow-sm cursor-pointer border-gray-6 border rounded-lg"
+        <Button
+          variant="outline"
+          className="size-9 p-0 shadow"
           onClick={() => setNodeRepositoryVisible(true)}
           data-tooltip-id="node-repository"
           data-tooltip-place="right"
         >
-          <Search strokeWidth={2.8} className="text-gray-2 size-5" />
-        </div>
+          <Search strokeWidth={2.8} className="text-neutral-600 size-4" />
+        </Button>
         <Tooltip id="node-repository">Node Repository</Tooltip>
       </div>
     </aside>

@@ -76,7 +76,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         (node) =>
           !Array.from(nodesMap?.values() ?? [])
             .map((n) => n.id)
-            .includes(node.id) && node.id !== space?.default_node?.public_id,
+            .includes(node.id) && node.id !== space?.default_node,
       ),
     [space, backendNodes],
   );

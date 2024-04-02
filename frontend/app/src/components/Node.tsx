@@ -1,12 +1,15 @@
 import "./Editor/styles.css";
 
 import clsx from "clsx";
+import { FileText } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 import { ReactFlowProvider } from "reactflow";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { NodeProvider, useNode } from "@/hooks";
 
-import { Graph, Loader } from "./";
+import { EditableNode, Graph, Loader } from "./";
+import { Button } from "./ui/button";
 
 type NodeProps = { id: string; className?: string };
 
@@ -21,12 +24,21 @@ const Node = ({ id, className }: NodeProps) => {
 
   return (
     <div className={clsx("relative", className)}>
-      <button
-        className="absolute top-2 left-2 bg-gray-300 p-2 z-20"
-        onClick={() => setNodePage(nodePage == id ? "" : id)}
-      >
-        {nodePage == id ? "Hide" : "Show"} Editor
-      </button>
+      <div className="absolute top-0 left-2 z-20 flex h-9 leading-9 gap-2">
+        <div className="border border-neutral-200 bg-white text-neutral-900 font-medium px-3 rounded">
+          <EditableNode id={id} />
+        </div>
+        <Button
+          variant="outline"
+          className="size-9 p-0"
+          onClick={() => setNodePage(nodePage == id ? "" : id)}
+          data-tooltip-id="show-editor"
+          data-tooltip-place="bottom"
+        >
+          <FileText strokeWidth={2.8} className="text-neutral-600 size-4" />
+        </Button>
+        <Tooltip id="show-editor">Toggle Editor</Tooltip>
+      </div>
       <Graph />
     </div>
   );
