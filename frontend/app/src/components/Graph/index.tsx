@@ -2,7 +2,7 @@ import "reactflow/dist/style.css";
 import "./react-flow.css";
 
 import clsx from "clsx";
-import { Maximize, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
+import { Map, Maximize, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 import { DragEvent, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Background,
@@ -15,6 +15,7 @@ import ReactFlow, {
   useReactFlow,
   XYPosition,
 } from "reactflow";
+import useLocalStorageState from "use-local-storage-state";
 import { v4 as uuidv4 } from "uuid";
 
 import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
@@ -45,6 +46,9 @@ const Graph = ({ className }: { className?: string }) => {
   const { undo, redo, canUndo, canRedo, takeSnapshot } = useUndoRedo();
   const { setReactFlowInstance, setNodesMap, setNodes, setFocus } = useFocus();
   const { zoomIn, zoomOut, fitView } = reactFlowInstance;
+  const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
+    defaultValue: true,
+  });
 
   useEffect(() => {
     setReactFlowInstance(reactFlowInstance);
@@ -136,25 +140,35 @@ const Graph = ({ className }: { className?: string }) => {
           onSelectionDragStart={onSelectionDragStart}
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
+          attributionPosition="bottom-left"
         >
-          <Panel position="bottom-right" className="flex gap-1 !bottom-3">
-            <Button className="size-7 p-0" variant="outline" onClick={() => zoomIn()}>
-              <ZoomIn className="size-4" />
+          <Panel position="top-right" className="flex gap-1 !top-0 !right-2 !m-0">
+            <Button className="size-9 p-0" variant="outline" disabled={canUndo} onClick={undo}>
+              <Undo2 className="size-5" />
             </Button>
-            <Button className="size-7 p-0" variant="outline" onClick={() => zoomOut()}>
-              <ZoomOut className="size-4" />
-            </Button>
-            <Button className="size-7 p-0" variant="outline" onClick={() => fitView()}>
-              <Maximize className="size-4" />
-            </Button>
-            <Button className="size-7 p-0 ml-2" variant="outline" disabled={canUndo} onClick={undo}>
-              <Undo2 className="size-4" />
-            </Button>
-            <Button className="size-7 p-0" variant="outline" disabled={canRedo} onClick={redo}>
-              <Redo2 className="size-4" />
+            <Button className="size-9 p-0" variant="outline" disabled={canRedo} onClick={redo}>
+              <Redo2 className="size-5" />
             </Button>
           </Panel>
-          <MiniMap pannable={true} className="!bottom-12" />
+          <Panel position="bottom-right" className="flex gap-1 !bottom-2 !right-2 !m-0">
+            <Button className="size-9 p-0" variant="outline" onClick={() => zoomIn()}>
+              <ZoomIn className="size-5" />
+            </Button>
+            <Button className="size-9 p-0" variant="outline" onClick={() => zoomOut()}>
+              <ZoomOut className="size-5" />
+            </Button>
+            <Button className="size-9 p-0" variant="outline" onClick={() => fitView()}>
+              <Maximize className="size-5" />
+            </Button>
+            <Button
+              className="size-9 p-0"
+              variant="outline"
+              onClick={() => setMiniMapVisible(!miniMapVisible)}
+            >
+              <Map className="size-5" />
+            </Button>
+          </Panel>
+          {miniMapVisible && <MiniMap pannable={true} className="!bottom-12 !right-2 !m-0 !mb-1" />}
           <Background gap={12} size={1} />
         </ReactFlow>
       </div>

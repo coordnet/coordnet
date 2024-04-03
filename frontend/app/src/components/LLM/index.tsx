@@ -121,14 +121,14 @@ const LLM = ({ id }: { id: string }) => {
       <div className="absolute z-60 bottom-2 left-1/2 -translate-x-1/2" tabIndex={0}>
         <Button
           variant="outline"
-          className="pr-1"
+          className="h-9 pr-[3px] pl-2"
           onClick={(e) => {
             setIsOpen(true);
             e.stopPropagation();
           }}
         >
           Message AI
-          <div className="size-7 bg-bg flex items-center justify-center rounded ml-3 ">
+          <div className="size-7 bg-bg flex items-center justify-center rounded ml-3">
             <SendHorizonal className="size-4 text-lilac" strokeWidth={3} />
           </div>
         </Button>

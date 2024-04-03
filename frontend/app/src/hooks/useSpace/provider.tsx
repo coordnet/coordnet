@@ -69,7 +69,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   // Update the space with a default node if it doesn't have one
   const updateSpaceDefaultNode = (spaceId: string) => {
     const id = uuid();
-    nodesMap?.set(id, { id, title: "Default Node" });
+    nodesMap?.set(id, { id, title: space?.title ?? "Default Node" });
 
     // Poll for the node to be created on the back-end so it can be updated on the space
     const poll = setInterval(async () => {

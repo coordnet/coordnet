@@ -49,7 +49,7 @@ function App() {
         <Editor
           id={nodePage}
           key={nodePage}
-          className="absolute top-9 right-0 bottom-0 w-1/2 z-20 bg-white shadow-md"
+          className="absolute top-6 right-0 bottom-0 w-1/2 z-20 bg-white shadow-md"
         />
       </NodeProvider>
       <QuickView />
