@@ -1,5 +1,6 @@
 import typing
 import uuid
+from collections import OrderedDict
 
 import model_utils
 import pgtrigger
@@ -129,22 +130,36 @@ class Node(utils_models.BaseModel):
             nodes_at_depth = self.fetch_subnodes(node_depth)
 
         ignore_content_at_depth = node_depth if query_depth % 2 == 0 else None
-        context = ""
+
+        nodes_added: dict[uuid.UUID, tuple[bool, bool]] = {}
+        context_nodes: dict[uuid.UUID, str] = OrderedDict()
 
         for depth, nodes in nodes_at_depth.items():
-            include_content = True
-            if depth == ignore_content_at_depth:
-                include_content = False
-
+            include_content = depth != ignore_content_at_depth
             for node in nodes:
-                context += (
+                # Check if the node is already added to the context, if so, with what settings.
+                set_include_content, set_include_connections = nodes_added.get(
+                    node.public_id, (False, False)
+                )
+
+                # Calculate the new settings for the node, to provide as much context as possible.
+                new_include_content = set_include_content or include_content
+                new_include_connections = set_include_connections or depth != node_depth
+
+                # Save the new settings for the node.
+                nodes_added[node.public_id] = (new_include_content, new_include_connections)
+
+                # Add node context to the OrderedDict to preserve the original order (context
+                # closer to the initial node comes first).
+                context_nodes[node.public_id] = (
                     node.node_as_str(
-                        include_content=include_content, include_connections=not depth == node_depth
+                        include_content=new_include_content,
+                        include_connections=new_include_connections,
                     )
                     + "\n"
                 )
 
-        return context
+        return "".join(context_nodes.values())
 
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
