@@ -146,3 +146,26 @@ class NodeModelTestCase(TestCase):
         for subnode in chain(*third_level_subnodes):
             self.assertIn(subnode.title.replace("\n", " "), context)
             self.assertIn(subnode.text.replace("\n", " "), context)
+
+    def test_node_context_with_duplicate_subnodes(self) -> None:
+        """Regression test to ensure that subnodes are not duplicated in the context."""
+        third_level_subnode = factories.NodeFactory.create()
+        second_level_subnodes = factories.NodeFactory.create_batch(2)
+        for node in second_level_subnodes:
+            node.subnodes.add(third_level_subnode)
+        node = factories.NodeFactory()
+
+        # Only add one second-level subnode for now.
+        node.subnodes.add(second_level_subnodes[0])
+
+        context = node.node_context_for_depth(2)
+        # The third-level subnode should only appear twice, once for the connection and once to
+        # specify its content.
+        self.assertEqual(context.count(str(third_level_subnode.public_id)), 2)
+
+        # Add the second second-level subnode.
+        node.subnodes.add(second_level_subnodes[1])
+        context = node.node_context_for_depth(2)
+        # The third-level subnode should only appear three times, twice for the connections and once
+        # to specify its content.
+        self.assertEqual(context.count(str(third_level_subnode.public_id)), 3)
