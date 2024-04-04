@@ -50,7 +50,7 @@ class BuddyTestCase(APITransactionTestCase):
         buddy = factories.BuddyFactory()
         node = node_factories.NodeFactory()
 
-        token_counts = buddy.calculate_token_counts(node, 1, "test")
+        token_counts = buddy.calculate_token_counts([node], 1, "test")
         self.assertIn(0, token_counts)
         self.assertNotIn(1, token_counts)
         self.assertNotIn(-1, token_counts)

@@ -14,7 +14,7 @@ class BuddyViewSetTestCase(APITransactionTestCase):
         node = node_factories.NodeFactory()
         response = self.client.post(
             reverse("buddies:buddies-query", kwargs={"public_id": buddy.public_id}),
-            data={"node": node.public_id, "level": 1, "message": "test"},
+            data={"nodes": [node.public_id], "level": 1, "message": "test"},
         )
         self.assertEqual(response.status_code, 200)
 
@@ -23,14 +23,14 @@ class BuddyViewSetTestCase(APITransactionTestCase):
         node = node_factories.NodeFactory()
         response = self.client.post(
             reverse("buddies:buddies-query", kwargs={"public_id": buddy.public_id}),
-            data={"node": node.public_id, "level": 1, "message": ""},
+            data={"nodes": [node.public_id], "level": 1, "message": ""},
         )
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
             reverse("buddies:buddies-query", kwargs={"public_id": buddy.public_id}),
             data={
-                "node": node.public_id,
+                "nodes": [node.public_id],
                 "level": 1,
             },
         )
@@ -40,7 +40,7 @@ class BuddyViewSetTestCase(APITransactionTestCase):
             self.client.post(
                 reverse("buddies:buddies-token-counts", kwargs={"public_id": buddy.public_id}),
                 data={
-                    "node": node.public_id,
+                    "nodes": [node.public_id],
                     "level": 1,
                     "message": None,
                 },
@@ -56,7 +56,7 @@ class BuddyViewSetTestCase(APITransactionTestCase):
         node = node_factories.NodeFactory()
         response = self.client.post(
             reverse("buddies:buddies-token-counts", kwargs={"public_id": buddy.public_id}),
-            data={"node": node.public_id, "level": 1, "message": "test"},
+            data={"nodes": [node.public_id], "level": 1, "message": "test"},
         )
         self.assertEqual(response.status_code, 200)
 
@@ -65,7 +65,7 @@ class BuddyViewSetTestCase(APITransactionTestCase):
         node = node_factories.NodeFactory()
         response = self.client.post(
             reverse("buddies:buddies-token-counts", kwargs={"public_id": buddy.public_id}),
-            data={"node": node.public_id, "level": 1, "message": ""},
+            data={"nodes": [node.public_id], "level": 1, "message": ""},
         )
         self.assertEqual(response.status_code, 200)
         empty_string_count = response.json()["0"]
@@ -73,7 +73,7 @@ class BuddyViewSetTestCase(APITransactionTestCase):
         response = self.client.post(
             reverse("buddies:buddies-token-counts", kwargs={"public_id": buddy.public_id}),
             data={
-                "node": node.public_id,
+                "nodes": [node.public_id],
                 "level": 1,
             },
         )
@@ -84,7 +84,7 @@ class BuddyViewSetTestCase(APITransactionTestCase):
             self.client.post(
                 reverse("buddies:buddies-token-counts", kwargs={"public_id": buddy.public_id}),
                 data={
-                    "node": node.public_id,
+                    "nodes": [node.public_id],
                     "level": 1,
                     "message": None,
                 },
