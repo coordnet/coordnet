@@ -1,24 +1,36 @@
 import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { NodeViewWrapper } from "@tiptap/react";
+import clsx from "clsx";
+import { GripIcon } from "lucide-react";
+import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { EditableNode } from "@/components";
-import useQuickView from "@/hooks/useQuickView";
+import Footer from "@/components/Graph/Footer";
 
-const NodeComponent = ({ node: pmNode }: { node: ProseMirrorNode }) => {
-  const { showQuickView } = useQuickView();
+const NodeComponent = ({ node: pmNode, selected }: { node: ProseMirrorNode; seleced: boolean }) => {
+  const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
+    removeDefaultsFromUrl: true,
+  });
 
   const id = pmNode.attrs.id;
 
   return (
-    <NodeViewWrapper className="border border-gray-400 p-2 bg-white">
-      <div draggable={true} contentEditable={false} className="p-3">
-        <div className="text-xs text-gray-500" data-drag-handle>
-          Drag
+    <NodeViewWrapper className={clsx()}>
+      <div
+        className={clsx(
+          "GraphNode border border-gray-1 rounded-lg p-1 relative",
+          "flex items-center justify-center text-center text-sm w-1/2",
+          { "shadow-node-selected": selected },
+        )}
+        onDoubleClick={() => setNodePage(id)}
+      >
+        <div draggable={true} contentEditable={false} className="p-3">
+          <div className="absolute top-2 left-2 cursor-grab select-none" data-drag-handle>
+            <GripIcon className="size-3 text-gray-4" />
+          </div>
+          <EditableNode id={id} contentEditable={false} className="line-clamp-3" />
+          <Footer id={id} nodeStyle={{}} />
         </div>
-
-        <button onClick={() => showQuickView(id)}>Quick View</button>
-
-        <EditableNode id={id} />
       </div>
     </NodeViewWrapper>
   );

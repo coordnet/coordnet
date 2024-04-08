@@ -31,7 +31,7 @@ function App() {
       // If the ID is lower down the chain then go back to it
       const index = prev.indexOf(nodeId);
       if (index !== -1) return prev.slice(0, index + 1);
-      return [...prev.filter((id) => id !== space?.default_node?.public_id), nodeId];
+      return [...prev.filter((id) => id !== space?.default_node), nodeId];
     });
   }, [breadcrumbs, setBreadcrumbs, nodeId]);
 

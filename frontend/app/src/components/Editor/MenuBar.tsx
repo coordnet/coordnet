@@ -2,6 +2,18 @@ import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light-border.css";
 
 import { BubbleMenu, Editor } from "@tiptap/react";
+import {
+  Bold,
+  Heading1,
+  Heading2,
+  Heading3,
+  Italic,
+  Link2,
+  Link2Off,
+  List,
+  RemoveFormatting,
+  Strikethrough,
+} from "lucide-react";
 import { useCallback } from "react";
 
 export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
@@ -41,60 +53,44 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
         theme: "light-border",
         maxWidth: 1000,
       }}
-      className="flex"
+      className="flex gap-2"
     >
-      <button
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        className={editor.isActive("bold") ? "is-active" : ""}
-      >
-        B{/* <FontAwesomeIcon icon={editor.isActive("bold") ? faBoldSolid : faBold} size="sm" /> */}
+      <button onClick={() => editor.chain().focus().toggleBold().run()}>
+        <Bold className="size-4" strokeWidth={editor.isActive("bold") ? 3 : 2.5} />
       </button>
-      <button
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={editor.isActive("italic") ? "is-active" : ""}
-      >
-        I
-        {/* <FontAwesomeIcon icon={editor.isActive("italic") ? faItalicSolid : faItalic} size="sm" /> */}
+      <button onClick={() => editor.chain().focus().toggleItalic().run()}>
+        <Italic className="size-4" strokeWidth={editor.isActive("italic") ? 3 : 2.5} />
       </button>
-      <button
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={editor.isActive("strike") ? "is-active" : ""}
-      >
-        S
-        {/* <FontAwesomeIcon
-          icon={editor.isActive("strike") ? faStrikethroughSolid : faStrikethrough}
-          size="sm"
-        /> */}
+      <button onClick={() => editor.chain().focus().toggleStrike().run()}>
+        <Strikethrough className="size-4" strokeWidth={editor.isActive("strike") ? 3 : 2.5} />
       </button>
-      <div className="px-2">|</div>
 
-      <button onClick={setLink} className={editor.isActive("link") ? "is-active" : ""}>
-        {/* <FontAwesomeIcon icon={faLink} size="sm" /> */}
-        Link
-      </button>
+      <div className="text-slate-400 px-1">|</div>
+
       <button
-        onClick={() => editor.chain().focus().unsetLink().run()}
-        disabled={!editor.isActive("link")}
+        onClick={() =>
+          editor.isActive("link") ? editor.chain().focus().unsetLink().run() : setLink()
+        }
       >
-        {/* <FontAwesomeIcon icon={faUnlink} size="sm" /> */}
-        Remove Link
+        {editor.isActive("link") ? <Link2Off className="size-4" /> : <Link2 className="size-4" />}
       </button>
-      <div className="px-2">|</div>
+
+      <div className="text-slate-400 px-1">|</div>
+
+      <button onClick={() => editor?.chain().focus().setParagraph().run()}>
+        <RemoveFormatting className="size-4" />
+      </button>
       <button onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}>
-        {/* <FontAwesomeIcon icon={faH1} size="sm" /> */}
-        H1
+        <Heading1 className="size-4" />
       </button>
       <button onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>
-        {/* <FontAwesomeIcon icon={faH2} size="sm" /> */}
-        H2
+        <Heading2 className="size-4" />
       </button>
       <button onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>
-        {/* <FontAwesomeIcon icon={faH3} size="sm" /> */}
-        H3
+        <Heading3 className="size-4" />
       </button>
       <button onClick={() => editor?.chain().focus().toggleBulletList().run()}>
-        {/* <FontAwesomeIcon icon={faList} size="sm" /> */}
-        List
+        <List className="size-4" />
       </button>
     </BubbleMenu>
   );
