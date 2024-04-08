@@ -122,7 +122,14 @@ const Graph = ({ className }: { className?: string }) => {
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
-      if (focus !== "graph") return;
+      const target = event.target as HTMLElement;
+      const isEditable = target.isContentEditable;
+      const isInputLike =
+        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
+      if (focus !== "graph" || isEditable || isInputLike) {
+        return;
+      }
 
       if (event.key === "a" && (event.ctrlKey || event.metaKey)) {
         // Select all nodes
@@ -133,7 +140,7 @@ const Graph = ({ className }: { className?: string }) => {
 
     document.addEventListener("keydown", keyDownHandler);
     return () => document.removeEventListener("keydown", keyDownHandler);
-  }, [undo, redo, focus]);
+  }, [focus]);
 
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("graph")}>
