@@ -3,6 +3,8 @@ version: "3"
 volumes:
   coordnet_local_postgres_data: {}
   coordnet_local_postgres_data_backups: {}
+  hocuspocus_node_modules: {}
+  frontend_node_modules: {}
 
 services:
   django: &django
@@ -20,6 +22,7 @@ services:
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
+      - ./.envs/.local/.secrets
     ports:
       - "8000:8000"
     command: /start
@@ -35,6 +38,7 @@ services:
       - coordnet_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
+      - ./.envs/.local/.secrets
     ports:
       - "5433:5432"
 
@@ -77,3 +81,32 @@ services:
     ports:
       - "5555:5555"
     command: /start-flower
+
+  hocuspocus:
+    build:
+      context: .
+      dockerfile: compose/hocuspocus/Dockerfile
+    image: coordnet_local_hocuspocus
+    container_name: coordnet_local_hocuspocus
+    volumes:
+      - ./frontend/packages/coordnet-hocuspocus:/app
+      - hocuspocus_node_modules:/app/node_modules
+    env_file:
+      - ./.envs/.local/.hocuspocus
+      - ./.envs/.local/.postgres
+    ports:
+      - "8010:8010"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: compose/frontend/Dockerfile
+    image: coordnet_local_frontend
+    container_name: coordnet_local_frontend
+    volumes:
+      - ./frontend/app:/app
+      - frontend_node_modules:/app/node_modules
+    env_file:
+      - ./.envs/.local/.frontend
+    ports:
+      - "5173:5173"

@@ -1,0 +1,4 @@
+# Vite
+# ------------------------------------------------------------------------------
+VITE_HOCUSPOCUS_URL=ws://localhost:8010
+VITE_BACKEND_URL=http://localhost:8000

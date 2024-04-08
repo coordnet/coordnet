@@ -170,3 +170,4 @@ backend/coordnet/media/
 .ipython/
 .env
 .envs/.production/
+.envs/.local/.secrets

@@ -5,7 +5,8 @@ const config: { [key: string]: Knex.Config } = {
   development: {
     client: "postgresql",
     connection: {
-      database: settings.POSTGRES_DATABASE,
+      host: settings.POSTGRES_HOST,
+      database: settings.POSTGRES_DB,
       port: settings.POSTGRES_PORT,
       user: settings.POSTGRES_USER,
       password: settings.POSTGRES_PASSWORD,
@@ -15,7 +16,8 @@ const config: { [key: string]: Knex.Config } = {
   staging: {
     client: "postgresql",
     connection: {
-      database: settings.POSTGRES_DATABASE,
+      host: settings.POSTGRES_HOST,
+      database: settings.POSTGRES_DB,
       port: settings.POSTGRES_PORT,
       user: settings.POSTGRES_USER,
       password: settings.POSTGRES_PASSWORD,
@@ -32,7 +34,8 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: "postgresql",
     connection: {
-      database: settings.POSTGRES_DATABASE,
+      host: settings.POSTGRES_HOST,
+      database: settings.POSTGRES_DB,
       port: settings.POSTGRES_PORT,
       user: settings.POSTGRES_USER,
       password: settings.POSTGRES_PASSWORD,
