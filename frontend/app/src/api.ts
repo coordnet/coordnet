@@ -66,13 +66,13 @@ export const deleteBuddy = async (id: string): Promise<Buddy> => {
 export const getLLMTokenCount = async (
   buddyId: string,
   message: string,
-  node: string,
+  nodes: string[],
   level: number,
   signal: AbortSignal | undefined,
 ): Promise<LLMTokenCount> => {
   const response = await api.post(
     `api/buddies/${buddyId}/token_counts/`,
-    { message, node, level },
+    { message, nodes, level },
     { signal },
   );
   return response.data;
@@ -82,7 +82,7 @@ export const getLLMResponse = (
   abortController: AbortController,
   buddyId: string,
   message: string,
-  node: string,
+  nodes: string[],
   level: number,
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,7 +108,7 @@ export const getLLMResponse = (
         {
           method: "post",
           signal: abortController.signal,
-          body: JSON.stringify({ message, node, level }),
+          body: JSON.stringify({ message, nodes, level }),
           headers: { "Content-Type": "application/json", "Accept-Encoding": "in" },
         },
       );

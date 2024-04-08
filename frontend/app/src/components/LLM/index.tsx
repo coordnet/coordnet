@@ -4,7 +4,7 @@ import clsx from "clsx";
 import DOMPurify from "dompurify";
 import { Bot, GripIcon, Plus, SendHorizonal, Settings2, StopCircle, X } from "lucide-react";
 import { marked } from "marked";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { Tooltip } from "react-tooltip";
 import useLocalStorageState from "use-local-storage-state";
@@ -36,7 +36,7 @@ const LLM = ({ id }: { id: string }) => {
   const { nodesMap: spaceNodesMap } = useSpace();
   const { buddy, buddyId } = useBuddy();
   const { position, dragItem, handleDragStart } = usePosition(WIDTH);
-  const { reactFlowInstance, nodesMap, editor, focus } = useFocus();
+  const { reactFlowInstance, nodesMap, editor, focus, nodes } = useFocus();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -55,9 +55,14 @@ const LLM = ({ id }: { id: string }) => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const queryNodes = useMemo(() => {
+    const selectedNodes = nodes.filter((node) => node.selected);
+    return selectedNodes.length ? selectedNodes.map((node) => node.id) : [id];
+  }, [id, nodes]);
+
   const { data: tokenCount, isLoading: isTokenCountLoading } = useQuery({
-    queryKey: ["token_count", buddyId, debouncedInput, id, depth],
-    queryFn: ({ signal }) => getLLMTokenCount(buddyId, debouncedInput, id, depth, signal),
+    queryKey: ["token_count", buddyId, debouncedInput, queryNodes, depth],
+    queryFn: ({ signal }) => getLLMTokenCount(buddyId, debouncedInput, queryNodes, depth, signal),
     enabled: Boolean(buddyId && id),
     initialData: {},
   });
@@ -70,7 +75,7 @@ const LLM = ({ id }: { id: string }) => {
     if (abortController) abortController.abort();
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
-    const stream = getLLMResponse(newAbortController, buddyId, promptInput, id, depth);
+    const stream = getLLMResponse(newAbortController, buddyId, promptInput, queryNodes, depth);
     let string = "";
     stream.on("data", async (data: string) => {
       string += data;

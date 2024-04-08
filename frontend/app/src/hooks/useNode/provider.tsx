@@ -14,6 +14,8 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
   const [graphConnected, setGraphConnected] = useState<boolean>(false);
   const [editorSynced, setEditorSynced] = useState<boolean>(false);
   const [editorConnected, setEditorConnected] = useState<boolean>(false);
+  const [nodesSelection, setNodesSelection] = useState<Set<string>>(new Set());
+  const [edgesSelection, setEdgesSelection] = useState<Set<string>>(new Set());
 
   const editorRoomName = `node-editor-${id}`;
   const editorYdoc = useMemo(() => new Y.Doc({ guid: editorRoomName }), [editorRoomName]);
@@ -59,23 +61,31 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     if (!nodesMap) return;
 
     const observer = () => {
-      setNodes(Array.from(nodesMap.values()));
+      const nodesArr = Array.from(nodesMap.values());
+      nodesArr.forEach((node) => {
+        node.selected = nodesSelection.has(node.id);
+      });
+      setNodes(nodesArr);
     };
     observer();
     nodesMap.observe(observer);
     return () => nodesMap.unobserve(observer);
-  }, [nodesMap, setNodes]);
+  }, [nodesMap, setNodes, nodesSelection]);
 
   useEffect(() => {
     if (!edgesMap) return;
 
     const observer = () => {
-      setEdges(Array.from(edgesMap.values()));
+      const edgesArr = Array.from(edgesMap.values());
+      edgesArr.forEach((edge) => {
+        edge.selected = edgesSelection.has(edge.id);
+      });
+      setEdges(edgesArr);
     };
     observer();
     edgesMap.observe(observer);
     return () => edgesMap.unobserve(observer);
-  }, [edgesMap, setEdges]);
+  }, [edgesMap, setEdges, edgesSelection]);
 
   const value = {
     id,
@@ -88,6 +98,10 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     edgesMap,
     nodes,
     edges,
+    nodesSelection,
+    setNodesSelection,
+    edgesSelection,
+    setEdgesSelection,
   };
 
   return <NodeContext.Provider value={value}>{children}</NodeContext.Provider>;

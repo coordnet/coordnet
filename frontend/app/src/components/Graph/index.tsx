@@ -38,13 +38,13 @@ const nodeTypes = {
 
 const Graph = ({ className }: { className?: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { nodes, edges, nodesMap } = useNode();
+  const { nodes, edges, nodesMap, setNodesSelection } = useNode();
   const { nodesMap: spaceNodesMap } = useSpace();
   const { isQuickViewOpen } = useQuickView();
   const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
   const reactFlowInstance = useReactFlow();
   const { undo, redo, canUndo, canRedo, takeSnapshot } = useUndoRedo();
-  const { setReactFlowInstance, setNodesMap, setNodes, setFocus } = useFocus();
+  const { setReactFlowInstance, setNodesMap, setNodes, setFocus, focus } = useFocus();
   const { zoomIn, zoomOut, fitView } = reactFlowInstance;
   const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
     defaultValue: true,
@@ -119,6 +119,21 @@ const Graph = ({ className }: { className?: string }) => {
   const onEdgesDelete: OnEdgesDelete = useCallback(() => {
     takeSnapshot();
   }, [takeSnapshot]);
+
+  useEffect(() => {
+    const keyDownHandler = (event: KeyboardEvent) => {
+      if (focus !== "graph") return;
+
+      if (event.key === "a" && (event.ctrlKey || event.metaKey)) {
+        // Select all nodes
+        setNodesSelection(new Set(nodes.map((n) => n.id)));
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", keyDownHandler);
+    return () => document.removeEventListener("keydown", keyDownHandler);
+  }, [undo, redo, focus]);
 
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("graph")}>

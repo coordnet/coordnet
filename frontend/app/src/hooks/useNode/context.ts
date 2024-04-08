@@ -14,6 +14,10 @@ type NodeContextType = {
   edgesMap: Y.Map<GraphEdge>;
   nodes: GraphNode[];
   edges: GraphEdge[];
+  nodesSelection: Set<string>;
+  edgesSelection: Set<string>;
+  setNodesSelection: React.Dispatch<React.SetStateAction<Set<string>>>;
+  setEdgesSelection: React.Dispatch<React.SetStateAction<Set<string>>>;
 };
 
 /**

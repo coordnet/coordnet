@@ -30,7 +30,14 @@ const isEdgeRemoveChange = (change: EdgeChange): change is EdgeRemoveChange =>
   change.type === "remove";
 
 function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
-  const { nodesMap, edgesMap } = useNode();
+  const {
+    nodesMap,
+    edgesMap,
+    nodesSelection,
+    setNodesSelection,
+    edgesSelection,
+    setEdgesSelection,
+  } = useNode();
 
   // The onNodesChange callback updates nodesMap.
   // When the changes are applied to the map, the observer will be triggered and updates the nodes state.
@@ -39,11 +46,18 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       const nodes = Array.from(nodesMap.values());
 
       const nextNodes = applyNodeChanges(changes, nodes);
+      const newSelection = new Set([...nodesSelection]);
       changes.forEach((change: NodeChange) => {
         if (!isNodeAddChange(change) && !isNodeResetChange(change)) {
           const node = nextNodes.find((n) => n.id === change.id);
 
-          if (node && change.type !== "remove") {
+          if (change.type == "select") {
+            if (change.selected == true) {
+              newSelection.add(change.id);
+            } else {
+              newSelection.delete(change.id);
+            }
+          } else if (node && change.type !== "remove") {
             nodesMap.set(change.id, node);
           } else if (change.type === "remove") {
             const deletedNode = nodesMap.get(change.id);
@@ -55,23 +69,35 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
           }
         }
       });
+      setNodesSelection(newSelection);
     },
-    [edgesMap, nodesMap],
+    [edgesMap, nodesMap, nodesSelection],
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
       const currentEdges = Array.from(edgesMap.values()).filter((e) => e);
       const nextEdges = applyEdgeChanges(changes, currentEdges);
+      const newSelection = new Set([...edgesSelection]);
       changes.forEach((change: EdgeChange) => {
+        console.log(change);
         if (isEdgeRemoveChange(change)) {
           edgesMap.delete(change.id);
         } else if (!isEdgeAddChange(change) && !isEdgeResetChange(change)) {
-          edgesMap.set(change.id, nextEdges.find((n) => n.id === change.id) as GraphEdge);
+          if (change.type == "select") {
+            if (change.selected == true) {
+              newSelection.add(change.id);
+            } else {
+              newSelection.delete(change.id);
+            }
+          } else {
+            edgesMap.set(change.id, nextEdges.find((n) => n.id === change.id) as GraphEdge);
+          }
         }
       });
+      setEdgesSelection(newSelection);
     },
-    [edgesMap],
+    [edgesMap, edgesSelection],
   );
 
   const onConnect = useCallback(
