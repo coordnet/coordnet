@@ -75,6 +75,19 @@ export const getLLMTokenCount = async (
     { message, nodes, level },
     { signal },
   );
+
+  // Ensure counts are always 0 - 5
+  const counts = response.data;
+  const keys = Object.keys(counts)
+    .map((key) => parseInt(key))
+    .sort((a, b) => a - b);
+  const lastKey = keys[keys.length - 1];
+  for (let i = 0; i <= 5; i++) {
+    if (counts[i] === undefined) {
+      counts[i] = counts[lastKey];
+    }
+  }
+
   return response.data;
 };
 
