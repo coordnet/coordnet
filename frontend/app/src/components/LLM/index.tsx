@@ -196,7 +196,7 @@ const LLM = ({ id }: { id: string }) => {
               />
               <Button
                 variant="secondary"
-                className="size-7 bg-bg text-lilac p-0"
+                className="size-7 bg-bg text-lilac p-0 mt-auto"
                 disabled={input.length == 0}
                 onClick={() => onSubmit()}
               >
@@ -205,7 +205,7 @@ const LLM = ({ id }: { id: string }) => {
             </div>
             {llmSettingsOpen && <Depth depth={depth} setDepth={setDepth} />}
           </div>
-          <div className="ml-3">
+          <div className={clsx("ml-3 flex flex-col", llmSettingsOpen && "mb-12")}>
             <div
               className={clsx(
                 "text-xs text-gray-3 h-5 flex items-center max-w-[125px] mb-1",
@@ -215,8 +215,8 @@ const LLM = ({ id }: { id: string }) => {
               <Bot className="size-3 mr-1 shrink-0" />
               <div className="line-clamp-1">{buddy?.name ?? "No Buddy"}</div>
             </div>
-            <div className="flex gap-3">
-              <Buddies />
+            <div className="flex gap-3 mt-auto">
+              <Buddies className="mt-auto" />
               <Button
                 className={clsx("size-9 p-0 shadow-md", llmSettingsOpen && "border-lilac")}
                 variant="outline"
