@@ -25,21 +25,21 @@
     "@hocuspocus/extension-database": "^2.11.3",
     "@hocuspocus/server": "^2.11.3",
     "@hocuspocus/transformer": "^2.11.3",
-    "@tiptap/starter-kit": "^2.2.4",
+    "@tiptap/starter-kit": "^2.2.6",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "knex": "^3.1.0",
-    "pg": "^8.11.4"
+    "pg": "^8.11.5"
   },
   "devDependencies": {
-    "@types/node": "^20.12.2",
+    "@types/node": "^20.12.5",
     "@typescript-eslint/eslint-plugin": "^7.5.0",
     "@typescript-eslint/parser": "^7.5.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
     "nodemon": "^3.1.0",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.4"
   },
   "eslintConfig": {
     "extends": [
