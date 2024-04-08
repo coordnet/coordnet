@@ -1,7 +1,7 @@
 import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light-border.css";
 
-import { BubbleMenu, Editor } from "@tiptap/react";
+import { BubbleMenu, Editor, isTextSelection } from "@tiptap/react";
 import {
   Bold,
   Heading1,
@@ -54,6 +54,27 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
         maxWidth: 1000,
       }}
       className="flex gap-2"
+      shouldShow={({ view, state, from, to }) => {
+        // Modified original from:
+        // https://github.com/ueberdosis/tiptap/blob/063ced27ca55f331960b01ee6aea5623eee0ba49/packages/extension-bubble-menu/src/bubble-menu-plugin.ts#L43
+        const { doc, selection } = state;
+        const { empty } = selection;
+
+        // Sometime check for `empty` is not enough.
+        // Doubleclick an empty paragraph returns a node size of 2.
+        // So we check also for an empty text size.
+        const isEmptyTextBlock =
+          !doc.textBetween(from, to).length && isTextSelection(state.selection);
+
+        if (!view.hasFocus() || empty || isEmptyTextBlock) {
+          return false;
+        }
+
+        // Disable for embedded nodes
+        if (editor.isActive("CoordNode")) return false;
+
+        return true;
+      }}
     >
       <button onClick={() => editor.chain().focus().toggleBold().run()}>
         <Bold className="size-4" strokeWidth={editor.isActive("bold") ? 3 : 2.5} />

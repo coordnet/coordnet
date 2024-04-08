@@ -64,7 +64,7 @@ const NodeRepository = ({ className }: NodeProps) => {
       };
       nodesMap.set(id, newNode);
     } else if (focus === "editor") {
-      editor?.commands.insertContent(`<coord-node id="${node.id}"></coord-node><br/>`);
+      editor?.commands.insertContent(`<coord-node id="${node.id}"></coord-node>`);
     } else {
       alert("Focus not found");
     }
