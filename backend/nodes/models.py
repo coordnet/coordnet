@@ -1,5 +1,4 @@
 import typing
-import uuid
 from collections import OrderedDict
 
 import model_utils
@@ -10,6 +9,9 @@ from django.utils.text import slugify
 from nodes import utils as nodes_utils
 from utils import models as utils_models
 from utils import tokens
+
+if typing.TYPE_CHECKING:
+    import uuid
 
 
 class DocumentType(models.TextChoices):
@@ -131,8 +133,8 @@ class Node(utils_models.BaseModel):
 
         ignore_content_at_depth = node_depth if query_depth % 2 == 0 else None
 
-        nodes_added: dict[uuid.UUID, tuple[bool, bool]] = {}
-        context_nodes: dict[uuid.UUID, str] = OrderedDict()
+        nodes_added: "dict[uuid.UUID, tuple[bool, bool]]" = {}
+        context_nodes: "dict[uuid.UUID, str]" = OrderedDict()
 
         for depth, nodes in nodes_at_depth.items():
             include_content = depth != ignore_content_at_depth
@@ -168,7 +170,6 @@ class Node(utils_models.BaseModel):
 class DocumentVersion(utils_models.BaseModel):
     """Task for storing the version of a document."""
 
-    public_id = models.UUIDField(editable=False, default=uuid.uuid4, db_index=True)
     document_type = models.CharField(max_length=255, choices=DocumentType.choices)
     document = models.ForeignKey("Document", on_delete=models.CASCADE, related_name="versions")
     json_hash = models.CharField(max_length=255)

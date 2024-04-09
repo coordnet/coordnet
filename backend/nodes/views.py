@@ -2,7 +2,7 @@ import typing
 
 from rest_framework import decorators, response
 
-from nodes import models, serializers
+from nodes import filters, models, serializers
 from utils import views
 
 if typing.TYPE_CHECKING:
@@ -36,6 +36,7 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet):
     queryset = models.DocumentVersion.objects.all()
     serializer_class = serializers.DocumentVersionSerializer
     filterset_fields = ("document", "document_type")
+    filterset_class = filters.DocumentVersionFilterSet
 
     @decorators.action(detail=True, methods=["get"])
     def crdt(self, request: "request.Request", public_id: str | None = None) -> response.Response:

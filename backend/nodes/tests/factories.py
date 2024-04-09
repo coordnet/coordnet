@@ -1,7 +1,10 @@
 import typing
 
 import factory
+import factory.fuzzy
 from factory.django import DjangoModelFactory
+
+from nodes import models
 
 
 def content_for_text(text: str) -> list:
@@ -36,6 +39,7 @@ class NodeFactory(DjangoModelFactory):
 
 class DocumentFactory(DjangoModelFactory):
     public_id = factory.Faker("uuid4")
+    json = factory.Faker("json")
 
     class Meta:
         model = "nodes.Document"
@@ -54,5 +58,10 @@ class DocumentEventFactory(DjangoModelFactory):
 
 
 class DocumentVersionFactory(DjangoModelFactory):
+    public_id = factory.Faker("uuid4")
+    document = factory.SubFactory(DocumentFactory)
+    document_type = factory.fuzzy.FuzzyChoice(models.DocumentType.choices, getter=lambda c: c[0])
+    json_hash = factory.Faker("sha256")
+
     class Meta:
         model = "nodes.DocumentVersion"
