@@ -171,3 +171,5 @@ backend/coordnet/media/
 .env
 .envs/.production/
 .envs/.local/.secrets
+
+!frontend/app/src/lib/

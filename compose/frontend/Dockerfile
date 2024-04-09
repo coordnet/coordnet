@@ -1,23 +1,21 @@
-FROM node:20 as node-build-stage
+FROM node:20-slim
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+ENV NODE_ENV=development
 
-WORKDIR /app
+WORKDIR /frontend
 
-RUN npm install -g pnpm
+RUN mkdir -p /frontend/app
 
-COPY ./frontend/app/package.json ./
+COPY ./frontend/app/package.json ./app
 COPY ./frontend/pnpm-lock.yaml ./
 COPY ./frontend/pnpm-workspace.yaml ./
 
+WORKDIR /frontend/app
+
 RUN pnpm install
 
-COPY ./frontend/app/ .
-
-FROM node:20-slim as node-run-stage
-
-RUN npm install -g pnpm
-
-WORKDIR /app
-
-COPY --from=node-build-stage /app .
+COPY ./frontend/app .
 
 CMD ["pnpm", "run", "dev", "--host"]

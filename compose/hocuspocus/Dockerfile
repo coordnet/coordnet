@@ -1,23 +1,21 @@
-FROM node:20 as node-build-stage
+FROM node:20-slim
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+ENV NODE_ENV=development
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN mkdir -p /app/packages/coordnet-hocuspocus
 
-COPY ./frontend/packages/coordnet-hocuspocus/package*.json ./
+COPY ./frontend/packages/coordnet-hocuspocus/package.json ./packages/coordnet-hocuspocus/
 COPY ./frontend/pnpm-lock.yaml ./
 COPY ./frontend/pnpm-workspace.yaml ./
 
+WORKDIR /app/packages/coordnet-hocuspocus/
+
 RUN pnpm install
 
-COPY ./frontend/packages/coordnet-hocuspocus/ .
-
-FROM node:20-slim as node-run-stage
-
-RUN npm install -g pnpm
-
-WORKDIR /app
-
-COPY --from=node-build-stage /app .
+COPY ./frontend/packages/coordnet-hocuspocus .
 
 CMD ["pnpm", "run", "dev"]
