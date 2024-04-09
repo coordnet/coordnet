@@ -14,7 +14,7 @@ import { v4 as uuid } from "uuid";
 import { getLLMResponse, getLLMTokenCount } from "@/api";
 import { useFocus, useSpace } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { GraphNode } from "@/types";
+import { GraphNode, LLMTokenCount } from "@/types";
 import { setNodePageContent } from "@/utils";
 
 import { loadExtensions } from "../Editor/extensions";
@@ -31,6 +31,21 @@ const readOnlyEditor = new Editor({
 });
 
 const WIDTH = 600;
+
+const getTokenCountForDepth = (tokenCount: LLMTokenCount, depth: string): string => {
+  if (depth in tokenCount) {
+    return tokenCount[depth.toString()].toLocaleString();
+  }
+
+  const depths = Object.keys(tokenCount)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const lastAvailableDepth = depths[depths.length - 1];
+
+  return lastAvailableDepth !== undefined
+    ? tokenCount[lastAvailableDepth.toString()].toLocaleString()
+    : "Unknown";
+};
 
 const LLM = ({ id }: { id: string }) => {
   const { nodesMap: spaceNodesMap } = useSpace();
@@ -178,7 +193,7 @@ const LLM = ({ id }: { id: string }) => {
             <div className={clsx("text-xs text-gray-3 h-5 mb-1", !hasResponse && "pl-3")}>
               {isTokenCountLoading || Object.keys(tokenCount).length === 0
                 ? "Counting..."
-                : `${tokenCount?.[depth]?.toLocaleString()} Tokens`}
+                : `${getTokenCountForDepth(tokenCount, depth)} Tokens`}
             </div>
             <div className="rounded border border-gray-6 bg-white p-1 flex items-center shadow-md">
               <TextareaAutosize
@@ -203,7 +218,7 @@ const LLM = ({ id }: { id: string }) => {
                 <SendHorizonal strokeWidth={3} className="size-4" />
               </Button>
             </div>
-            {llmSettingsOpen && <Depth depth={depth} setDepth={setDepth} />}
+            {llmSettingsOpen && <Depth depth={depth} tokenCount={tokenCount} setDepth={setDepth} />}
           </div>
           <div className={clsx("ml-3 flex flex-col", llmSettingsOpen && "mb-12")}>
             <div

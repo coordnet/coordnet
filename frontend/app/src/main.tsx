@@ -1,6 +1,5 @@
 import "react-tooltip/dist/react-tooltip.css";
 import "./index.css";
-import "./assets/rc-slider.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { ReactNode } from "react";
