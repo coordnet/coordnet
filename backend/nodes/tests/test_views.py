@@ -64,7 +64,16 @@ class SpacesViewTestCase(APITransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, [])
         space = factories.SpaceFactory.create()
-        response = self.client.get(reverse("nodes:spaces-list"))
+        with self.assertNumQueries(3):
+            response = self.client.get(reverse("nodes:spaces-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+        nodes = factories.NodeFactory.create_batch(10)
+        space.nodes.set(nodes)
+
+        with self.assertNumQueries(3):
+            response = self.client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
