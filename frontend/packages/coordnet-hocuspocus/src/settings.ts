@@ -3,7 +3,7 @@ import "dotenv/config";
 import { bool, cleanEnv, num, str } from "envalid";
 
 export const settings = cleanEnv(process.env, {
-  HOCUSPOCUS_PORT: num({ default: 80 }),
+  HOCUSPOCUS_PORT: num({ default: 8010 }),
   HOCUSPOCUS_TIMEOUT: num({ default: 30000 }),
   HOCUSPOCUS_DEBOUNCE: num({ default: 2000 }),
   HOCUSPOCUS_MAXDEBOUNCE: num({ default: 10000 }),

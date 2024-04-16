@@ -43,14 +43,15 @@ repos:
     hooks:
       - id: check-json5
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: "v8.56.0"
+    rev: "v9.0.0"
     hooks:
       - id: eslint
         files: \.[jt]sx?$
         types: [file]
+        args: [--config=frontend/eslint.config.mjs]
         exclude: .prettierrc.js|.storybook|.next
         additional_dependencies:
-          - eslint@8.57.0
+          - eslint@9.0.0
           - eslint-plugin-react-hooks@4.6.0
           - eslint-plugin-react-refresh@0.4.5
   - repo: https://github.com/pre-commit/mirrors-prettier

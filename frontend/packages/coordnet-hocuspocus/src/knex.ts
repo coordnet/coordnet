@@ -11,7 +11,7 @@ export interface KnexConfiguration extends DatabaseConfiguration {
    *
    * https://knexjs.org/guide/#configuration-options
    */
-  config: string | knex.Knex.Config<unknown>;
+  config: string | knex.Knex.Config<object>;
 }
 
 const getDocumentType = (name: string) => {
@@ -37,6 +37,8 @@ export class Knex extends Database {
       const document_type = getDocumentType(documentName);
       const public_id = cleanDocumentName(documentName);
       return new Promise((resolve, reject) => {
+        if (!this.db) return reject("Database not connected");
+
         this.db("nodes_document")
           .where({ public_id, document_type })
           .orderBy("id", "desc")
@@ -50,6 +52,8 @@ export class Knex extends Database {
       });
     },
     store: async ({ documentName, state, document }) => {
+      if (!this.db) throw new Error("Database not connected");
+
       const document_type = getDocumentType(documentName);
       const public_id = cleanDocumentName(documentName);
 
