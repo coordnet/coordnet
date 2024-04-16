@@ -5,7 +5,6 @@ from hashlib import sha256
 from celery import shared_task
 from django.conf import settings
 from django.db import transaction
-from django.db.models import OuterRef, Q, Subquery
 from django.utils import timezone
 
 from nodes import models
@@ -13,7 +12,7 @@ from nodes import models
 logger = logging.getLogger(__name__)
 
 
-@shared_task(ignore_result=True)
+@shared_task(ignore_result=True, expires=settings.NODE_CRDT_EVENTS_INTERVAL * 5)
 def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR0915
     """
     Process document events and update the corresponding Nodes and Spaces.
@@ -176,32 +175,40 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                 document_event.delete()
 
 
-@shared_task(ignore_result=True)
+@shared_task(ignore_result=True, expires=settings.NODE_VERSIONING_INTERVAL * 5)
 def document_versioning() -> None:
     """
     Save a snapshot of all documents if they were changed within the last interval.
     """
+
     now = timezone.now()
     threshold_time = now - timedelta(seconds=settings.NODE_VERSIONING_INTERVAL)
 
-    latest_version = models.DocumentVersion.available_objects.filter(
-        document=OuterRef("pk")
-    ).order_by("-created_at")
-    documents = models.Document.objects.annotate(
-        last_version_time=Subquery(latest_version.values("created_at")[:1]),
-        last_version_json_hash=Subquery(latest_version.values("json_hash")[:1]),
-    ).filter(Q(last_version_time__lte=threshold_time) | Q(versions=None))
+    # Fetch document versions that were created outside the current interval. Doing the query this
+    # way around means we have to do another one for documents without versions, but this is by
+    # far the fastest query I could find.
+    # TODO: Still add fitting indices for this query to the database. The number of DocumentVersion
+    #       objects will grow very fast.
+    latest_versions = (
+        models.DocumentVersion.objects.filter(created_at__lte=threshold_time)
+        .order_by("document_id", "-created_at")
+        .distinct("document_id")
+        .select_related("document")
+        .only("document", "json_hash")
+    )
 
-    for document in documents:
-        if (
-            document.last_version_json_hash
-            and document.last_version_json_hash == sha256(str(document.json).encode()).hexdigest()
-        ):
-            continue
+    for version in latest_versions:
+        if version.json_hash != sha256(str(version.document.json).encode()).hexdigest():
+            version.document.versions.create(
+                data=version.document.data,
+                json_hash=sha256(str(version.document.json).encode()).hexdigest(),
+                document_type=version.document.document_type,
+            )
 
+    # Fetch documents without versions and create a version for them
+    for document in models.Document.objects.filter(versions__isnull=True):
         document.versions.create(
             data=document.data,
             json_hash=sha256(str(document.json).encode()).hexdigest(),
             document_type=document.document_type,
         )
-        document.save()
