@@ -1,14 +1,14 @@
 from datetime import timedelta
 from hashlib import sha256
 
-from django.test import TransactionTestCase
 from django.utils import timezone
 
 from nodes import models, tasks
 from nodes.tests import factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class DocumentVersioningTestCase(TransactionTestCase):
+class DocumentVersioningTestCase(BaseAPITransactionTestCase):
     def test_document_versioning(self) -> None:
         # Create a document
         document = factories.DocumentFactory(json={"test": "data"}, data=b"test data")

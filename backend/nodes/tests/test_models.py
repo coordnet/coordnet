@@ -1,12 +1,11 @@
 from itertools import chain
 
-from django.test import TestCase
-
 from nodes import models
 from nodes.tests import factories
+from utils.testcases import BaseTestCase
 
 
-class NodeModelTestCase(TestCase):
+class NodeModelTestCase(BaseTestCase):
     def test_node_creation_and_deletion(self) -> None:
         node = factories.NodeFactory.create(title="test")
         self.assertEqual(node.title, "test")

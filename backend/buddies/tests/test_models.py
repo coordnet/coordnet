@@ -3,11 +3,11 @@ from unittest.mock import Mock, patch
 from django.utils import timezone
 from openai.types.chat import ChatCompletion, ChatCompletionMessage
 from openai.types.chat.chat_completion import Choice
-from rest_framework.test import APITransactionTestCase
 
 from buddies import models
 from buddies.tests import factories
 from nodes.tests import factories as node_factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
 def create_chat_completion(response: str, role: str = "assistant") -> ChatCompletion:
@@ -29,7 +29,7 @@ def create_chat_completion(response: str, role: str = "assistant") -> ChatComple
     )
 
 
-class BuddyTestCase(APITransactionTestCase):
+class BuddyTestCase(BaseAPITransactionTestCase):
     # TODO: Improve and add tests, try to remove type ignores
     @patch("openai.resources.chat.Completions.create")
     def test_buddy_query_model(self, openai_create: Mock) -> None:

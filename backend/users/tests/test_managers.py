@@ -1,12 +1,12 @@
 from io import StringIO
 
 from django.core.management import call_command
-from django.test import TransactionTestCase
 
 from users.models import User
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class TestUserManager(TransactionTestCase):
+class TestUserManager(BaseAPITransactionTestCase):
     def test_create_user(self) -> None:
         user = User.objects.create_user(
             email="john@example.com",

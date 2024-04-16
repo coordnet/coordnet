@@ -3,13 +3,13 @@ Module for all Form Tests.
 """
 
 from django.utils.translation import gettext_lazy as _
-from rest_framework.test import APITransactionTestCase
 
 from users.forms import UserAdminCreationForm
 from users.tests import factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class TestUserAdminCreationForm(APITransactionTestCase):
+class TestUserAdminCreationForm(BaseAPITransactionTestCase):
     """
     Test class for all tests related to the UserAdminCreationForm
     """

@@ -1,11 +1,12 @@
 from django.urls import reverse
-from rest_framework.test import APIRequestFactory, APITransactionTestCase
+from rest_framework.test import APIRequestFactory
 
 from users.api.views import UserViewSet
 from users.tests import factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class TestUserViewSet(APITransactionTestCase):
+class TestUserViewSet(BaseAPITransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user = factories.UserFactory()

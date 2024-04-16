@@ -1,11 +1,12 @@
 from django.urls import reverse
-from rest_framework.test import APIClient, APITransactionTestCase
+from rest_framework.test import APIClient
 
 from users import models
 from users.tests import factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class TestUserAdmin(APITransactionTestCase):
+class TestUserAdmin(BaseAPITransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.admin_user = factories.UserFactory(

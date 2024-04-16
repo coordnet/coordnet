@@ -1,10 +1,10 @@
 from django.urls import resolve, reverse
-from rest_framework.test import APITransactionTestCase
 
 from users.tests import factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class DRFURLsTestCase(APITransactionTestCase):
+class DRFURLsTestCase(BaseAPITransactionTestCase):
     def test_user_detail(self) -> None:
         user = factories.UserFactory()
         self.assertEqual(

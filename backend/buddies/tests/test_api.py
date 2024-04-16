@@ -1,11 +1,11 @@
 from django.urls import reverse
-from rest_framework.test import APITransactionTestCase
 
 from buddies.tests import factories
 from nodes.tests import factories as node_factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class BuddyViewSetTestCase(APITransactionTestCase):
+class BuddyViewSetTestCase(BaseAPITransactionTestCase):
     def test_buddy_query(self) -> None:
         response = self.client.post(reverse("buddies:buddies-query", kwargs={"public_id": "test"}))
         self.assertEqual(response.status_code, 404)

@@ -11,9 +11,10 @@ from rest_framework.test import APIRequestFactory, APITransactionTestCase
 from users.forms import UserAdminChangeForm
 from users.tests.factories import UserFactory
 from users.views import UserRedirectView, UserUpdateView, user_detail_view
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class TestUserUpdateView(APITransactionTestCase):
+class TestUserUpdateView(BaseAPITransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user = UserFactory()

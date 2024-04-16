@@ -1,13 +1,13 @@
 import uuid
 
 from django.urls import reverse
-from rest_framework.test import APITransactionTestCase
 
 from nodes import models
 from nodes.tests import factories
+from utils.testcases import BaseAPITransactionTestCase
 
 
-class NodesViewTestCase(APITransactionTestCase):
+class NodesViewTestCase(BaseAPITransactionTestCase):
     def test_list(self) -> None:
         response = self.client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
@@ -58,7 +58,7 @@ class NodesViewTestCase(APITransactionTestCase):
         self.assertEqual(len(response.data), 0)
 
 
-class SpacesViewTestCase(APITransactionTestCase):
+class SpacesViewTestCase(BaseAPITransactionTestCase):
     def test_list(self) -> None:
         response = self.client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
@@ -133,7 +133,7 @@ class SpacesViewTestCase(APITransactionTestCase):
         self.assertEqual(space.default_node, node)
 
 
-class DocumentVersionViewTestCase(APITransactionTestCase):
+class DocumentVersionViewTestCase(BaseAPITransactionTestCase):
     def test_list(self) -> None:
         response = self.client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)
