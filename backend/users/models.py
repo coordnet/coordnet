@@ -1,3 +1,4 @@
+import typing
 import uuid
 
 from django.contrib.auth.models import AbstractUser
@@ -16,17 +17,17 @@ class User(AbstractUser):
     """
 
     # First and last name do not cover name patterns around the globe
-    name = models.CharField(_("Name of User"), blank=True, max_length=255)
+    name = models.CharField(_("name of user"), blank=True, max_length=255)
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
     email = models.EmailField(_("email address"), unique=True)
     username = None  # type: ignore[assignment]
-    public_id = models.UUIDField(_("Public ID"), unique=True, default=uuid.uuid4, editable=False)
+    public_id = models.UUIDField(_("public id"), unique=True, default=uuid.uuid4, editable=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = UserManager()  # type: ignore[misc]
+    objects: typing.ClassVar[UserManager] = UserManager()
 
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.

@@ -1,5 +1,6 @@
 import knox.views as knox_views
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
 
 from users.api import views
 from utils import routers
@@ -17,6 +18,7 @@ urlpatterns = router.urls + [
     path("auth/logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
     path("auth/logoutall/", knox_views.LogoutAllView.as_view(), name="knox_logoutall"),
     path("auth/verify/", views.VerifyEmailView.as_view(), name="password_verify"),
+    path("auth/token/", obtain_auth_token),
     path(
         "auth/password-reset/",
         include("django_rest_passwordreset.urls", namespace="password_reset"),

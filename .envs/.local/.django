@@ -13,3 +13,7 @@ REDIS_URL=redis://redis:6379/0
 # Flower
 CELERY_FLOWER_USER=aezeod7OhheiGa0vaefoma1ooqua8zoo
 CELERY_FLOWER_PASSWORD=ooxohvaeP6aivoo2Ahsooquoo0ieng2hien8bai0Et1Wae8ceshee1ohsh7eesee
+
+# Frontend
+# ------------------------------------------------------------------------------
+FRONTEND_URL=http://localhost:5173

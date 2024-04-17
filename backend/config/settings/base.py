@@ -46,7 +46,7 @@ LANGUAGE_CODE = "en-us"
 #     ('pt-br', _('Portuguese')),
 # ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
-SITE_ID = 1
+# SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
@@ -88,7 +88,7 @@ DJANGO_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
-    "django.contrib.sites",
+    # "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
@@ -103,6 +103,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "django_celery_beat",
     "rest_framework",
+    "rest_framework.authtoken",
     "knox",
     "django_rest_passwordreset",
     "corsheaders",
@@ -397,6 +398,6 @@ NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document
 # ------------------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="fake-key")
 
-# TODO: This might only be needed as an override for local development, in production we'd want to
-#       host the frontend on the same domain as the backend.
-FRONTEND_URL = "http://localhost:8000"
+# This is only needed as an override for local development, in production are hosting the
+# frontend on the same domain as the backend.
+FRONTEND_URL: str | None = env("FRONTEND_URL", default=None)

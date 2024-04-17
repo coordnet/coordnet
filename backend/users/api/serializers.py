@@ -1,5 +1,4 @@
 import typing
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -11,6 +10,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from utils.serializers import BaseSerializer
+from utils.urls import build_absolute_url
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
@@ -49,10 +49,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         """Email the user with a verification link."""
         # TODO: This should be a Celery task, but I didn't set up Celery yet.
         # Send an e-mail to the user
+        verification_path = f"/auth/verify-email/{token.key}"
+        verification_url = build_absolute_url(self.context.get("request"), verification_path)
         context = {
             "current_user": token.user,
             "email": token.user.email,
-            "verify_email_url": urljoin(settings.FRONTEND_URL, f"/auth/verify-email/{token.key}"),
+            "verify_email_url": verification_url,
             "verify_token": token.key,
         }
 

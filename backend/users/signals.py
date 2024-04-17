@@ -1,5 +1,4 @@
 import typing
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -9,6 +8,8 @@ from django_rest_passwordreset.signals import (
     post_password_reset,
     reset_password_token_created,
 )
+
+from utils.urls import build_absolute_url
 
 if typing.TYPE_CHECKING:
     from typing import Any
@@ -35,8 +36,8 @@ def password_reset_token_created(
     context = {
         "current_user": reset_password_token.user,
         "email": reset_password_token.user.email,
-        "reset_password_url": urljoin(
-            settings.FRONTEND_URL, f"/auth/reset-password/{reset_password_token.key}"
+        "reset_password_url": build_absolute_url(
+            sender.request, f"/auth/reset-password/{reset_password_token.key}"
         ),
         "reset_token": reset_password_token.key,
     }
