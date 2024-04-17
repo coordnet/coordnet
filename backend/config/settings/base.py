@@ -398,6 +398,14 @@ NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document
 # ------------------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="fake-key")
 
+
+# APIs
+# ------------------------------------------------------------------------------
+SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
+WEBSOCKET_API_URL = f"http://hocuspocus:{env('HOCUSPOCUS_PORT')}"
+WEBSOCKET_API_KEY = env("WEBSOCKET_API_KEY", default="fake-key")
+
+# Frontend
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.
 FRONTEND_URL: str | None = env("FRONTEND_URL", default=None)

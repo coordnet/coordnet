@@ -18,6 +18,7 @@ services:
     volumes:
       - .:/app:z
     env_file:
+      - ./.envs/.local/.hocuspocus
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
       - ./.envs/.local/.secrets

@@ -6,7 +6,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from buddies import models, serializers
+from buddies import models, serializers, tasks
 from utils import middlewares, views
 
 if typing.TYPE_CHECKING:
@@ -48,3 +48,12 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         message = validated_data.get("message") or ""
 
         return Response(buddy.calculate_token_counts(nodes, max_depth, message))
+
+    @action(detail=True, methods=["post"])
+    def paper_agent(self, request: "Request", public_id: str | None = None) -> Response:
+        space_id = request.data.get("space_id")
+        graph_id = request.data.get("graph_id")
+        node_id = request.data.get("node_id")
+
+        tasks.paper_buddy.delay(public_id, space_id, graph_id, node_id)
+        return Response(status=204)

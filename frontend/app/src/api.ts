@@ -261,6 +261,22 @@ export const getLLMResponse = (
   return { on };
 };
 
+export const paperAgent = async (
+  buddyId: string,
+  space_id: string,
+  graph_id: string,
+  node_id: string,
+  signal: AbortSignal | undefined,
+): Promise<LLMTokenCount> => {
+  const response = await api.post(
+    `api/buddies/${buddyId}/paper_agent/`,
+    { space_id, graph_id, node_id },
+    { signal },
+  );
+
+  return response.data;
+};
+
 export const handleApiError = (
   e: unknown,
   formData: { [key: string]: unknown },

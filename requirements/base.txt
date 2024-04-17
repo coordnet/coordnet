@@ -7,6 +7,8 @@ hiredis==2.2.3  # https://github.com/redis/hiredis-py
 celery==5.4.0  # pyup: < 6.0  # https://github.com/celery/celery
 django-celery-beat==2.6.0  # https://github.com/celery/django-celery-beat
 flower==2.0.1  # https://github.com/mher/flower
+requests==2.31.0  # https://github.com/psf/requests
+pydantic==2.7.0  # https://github.com/pydantic/pydantic
 
 # Django
 # ------------------------------------------------------------------------------
@@ -37,3 +39,4 @@ django-pgtrigger==4.11.0  # https://github.com/Opus10/django-pgtrigger
 # ------------------------------------------------------------------------------
 tiktoken==0.6.0  # https://github.com/openai/tiktoken
 openai==1.14.2  # https://github.com/openai/openai-python
+instructor==1.2.0  # https://github.com/jxnl/instructor
