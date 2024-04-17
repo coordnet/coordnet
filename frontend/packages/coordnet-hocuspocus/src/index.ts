@@ -8,13 +8,13 @@ import * as Y from "yjs";
 
 import config from "../knexfile";
 import { addToGraph } from "./addToGraph";
-import { addToNodePage } from "./addToNodePage";
+import { setNodePage } from "./setNodePage";
 import { hocuspocusSettings } from "./settings";
 import { Me } from "./types";
+import { updateNode } from "./updateNode";
 import { authRequest, backendRequest, cleanDocumentName, getDocumentType } from "./utils";
 
 const transformer = TiptapTransformer.extensions([StarterKit]);
-
 const environment = process.env.ENVIRONMENT || "development";
 const db = knex(config[environment]);
 if (!db) throw Error("Database not connected");
@@ -113,12 +113,20 @@ app.post("/add-to-graph", async (request, response) => {
   return await addToGraph(server, request, response);
 });
 
-// Add text to a node page
-app.post("/add-to-node-page", async (request, response) => {
+// Set text of a node page
+app.post("/set-node-page", async (request, response) => {
   if (!authRequest(request)) {
     return response.status(401).send("Unauthorized");
   }
-  return await addToNodePage(server, request, response);
+  return await setNodePage(server, request, response);
+});
+
+// Update a node
+app.post("/update-node", async (request, response) => {
+  if (!authRequest(request)) {
+    return response.status(401).send("Unauthorized");
+  }
+  return await updateNode(server, request, response);
 });
 
 // Hocuspocus

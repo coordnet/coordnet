@@ -6,18 +6,20 @@ import { appendTextToNodePage } from "./utils";
 
 const requestSchema = z.object({
   nodeId: z.string(),
-  content: z.string(),
+  content: z.string().nullable(),
 });
 
-export const addToNodePage = async (server: Hocuspocus, req: Request, res: Response) => {
+export const setNodePage = async (server: Hocuspocus, req: Request, res: Response) => {
   const result = requestSchema.safeParse(req.body);
   if (result.success === false) {
     return res.status(400).json({ errors: result.error.flatten() });
   }
   const { nodeId, content } = result.data;
 
-  const editorConnection = await server.openDirectConnection(`node-editor-${nodeId}`, {});
-  await appendTextToNodePage(editorConnection, content);
+  if (content) {
+    const editorConnection = await server.openDirectConnection(`node-editor-${nodeId}`, {});
+    await appendTextToNodePage(editorConnection, content);
+  }
 
   res.send("OK");
 };

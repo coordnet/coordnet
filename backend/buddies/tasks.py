@@ -18,9 +18,10 @@ from buddies.utils import (
     LLMAnalysis,
     LLMKeywords,
     add_to_graph,
-    add_to_node_page,
     query_semantic,
     score_color,
+    set_node_page,
+    update_node,
 )
 from nodes.models import Node
 
@@ -38,9 +39,15 @@ def paper_buddy(buddy_id: str, space_id: str, graph_id: str, node_id: str) -> No
     # Patch the OpenAI client
     client = instructor.from_openai(openai.OpenAI(api_key=settings.OPENAI_API_KEY))
 
-    keywords = client.chat.completions.create(
+    # Add keyword node to the graph
+    keywords_node = GraphNode(title="Keywords", content=None, data={"borderColor": "#5B28CE"})
+    keywords_edge = GraphEdge(source=node_id, target=keywords_node.id)
+    add_to_graph(space_id, graph_id, [keywords_node], [keywords_edge])
+
+    keywords_stream = client.chat.completions.create_partial(
         model=buddy.model,
         response_model=LLMKeywords,
+        stream=True,
         messages=[
             {
                 "role": "user",
@@ -49,14 +56,14 @@ def paper_buddy(buddy_id: str, space_id: str, graph_id: str, node_id: str) -> No
         ],
     )
 
-    # Add keyword node to the graph
-    keywords_node = GraphNode(
-        title=f"Keywords: {', '.join(keywords.keywords[0:4])}",
-        content=None,
-        data={"borderColor": "#5B28CE"},
-    )
-    keywords_edge = GraphEdge(source=node_id, target=keywords_node.id)
-    add_to_graph(space_id, graph_id, [keywords_node], [keywords_edge])
+    for keywords in keywords_stream:
+        if keywords.keywords and len(keywords.keywords):
+            update_node(
+                space_id,
+                keywords_node.id,
+                graph_id,
+                f"Keywords: {', '.join(keywords.keywords[0:4])}",
+            )
 
     # Search for papers from semantic based on keywords
     semantic_response = query_semantic(keywords.keywords[0:4])
@@ -104,6 +111,12 @@ def paper_buddy(buddy_id: str, space_id: str, graph_id: str, node_id: str) -> No
         query_edge = GraphEdge(source=paper_node.id, target=query_node.id)
         add_to_graph(space_id, graph_id, [query_node], [query_edge])
 
+        # Add analysis to the graph
+        analysis_node = GraphNode(title="Analysing...")
+        query_node_ids.append(analysis_node.id)
+        edge = GraphEdge(source=query_node.id, target=analysis_node.id)
+        add_to_graph(space_id, graph_id, [analysis_node], [edge])
+
         # Query for analysis from LLM
         analysis = client.chat.completions.create(
             model=buddy.model,
@@ -111,15 +124,14 @@ def paper_buddy(buddy_id: str, space_id: str, graph_id: str, node_id: str) -> No
             messages=[{"role": "user", "content": paper_prompt}],
         )
 
-        # Add analysis to the graph
-        analysis_node = GraphNode(
+        update_node(
+            space_id,
+            analysis_node.id,
+            graph_id,
             title=f"Analysis: {paper_node.title}",
-            content=f"""**Score:** {analysis.score}\n\n{analysis.analysis}""",
             data={"borderColor": score_color(analysis.score)},
         )
-        query_node_ids.append(analysis_node.id)
-        edge = GraphEdge(source=query_node.id, target=analysis_node.id)
-        add_to_graph(space_id, graph_id, [analysis_node], [edge])
+        set_node_page(analysis_node.id, f"""**Score:** {analysis.score}\n\n{analysis.analysis}""")
 
     # Sleep to wait for nodes to become available
     time.sleep(5)
@@ -131,4 +143,4 @@ def paper_buddy(buddy_id: str, space_id: str, graph_id: str, node_id: str) -> No
     for chunk in buddy.query_model(nodes, 2, PAPER_AGENT_SUMMARY):
         response_chunks.append(chunk)
 
-    add_to_node_page(graph_id, "".join(response_chunks))
+        set_node_page(graph_id, "".join(response_chunks))

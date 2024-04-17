@@ -40,9 +40,11 @@ class LLMKeywords(BaseModel):
 
 def score_color(score: float) -> str:
     """Return a color based on the score."""
-    if score >= 8:
+    if not score:
+        return "#000000"
+    if score >= 8.0:
         return "#76CA48"
-    if score >= 5:
+    if score >= 5.0:
         return "#F2A33A"
     return "#EA6441"
 
@@ -84,20 +86,42 @@ def add_to_graph(
 
     logging.info(f"Adding nodes to graph: {nodes}")
     url = f"{settings.WEBSOCKET_API_URL}/add-to-graph"
-    data = {
+    json_data = {
         "spaceId": space_id,
         "graphId": graph_id,
         "edges": [edge.model_dump() for edge in edges],
         "nodes": [node.model_dump() for node in nodes],
     }
-    r = requests.post(url, json=data, headers=headers)
+    r = requests.post(url, json=json_data, headers=headers)
     r.raise_for_status()
 
 
-def add_to_node_page(node_id: str, content: str) -> None:
+def set_node_page(node_id: str, content: str) -> None:
     """Add content to a node page."""
     logging.info(f"Adding content to node page: {node_id}")
-    url = f"{settings.WEBSOCKET_API_URL}/add-to-node-page"
-    data = {"nodeId": node_id, "content": content}
-    r = requests.post(url, json=data, header=headers)
+    url = f"{settings.WEBSOCKET_API_URL}/set-node-page"
+    json_data = {"nodeId": node_id, "content": content}
+    r = requests.post(url, json=json_data, headers=headers)
+    r.raise_for_status()
+
+
+def update_node(
+    space_id: str,
+    node_id: str,
+    graph_id: str,
+    title: str,
+    data: dict[Any, Any] | None = None,
+) -> None:
+    """Update a nodes title"""
+    logging.info(f"Updating node title: {node_id}")
+    url = f"{settings.WEBSOCKET_API_URL}/update-node"
+    json_data: dict[str, Any] = {
+        "spaceId": space_id,
+        "graphId": graph_id,
+        "nodeId": node_id,
+        "title": title,
+    }
+    if data:
+        json_data["data"] = data
+    r = requests.post(url, json=json_data, headers=headers)
     r.raise_for_status()
