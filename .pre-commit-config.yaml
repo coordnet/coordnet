@@ -78,7 +78,9 @@ repos:
     rev: v1.34.1
     hooks:
       - id: djlint-reformat-django
+        exclude: ^frontend/
       - id: djlint-django
+        exclude: ^frontend/
   - repo: local
     hooks:
       - id: ruff
