@@ -14,7 +14,7 @@ COPY ./frontend/pnpm-workspace.yaml ./
 
 WORKDIR /frontend/app
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY ./frontend/app .
 

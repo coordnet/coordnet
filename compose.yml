@@ -3,8 +3,6 @@ version: "3"
 volumes:
   coordnet_local_postgres_data: {}
   coordnet_local_postgres_data_backups: {}
-  hocuspocus_node_modules: {}
-  frontend_node_modules: {}
 
 services:
   django: &django
@@ -90,7 +88,6 @@ services:
     container_name: coordnet_local_hocuspocus
     volumes:
       - ./frontend/packages/coordnet-hocuspocus:/app/packages/coordnet-hocuspocus
-      - hocuspocus_node_modules:/app/packages/coordnet-hocuspocus/node_modules
     env_file:
       - ./.envs/.local/.hocuspocus
       - ./.envs/.local/.postgres
@@ -105,7 +102,6 @@ services:
     container_name: coordnet_local_frontend
     volumes:
       - ./frontend/app:/frontend/app
-      - frontend_node_modules:/frontend/app/node_modules
     env_file:
       - ./.envs/.local/.frontend
     ports:

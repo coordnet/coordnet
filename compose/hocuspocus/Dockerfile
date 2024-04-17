@@ -14,7 +14,7 @@ COPY ./frontend/pnpm-workspace.yaml ./
 
 WORKDIR /app/packages/coordnet-hocuspocus/
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY ./frontend/packages/coordnet-hocuspocus .
 
