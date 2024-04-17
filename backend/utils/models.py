@@ -2,8 +2,8 @@ import typing
 import uuid
 
 from django.db import models
-from dry_rest_permissions import generics as dry_permissions
-from model_utils.models import SoftDeletableModel
+
+from utils import managers
 
 try:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -12,11 +12,8 @@ except ImportError:
     # type checking.
     TypedModelMeta = object  # type: ignore[misc,assignment]
 
-if typing.TYPE_CHECKING:
-    from django import http
 
-
-class BaseModel(SoftDeletableModel):
+class BaseModel(models.Model):
     """
     Base model for all models in the project.
 
@@ -33,57 +30,31 @@ class BaseModel(SoftDeletableModel):
     public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_removed = models.BooleanField(default=False)
+
+    objects: typing.ClassVar[models.Manager[typing.Self]] = managers.SoftDeletableManager(
+        _emit_deprecation_warnings=True
+    )
+    available_objects: typing.ClassVar[models.Manager[typing.Self]] = (
+        managers.SoftDeletableManager()
+    )
+    all_objects: typing.ClassVar[models.Manager[typing.Self]] = models.Manager()  # type: ignore[assignment]
+
+    def delete(  # type: ignore[override]
+        self, using: str | None = None, soft: bool = True, keep_parents: bool = False
+    ) -> tuple[int, dict[str, int]] | None:
+        """
+        Soft delete object (set its ``is_removed`` field to True).
+        Actually delete object if setting ``soft`` to False.
+        TODO: - collect and return the number of objects deleted even for a soft delete.
+        """
+        if soft:
+            self.is_removed = True
+            self.save(using=using, update_fields=["is_removed"])
+            return None
+        else:
+            return super().delete(using=using, keep_parents=keep_parents)
 
     class Meta(TypedModelMeta):
         abstract = True
         indexes = [models.Index(fields=["public_id"])]
-
-    @staticmethod
-    @dry_permissions.authenticated_users
-    def has_read_permission(request: "http.HttpRequest") -> bool:
-        """
-        Since this is the base model, all users have read permission on a global level.
-        Actual permissions are handled on the object level.
-        """
-        return True
-
-
-class OwnedModelMixin(models.Model):
-    """
-    Mixin for models that are owned by a user.
-    If a model is owned by a user, the user can only read and write their own objects.
-    """
-
-    owner = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="%(class)s")
-
-    class Meta(TypedModelMeta):
-        abstract = True
-
-    @staticmethod
-    @dry_permissions.authenticated_users
-    def has_read_permission(request: "http.HttpRequest") -> bool:
-        """
-        Read permission on a global level.
-        The actual permissions are handled on the object level.
-        """
-        return True
-
-    @dry_permissions.authenticated_users
-    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
-        return self.owner == request.user
-
-    @staticmethod
-    @dry_permissions.authenticated_users
-    def has_write_permission(request: "http.HttpRequest") -> bool:
-        """
-        Write permission on a global level.
-        The actual ownership check is handled on the object level.
-        However, this allows any authenticated user to create a new object.
-        """
-        return True
-
-    @dry_permissions.authenticated_users
-    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
-        return self.owner == request.user
