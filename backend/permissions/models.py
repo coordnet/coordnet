@@ -4,6 +4,8 @@ from django.contrib.contenttypes import fields as content_type_fields
 from django.contrib.contenttypes import models as content_type_models
 from django.db import models
 
+from utils import models as utils_models
+
 try:
     from django_stubs_ext.db.models import TypedModelMeta
 except ImportError:
@@ -31,10 +33,15 @@ class ObjectMembershipRole(models.Model):
     Model that represents the role of a user in an object membership.
     """
 
-    role = models.CharField(max_length=10, choices=RoleOptions.choices, default=RoleOptions.MEMBER)
+    role = models.CharField(
+        max_length=10, choices=RoleOptions.choices, default=RoleOptions.MEMBER, unique=True
+    )
+
+    def __str__(self) -> str:
+        return self.role.capitalize()
 
 
-class ObjectMembership(models.Model):
+class ObjectMembership(utils_models.BaseModel):
     """
     Model that represents the membership of a user in an object.
     """
@@ -52,6 +59,41 @@ class ObjectMembership(models.Model):
             models.Index(fields=["content_type", "object_id"]),
             models.Index(fields=["user", "content_type", "object_id"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "content_type", "object_id"], name="unique_membership"
+            )
+        ]
+
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        if not self.content_object:
+            return False
+
+        relevant_objects = self.content_object.get_relevant_objects_for_permissions()
+        return any(
+            obj.members.filter(user=request.user, role__role__in=READ_ROLES).exists()
+            for obj in relevant_objects
+        )
+
+    def __has_object_permission_management_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        if not self.content_object:
+            return False
+
+        relevant_objects = self.content_object.get_relevant_objects_for_permissions()
+        return any(
+            obj.members.filter(user=request.user, role__role__in=ADMIN_ROLES).exists()
+            for obj in relevant_objects
+        )
+
+    def has_object_manage_permissions_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.__has_object_permission_management_permission(request)
+
+    def has_object_delete_permission_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.__has_object_permission_management_permission(request)
 
 
 class MembershipModelMixin(models.Model):

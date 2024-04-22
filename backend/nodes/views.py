@@ -5,6 +5,7 @@ from django import http
 from rest_framework import decorators
 
 from nodes import filters, models, serializers
+from permissions import views as permission_views
 from utils import filters as base_filters
 from utils import views
 
@@ -12,7 +13,7 @@ if typing.TYPE_CHECKING:
     from rest_framework import request
 
 
-class NodeModelViewSet(views.BaseReadOnlyModelViewSet):
+class NodeModelViewSet(permission_views.PermissionViewSetMixin, views.BaseReadOnlyModelViewSet):
     """API endpoint that allows nodes to be viewed."""
 
     queryset = models.Node.available_objects.all()
@@ -22,7 +23,7 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet):
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
 
-class SpaceModelViewSet(views.BaseModelViewSet):
+class SpaceModelViewSet(permission_views.PermissionViewSetMixin, views.BaseModelViewSet):
     """API endpoint that allows projects to be viewed or edited."""
 
     queryset = models.Space.available_objects.prefetch_related("nodes").all()
