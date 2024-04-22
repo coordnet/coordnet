@@ -1,6 +1,7 @@
 import typing
 
-from rest_framework import decorators, response
+from django import http
+from rest_framework import decorators
 
 from nodes import filters, models, serializers
 from utils import views
@@ -39,6 +40,6 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet):
     filterset_class = filters.DocumentVersionFilterSet
 
     @decorators.action(detail=True, methods=["get"])
-    def crdt(self, request: "request.Request", public_id: str | None = None) -> response.Response:
+    def crdt(self, request: "request.Request", public_id: str | None = None) -> http.HttpResponse:
         document_version = self.get_object()
-        return response.Response(document_version.data, content_type="application/octet-stream")
+        return http.HttpResponse(document_version.data, content_type="application/octet-stream")
