@@ -2,30 +2,29 @@ import "reactflow/dist/style.css";
 import "./react-flow.css";
 
 import clsx from "clsx";
-import { Map, Maximize, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 import { DragEvent, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Background,
-  MiniMap,
   NodeDragHandler,
+  OnConnect,
   OnEdgesDelete,
   OnNodesDelete,
-  Panel,
   SelectionDragHandler,
   useReactFlow,
   XYPosition,
 } from "reactflow";
-import useLocalStorageState from "use-local-storage-state";
 import { v4 as uuidv4 } from "uuid";
 
 import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
 import { GraphNode } from "@/types";
 
-import { Button } from "../ui/button";
+import Controls from "./Controls";
 import GraphNodeComponent from "./GraphNode";
 import Sidebar from "./Sidebar";
+import UndoRedo from "./UndoRedo";
 import useUndoRedo from "./useUndoRedo";
 import useYdocState from "./useYdocState";
+import Versions from "./Versions";
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -45,10 +44,6 @@ const Graph = ({ className }: { className?: string }) => {
   const reactFlowInstance = useReactFlow();
   const { undo, redo, canUndo, canRedo, takeSnapshot } = useUndoRedo();
   const { setReactFlowInstance, setNodesMap, setNodes, setFocus, focus } = useFocus();
-  const { zoomIn, zoomOut, fitView } = reactFlowInstance;
-  const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
-    defaultValue: true,
-  });
 
   useEffect(() => {
     setReactFlowInstance(reactFlowInstance);
@@ -69,13 +64,6 @@ const Graph = ({ className }: { className?: string }) => {
     nodesMap,
     setNodesMap,
   ]);
-
-  // useEffect(() => {
-  //   nodesMap.forEach((node) => {
-  //     // if (!node.position) nodesMap.delete(node.id);
-  //     // nodesMap.set(node.id, { ...node, type: "GraphNode" });
-  //   });
-  // }, []);
 
   const addNode = (position: XYPosition) => {
     takeSnapshot();
@@ -120,6 +108,14 @@ const Graph = ({ className }: { className?: string }) => {
     takeSnapshot();
   }, [takeSnapshot]);
 
+  const onConnectWithUndo: OnConnect = useCallback(
+    (params) => {
+      takeSnapshot();
+      onConnect(params);
+    },
+    [onConnect, takeSnapshot],
+  );
+
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -145,16 +141,13 @@ const Graph = ({ className }: { className?: string }) => {
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("graph")}>
       <Sidebar className="absolute z-40 top-1/2 -translate-y-1/2" addNode={addNode} />
-      <div className="grow h-full" ref={wrapperRef}>
+      <div className="grow h-full Graph" ref={wrapperRef}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onEdgesChange={onEdgesChange}
           onNodesChange={onNodesChange}
-          onConnect={(params) => {
-            takeSnapshot();
-            onConnect(params);
-          }}
+          onConnect={onConnectWithUndo}
           onDrop={onDrop}
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
@@ -164,33 +157,8 @@ const Graph = ({ className }: { className?: string }) => {
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
         >
-          <Panel position="top-right" className="flex gap-1 !top-0 !right-2 !m-0">
-            <Button className="size-9 p-0" variant="outline" disabled={canUndo} onClick={undo}>
-              <Undo2 className="size-5" />
-            </Button>
-            <Button className="size-9 p-0" variant="outline" disabled={canRedo} onClick={redo}>
-              <Redo2 className="size-5" />
-            </Button>
-          </Panel>
-          <Panel position="bottom-right" className="flex gap-1 !bottom-2 !right-2 !m-0">
-            <Button className="size-9 p-0" variant="outline" onClick={() => zoomIn()}>
-              <ZoomIn className="size-5" />
-            </Button>
-            <Button className="size-9 p-0" variant="outline" onClick={() => zoomOut()}>
-              <ZoomOut className="size-5" />
-            </Button>
-            <Button className="size-9 p-0" variant="outline" onClick={() => fitView()}>
-              <Maximize className="size-5" />
-            </Button>
-            <Button
-              className="size-9 p-0"
-              variant="outline"
-              onClick={() => setMiniMapVisible(!miniMapVisible)}
-            >
-              <Map className="size-5" />
-            </Button>
-          </Panel>
-          {miniMapVisible && <MiniMap pannable={true} className="!bottom-12 !right-2 !m-0 !mb-1" />}
+          <Controls />
+          <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
           <Background gap={12} size={1} />
         </ReactFlow>
       </div>

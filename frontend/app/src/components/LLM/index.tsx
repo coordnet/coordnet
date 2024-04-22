@@ -72,7 +72,7 @@ const LLM = ({ id }: { id: string }) => {
 
   const queryNodes = useMemo(() => {
     const selectedNodes = nodes.filter((node) => node.selected);
-    return selectedNodes.length ? selectedNodes.map((node) => node.id) : [id];
+    return selectedNodes.length ? selectedNodes.map((node) => node.id).filter((id) => id) : [id];
   }, [id, nodes]);
 
   const { data: tokenCount, isLoading: isTokenCountLoading } = useQuery({

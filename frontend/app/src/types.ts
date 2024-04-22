@@ -60,3 +60,20 @@ export interface Buddy {
 export interface LLMTokenCount {
   [key: string]: number;
 }
+
+export interface PaginatedApiResponse<T> {
+  count: number;
+  next: string;
+  previous: string | null;
+  results: T[];
+}
+
+export interface NodeVersion {
+  id: string;
+  url: string;
+  crdt: string;
+  created_at: string;
+  updated_at: string;
+  document_type: "GRAPH" | "SPACE" | "EDITOR";
+  document: string;
+}

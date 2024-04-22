@@ -36,12 +36,10 @@ const QuickView = () => {
       tabIndex={0}
     >
       <div className="absolute inset-0" onClick={closeQuickView}></div>
-
       <div
         className="relative bg-white h-[90vh] w-[80vw] shadow-lg rounded-md transition-all transform duration-300 ease-in-out border"
         style={{ animation: "scaleIn 0.2s forwards" }}
       >
-        {/* {Boolean(nodeId) && <Node id={nodeId} className="size-full" />} */}
         {Boolean(nodeId) && (
           <iframe
             ref={iframeRef}

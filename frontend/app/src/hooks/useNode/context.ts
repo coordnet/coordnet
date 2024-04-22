@@ -5,6 +5,7 @@ import * as Y from "yjs";
 import { GraphEdge, GraphNode } from "@/types";
 
 type NodeContextType = {
+  id: string;
   connected: boolean;
   synced: boolean;
   editorProvider: HocuspocusProvider | undefined;

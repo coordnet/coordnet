@@ -7,3 +7,8 @@
   box-sizing: content-box !important;
   pointer-events: none;
 }
+
+.Graph .react-flow__attribution {
+  left: 180px !important;
+  bottom: 1px;
+}

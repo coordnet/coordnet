@@ -1,6 +1,13 @@
 import axios, { AxiosError } from "axios";
 
-import { BackendNode, Buddy, LLMTokenCount, Space } from "./types";
+import {
+  BackendNode,
+  Buddy,
+  LLMTokenCount,
+  NodeVersion,
+  PaginatedApiResponse,
+  Space,
+} from "./types";
 
 export const isAxiosError = <ResponseType>(error: unknown): error is AxiosError<ResponseType> => {
   return axios.isAxiosError(error);
@@ -33,6 +40,20 @@ export const getSpaceNodes = async (
 ): Promise<BackendNode[]> => {
   const response = await api.get("api/nodes/nodes/", {
     params: { spaces: spaceId },
+    signal,
+  });
+  return response.data;
+};
+
+export const getNodeVersions = async (
+  signal: AbortSignal | undefined,
+  document?: string,
+  document_type: string = "GRAPH",
+  page: number = 1,
+  page_size: number = 100,
+): Promise<PaginatedApiResponse<NodeVersion>> => {
+  const response = await api.get("api/nodes/versions/", {
+    params: { document, document_type, page, page_size },
     signal,
   });
   return response.data;
