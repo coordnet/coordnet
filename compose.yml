@@ -86,8 +86,6 @@ services:
       dockerfile: compose/hocuspocus/Dockerfile
     image: coordnet_local_hocuspocus
     container_name: coordnet_local_hocuspocus
-    volumes:
-      - ./frontend/packages/coordnet-hocuspocus:/app/packages/coordnet-hocuspocus
     env_file:
       - ./.envs/.local/.hocuspocus
       - ./.envs/.local/.postgres
@@ -100,8 +98,6 @@ services:
       dockerfile: compose/frontend/Dockerfile
     image: coordnet_local_frontend
     container_name: coordnet_local_frontend
-    volumes:
-      - ./frontend/app:/frontend/app
     env_file:
       - ./.envs/.local/.frontend
     ports:

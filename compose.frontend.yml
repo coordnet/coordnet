@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  hocuspocus:
+    volumes:
+      - ./frontend/packages/coordnet-hocuspocus:/app
+      - /app/node_modules
+  frontend:
+    volumes:
+      - ./frontend/app:/app
+      - /app/node_modules

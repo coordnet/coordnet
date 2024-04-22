@@ -71,7 +71,6 @@ const Versions = ({ editor, className }: { editor: Editor | null; className?: st
 
       loadVersion();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentVersion]);
 
   useEffect(() => {

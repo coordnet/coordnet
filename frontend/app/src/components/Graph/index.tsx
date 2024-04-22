@@ -24,7 +24,6 @@ import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import useUndoRedo from "./useUndoRedo";
 import useYdocState from "./useYdocState";
-import Versions from "./Versions";
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();

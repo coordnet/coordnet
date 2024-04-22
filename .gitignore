@@ -173,3 +173,4 @@ backend/coordnet/media/
 .envs/.local/.secrets
 
 !frontend/app/src/lib/
+.pnpm-store

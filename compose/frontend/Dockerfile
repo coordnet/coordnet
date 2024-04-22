@@ -1,18 +1,11 @@
 FROM node:20-slim
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 ENV NODE_ENV=development
 
-WORKDIR /frontend
+WORKDIR /app
 
-RUN mkdir -p /frontend/app
-
-COPY ./frontend/app/package.json ./app
-COPY ./frontend/pnpm-lock.yaml ./
-COPY ./frontend/pnpm-workspace.yaml ./
-
-WORKDIR /frontend/app
+COPY ./frontend/app/package.json ./
+COPY ./frontend/app/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
