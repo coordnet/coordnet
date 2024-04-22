@@ -12,7 +12,7 @@ def create_periodic_tasks(sender: typing.Any, **kwargs: typing.Any) -> None:
         every=settings.NODE_CRDT_EVENTS_INTERVAL, period=IntervalSchedule.SECONDS
     )
 
-    # Associate this schedule with your task
+    # Associate this schedule with the task
     PeriodicTask.objects.update_or_create(
         task=settings.NODE_CRDT_EVENTS_TASK,
         defaults={
@@ -26,7 +26,7 @@ def create_periodic_tasks(sender: typing.Any, **kwargs: typing.Any) -> None:
         every=settings.NODE_VERSIONING_TASK_INTERVAL, period=IntervalSchedule.SECONDS
     )
 
-    # Associate this schedule with your task
+    # Associate this schedule with the task
     PeriodicTask.objects.update_or_create(
         task=settings.NODE_VERSIONING_TASK,
         defaults={

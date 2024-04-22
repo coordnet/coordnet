@@ -5,10 +5,10 @@ from django.utils import timezone
 
 from nodes import models, tasks
 from nodes.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class DocumentVersioningTestCase(BaseAPITransactionTestCase):
+class DocumentVersioningTestCase(BaseTransactionTestCase):
     def test_document_versioning(self) -> None:
         # Create a document
         document = factories.DocumentFactory(json={"test": "data"}, data=b"test data")
@@ -20,7 +20,8 @@ class DocumentVersioningTestCase(BaseAPITransactionTestCase):
 
         # Since there wasn't any previous version, there should be only one version now
         self.assertEqual(models.DocumentVersion.objects.count(), 1)
-        document_version = models.DocumentVersion.objects.first()
+        document_version = models.DocumentVersion.objects.all()[0]
+
         self.assertEqual(document_version.document, document)
         self.assertEqual(document_version.data, b"test data")
         self.assertEqual(
@@ -54,13 +55,14 @@ class DocumentVersioningTestCase(BaseAPITransactionTestCase):
 
         # There should be a new version now
         self.assertEqual(models.DocumentVersion.objects.count(), 2)
-        document_version = models.DocumentVersion.objects.last()
-        self.assertEqual(document_version.document, document)
-        self.assertEqual(document_version.data, b"new data")
+        last_document_version = models.DocumentVersion.objects.last()
+        assert last_document_version is not None  # For mypy
+        self.assertEqual(last_document_version.document, document)
+        self.assertEqual(last_document_version.data, b"new data")
         self.assertEqual(
-            document_version.json_hash, sha256(str(document.json).encode()).hexdigest()
+            last_document_version.json_hash, sha256(str(document.json).encode()).hexdigest()
         )
-        self.assertEqual(document_version.document_type, document.document_type)
+        self.assertEqual(last_document_version.document_type, document.document_type)
 
         # But if we run the task again, there should be no new versions since the document hasn't
         # changed

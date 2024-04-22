@@ -1,0 +1,23 @@
+[
+  {
+    "model": "permissions.objectmembershiprole",
+    "pk": 1,
+    "fields": {
+      "role": "owner"
+    }
+  },
+  {
+    "model": "permissions.objectmembershiprole",
+    "pk": 2,
+    "fields": {
+      "role": "member"
+    }
+  },
+  {
+    "model": "permissions.objectmembershiprole",
+    "pk": 3,
+    "fields": {
+      "role": "viewer"
+    }
+  }
+]

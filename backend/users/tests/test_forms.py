@@ -6,10 +6,10 @@ from django.utils.translation import gettext_lazy as _
 
 from users.forms import UserAdminCreationForm
 from users.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class TestUserAdminCreationForm(BaseAPITransactionTestCase):
+class TestUserAdminCreationForm(BaseTransactionTestCase):
     """
     Test class for all tests related to the UserAdminCreationForm
     """

@@ -4,68 +4,139 @@ from django.urls import reverse
 
 from nodes import models
 from nodes.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class NodesViewTestCase(BaseAPITransactionTestCase):
+class NodesViewTestCase(BaseTransactionTestCase):
     def test_list(self) -> None:
-        response = self.client.get(reverse("nodes:nodes-list"))
+        response = self.owner_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, [])
-        factories.NodeFactory.create()
-        response = self.client.get(reverse("nodes:nodes-list"))
+        factories.NodeFactory.create(owner=self.owner_user)
+        response = self.owner_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
     def test_retrieve(self) -> None:
-        node = factories.NodeFactory.create()
-        response = self.client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
+        node = factories.NodeFactory.create(owner=self.owner_user)
+        response = self.owner_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], str(node.public_id))
 
     def test_create(self) -> None:
-        space = factories.SpaceFactory.create()
-        response = self.client.post(reverse("nodes:nodes-list"), {"space": str(space.public_id)})
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        response = self.owner_client.post(
+            reverse("nodes:nodes-list"), {"space": str(space.public_id)}
+        )
         self.assertEqual(response.status_code, 405)
 
     def test_update(self) -> None:
-        node = factories.NodeFactory.create()
-        response = self.client.patch(
+        node = factories.NodeFactory.create(owner=self.owner_user)
+        response = self.owner_client.patch(
             reverse("nodes:nodes-detail", args=[node.public_id]), {"name": "new name"}
         )
         self.assertEqual(response.status_code, 405)
 
     def test_delete(self) -> None:
-        node = factories.NodeFactory.create()
-        response = self.client.delete(reverse("nodes:nodes-detail", args=[node.public_id]))
+        node = factories.NodeFactory.create(owner=self.owner_user)
+        response = self.owner_client.delete(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 405)
 
     def test_filter_by_space(self) -> None:
-        space = factories.SpaceFactory.create()
-        another_space = factories.SpaceFactory.create()
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        another_space = factories.SpaceFactory.create(owner=self.owner_user)
         node = factories.NodeFactory.create()
         space.nodes.add(node)
 
-        response = self.client.get(reverse("nodes:nodes-list"), {"spaces": str(space.public_id)})
+        response = self.owner_client.get(
+            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+        )
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["id"], str(node.public_id))
 
-        response = self.client.get(
+        response = self.owner_client.get(
             reverse("nodes:nodes-list"), {"spaces": str(another_space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 0)
 
+    def test_permissions(self) -> None:
+        node = factories.NodeFactory.create()
 
-class SpacesViewTestCase(BaseAPITransactionTestCase):
+        response = self.viewer_client.get(reverse("nodes:nodes-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
+
+        response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
+        self.assertEqual(response.status_code, 403)
+
+        response = self.viewer_client.patch(
+            reverse("nodes:nodes-detail", args=[node.public_id]), {"name": "new name"}
+        )
+        self.assertEqual(response.status_code, 405)
+
+        response = self.viewer_client.delete(reverse("nodes:nodes-detail", args=[node.public_id]))
+        self.assertEqual(response.status_code, 405)
+
+        # Now add a space and check that the viewer can see the node.
+        space = factories.SpaceFactory.create(viewer=self.viewer_user)
+        space.nodes.add(node)
+
+        response = self.viewer_client.get(
+            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+        response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], str(node.public_id))
+
+        # If we add a subnode, the viewer should be able to see it because they have access to the
+        # space.
+        subnode = factories.NodeFactory.create()
+        node.subnodes.add(subnode)
+        space.nodes.add(subnode)
+
+        response = self.viewer_client.get(
+            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+
+        response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[subnode.public_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], str(subnode.public_id))
+
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        node = factories.NodeFactory.create(viewer=self.viewer_user)
+        subnode = factories.NodeFactory.create()
+        node.subnodes.add(subnode)
+        space.nodes.add(subnode, node)
+
+        # Check that we can see the nodes we have access to even though we don't have access to the
+        # space we filter by.
+        response = self.viewer_client.get(
+            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+
+        # We can also access the subnode directly because we have access to its parent node.
+        response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[subnode.public_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], str(subnode.public_id))
+
+
+class SpacesViewTestCase(BaseTransactionTestCase):
     def test_list(self) -> None:
-        response = self.client.get(reverse("nodes:spaces-list"))
+        response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, [])
-        space = factories.SpaceFactory.create()
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         with self.assertNumQueries(3):
-            response = self.client.get(reverse("nodes:spaces-list"))
+            response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
@@ -73,36 +144,36 @@ class SpacesViewTestCase(BaseAPITransactionTestCase):
         space.nodes.set(nodes)
 
         with self.assertNumQueries(3):
-            response = self.client.get(reverse("nodes:spaces-list"))
+            response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
         # Test that soft deleted spaces are not returned
         space.delete()
-        response = self.client.get(reverse("nodes:spaces-list"))
+        response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 0)
 
     def test_retrieve(self) -> None:
-        space = factories.SpaceFactory.create()
-        response = self.client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        response = self.owner_client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], str(space.public_id))
 
         # Test that soft deleted spaces are not returned
         space.delete()
-        response = self.client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
+        response = self.owner_client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
         self.assertEqual(response.status_code, 404)
 
     def test_create(self) -> None:
-        response = self.client.post(reverse("nodes:spaces-list"), {"title": "new space"})
+        response = self.owner_client.post(reverse("nodes:spaces-list"), {"title": "new space"})
         self.assertEqual(response.status_code, 201, response.data)
         self.assertEqual(response.data["title"], "new space")
         self.assertEqual(response.data["title_slug"], "new-space")
 
     def test_update(self) -> None:
-        space = factories.SpaceFactory.create()
-        response = self.client.patch(
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        response = self.owner_client.patch(
             reverse("nodes:spaces-detail", args=[space.public_id]), {"title": "new name"}
         )
         self.assertEqual(response.status_code, 200)
@@ -112,8 +183,8 @@ class SpacesViewTestCase(BaseAPITransactionTestCase):
         self.assertEqual(response.data["title_slug"], space.title_slug)
 
     def test_delete(self) -> None:
-        space = factories.SpaceFactory.create()
-        response = self.client.delete(reverse("nodes:spaces-detail", args=[space.public_id]))
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        response = self.owner_client.delete(reverse("nodes:spaces-detail", args=[space.public_id]))
         self.assertEqual(response.status_code, 204)
         self.assertEqual(response.data, None)
 
@@ -122,9 +193,9 @@ class SpacesViewTestCase(BaseAPITransactionTestCase):
         self.assertEqual(models.Space.available_objects.count(), 0)
 
     def test_default_node_setting(self) -> None:
-        space = factories.SpaceFactory.create()
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         node = factories.NodeFactory.create()
-        response = self.client.patch(
+        response = self.owner_client.patch(
             reverse("nodes:spaces-detail", args=[space.public_id]),
             {"default_node": str(node.public_id)},
         )
@@ -132,8 +203,26 @@ class SpacesViewTestCase(BaseAPITransactionTestCase):
         space.refresh_from_db()
         self.assertEqual(space.default_node, node)
 
+    def test_permissions(self) -> None:
+        space = factories.SpaceFactory.create()
 
-class DocumentVersionViewTestCase(BaseAPITransactionTestCase):
+        response = self.viewer_client.get(reverse("nodes:spaces-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
+
+        response = self.viewer_client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
+        self.assertEqual(response.status_code, 403)
+
+        response = self.viewer_client.patch(
+            reverse("nodes:spaces-detail", args=[space.public_id]), {"title": "new name"}
+        )
+        self.assertEqual(response.status_code, 403)
+
+        response = self.viewer_client.delete(reverse("nodes:spaces-detail", args=[space.public_id]))
+        self.assertEqual(response.status_code, 403)
+
+
+class DocumentVersionViewTestCase(BaseTransactionTestCase):
     def test_list(self) -> None:
         response = self.client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)

@@ -3,10 +3,10 @@ from io import StringIO
 from django.core.management import call_command
 
 from users.models import User
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class TestUserManager(BaseAPITransactionTestCase):
+class TestUserManager(BaseTransactionTestCase):
     def test_create_user(self) -> None:
         user = User.objects.create_user(
             email="john@example.com",

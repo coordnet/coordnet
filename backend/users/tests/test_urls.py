@@ -1,10 +1,10 @@
 from django.urls import resolve, reverse
 
 from users.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class URLTestCase(BaseAPITransactionTestCase):
+class URLTestCase(BaseTransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user = factories.UserFactory()

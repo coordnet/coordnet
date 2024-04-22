@@ -2,10 +2,10 @@ import uuid
 
 from nodes import models, tasks
 from nodes.tests import factories, fixtures
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class NodeEventTestCase(BaseAPITransactionTestCase):
+class NodeEventTestCase(BaseTransactionTestCase):
     def test_document_trigger(self) -> None:
         """Test that a document event is triggered."""
         self.assertEqual(models.DocumentEvent.objects.count(), 0)

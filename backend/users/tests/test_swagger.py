@@ -2,10 +2,10 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from users.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class SwaggerTestCase(BaseAPITransactionTestCase):
+class SwaggerTestCase(BaseTransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         admin = factories.UserFactory(is_staff=True, is_superuser=True)

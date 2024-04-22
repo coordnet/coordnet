@@ -112,7 +112,7 @@ THIRD_PARTY_APPS = [
     "pgtrigger",
 ]
 
-LOCAL_APPS = ["users", "nodes", "buddies"]
+LOCAL_APPS = ["users", "nodes", "buddies", "permissions"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

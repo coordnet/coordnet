@@ -3,10 +3,10 @@ from rest_framework.test import APIRequestFactory
 
 from users.api.views import UserViewSet
 from users.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class TestUserViewSet(BaseAPITransactionTestCase):
+class TestUserViewSet(BaseTransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user = factories.UserFactory()

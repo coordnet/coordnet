@@ -5,13 +5,14 @@ import factory.fuzzy
 from factory.django import DjangoModelFactory
 
 from nodes import models
+from permissions.tests.factories import BaseMembershipModelMixinFactory
 
 
 def content_for_text(text: str) -> list:
     return [{"type": "paragraph", "content": [{"text": text, "type": "text"}]}]
 
 
-class NodeFactory(DjangoModelFactory):
+class NodeFactory(BaseMembershipModelMixinFactory):
     """
     Factory for creating nodes.
     Note: The token counts are calculated by splitting the title and text fields by
@@ -36,6 +37,16 @@ class NodeFactory(DjangoModelFactory):
         if self.content is None:
             self.content = content_for_text(str(self.text))
 
+    @factory.post_generation
+    def space(self, create: bool, extracted: "models.Space", **kwargs: typing.Any) -> None:
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if extracted:
+            # A space was passed in, use it
+            extracted.nodes.add(self)
+
 
 class DocumentFactory(DjangoModelFactory):
     public_id = factory.Faker("uuid4")
@@ -45,7 +56,7 @@ class DocumentFactory(DjangoModelFactory):
         model = "nodes.Document"
 
 
-class SpaceFactory(DjangoModelFactory):
+class SpaceFactory(BaseMembershipModelMixinFactory):
     title = factory.Faker("sentence", nb_words=6)
 
     class Meta:

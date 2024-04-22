@@ -13,7 +13,7 @@ class NodeModelTestCase(BaseTestCase):
         node.delete()
         self.assertEqual(models.Node.available_objects.count(), 0)
         self.assertEqual(models.Node.all_objects.count(), 1)
-        self.assertTrue(models.Node.all_objects.first().is_removed)
+        self.assertTrue(models.Node.all_objects.all()[0].is_removed)
 
     def test_node_related_model_manager(self) -> None:
         node_1 = factories.NodeFactory.create(title="test")

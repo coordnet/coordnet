@@ -32,13 +32,13 @@ class BaseModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_removed = models.BooleanField(default=False)
 
-    objects: typing.ClassVar[models.Manager[typing.Self]] = managers.SoftDeletableManager(
-        _emit_deprecation_warnings=True
+    objects: "typing.ClassVar[managers.SoftDeletableManager[BaseModel]]" = (
+        managers.SoftDeletableManager(_emit_deprecation_warnings=True)
     )
-    available_objects: typing.ClassVar[models.Manager[typing.Self]] = (
+    available_objects: "typing.ClassVar[managers.SoftDeletableManager[BaseModel]]" = (
         managers.SoftDeletableManager()
     )
-    all_objects: typing.ClassVar[models.Manager[typing.Self]] = models.Manager()  # type: ignore[assignment]
+    all_objects: "typing.ClassVar[models.Manager[BaseModel]]" = models.Manager()
 
     def delete(  # type: ignore[override]
         self, using: str | None = None, soft: bool = True, keep_parents: bool = False

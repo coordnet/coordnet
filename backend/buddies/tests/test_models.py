@@ -7,7 +7,7 @@ from openai.types.chat.chat_completion import Choice
 from buddies import models
 from buddies.tests import factories
 from nodes.tests import factories as node_factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
 def create_chat_completion(response: str, role: str = "assistant") -> ChatCompletion:
@@ -29,7 +29,7 @@ def create_chat_completion(response: str, role: str = "assistant") -> ChatComple
     )
 
 
-class BuddyTestCase(BaseAPITransactionTestCase):
+class BuddyTestCase(BaseTransactionTestCase):
     # TODO: Improve and add tests, try to remove type ignores
     @patch("openai.resources.chat.Completions.create")
     def test_buddy_query_model(self, openai_create: Mock) -> None:
@@ -39,11 +39,12 @@ class BuddyTestCase(BaseAPITransactionTestCase):
         buddy = factories.BuddyFactory.create(system_message="test")
         self.assertEqual(models.Buddy.available_objects.count(), 1)
         self.assertEqual(models.Buddy.all_objects.count(), 1)
-        self.assertFalse(models.Buddy.all_objects.first().is_removed)
-        self.assertEqual(models.Buddy.all_objects.first().system_message, buddy.system_message)
-        self.assertEqual(models.Buddy.all_objects.first().model, buddy.model)
-        self.assertEqual(models.Buddy.all_objects.first().name, buddy.name)
-        self.assertEqual(models.Buddy.all_objects.first().description, buddy.description)
+        buddy = models.Buddy.all_objects.all()[0]
+        self.assertFalse(buddy.is_removed)
+        self.assertEqual(buddy.system_message, buddy.system_message)
+        self.assertEqual(buddy.model, buddy.model)
+        self.assertEqual(buddy.name, buddy.name)
+        self.assertEqual(buddy.description, buddy.description)
 
     def test_single_node_token_calculation(self) -> None:
         """Regression test to make sure that the cut-off level for token calculations is correct."""

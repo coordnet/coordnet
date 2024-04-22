@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.text import slugify
 
 from nodes import utils as nodes_utils
+from permissions import models as permissions_models
 from utils import models as utils_models
 from utils import tokens
 
@@ -37,7 +38,7 @@ class DocumentEvent(models.Model):
         return f"{self.public_id} - {self.action.title()}"
 
 
-class Node(utils_models.BaseModel):
+class Node(permissions_models.MembershipModelMixin, utils_models.BaseModel):
     """
     A node in the graph.
 
@@ -59,6 +60,9 @@ class Node(utils_models.BaseModel):
     )
 
     tracker = model_utils.FieldTracker()
+
+    def get_relevant_objects_for_permissions(self) -> list[permissions_models.MembershipModelMixin]:
+        return [self, *self.parents.all(), *self.spaces.all()]
 
     @staticmethod
     def __add_to_update_fields(
@@ -166,6 +170,9 @@ class Node(utils_models.BaseModel):
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
 
+    class Meta(permissions_models.MembershipModelMixin.Meta, utils_models.BaseModel.Meta):
+        pass
+
 
 class DocumentVersion(utils_models.BaseModel):
     """Task for storing the version of a document."""
@@ -179,7 +186,7 @@ class DocumentVersion(utils_models.BaseModel):
         return f"{self.document.public_id} - {self.created_at}"
 
 
-class Space(utils_models.BaseModel):
+class Space(permissions_models.MembershipModelMixin, utils_models.BaseModel):
     title = models.CharField(max_length=255)
     title_slug = models.SlugField(max_length=255, unique=True)
     # Setting the type hint manually is required because of a bug in the Django stubs.
@@ -203,8 +210,11 @@ class Space(utils_models.BaseModel):
 
         super().save(*args, **kwargs)
 
+    class Meta(permissions_models.MembershipModelMixin.Meta, utils_models.BaseModel.Meta):
+        pass
 
-class Document(models.Model):  # type: ignore[django-manager-missing]
+
+class Document(models.Model):
     # The type ignore is required because of a bug in the Django stubs (I think).
     # Possibly related to: https://github.com/typeddjango/django-stubs/issues/2011
     public_id = models.UUIDField(editable=False, db_index=True)

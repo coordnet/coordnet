@@ -3,10 +3,10 @@ from rest_framework.test import APIClient
 
 from users import models
 from users.tests import factories
-from utils.testcases import BaseAPITransactionTestCase
+from utils.testcases import BaseTransactionTestCase
 
 
-class TestUserAdmin(BaseAPITransactionTestCase):
+class TestUserAdmin(BaseTransactionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.admin_user = factories.UserFactory(
