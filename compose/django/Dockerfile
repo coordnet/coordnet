@@ -34,7 +34,7 @@ WORKDIR ${APP_HOME}
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # devcontainer dependencies and utils
-  sudo git bash-completion nano ssh gnupg2  \
+  sudo git bash-completion nano ssh gnupg2 wget vim-nox \
   # psycopg2 dependencies and psql client
   libpq-dev \
   postgresql-client \
@@ -52,6 +52,13 @@ RUN groupadd --gid 1000 dev-user \
 
 # Set gpg as git config gpg.program
 RUN git config --global gpg.program = /usr/bin/gpg
+
+# Pre-load the tiktoken encodings we need
+ARG TIKTOKEN_URL="https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
+ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache
+RUN mkdir /opt/tiktoken_cache \
+    && wget -O /opt/tiktoken_cache/$(echo -n $TIKTOKEN_URL | sha1sum | head -c 40) $TIKTOKEN_URL
+
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
