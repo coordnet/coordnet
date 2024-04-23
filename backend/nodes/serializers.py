@@ -33,23 +33,11 @@ class NodeSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node])
 
     class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Node
-        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + [
-            "graph_document",
-            "editor_document",
-        ]
+        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + ["content", "text", "graph_document",
+            "editor_document",]
 
 
-class NodeTokenSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node]):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="nodes:nodes-detail", lookup_field="public_id"
-    )
-
-    class Meta:
-        model = models.Node
-        fields = ("public_id", "title", "text_token_count", "title_token_count", "url")
-
-
-class SpaceDefaultNodeField(serializers.HyperlinkedRelatedField):
+class SpaceDefaultNodeField(coord_serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[models.Node]":
         space = self.root.instance
         if space is not None:
@@ -59,38 +47,21 @@ class SpaceDefaultNodeField(serializers.HyperlinkedRelatedField):
 
 class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space]):
     # TODO: don't let the API client pick their own id for the project, it should be auto-generated.
-    url = serializers.HyperlinkedIdentityField(
-        view_name="nodes:spaces-detail", lookup_field="public_id"
-    )
-    nodes = NodeTokenSerializer(many=True, read_only=True, source="available_nodes")
     title_slug = serializers.SlugField(read_only=True)
+    default_node = SpaceDefaultNodeField(allow_null=True, read_only=False, required=False)
     allowed_actions = serializers.SerializerMethodField()
 
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(self.context["request"])
 
-    default_node = SpaceDefaultNodeField(
-        view_name="nodes:nodes-detail",
-        lookup_field="public_id",
-        allow_null=True,
-        read_only=False,
-        required=False,
-    )
-
     class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space
+        read_only_fields = ["nodes", "default_node"]
 
 
 class DocumentVersionSerializer(
     coord_serializers.BaseSoftDeletableSerializer[models.DocumentVersion]
 ):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="nodes:document-versions-detail", lookup_field="public_id"
-    )
-    crdt = serializers.HyperlinkedIdentityField(
-        view_name="nodes:document-versions-crdt", lookup_field="public_id"
-    )
-
     class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.DocumentVersion
         exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + ["data", "json_hash"]
