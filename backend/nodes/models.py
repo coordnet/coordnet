@@ -63,7 +63,7 @@ class Node(permissions.models.MembershipBaseModel):
         directly. The `save` method is overridden to handle these updates.
     """
 
-    title = models.CharField(max_length=1024, null=True)
+    title = models.TextField(null=True, default=None)
     title_token_count = models.PositiveIntegerField(null=True)
     content = models.JSONField(null=True)
     text = models.TextField(null=True, default=None)
