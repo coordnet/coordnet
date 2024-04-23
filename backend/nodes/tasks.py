@@ -189,19 +189,23 @@ def document_versioning() -> None:
     # far the fastest query I could find.
     # TODO: Still add fitting indices for this query to the database. The number of DocumentVersion
     #       objects will grow very fast.
+    # TODO: Consider using a different approach where we calculate the sha256 hash of the document
+    #       and compare it to the hash stored in the database. This would be faster, but we would
+    #       have to store the hash in the database and calculate it on every save.
     latest_versions = (
-        models.DocumentVersion.objects.filter(created_at__lte=threshold_time)
-        .order_by("document_id", "-created_at")
+        models.DocumentVersion.objects.order_by("document_id", "-created_at")
         .distinct("document_id")
         .select_related("document")
-        .only("document", "json_hash")
+        .filter(document__updated_at__lt=threshold_time)
+        .only("document__document_type", "document__data", "document__json")
     )
 
     for version in latest_versions:
-        if version.json_hash != sha256(str(version.document.json).encode()).hexdigest():
+        document_hash = sha256(str(version.document.json).encode()).hexdigest()
+        if version.json_hash != document_hash:
             version.document.versions.create(
                 data=version.document.data,
-                json_hash=sha256(str(version.document.json).encode()).hexdigest(),
+                json_hash=document_hash,
                 document_type=version.document.document_type,
             )
 
