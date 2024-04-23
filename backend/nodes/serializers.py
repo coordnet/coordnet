@@ -69,14 +69,12 @@ class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(self.context["request"])
 
-    default_node = (
-        SpaceDefaultNodeField(
-            view_name="nodes:nodes-detail",
-            lookup_field="public_id",
-            allow_null=True,
-            read_only=False,
-            required=False,
-        ),
+    default_node = SpaceDefaultNodeField(
+        view_name="nodes:nodes-detail",
+        lookup_field="public_id",
+        allow_null=True,
+        read_only=False,
+        required=False,
     )
 
     class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
