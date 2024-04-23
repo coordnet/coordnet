@@ -3,6 +3,7 @@ import { JSONContent } from "@tiptap/core";
 import { Schema } from "@tiptap/pm/model";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
+import { z } from "zod";
 
 /*
  * Get a string representation of an error, whether it is a string, an Error instance, or an object
@@ -52,4 +53,12 @@ export const setNodePageContent = (content: JSONContent, roomName: string, schem
   });
   const xml = ydoc?.getXmlFragment("default");
   prosemirrorJSONToYXmlFragment(schema, content, xml);
+};
+
+// https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
+export const zodEnumFromObjKeys = <K extends string>(
+  obj: Record<K, unknown>,
+): z.ZodEnum<[K, ...K[]]> => {
+  const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
+  return z.enum([firstKey, ...otherKeys]);
 };

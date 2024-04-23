@@ -18,14 +18,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { buddyModels } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
+import { BuddySchema } from "@/types";
 
-const formSchema = z.object({
-  name: z.string().min(2).max(255),
-  model: z.enum(["gpt-4-turbo-preview"]),
-  system_message: z.string().min(2).max(10000),
-  description: z.string().min(1),
+const formSchema = BuddySchema.pick({
+  name: true,
+  model: true,
+  system_message: true,
+  description: true,
 });
+
+type FormType = z.infer<typeof formSchema>;
 
 const CreateBuddy = ({
   setOpen,
@@ -41,7 +45,7 @@ const CreateBuddy = ({
 
   const buddy = buddies.find((buddy) => buddy.id === buddyId);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: buddy ? buddy.name : "",
@@ -51,7 +55,7 @@ const CreateBuddy = ({
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: FormType) => {
     if (buddy) {
       await updateBuddy(buddy.id, values);
     } else {
@@ -114,8 +118,12 @@ const CreateBuddy = ({
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-4-turbo-preview">GPT-4</SelectItem>
+                      <SelectContent className="z-90">
+                        {Object.entries(buddyModels).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            {value}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>

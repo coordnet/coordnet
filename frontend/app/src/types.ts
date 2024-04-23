@@ -1,4 +1,8 @@
 import { Edge, Node as ReactFlowNode } from "reactflow";
+import { z } from "zod";
+
+import { buddyModels } from "./constants";
+import { zodEnumFromObjKeys } from "./utils";
 
 // export type Space = {
 //   id: string;
@@ -46,16 +50,17 @@ export interface BackendNode {
   subnodes: string[];
 }
 
-export interface Buddy {
-  id: string;
-  url: string;
-  created_at: string;
-  updated_at: string;
-  name: string;
-  description: string;
-  model: "gpt-4-turbo-preview";
-  system_message: string;
-}
+export const BuddySchema = z.object({
+  id: z.string().uuid(),
+  created_at: z.date(),
+  updated_at: z.date(),
+  name: z.string().min(2).max(255),
+  model: zodEnumFromObjKeys(buddyModels),
+  system_message: z.string().min(2).max(10000),
+  description: z.string().min(1),
+});
+
+export type Buddy = z.infer<typeof BuddySchema>;
 
 export interface LLMTokenCount {
   [key: string]: number;

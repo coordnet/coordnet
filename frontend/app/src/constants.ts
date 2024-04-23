@@ -11,3 +11,8 @@ export const nodeColors = [
   { value: "Pink", color: "#E955D8" },
   { value: "Brown", color: "#B0693A" },
 ];
+
+export const buddyModels = {
+  "gpt-4-turbo-preview": "GPT-4",
+  "gpt-3.5-turbo-0125": "GPT-3.5",
+};

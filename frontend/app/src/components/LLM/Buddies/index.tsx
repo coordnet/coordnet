@@ -16,6 +16,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { buddyModels } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
 
 import BuddyForm from "./BuddyForm";
@@ -84,7 +85,7 @@ const Buddies = ({ className }: { className?: string }) => {
                   >
                     <span className="font-medium">{buddy.name}</span>
                     <span className="text-xs ml-1">
-                      {buddy.model == "gpt-4-turbo-preview" ? "GPT-4" : "Unknown"}
+                      {buddy.model in buddyModels ? buddyModels[buddy.model] : "Unknown"}
                     </span>
                     <Button
                       variant="ghost"
