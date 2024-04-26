@@ -35,10 +35,14 @@ class SpaceModelViewSet(permission_views.PermissionViewSetMixin, views.BaseModel
 class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet):
     """API endpoint that allows document versions to be viewed."""
 
-    queryset = models.DocumentVersion.objects.all()
+    queryset = models.DocumentVersion.available_objects.all()
     serializer_class = serializers.DocumentVersionSerializer
-    filterset_fields = ("document", "document_type")
     filterset_class = filters.DocumentVersionFilterSet
+    filter_backends = (
+        filters.DocumentVersionPermissionFilterBackend,
+        base_filters.BaseFilterBackend,
+    )
+    permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     @decorators.action(detail=True, methods=["get"])
     def crdt(self, request: "request.Request", public_id: str | None = None) -> http.HttpResponse:

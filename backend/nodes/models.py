@@ -4,21 +4,31 @@ from collections import OrderedDict
 import model_utils
 import pgtrigger
 from django.db import models
+from django.db.models import Q
 from django.utils.text import slugify
 
 from nodes import utils as nodes_utils
 from permissions import models as permissions_models
+from permissions.models import RoleOptions
 from utils import models as utils_models
 from utils import tokens
 
 if typing.TYPE_CHECKING:
     import uuid
 
+    from django import http
+
+    from users import typing as user_typing
+
 
 class DocumentType(models.TextChoices):
     EDITOR = "EDITOR", "Editor"
     SPACE = "SPACE", "Space"
     GRAPH = "GRAPH", "Graph"
+
+
+def prefix_field(field: str, prefix: str | None = None) -> str:
+    return f"{prefix}__{field}" if prefix else field
 
 
 class DocumentEvent(models.Model):
@@ -38,7 +48,7 @@ class DocumentEvent(models.Model):
         return f"{self.public_id} - {self.action.title()}"
 
 
-class Node(permissions_models.MembershipModelMixin, utils_models.BaseModel):
+class Node(permissions_models.MembershipBaseModel):
     """
     A node in the graph.
 
@@ -58,11 +68,105 @@ class Node(permissions_models.MembershipModelMixin, utils_models.BaseModel):
     subnodes: models.ManyToManyField = models.ManyToManyField(
         "self", related_name="parents", symmetrical=False, blank=True
     )
+    editor_document = models.OneToOneField(
+        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_editor"
+    )
+    graph_document = models.OneToOneField(
+        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_graph"
+    )
 
     tracker = model_utils.FieldTracker()
 
-    def get_relevant_objects_for_permissions(self) -> list[permissions_models.MembershipModelMixin]:
-        return [self, *self.parents.all(), *self.spaces.all()]
+    @staticmethod
+    def get_user_has_permission_filter(
+        action: permissions_models.Action,
+        user: "user_typing.AnyUserType",
+        prefix: str | None = None,
+    ) -> Q:
+        """
+        Return a Q object that filters whether the user has permission to do <action> on this
+        object.
+        Note: We're not filtering out whether the object itself is deleted, this should be done
+              before calling this method, but we're checking whether the parents, spaces or object
+              memberships are deleted.
+              Roles are not soft-deletable, so those aren't checked either.
+        """
+
+        def permissions_for_role(roles: list[RoleOptions]) -> Q:
+            queryset_filters = Q(
+                **{
+                    prefix_field("members__user", prefix): user,
+                    prefix_field("members__role__role__in", prefix): roles,
+                    prefix_field("members__is_removed", prefix): False,
+                }
+            )
+            queryset_filters |= Q(
+                **{
+                    prefix_field("spaces__members__user", prefix): user,
+                    prefix_field("spaces__members__role__role__in", prefix): roles,
+                    prefix_field("spaces__members__is_removed", prefix): False,
+                    prefix_field("spaces__is_removed", prefix): False,
+                }
+            )
+            queryset_filters |= Q(
+                **{
+                    prefix_field("parents__members__user", prefix): user,
+                    prefix_field("parents__members__role__role__in", prefix): roles,
+                    prefix_field("parents__members__is_removed", prefix): False,
+                    prefix_field("parents__is_removed", prefix): False,
+                }
+            )
+            return queryset_filters
+
+        if action == permissions_models.READ:
+            queryset_filters = (
+                Q(**{prefix_field("is_public", prefix): True})
+                | Q(
+                    **{
+                        prefix_field("spaces__is_public", prefix): True,
+                        prefix_field("spaces__is_removed", prefix): False,
+                    }
+                )
+                | Q(
+                    **{
+                        prefix_field("parents__is_public", prefix): True,
+                        prefix_field("parents__is_removed", prefix): False,
+                    }
+                )
+            )
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions_models.READ_ROLES)
+            return queryset_filters
+        if action in (permissions_models.WRITE, permissions_models.DELETE):
+            queryset_filters = (
+                Q(
+                    **{
+                        prefix_field("is_public_writable", prefix): True,
+                        prefix_field("is_public", prefix): True,
+                    }
+                )
+                | Q(
+                    **{
+                        prefix_field("spaces__is_public_writable", prefix): True,
+                        prefix_field("spaces__is_public", prefix): True,
+                        prefix_field("spaces__is_removed", prefix): False,
+                    }
+                )
+                | Q(
+                    **{
+                        prefix_field("parents__is_public_writable", prefix): True,
+                        prefix_field("parents__is_public", prefix): True,
+                        prefix_field("parents__is_removed", prefix): False,
+                    }
+                )
+            )
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions_models.WRITE_ROLES)
+            return queryset_filters
+        if action == permissions_models.MANAGE:
+            return permissions_for_role(permissions_models.ADMIN_ROLES)
+
+        raise ValueError("Invalid action type.")
 
     @staticmethod
     def __add_to_update_fields(
@@ -185,8 +289,33 @@ class DocumentVersion(utils_models.BaseModel):
     def __str__(self) -> str:
         return f"{self.document.public_id} - {self.created_at}"
 
+    @staticmethod
+    def has_read_permission(request: "http.HttpRequest") -> bool:
+        """
+        Read permission on a global level.
+        The actual permissions are handled on the object level.
+        """
+        return True
 
-class Space(permissions_models.MembershipModelMixin, utils_models.BaseModel):
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.document.has_object_read_permission(request)
+
+    @staticmethod
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        However, this allows any authenticated user to create a new object.
+        """
+        return True
+
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.document.has_object_write_permission(request)
+
+
+class Space(permissions_models.MembershipBaseModel):
     title = models.CharField(max_length=255)
     title_slug = models.SlugField(max_length=255, unique=True)
     # Setting the type hint manually is required because of a bug in the Django stubs.
@@ -196,6 +325,9 @@ class Space(permissions_models.MembershipModelMixin, utils_models.BaseModel):
         Node, related_name="spaces_deleted", blank=True
     )
     default_node = models.ForeignKey("Node", on_delete=models.SET_NULL, null=True, blank=True)
+    document = models.OneToOneField(
+        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="space"
+    )
 
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
@@ -209,6 +341,49 @@ class Space(permissions_models.MembershipModelMixin, utils_models.BaseModel):
                 self.title_slug = f"{title_slug}-{nodes_utils.random_string(4)}"
 
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def get_user_has_permission_filter(
+        action: permissions_models.Action,
+        user: "user_typing.AnyUserType",
+        prefix: str | None = None,
+    ) -> Q:
+        """
+        Return a Q object that filters whether the user has permission to do <action> on this
+        object.
+        Note: We're not filtering out whether the object itself is deleted, this should be done
+              before calling this method, but we're checking whether memberships are deleted.
+              Roles are not soft-deletable, so those aren't checked either.
+        """
+
+        def permissions_for_role(roles: list[RoleOptions]) -> Q:
+            return Q(
+                **{
+                    prefix_field("members__user", prefix): user,
+                    prefix_field("members__role__role__in", prefix): roles,
+                    prefix_field("members__is_removed", prefix): False,
+                }
+            )
+
+        if action == permissions_models.READ:
+            queryset_filters = Q(**{prefix_field("is_public", prefix): True})
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions_models.READ_ROLES)
+            return queryset_filters
+        if action in (permissions_models.WRITE, permissions_models.DELETE):
+            queryset_filters = Q(
+                **{
+                    prefix_field("is_public", prefix): True,
+                    prefix_field("is_public_writable", prefix): True,
+                }
+            )
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions_models.WRITE_ROLES)
+            return queryset_filters
+        if action == permissions_models.MANAGE:
+            return permissions_for_role(permissions_models.ADMIN_ROLES)
+
+        raise ValueError("Invalid action type.")
 
     class Meta(permissions_models.MembershipModelMixin.Meta, utils_models.BaseModel.Meta):
         pass
@@ -254,3 +429,58 @@ class Document(models.Model):
                 ),
             )
         ]
+
+    @staticmethod
+    def has_read_permission(request: "http.HttpRequest") -> bool:
+        """
+        Read permission on a global level.
+        The actual permissions are handled on the object level.
+        """
+        return True
+
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user has read permissions for this object."""
+        try:
+            if self.space is not None:
+                return self.space.has_object_read_permission(request)
+        except Space.DoesNotExist:
+            pass
+        try:
+            if self.node_graph is not None:
+                return self.node_graph.has_object_read_permission(request)
+        except Node.DoesNotExist:
+            pass
+
+        try:
+            if self.node_editor is not None:
+                return self.node_editor.has_object_read_permission(request)
+        except Node.DoesNotExist:
+            pass
+
+        # This shouldn't happen consistently, it's a completely detached document. It might
+        # happen before the corresponding object is created.
+        # No permissions apply.
+        return False
+
+    @staticmethod
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        However, this allows any authenticated user to create a new object.
+        """
+        return True
+
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user has write permissions for this object."""
+        if self.space is not None:
+            return self.space.has_object_write_permission(request)
+        elif self.node_graph is not None:
+            return self.node_graph.has_object_write_permission(request)
+        elif self.node_editor is not None:
+            return self.node_editor.has_object_write_permission(request)
+
+        # This shouldn't happen consistently, it's a completely detached document. It might
+        # happen before the corresponding object is created.
+        # No permissions apply.
+        return False

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q, QuerySet
 from django_filters import rest_framework as filters
 from dry_rest_permissions.generics import DRYPermissionFiltersBase
@@ -8,10 +9,27 @@ from nodes import models
 from permissions.models import READ_ROLES
 
 
+def get_document_queryset(request: request.Request) -> QuerySet:
+    user = request.user or AnonymousUser()
+    return models.Document.objects.filter(
+        (
+            Q(space__isnull=False)
+            & (models.Space.get_user_has_permission_filter("read", user, prefix="space"))
+        )
+        | (
+            Q(node_editor__isnull=False)
+            & Q(models.Node.get_user_has_permission_filter("read", user, prefix="node_editor"))
+        )
+        | (
+            Q(node_graph__isnull=False)
+            & Q(models.Node.get_user_has_permission_filter("read", user, prefix="node_graph"))
+        )
+    )
+
+
 class DocumentVersionFilterSet(filters.FilterSet):
-    # TODO: Look at this when/if setting up permissions for browsable API
     document = coord_filters.UUIDModelMultipleChoiceFilter(
-        queryset=models.Document.objects.all(), field_name="document__public_id"
+        queryset=get_document_queryset, field_name="document__public_id"
     )
     document_type = filters.CharFilter(lookup_expr="iexact")
 
@@ -26,15 +44,27 @@ class NodePermissionFilterBackend(DRYPermissionFiltersBase):
     ) -> "QuerySet[models.Node]":
         """Only return nodes that the user has access to."""
         queryset_filters = (
-            Q(is_public=True) | Q(spaces__is_public=True) | Q(parents__is_public=True)
+            Q(is_public=True)
+            | Q(spaces__is_public=True, spaces__is_removed=False)
+            | Q(parents__is_public=True, parents__is_removed=False)
         )
         if request.user and request.user.is_authenticated:
-            queryset_filters |= Q(members__user=request.user, members__role__role__in=READ_ROLES)
             queryset_filters |= Q(
-                spaces__members__user=request.user, spaces__members__role__role__in=READ_ROLES
+                members__user=request.user,
+                members__role__role__in=READ_ROLES,
+                members__is_removed=False,
             )
             queryset_filters |= Q(
-                parents__members__user=request.user, parents__members__role__role__in=READ_ROLES
+                spaces__members__user=request.user,
+                spaces__members__role__role__in=READ_ROLES,
+                spaces__members__is_removed=False,
+                spaces__is_removed=False,
+            )
+            queryset_filters |= Q(
+                parents__members__user=request.user,
+                parents__members__role__role__in=READ_ROLES,
+                parents__members__is_removed=False,
+                parents__is_removed=False,
             )
         return queryset.filter(queryset_filters).distinct()
 
@@ -46,5 +76,43 @@ class SpacePermissionFilterBackend(DRYPermissionFiltersBase):
         """Only return spaces that the user has access to."""
         queryset_filters = Q(is_public=True)
         if request.user and request.user.is_authenticated:
-            queryset_filters |= Q(members__user=request.user, members__role__role__in=READ_ROLES)
+            queryset_filters |= Q(
+                members__user=request.user,
+                members__role__role__in=READ_ROLES,
+                members__is_removed=False,
+            )
+        return queryset.filter(queryset_filters).distinct()
+
+
+class DocumentVersionPermissionFilterBackend(DRYPermissionFiltersBase):
+    def filter_list_queryset(
+        self, request: request.Request, queryset: QuerySet, view: views.APIView
+    ) -> "QuerySet[models.DocumentVersion]":
+        """Only return spaces that the user has access to."""
+        queryset_filters = (
+            Q(document__space__is_public=True, document__space__is_removed=False)
+            | Q(document__node_editor__is_public=True, document__node_editor__is_removed=False)
+            | Q(document__node_graph__is_public=True, document__node_graph__is_removed=False)
+        )
+        if request.user and request.user.is_authenticated:
+            queryset_filters |= (
+                Q(
+                    document__space__members__user=request.user,
+                    document__space__members__role__role__in=READ_ROLES,
+                    document__space__members__is_removed=False,
+                    document__space__is_removed=False,
+                )
+                | Q(
+                    document__node_editor__members__user=request.user,
+                    document__node_editor__members__role__role__in=READ_ROLES,
+                    document__node_editor__members__is_removed=False,
+                    document__node_editor__is_removed=False,
+                )
+                | Q(
+                    document__node_graph__members__user=request.user,
+                    document__node_graph__members__role__role__in=READ_ROLES,
+                    document__node_graph__members__is_removed=False,
+                    document__node_graph__is_removed=False,
+                )
+            )
         return queryset.filter(queryset_filters).distinct()

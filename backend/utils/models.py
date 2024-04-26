@@ -1,4 +1,3 @@
-import typing
 import uuid
 
 from django.db import models
@@ -11,6 +10,8 @@ except ImportError:
     # Django-Stubs is not installed in production, since it is only used for
     # type checking.
     TypedModelMeta = object  # type: ignore[misc,assignment]
+
+SOFT_DELETION_FIELD_NAME = "is_removed"
 
 
 class BaseModel(models.Model):
@@ -32,13 +33,11 @@ class BaseModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_removed = models.BooleanField(default=False)
 
-    objects: "typing.ClassVar[managers.SoftDeletableManager[BaseModel]]" = (
-        managers.SoftDeletableManager(_emit_deprecation_warnings=True)
+    objects: "managers.SoftDeletableManager[BaseModel]" = managers.SoftDeletableManager(
+        _emit_deprecation_warnings=True
     )
-    available_objects: "typing.ClassVar[managers.SoftDeletableManager[BaseModel]]" = (
-        managers.SoftDeletableManager()
-    )
-    all_objects: "typing.ClassVar[models.Manager[BaseModel]]" = models.Manager()
+    available_objects: "managers.SoftDeletableManager[BaseModel]" = managers.SoftDeletableManager()
+    all_objects: "models.Manager[BaseModel]" = models.Manager()
 
     def delete(  # type: ignore[override]
         self, using: str | None = None, soft: bool = True, keep_parents: bool = False

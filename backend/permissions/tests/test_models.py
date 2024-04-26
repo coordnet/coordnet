@@ -74,6 +74,7 @@ class MembershipModelMixinTestCase(BaseTestCase):
         self.assertFalse(self.anonymous_space.has_object_read_permission(self.viewer_request))
 
         self.anonymous_space.is_public = True
+        self.anonymous_space.save()
 
         self.assertTrue(self.anonymous_space.has_object_read_permission(self.anonymous_request))
         self.assertTrue(self.anonymous_space.has_object_read_permission(self.owner_request))
@@ -98,6 +99,7 @@ class MembershipModelMixinTestCase(BaseTestCase):
         self.assertFalse(self.anonymous_space.has_object_write_permission(self.viewer_request))
 
         self.anonymous_space.is_public = True
+        self.anonymous_space.save()
 
         self.assertFalse(self.anonymous_space.has_object_write_permission(self.anonymous_request))
         self.assertFalse(self.anonymous_space.has_object_write_permission(self.owner_request))
@@ -105,6 +107,7 @@ class MembershipModelMixinTestCase(BaseTestCase):
         self.assertFalse(self.anonymous_space.has_object_write_permission(self.viewer_request))
 
         self.anonymous_space.is_public_writable = True
+        self.anonymous_space.save()
 
         self.assertTrue(self.anonymous_space.has_object_write_permission(self.anonymous_request))
         self.assertTrue(self.anonymous_space.has_object_write_permission(self.owner_request))
