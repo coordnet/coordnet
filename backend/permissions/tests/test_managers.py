@@ -1,0 +1,109 @@
+from django.contrib.contenttypes import models as content_type_models
+
+import nodes.models
+import permissions.models
+import permissions.utils
+from nodes.tests import factories as nodes_factories
+from permissions.tests import factories as permissions_factories
+from utils.testcases import BaseTestCase
+
+
+class MembershipModelQuerySetMixinTestCase(BaseTestCase):
+    def test_role_annotations(self) -> None:
+        """Test that the user_roles annotation is added to the queryset."""
+        owner = self.owner_user
+        node = nodes_factories.NodeFactory.create(owner=owner)
+        subnodes = nodes_factories.NodeFactory.create_batch(10)
+        node.subnodes.set(subnodes)
+
+        # Preload the content types, so that the queries are not counted (and the query count is not
+        # flaky)
+        content_type_models.ContentType.objects.get_for_model(nodes.models.Node)
+        content_type_models.ContentType.objects.get_for_model(nodes.models.Space)
+
+        # Check that a node transfers the permissions to its subnodes.
+        with self.assertNumQueries(1):
+            node_queryset = nodes.models.Node.available_objects.annotate_user_permissions(
+                user=owner
+            )
+
+            # Force evaluation of the queryset
+            repr(node_queryset)
+
+        self.assertEqual(node_queryset.count(), 11)
+        for result_node in node_queryset:
+            self.assertEqual(result_node.user_roles, [permissions.models.RoleOptions.OWNER])
+
+        # Check that a space transfers the permissions to its nodes.
+        viewer = self.viewer_user
+        space = nodes_factories.SpaceFactory.create(viewer=viewer)
+        space.nodes.set(subnodes)
+        space.nodes.add(node)
+
+        with self.assertNumQueries(1):
+            node_queryset = nodes.models.Node.available_objects.annotate_user_permissions(
+                user=viewer
+            )
+
+            # Force evaluation of the queryset
+            repr(node_queryset)
+
+        self.assertEqual(node_queryset.count(), 11)
+        for result_node in node_queryset:
+            self.assertEqual(result_node.user_roles, [permissions.models.RoleOptions.VIEWER])
+
+        # Check that multiple roles are correctly annotated.
+        permissions_factories.ObjectMembershipFactory.create(
+            content_object=node,
+            user=viewer,
+            role=permissions.utils.get_owner_role(),
+        )
+
+        with self.assertNumQueries(1):
+            node_queryset = nodes.models.Node.available_objects.annotate_user_permissions(
+                user=viewer
+            )
+
+            # Force evaluation of the queryset
+            repr(node_queryset)
+
+        self.assertEqual(node_queryset.count(), 11)
+        for result_node in node_queryset:
+            self.assertSetEqual(
+                set(result_node.user_roles),
+                {permissions.models.RoleOptions.OWNER, permissions.models.RoleOptions.VIEWER},
+            )
+
+        # Now test the same with a public space, for this we use the member user, who doesn't have
+        # any permissions at the moment
+        member = self.member_user
+
+        with self.assertNumQueries(1):
+            space_queryset = nodes.models.Space.available_objects.annotate_user_permissions(
+                user=member
+            )
+
+            # Force evaluation of the queryset
+            repr(space_queryset)
+
+        self.assertEqual(space_queryset.count(), 1)
+        for result_space in space_queryset:
+            print(result_space.user_roles)
+            # print(result_node.resolved_is_public)
+            # print(result_node.resolved_is_public_writable)
+            self.assertEqual(result_space.user_roles, [])
+
+        space.is_public = True
+        space.save()
+
+        with self.assertNumQueries(1):
+            space_queryset = nodes.models.Space.available_objects.annotate_user_permissions(
+                user=member
+            )
+
+            # Force evaluation of the queryset
+            repr(space_queryset)
+
+        self.assertEqual(space_queryset.count(), 1)
+        for result_space in space_queryset:
+            self.assertEqual(result_space.user_roles, [permissions.models.RoleOptions.VIEWER])

@@ -31,6 +31,7 @@ class NodeFactory(BaseMembershipModelMixinFactory):
 
     class Meta:
         model = "nodes.Node"
+        skip_postgeneration_save = True
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super().__init__(*args, **kwargs)

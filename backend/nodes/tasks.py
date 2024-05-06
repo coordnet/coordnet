@@ -193,7 +193,7 @@ def document_versioning() -> None:
     #       and compare it to the hash stored in the database. This would be faster, but we would
     #       have to store the hash in the database and calculate it on every save.
     latest_versions = (
-        models.DocumentVersion.objects.order_by("document_id", "-created_at")
+        models.DocumentVersion.available_objects.order_by("document_id", "-created_at")
         .distinct("document_id")
         .select_related("document")
         .filter(document__updated_at__lt=threshold_time)

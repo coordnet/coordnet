@@ -43,7 +43,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
     def test_adding_and_deleting_permissions(self) -> None:
         """Test that adding and deleting permissions is limited to the owner of the node."""
         node = node_factories.NodeFactory.create(owner=self.owner_user)
-        object_permission = models.ObjectMembership.objects.get(user=self.owner_user)
+        object_permission = models.ObjectMembership.available_objects.get(user=self.owner_user)
 
         response = self.viewer_client.delete(
             reverse(
@@ -77,4 +77,67 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
             )
         )
         self.assertEqual(response.status_code, 204)
-        self.assertFalse(models.ObjectMembership.objects.filter(user=self.owner_user).exists())
+        self.assertFalse(
+            models.ObjectMembership.available_objects.filter(user=self.owner_user).exists()
+        )
+
+    def test_allowed_actions_on_nodes(self) -> None:
+        """Check that we don't use N+1 queries when getting the allowed actions on a node."""
+
+        space = node_factories.SpaceFactory.create(owner=self.owner_user)
+        node = node_factories.NodeFactory.create(owner=self.owner_user, space=space)
+        subnodes = node_factories.NodeFactory.create_batch(10, owner=self.owner_user, space=space)
+        node.subnodes.set(subnodes)
+
+        with self.assertNumQueries(2):
+            response = self.owner_client.get(
+                reverse("nodes:nodes-detail", args=[str(node.public_id)])
+            )
+            self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        self.assertEqual(len(response_data["subnodes"]), 10)
+        self.assertEqual(len(response_data["allowed_actions"]), 4)
+        self.assertSetEqual(
+            set(response_data["allowed_actions"]), {"read", "write", "manage", "delete"}
+        )
+
+        with self.assertNumQueries(2):
+            response = self.owner_client.get(reverse("nodes:nodes-list"))
+            self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        self.assertEqual(len(response_data), 11)
+        for node_data in response_data:
+            self.assertEqual(len(node_data["allowed_actions"]), 4)
+            self.assertSetEqual(
+                set(node_data["allowed_actions"]), {"read", "write", "manage", "delete"}
+            )
+
+    def test_allowed_actions_on_spaces(self) -> None:
+        """Check that we don't use N+1 queries when getting the allowed actions on a space."""
+
+        space = node_factories.SpaceFactory.create_batch(10, owner=self.owner_user)
+
+        with self.assertNumQueries(3):
+            response = self.owner_client.get(
+                reverse("nodes:spaces-detail", args=[str(space[0].public_id)])
+            )
+            self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        self.assertSetEqual(
+            set(response_data["allowed_actions"]), {"read", "write", "manage", "delete"}
+        )
+
+        with self.assertNumQueries(3):
+            response = self.owner_client.get(reverse("nodes:spaces-list"))
+            self.assertEqual(response.status_code, 200)
+
+        response_data = response.json()
+        self.assertEqual(len(response_data), 10)
+        for node_data in response_data:
+            self.assertEqual(len(node_data["allowed_actions"]), 4)
+            self.assertSetEqual(
+                set(node_data["allowed_actions"]), {"read", "write", "manage", "delete"}
+            )

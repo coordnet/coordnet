@@ -19,8 +19,8 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
             tasks.document_versioning()
 
         # Since there wasn't any previous version, there should be only one version now
-        self.assertEqual(models.DocumentVersion.objects.count(), 1)
-        document_version = models.DocumentVersion.objects.all()[0]
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 1)
+        document_version = models.DocumentVersion.available_objects.all()[0]
 
         self.assertEqual(document_version.document, document)
         self.assertEqual(document_version.data, b"test data")
@@ -36,7 +36,7 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
 
         # There should be no new versions since the document hasn't changed and the interval hasn't
         # passed.
-        self.assertEqual(models.DocumentVersion.objects.count(), 1)
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 1)
 
         # Change the document
         document.json = {"new": "data"}
@@ -47,15 +47,15 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
         tasks.document_versioning()
 
         # There still should be only one version since the interval hasn't passed
-        self.assertEqual(models.DocumentVersion.objects.count(), 1)
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 1)
 
         # Set the interval to 0 and run the task again
         with self.settings(NODE_VERSIONING_INTERVAL=0):
             tasks.document_versioning()
 
         # There should be a new version now
-        self.assertEqual(models.DocumentVersion.objects.count(), 2)
-        last_document_version = models.DocumentVersion.objects.last()
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 2)
+        last_document_version = models.DocumentVersion.available_objects.last()
         assert last_document_version is not None  # For mypy
         self.assertEqual(last_document_version.document, document)
         self.assertEqual(last_document_version.data, b"new data")
@@ -70,7 +70,7 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
         with self.assertNumQueries(2):
             # Only two queries to check and no inserts
             tasks.document_versioning()
-        self.assertEqual(models.DocumentVersion.objects.count(), 2)
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 2)
 
     def test_version_creation_with_older_version(self) -> None:
         """
@@ -82,7 +82,7 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
         document = factories.DocumentFactory(json={"test": "data"}, data=b"test data")
         tasks.document_versioning()
 
-        self.assertEqual(models.DocumentVersion.objects.count(), 1)
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 1)
 
         # Change the document
         document.json = {"new": "data"}
@@ -90,7 +90,7 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
         document.save()
 
         # Make this version and the document updated_at older.
-        models.DocumentVersion.objects.update(
+        models.DocumentVersion.available_objects.update(
             created_at=timezone.now() - timedelta(days=1),
             updated_at=timezone.now() - timedelta(days=1),
         )
@@ -101,8 +101,8 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
 
         # Run the task again
         tasks.document_versioning()
-        self.assertEqual(models.DocumentVersion.objects.count(), 2)
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 2)
 
         # Run the task again, this shouldn't create a new version
         tasks.document_versioning()
-        self.assertEqual(models.DocumentVersion.objects.count(), 2)
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 2)

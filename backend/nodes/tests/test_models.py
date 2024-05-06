@@ -17,11 +17,22 @@ class NodeModelTestCase(BaseTestCase):
 
     def test_node_related_model_manager(self) -> None:
         node_1 = factories.NodeFactory.create(title="test")
+        # Soft delete node 1
         node_1.delete()
+
         node_2 = factories.NodeFactory.create(title="test")
         node_2.subnodes.add(node_1)
 
-        self.assertEqual(node_2.subnodes.count(), 0)
+        self.assertEqual(models.Node.available_objects.count(), 1)
+        self.assertEqual(models.Node.all_objects.count(), 2)
+        self.assertEqual(models.Node.objects.count(), 2)
+
+        # Check that node 2 is using the default related manager which shows soft deleted nodes.
+        self.assertEqual(node_2.subnodes.count(), 1)
+
+        # When using the available_objects manager, the soft deleted node should not be shown,
+        # even if they are part of the filter query.
+        self.assertEqual(models.Node.available_objects.filter(parents=node_1).count(), 0)
 
     def test_spaces_with_same_titles(self) -> None:
         space_1 = models.Space.objects.create(title="test")

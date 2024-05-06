@@ -8,6 +8,9 @@ import utils.models
 import utils.typing
 from permissions import managers
 
+T = typing.TypeVar("T", bound="MembershipModelMixin")
+
+
 try:
     from django_stubs_ext.db.models import TypedModelMeta
 except ImportError:
@@ -18,25 +21,36 @@ except ImportError:
 if typing.TYPE_CHECKING:
     from django import http
 
-    from users import typing as user_typing
+    import users.typing
 
-READ = "read"
-WRITE = "write"
-MANAGE = "manage"
-DELETE = "delete"
+    # This is a workaround for the fact that Django does not support generic classes.
+    class GenericBase(typing.Generic[T]):
+        pass
 
-OWNER = "owner"
-MEMBER = "member"
-VIEWER = "viewer"
+else:
+
+    class GenericBase:
+        def __class_getitem__(cls, _):
+            return cls
+
+
+READ: typing.Final = "read"
+WRITE: typing.Final = "write"
+MANAGE: typing.Final = "manage"
+DELETE: typing.Final = "delete"
+
+OWNER: typing.Final = "owner"
+MEMBER: typing.Final = "member"
+VIEWER: typing.Final = "viewer"
 
 Action = typing.Literal["read", "write", "manage", "delete"]
 Role = typing.Literal["owner", "member", "viewer"]
 
 
 class RoleOptions(models.TextChoices):
-    OWNER: tuple[Role, str] = "owner", "Owner"
-    MEMBER: tuple[Role, str] = "member", "Member"
-    VIEWER: tuple[Role, str] = "viewer", "Viewer"
+    OWNER: tuple[Role, str] = OWNER, "Owner"
+    MEMBER: tuple[Role, str] = MEMBER, "Member"
+    VIEWER: tuple[Role, str] = VIEWER, "Viewer"
 
 
 READ_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.VIEWER]
@@ -119,15 +133,15 @@ class ObjectMembership(utils.models.BaseModel):
         return self.__has_object_permission_management_permission(request)
 
 
-class MembershipModelMixin(utils.typing.ModelBase):
+class MembershipModelMixin(utils.typing.ModelBase[T], GenericBase[T]):
     """
     Mixin for models that can have members.
     """
 
     members = content_type_fields.GenericRelation(ObjectMembership)
-    is_public = models.BooleanField("Whether the object is publicly available.", default=False)
+    is_public = models.BooleanField("Public read access", default=False)
     is_public_writable = models.BooleanField(
-        "If the object is public, whether it is writable by unauthenticated users.", default=False
+        "Public write access, if public read access is enabled", default=False
     )
 
     class Meta(TypedModelMeta):
@@ -137,8 +151,58 @@ class MembershipModelMixin(utils.typing.ModelBase):
     def __permission_manager(self) -> models.Manager:
         return self.__class__.objects
 
+    @property
+    def user_roles(self) -> list[RoleOptions]:
+        return self.__user_roles_cache
+
+    @user_roles.setter
+    def user_roles(self, value: list[RoleOptions]) -> None:
+        self.__user_roles_cache = value
+        self.__fill_user_permissions_cache()
+
+    def __fill_user_permissions_cache(self) -> None:
+        if (user_roles := getattr(self, "user_roles", None)) is not None:
+            for action, roles in ACTION_TO_ROLES.items():
+                self.__user_permissions_cache[action] = any(role in user_roles for role in roles)
+
+    def get_allowed_actions_for_user(
+        self, request: "http.HttpRequest", use_cache: bool = True
+    ) -> list[Action]:
+        """Return the roles that the user has for this object."""
+        # If the user can see the object, they can read it.
+        allowed_actions: list[Action] = ["read"]
+
+        if self.get_allowed_action_for_user(request, WRITE, use_cache=use_cache):
+            allowed_actions.extend(["write", "delete"])
+        if self.get_allowed_action_for_user(request, MANAGE, use_cache=use_cache):
+            allowed_actions.append("manage")
+        return allowed_actions
+
+    def get_allowed_action_for_user(
+        self, request: "http.HttpRequest", action: Action, use_cache: bool = True
+    ) -> bool:
+        """Return whether the user is allowed to do that action."""
+        permission_query = self.__permission_manager.filter(pk=self.pk).filter(
+            self.get_user_has_permission_filter(action, request.user)
+        )
+        if not use_cache:
+            return permission_query.exists()
+        if self.__user_permissions_cache[action] is None:
+            self.__user_permissions_cache[action] = permission_query.exists()
+            if action == WRITE:
+                self.__user_permissions_cache[DELETE] = self.__user_permissions_cache[action]
+        return self.__user_permissions_cache[action] or False  # To please mypy
+
     @staticmethod
-    def get_user_has_permission_filter(action: Action, user: "user_typing.AnyUserType") -> models.Q:
+    def get_user_has_permission_filter(
+        action: Action, user: "users.typing.AnyUserType"
+    ) -> models.Q:
+        raise NotImplementedError
+
+    @staticmethod
+    def get_role_annotation_query(
+        user: "users.typing.AnyUserType",
+    ) -> models.Func | models.Expression | models.QuerySet:
         raise NotImplementedError
 
     @staticmethod
@@ -151,11 +215,7 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user has read permissions for this object."""
-        return (
-            self.__permission_manager.filter(pk=self.pk)
-            .filter(self.get_user_has_permission_filter("read", request.user))
-            .exists()
-        )
+        return self.get_allowed_action_for_user(request, READ)
 
     @staticmethod
     def has_write_permission(request: "http.HttpRequest") -> bool:
@@ -168,11 +228,17 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user has write permissions for this object."""
-        return (
-            self.__permission_manager.filter(pk=self.pk)
-            .filter(self.get_user_has_permission_filter("write", request.user))
-            .exists()
-        )
+        return self.get_allowed_action_for_user(request, WRITE)
+
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.__user_permissions_cache: dict[Action, bool | None] = {
+            "read": None,
+            "write": None,
+            "manage": None,
+            "delete": None,
+        }
+        self.__user_roles_cache = []
 
 
 class MembershipBaseModel(MembershipModelMixin, utils.models.BaseModel):
@@ -180,13 +246,15 @@ class MembershipBaseModel(MembershipModelMixin, utils.models.BaseModel):
     Base model for models that can have members.
     """
 
-    objects: "managers.SoftDeletableMembershipModelManager[MembershipBaseModel]" = (
-        managers.SoftDeletableMembershipModelManager(_emit_deprecation_warnings=True)
+    objects: "managers.SoftDeletableMembershipModelUnfilteredManager[MembershipBaseModel]" = (
+        managers.SoftDeletableMembershipModelUnfilteredManager()
     )
     available_objects: "managers.SoftDeletableMembershipModelManager[MembershipBaseModel]" = (
         managers.SoftDeletableMembershipModelManager()
     )
-    all_objects: "models.Manager[MembershipBaseModel]" = managers.MembershipModelQueryManager()
+    all_objects: "managers.MembershipModelQueryManager[MembershipBaseModel]" = (
+        managers.MembershipModelQueryManager()
+    )
 
     @property
     def __permission_manager(self) -> models.Manager:

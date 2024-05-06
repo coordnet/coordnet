@@ -39,7 +39,7 @@ class NodeEventTestCase(BaseTransactionTestCase):
 
     def test_project_create(self) -> None:
         """Test that a new project is created."""
-        self.assertEqual(models.Space.objects.count(), 0)
+        self.assertEqual(models.Space.available_objects.count(), 0)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
 
         public_id = str(uuid.uuid4())
@@ -59,9 +59,9 @@ class NodeEventTestCase(BaseTransactionTestCase):
 
         tasks.process_document_events(raise_exception=True)
 
-        self.assertEqual(models.Space.objects.count(), 1)
+        self.assertEqual(models.Space.available_objects.count(), 1)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
-        self.assertEqual(models.Node.objects.count(), 4)
+        self.assertEqual(models.Node.available_objects.count(), 4)
 
     def test_graph_create(self) -> None:
         """Test that a new graph is created."""
@@ -118,9 +118,9 @@ class NodeEventTestCase(BaseTransactionTestCase):
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
 
     def test_space_update_and_existing_nodes(self) -> None:
-        self.assertEqual(models.Space.objects.count(), 0)
+        self.assertEqual(models.Space.available_objects.count(), 0)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
-        self.assertEqual(models.Node.objects.count(), 0)
+        self.assertEqual(models.Node.available_objects.count(), 0)
 
         space_public_id = str(uuid.uuid4())
         factories.SpaceFactory.create(public_id=space_public_id)
@@ -129,7 +129,9 @@ class NodeEventTestCase(BaseTransactionTestCase):
             factories.NodeFactory.create(public_id=key, title=None)
 
         # All token counts should be None
-        self.assertFalse(models.Node.objects.exclude(title_token_count__isnull=True).exists())
+        self.assertFalse(
+            models.Node.available_objects.exclude(title_token_count__isnull=True).exists()
+        )
 
         # TODO: Improve the way that the document event is created and task is triggered.
         factories.DocumentEventFactory.create(
@@ -141,10 +143,12 @@ class NodeEventTestCase(BaseTransactionTestCase):
 
         tasks.process_document_events(raise_exception=True)
 
-        self.assertEqual(models.Space.objects.count(), 1)
+        self.assertEqual(models.Space.available_objects.count(), 1)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
-        self.assertEqual(models.Node.objects.count(), 4)
-        self.assertEqual(models.Node.objects.exclude(title_token_count__isnull=True).count(), 4)
+        self.assertEqual(models.Node.available_objects.count(), 4)
+        self.assertEqual(
+            models.Node.available_objects.exclude(title_token_count__isnull=True).count(), 4
+        )
 
         factories.DocumentEventFactory.create(
             public_id=space_public_id,
@@ -155,6 +159,36 @@ class NodeEventTestCase(BaseTransactionTestCase):
 
         tasks.process_document_events(raise_exception=True)
 
-        self.assertEqual(models.Space.objects.count(), 1)
+        self.assertEqual(models.Space.available_objects.count(), 1)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
-        self.assertEqual(models.Node.objects.count(), 4)
+        self.assertEqual(models.Node.available_objects.count(), 4)
+
+    def test_node_removal_from_space(self) -> None:
+        """
+        Test that if a node gets removed from the space, the same is reflected in the database.
+        """
+        self.assertEqual(models.Node.all_objects.count(), 0)
+        self.assertEqual(models.DocumentEvent.objects.count(), 0)
+
+        node = factories.NodeFactory.create()
+        space = factories.SpaceFactory.create()
+        space.nodes.add(node)
+
+        # TODO: Improve the way that the document event is created and task is triggered.
+        factories.DocumentEventFactory.create(
+            public_id=str(space.public_id),
+            action="UPDATE",
+            new_data={
+                "nodes": {},
+                "deletedNodes": [str(node.public_id)],
+            },
+            document_type=models.DocumentType.SPACE,
+        )
+
+        tasks.process_document_events(raise_exception=True)
+
+        self.assertEqual(models.Node.all_objects.count(), 1)
+        self.assertEqual(models.DocumentEvent.objects.count(), 0)
+        space.refresh_from_db()
+        self.assertListEqual(list(space.nodes.all()), [])
+        self.assertListEqual(list(space.deleted_nodes.all()), [node])

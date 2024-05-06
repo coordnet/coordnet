@@ -11,6 +11,9 @@ if typing.TYPE_CHECKING:
     from django import http
 
 
+T = typing.TypeVar("T", bound="models.BaseModel")
+
+
 class PublicIdRelatedField(serializers.SlugRelatedField):
     """Override the default SlugRelatedField to use the public_id field as the lookup field."""
 
@@ -18,7 +21,7 @@ class PublicIdRelatedField(serializers.SlugRelatedField):
         super().__init__(slug_field=slug_field, **kwargs)
 
 
-class BaseSerializer(serializers.ModelSerializer):
+class BaseSerializer(serializers.ModelSerializer[T], typing.Generic[T]):
     """
     Base serializer for all serializers in the project.
     - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.

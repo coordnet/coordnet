@@ -11,7 +11,10 @@ if typing.TYPE_CHECKING:
     from rest_framework import request
 
 
-class PermissionViewSetMixin(generics.GenericAPIView):
+T_co = typing.TypeVar("T_co", bound="models.MembershipModelMixin", covariant=True)
+
+
+class PermissionViewSetMixin(generics.GenericAPIView[T_co], typing.Generic[T_co]):
     @action(
         detail=True,
         methods=["get", "post"],

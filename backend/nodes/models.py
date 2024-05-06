@@ -3,14 +3,17 @@ from collections import OrderedDict
 
 import model_utils
 import pgtrigger
+from django.contrib.contenttypes import models as content_type_models
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Coalesce
 from django.utils.text import slugify
 
-from nodes import utils as nodes_utils
-from permissions import models as permissions_models
-from permissions.models import RoleOptions
-from utils import models as utils_models
+import nodes.utils
+import permissions.models
+import utils.models
 from utils import tokens
 
 if typing.TYPE_CHECKING:
@@ -48,7 +51,7 @@ class DocumentEvent(models.Model):
         return f"{self.public_id} - {self.action.title()}"
 
 
-class Node(permissions_models.MembershipBaseModel):
+class Node(permissions.models.MembershipBaseModel):
     """
     A node in the graph.
 
@@ -65,9 +68,7 @@ class Node(permissions_models.MembershipBaseModel):
     content = models.JSONField(null=True)
     text = models.TextField(null=True, default=None)
     text_token_count = models.PositiveIntegerField(null=True)
-    subnodes: models.ManyToManyField = models.ManyToManyField(
-        "self", related_name="parents", symmetrical=False, blank=True
-    )
+    subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
     editor_document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_editor"
     )
@@ -79,7 +80,7 @@ class Node(permissions_models.MembershipBaseModel):
 
     @staticmethod
     def get_user_has_permission_filter(
-        action: permissions_models.Action,
+        action: permissions.models.Action,
         user: "user_typing.AnyUserType",
         prefix: str | None = None,
     ) -> Q:
@@ -92,7 +93,7 @@ class Node(permissions_models.MembershipBaseModel):
               Roles are not soft-deletable, so those aren't checked either.
         """
 
-        def permissions_for_role(roles: list[RoleOptions]) -> Q:
+        def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
             queryset_filters = Q(
                 **{
                     prefix_field("members__user", prefix): user,
@@ -118,7 +119,7 @@ class Node(permissions_models.MembershipBaseModel):
             )
             return queryset_filters
 
-        if action == permissions_models.READ:
+        if action == permissions.models.READ:
             queryset_filters = (
                 Q(**{prefix_field("is_public", prefix): True})
                 | Q(
@@ -135,9 +136,9 @@ class Node(permissions_models.MembershipBaseModel):
                 )
             )
             if user.is_authenticated:
-                queryset_filters |= permissions_for_role(permissions_models.READ_ROLES)
+                queryset_filters |= permissions_for_role(permissions.models.READ_ROLES)
             return queryset_filters
-        if action in (permissions_models.WRITE, permissions_models.DELETE):
+        if action in (permissions.models.WRITE, permissions.models.DELETE):
             queryset_filters = (
                 Q(
                     **{
@@ -161,12 +162,122 @@ class Node(permissions_models.MembershipBaseModel):
                 )
             )
             if user.is_authenticated:
-                queryset_filters |= permissions_for_role(permissions_models.WRITE_ROLES)
+                queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
             return queryset_filters
-        if action == permissions_models.MANAGE:
-            return permissions_for_role(permissions_models.ADMIN_ROLES)
+        if action == permissions.models.MANAGE:
+            return permissions_for_role(permissions.models.ADMIN_ROLES)
 
         raise ValueError("Invalid action type.")
+
+    @staticmethod
+    def get_role_annotation_query(user: "user_typing.AnyUserType") -> Coalesce | models.Case:
+        public_subquery = models.Case(
+            models.When(
+                (Q(is_public=True) & Q(is_public_writable=True))
+                | (Q(spaces__is_public=True) & Q(spaces__is_public_writable=True))
+                | (Q(parents__is_public=True) & Q(parents__is_public_writable=True)),
+                then=models.Value(
+                    ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                ),
+            ),
+            models.When(
+                Q(is_public=True) | Q(spaces__is_public=True) | Q(parents__is_public=True),
+                then=models.Value(
+                    ["viewer"],
+                    output_field=ArrayField(models.CharField()),
+                ),
+            ),
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+
+        if not user.is_authenticated:
+            return public_subquery
+
+        node_public_subquery = Node.objects.filter(
+            Q(pk=models.OuterRef("object_id")) | Q(subnodes=models.OuterRef("object_id")),
+            is_removed=False,
+            is_public=True,
+        )
+        node_public_writable_subquery = Node.objects.filter(
+            Q(pk=models.OuterRef("object_id")) | Q(subnodes=models.OuterRef("object_id")),
+            is_removed=False,
+            is_public=True,
+            is_public_writable=True,
+        )
+        space_public_subquery = Space.objects.filter(
+            nodes=models.OuterRef("object_id"), is_removed=False, is_public=True
+        )
+        space_public_writable_subquery = Space.objects.filter(
+            nodes=models.OuterRef("object_id"),
+            is_removed=False,
+            is_public=True,
+            is_public_writable=True,
+        )
+
+        node_content_type = content_type_models.ContentType.objects.get_for_model(Node)
+        space_content_type = content_type_models.ContentType.objects.get_for_model(Space)
+
+        role_aggregation_stmt = ArrayAgg(
+            "role__role",
+            distinct=True,
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+
+        role_subquery = (
+            permissions.models.ObjectMembership.available_objects.filter(
+                models.Q(content_type=node_content_type, object_id=models.OuterRef("pk"))
+                | models.Q(
+                    content_type=node_content_type, object_id__in=models.OuterRef("parents__pk")
+                )
+                | models.Q(
+                    content_type=space_content_type,
+                    object_id__in=models.OuterRef("spaces__pk"),
+                ),
+                user=user,
+            )
+            # This is to group the roles by the related object, so we can aggregate them afterward.
+            .annotate(related_object=models.OuterRef("pk"))
+            .values("related_object")
+            .annotate(
+                roles=models.Func(
+                    role_aggregation_stmt,
+                    models.Case(
+                        models.When(
+                            (
+                                Q(content_type=space_content_type)
+                                & models.Exists(space_public_writable_subquery)
+                            )
+                            | (
+                                Q(content_type=node_content_type)
+                                & models.Exists(node_public_writable_subquery)
+                            ),
+                            then=models.Value(
+                                ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                            ),
+                        ),
+                        models.When(
+                            (
+                                Q(content_type=space_content_type)
+                                & models.Exists(space_public_subquery)
+                            )
+                            | (
+                                Q(content_type=node_content_type)
+                                & models.Exists(node_public_subquery)
+                            ),
+                            then=models.Value(
+                                ["viewer"],
+                                output_field=ArrayField(models.CharField()),
+                            ),
+                        ),
+                        default=models.Value([], output_field=ArrayField(models.CharField())),
+                    ),
+                    function="array_cat",
+                    output_field=ArrayField(models.CharField()),
+                    default=role_aggregation_stmt,
+                ),
+            )
+        )
+        return Coalesce(role_subquery.values("roles"), public_subquery)
 
     @staticmethod
     def __add_to_update_fields(
@@ -184,14 +295,14 @@ class Node(permissions_models.MembershipBaseModel):
 
     def save(
         self,
-        force_insert: bool = False,
+        force_insert: bool = False,  # type: ignore[override] # I can't see what's wrong with this.
         force_update: bool = False,
         using: str | None = None,
         update_fields: typing.Iterable[str] | None = None,
     ) -> None:
         add_to_update_fields: list[str] = []
         if self.tracker.has_changed("content") and self.__is_updated(update_fields, "content"):
-            self.text = " ".join(nodes_utils.extract_text_from_node(self.content))
+            self.text = " ".join(nodes.utils.extract_text_from_node(self.content))
             add_to_update_fields.append("text")
             self.text_token_count = tokens.token_count(self.text)
             add_to_update_fields.append("text_token_count")
@@ -219,9 +330,9 @@ class Node(permissions_models.MembershipBaseModel):
         """Fetch subnodes of a node and return then by depth."""
         nodes_at_depth = {0: [self]}
         for i in range(1, depth + 1):
-            subnodes = Node.objects.filter(parents__in=nodes_at_depth[i - 1]).prefetch_related(
-                "subnodes"
-            )
+            subnodes = Node.available_objects.filter(
+                parents__in=nodes_at_depth[i - 1]
+            ).prefetch_related("subnodes")
             if not subnodes:
                 break
             nodes_at_depth[i] = list(subnodes)
@@ -244,9 +355,9 @@ class Node(permissions_models.MembershipBaseModel):
         nodes_added: "dict[uuid.UUID, tuple[bool, bool]]" = {}
         context_nodes: "dict[uuid.UUID, str]" = OrderedDict()
 
-        for depth, nodes in nodes_at_depth.items():
+        for depth, _nodes in nodes_at_depth.items():
             include_content = depth != ignore_content_at_depth
-            for node in nodes:
+            for node in _nodes:
                 # Check if the node is already added to the context, if so, with what settings.
                 set_include_content, set_include_connections = nodes_added.get(
                     node.public_id, (False, False)
@@ -274,11 +385,11 @@ class Node(permissions_models.MembershipBaseModel):
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
 
-    class Meta(permissions_models.MembershipModelMixin.Meta, utils_models.BaseModel.Meta):
+    class Meta(permissions.models.MembershipModelMixin.Meta, utils.models.BaseModel.Meta):
         pass
 
 
-class DocumentVersion(utils_models.BaseModel):
+class DocumentVersion(utils.models.BaseModel):
     """Task for storing the version of a document."""
 
     document_type = models.CharField(max_length=255, choices=DocumentType.choices)
@@ -315,7 +426,7 @@ class DocumentVersion(utils_models.BaseModel):
         return self.document.has_object_write_permission(request)
 
 
-class Space(permissions_models.MembershipBaseModel):
+class Space(permissions.models.MembershipBaseModel):
     title = models.CharField(max_length=255)
     title_slug = models.SlugField(max_length=255, unique=True)
     # Setting the type hint manually is required because of a bug in the Django stubs.
@@ -337,14 +448,14 @@ class Space(permissions_models.MembershipBaseModel):
             # Only set the slug when the object is created.
             title_slug = slugify(self.title)
             self.title_slug = title_slug
-            while Space.objects.filter(title_slug=self.title_slug).exists():
-                self.title_slug = f"{title_slug}-{nodes_utils.random_string(4)}"
+            while Space.available_objects.filter(title_slug=self.title_slug).exists():
+                self.title_slug = f"{title_slug}-{nodes.utils.random_string(4)}"
 
         super().save(*args, **kwargs)
 
     @staticmethod
     def get_user_has_permission_filter(
-        action: permissions_models.Action,
+        action: permissions.models.Action,
         user: "user_typing.AnyUserType",
         prefix: str | None = None,
     ) -> Q:
@@ -356,7 +467,7 @@ class Space(permissions_models.MembershipBaseModel):
               Roles are not soft-deletable, so those aren't checked either.
         """
 
-        def permissions_for_role(roles: list[RoleOptions]) -> Q:
+        def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
             return Q(
                 **{
                     prefix_field("members__user", prefix): user,
@@ -365,12 +476,12 @@ class Space(permissions_models.MembershipBaseModel):
                 }
             )
 
-        if action == permissions_models.READ:
+        if action == permissions.models.READ:
             queryset_filters = Q(**{prefix_field("is_public", prefix): True})
             if user.is_authenticated:
-                queryset_filters |= permissions_for_role(permissions_models.READ_ROLES)
+                queryset_filters |= permissions_for_role(permissions.models.READ_ROLES)
             return queryset_filters
-        if action in (permissions_models.WRITE, permissions_models.DELETE):
+        if action in (permissions.models.WRITE, permissions.models.DELETE):
             queryset_filters = Q(
                 **{
                     prefix_field("is_public", prefix): True,
@@ -378,14 +489,98 @@ class Space(permissions_models.MembershipBaseModel):
                 }
             )
             if user.is_authenticated:
-                queryset_filters |= permissions_for_role(permissions_models.WRITE_ROLES)
+                queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
             return queryset_filters
-        if action == permissions_models.MANAGE:
-            return permissions_for_role(permissions_models.ADMIN_ROLES)
+        if action == permissions.models.MANAGE:
+            return permissions_for_role(permissions.models.ADMIN_ROLES)
 
         raise ValueError("Invalid action type.")
 
-    class Meta(permissions_models.MembershipModelMixin.Meta, utils_models.BaseModel.Meta):
+    @staticmethod
+    def get_role_annotation_query(user: "user_typing.AnyUserType") -> Coalesce | models.Case:
+        # TODO: This can probably be simplified more, since the roles for spaces are much simpler,
+        #       and there are no parents to consider.
+        public_subquery = models.Case(
+            models.When(
+                Q(is_public=True) & Q(is_public_writable=True),
+                then=models.Value(
+                    ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                ),
+            ),
+            models.When(
+                Q(is_public=True),
+                then=models.Value(
+                    ["viewer"],
+                    output_field=ArrayField(models.CharField()),
+                ),
+            ),
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+        if not user.is_authenticated:
+            return public_subquery
+
+        space_public_subquery = Space.objects.filter(
+            pk=models.OuterRef("object_id"), is_removed=False, is_public=True
+        )
+        space_public_writable_subquery = Space.objects.filter(
+            pk=models.OuterRef("object_id"),
+            is_removed=False,
+            is_public=True,
+            is_public_writable=True,
+        )
+        space_content_type = content_type_models.ContentType.objects.get_for_model(Space)
+
+        role_aggregation_stmt = ArrayAgg(
+            "role__role",
+            distinct=True,
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+
+        role_subquery = (
+            permissions.models.ObjectMembership.available_objects.filter(
+                content_type=space_content_type,
+                object_id=models.OuterRef("pk"),
+                user=user,
+            )
+            # This is to group the roles by the related object, so we can aggregate them later, we
+            # shouldn't need it for spaces, but it's here for consistency and future-proofing.
+            .annotate(related_object=models.OuterRef("pk"))
+            .values("related_object")
+            .annotate(
+                roles=models.Func(
+                    role_aggregation_stmt,
+                    models.Case(
+                        models.When(
+                            Q(content_type=space_content_type)
+                            & models.Exists(space_public_writable_subquery),
+                            then=models.Value(
+                                ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                            ),
+                        ),
+                        models.When(
+                            Q(content_type=space_content_type)
+                            & models.Exists(space_public_subquery),
+                            then=models.Value(
+                                ["viewer"],
+                                output_field=ArrayField(models.CharField()),
+                            ),
+                        ),
+                        default=models.Value([], output_field=ArrayField(models.CharField())),
+                    ),
+                    function="array_cat",
+                    output_field=ArrayField(models.CharField()),
+                    default=role_aggregation_stmt,
+                ),
+            )
+        )
+
+        return Coalesce(
+            role_subquery.values("roles"),
+            public_subquery,
+            output_field=ArrayField(models.CharField()),
+        )
+
+    class Meta(permissions.models.MembershipModelMixin.Meta, utils.models.BaseModel.Meta):
         pass
 
 

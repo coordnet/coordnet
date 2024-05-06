@@ -3,12 +3,15 @@ The soft delete managers in this file are copied from model_utils, because their
 playing nicely with mypy.
 """
 
+import typing
 import warnings
 
 from django.db import models
 
+T_co = typing.TypeVar("T_co", bound="models.Model", covariant=True)
 
-class SoftDeletableQuerySet(models.QuerySet):
+
+class SoftDeletableQuerySet(models.QuerySet[T_co], typing.Generic[T_co]):
     """
     QuerySet for SoftDeletableModel. Instead of removing instance sets
     its ``is_removed`` field to True.
@@ -23,19 +26,19 @@ class SoftDeletableQuerySet(models.QuerySet):
         self.update(is_removed=True)
 
 
-class SoftDeletableManager(models.Manager):
+class SoftDeletableManager(models.Manager[T_co], typing.Generic[T_co]):
     """
     Manager that limits the queryset by default to show only not removed
     instances of model.
     """
 
-    _queryset_class = SoftDeletableQuerySet
+    _queryset_class: type[SoftDeletableQuerySet[T_co]] = SoftDeletableQuerySet
 
     def __init__(self, _emit_deprecation_warnings: bool = False):
         self.emit_deprecation_warnings = _emit_deprecation_warnings
         super().__init__()
 
-    def get_queryset(self) -> models.QuerySet:
+    def get_queryset(self) -> SoftDeletableQuerySet[T_co]:
         """
         Return queryset limited to not removed entries.
         """
@@ -53,3 +56,11 @@ class SoftDeletableManager(models.Manager):
         return self._queryset_class(
             model=self.model, using=self._db, hints=getattr(self, "_hints", None)
         ).filter(is_removed=False)
+
+
+class SoftDeletableUnfilteredManager(SoftDeletableManager[T_co], typing.Generic[T_co]):
+    """
+    Manager that returns all instances of the model, including removed ones.
+    """
+
+    _queryset_class: type[SoftDeletableQuerySet[T_co]] = SoftDeletableQuerySet

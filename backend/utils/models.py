@@ -33,8 +33,8 @@ class BaseModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_removed = models.BooleanField(default=False)
 
-    objects: "managers.SoftDeletableManager[BaseModel]" = managers.SoftDeletableManager(
-        _emit_deprecation_warnings=True
+    objects: "managers.SoftDeletableUnfilteredManager[BaseModel]" = (
+        managers.SoftDeletableUnfilteredManager()
     )
     available_objects: "managers.SoftDeletableManager[BaseModel]" = managers.SoftDeletableManager()
     all_objects: "models.Manager[BaseModel]" = models.Manager()
