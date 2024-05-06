@@ -162,7 +162,9 @@ class Node(permissions.models.MembershipBaseModel):
                 queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
             return queryset_filters
         if action == permissions.models.MANAGE:
-            return permissions_for_role(permissions.models.ADMIN_ROLES)
+            if user.is_authenticated:
+                return permissions_for_role(permissions.models.ADMIN_ROLES)
+            return Q(pk=None)  # That is a false statement, so it will always return False.
 
         raise ValueError("Invalid action type.")
 
@@ -503,7 +505,9 @@ class Space(permissions.models.MembershipBaseModel):
                 queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
             return queryset_filters
         if action == permissions.models.MANAGE:
-            return permissions_for_role(permissions.models.ADMIN_ROLES)
+            if user.is_authenticated:
+                return permissions_for_role(permissions.models.ADMIN_ROLES)
+            return Q(pk=None)  # That is a false statement, so it will return False.
 
         raise ValueError("Invalid action type.")
 
