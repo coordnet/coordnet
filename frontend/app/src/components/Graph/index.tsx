@@ -16,7 +16,9 @@ import ReactFlow, {
 import { v4 as uuidv4 } from "uuid";
 
 import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
+import { readPdf } from "@/lib/pdfjs";
 import { GraphNode } from "@/types";
+import { waitForNode } from "@/utils";
 
 import Controls from "./Controls";
 import GraphNodeComponent from "./GraphNode";
@@ -24,6 +26,7 @@ import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import useUndoRedo from "./useUndoRedo";
 import useYdocState from "./useYdocState";
+import { addNodeToGraph } from "./utils";
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -36,7 +39,7 @@ const nodeTypes = {
 
 const Graph = ({ className }: { className?: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { nodes, edges, nodesMap, setNodesSelection } = useNode();
+  const { nodes, edges, nodesMap, setNodesSelection, node } = useNode();
   const { nodesMap: spaceNodesMap } = useSpace();
   const { isQuickViewOpen } = useQuickView();
   const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
@@ -64,7 +67,7 @@ const Graph = ({ className }: { className?: string }) => {
     setNodesMap,
   ]);
 
-  const addNode = (position: XYPosition) => {
+  const addNode = async (position: XYPosition) => {
     takeSnapshot();
     const id = uuidv4();
     const flowPosition = reactFlowInstance.screenToFlowPosition(position);
@@ -74,16 +77,38 @@ const Graph = ({ className }: { className?: string }) => {
       type: "GraphNode",
       position: flowPosition,
       style: { width: 200, height: 80 },
-      data: {},
+      data: { syncing: true, editing: true },
     };
     spaceNodesMap?.set(id, { id: id, title: "New node" });
     nodesMap.set(newNode.id, newNode);
+    await waitForNode(id);
+    const node = nodesMap.get(newNode.id);
+    if (node) nodesMap.set(newNode.id, { ...node, data: { ...node.data, syncing: false } });
+    return id;
   };
 
-  const onDrop = (event: DragEvent) => {
+  const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (wrapperRef.current) {
-      const wrapperBounds = wrapperRef.current.getBoundingClientRect();
+    if (!wrapperRef.current) {
+      window.alert("Could not find Graph wrapperRef.");
+      return;
+    }
+    const wrapperBounds = wrapperRef.current.getBoundingClientRect();
+
+    // Check if a file was dropped and if it's a PDF:
+    if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.type === "application/pdf") {
+        const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
+        const pdfText = await readPdf(arrayBuffer);
+        if (!spaceNodesMap) return alert("spaceNodesMap not found");
+        const position: XYPosition = {
+          x: event.clientX - wrapperBounds.x - 80,
+          y: event.clientY - wrapperBounds.top - 20,
+        };
+        addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, file.name, pdfText, position);
+      }
+    } else {
       addNode({
         x: event.clientX - wrapperBounds.x - 80,
         y: event.clientY - wrapperBounds.top - 20,
@@ -155,9 +180,14 @@ const Graph = ({ className }: { className?: string }) => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
+          nodesConnectable={node?.allowed_actions.includes("write")}
+          minZoom={0.1}
+          maxZoom={2}
         >
           <Controls />
-          <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
+          {node?.allowed_actions.includes("write") && (
+            <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
+          )}
           <Background gap={12} size={1} />
         </ReactFlow>
       </div>

@@ -8,11 +8,12 @@ import { format as formatTimeAgo } from "timeago.js";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { getNodeVersions } from "@/api";
-import { EditableNode } from "@/components";
+import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useFocus } from "@/hooks";
 import useNode from "@/hooks/useNode";
 
+import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
 import { loadExtensions } from "./extensions";
 import { MenuBar } from "./MenuBar";
@@ -21,7 +22,7 @@ import Versions from "./Versions";
 type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
-  const { synced, editorYdoc, editorProvider } = useNode();
+  const { editorError, editorSynced, editorYdoc, editorProvider, node } = useNode();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
 
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
@@ -40,24 +41,27 @@ const Editor = ({ id, className }: EditorProps) => {
       extensions: loadExtensions(editorProvider, editorYdoc),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
+      editable: node?.allowed_actions.includes("write"),
     },
-    [id],
+    [id, node],
   );
 
   useEffect(() => {
-    if (!editor || !synced || !editorYdoc) return;
+    if (!editor || !editorSynced || !editorYdoc) return;
     // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
     setEditor(editor);
-  }, [editor, synced, editorYdoc, setEditor]);
+  }, [editor, editorSynced, editorYdoc, setEditor]);
 
   if (!id) return <></>;
 
   return (
     <div className={clsx("border-gray-300 border-l overflow-hidden flex flex-col", className)}>
+      {editorError && <ErrorPage error={editorError} className="absolute z-40 bg-white" />}
+      {!editorSynced && <Loader message="Loading editor..." className="absolute z-30" />}
       <div className="p-3 font-medium text-lg mr-24">
         <EditableNode id={id} className="w-full" />
       </div>
-      <div className="absolute top-2 right-2 flex gap-2 z-20">
+      <div className="absolute top-2 right-2 flex gap-2">
         <Button
           variant="outline"
           className="size-9 p-0 shadow"
@@ -72,7 +76,7 @@ const Editor = ({ id, className }: EditorProps) => {
         <Tooltip id="node-page-repo">Node Repository</Tooltip>
         <Button
           variant="outline"
-          className="size-9 p-0 shadow"
+          className="size-9 p-0 shadow z-40"
           onClick={() => setNodePage("")}
           draggable
           data-tooltip-id="node-page-close"

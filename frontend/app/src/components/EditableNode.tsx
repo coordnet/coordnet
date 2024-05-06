@@ -14,7 +14,7 @@ interface EditableNodeProps {
 
 const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
   ({ id, contentEditable = true, className = "", onFocus, onBlur, ...props }, ref) => {
-    const { nodes, nodesMap } = useSpace();
+    const { nodes, nodesMap, scope } = useSpace();
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const inputRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,7 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
     return (
       <div
         ref={mergeRefs([inputRef, ref])}
-        contentEditable={contentEditable}
+        contentEditable={scope == "read-write" && contentEditable}
         onInput={onInput}
         onKeyDown={(e) => {
           if (e.key === "Enter") {

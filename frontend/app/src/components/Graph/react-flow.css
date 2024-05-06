@@ -9,6 +9,7 @@
 }
 
 .Graph .react-flow__attribution {
-  left: 180px !important;
+  left: auto !important;
+  right: 170px !important;
   bottom: 1px;
 }

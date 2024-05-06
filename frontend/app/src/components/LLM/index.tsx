@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Editor, EditorContent, generateJSON } from "@tiptap/react";
+import { EditorContent } from "@tiptap/react";
 import clsx from "clsx";
 import DOMPurify from "dompurify";
 import { Bot, GripIcon, Plus, SendHorizonal, Settings2, StopCircle, X } from "lucide-react";
@@ -9,26 +9,18 @@ import TextareaAutosize from "react-textarea-autosize";
 import { Tooltip } from "react-tooltip";
 import useLocalStorageState from "use-local-storage-state";
 import { useDebounceValue } from "usehooks-ts";
-import { v4 as uuid } from "uuid";
 
 import { getLLMResponse, getLLMTokenCount } from "@/api";
 import { useFocus, useSpace } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { GraphNode, LLMTokenCount } from "@/types";
-import { setNodePageContent } from "@/utils";
+import { readOnlyEditor } from "@/lib/readOnlyEditor";
+import { LLMTokenCount } from "@/types";
 
-import { loadExtensions } from "../Editor/extensions";
+import { addNodeToGraph } from "../Graph/utils";
 import { Button } from "../ui/button";
 import Buddies from "./Buddies";
 import Depth from "./Depth";
 import usePosition from "./usePosition";
-
-const extensions = loadExtensions(undefined, undefined, true);
-const readOnlyEditor = new Editor({
-  editable: false,
-  extensions,
-  editorProps: { attributes: { class: "prose focus:outline-none" } },
-});
 
 const WIDTH = 600;
 
@@ -111,20 +103,8 @@ const LLM = ({ id }: { id: string }) => {
     if (focus === "graph") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
-      const flowPosition = reactFlowInstance.screenToFlowPosition({ x: 100, y: 100 });
-      if (!flowPosition) alert("Failed to add node");
-      const id = uuid();
-      const newNode: GraphNode = {
-        id,
-        type: "GraphNode",
-        position: flowPosition,
-        style: { width: 200, height: 80 },
-        data: {},
-      };
-      spaceNodesMap?.set(id, { id: id, title: "New node" });
-      nodesMap.set(id, newNode);
-      const responseJson = generateJSON(response, extensions);
-      setNodePageContent(responseJson, `node-editor-${id}`, readOnlyEditor.schema);
+      if (!spaceNodesMap) return alert("spaceNodesMap not found");
+      addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, "New node", response);
     } else if (focus === "editor") {
       editor?.commands.insertContent(response);
     } else {
@@ -197,6 +177,7 @@ const LLM = ({ id }: { id: string }) => {
             </div>
             <div className="rounded border border-gray-6 bg-white p-1 flex items-center shadow-md">
               <TextareaAutosize
+                autoFocus
                 onChange={(e) => setInput(e.target?.value)}
                 onKeyDown={(e) => {
                   if (e.key == "Enter" && e.shiftKey == false) {

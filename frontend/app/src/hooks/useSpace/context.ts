@@ -6,6 +6,7 @@ import { BackendNode, Space, SpaceNode } from "@/types";
 
 type SpaceContextType = {
   space: Space | undefined;
+  spaceLoading: boolean;
   spaceError: Error | null;
   nodesMap: Y.Map<SpaceNode> | undefined;
   nodes: SpaceNode[];
@@ -16,6 +17,7 @@ type SpaceContextType = {
   backendNodes: BackendNode[];
   breadcrumbs: string[];
   setBreadcrumbs: React.Dispatch<React.SetStateAction<string[]>>;
+  scope: string | undefined;
 };
 
 /**

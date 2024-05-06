@@ -4,7 +4,7 @@ import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { useOnViewportChange, XYPosition } from "reactflow";
 
-import { useFocus } from "@/hooks";
+import { useFocus, useNode } from "@/hooks";
 
 import { Button } from "../ui/button";
 
@@ -23,6 +23,7 @@ const Sidebar = ({
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
   const { setNodeRepositoryVisible } = useFocus();
+  const { node } = useNode();
 
   useOnViewportChange({
     onChange: () => {
@@ -64,6 +65,7 @@ const Sidebar = ({
           draggable
           data-tooltip-id="add-node"
           data-tooltip-place="right"
+          disabled={!node?.allowed_actions.includes("write")}
         >
           <Plus strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>
@@ -74,6 +76,7 @@ const Sidebar = ({
           onClick={() => setNodeRepositoryVisible(true)}
           data-tooltip-id="node-repository"
           data-tooltip-place="right"
+          disabled={!node?.allowed_actions.includes("write")}
         >
           <Search strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>

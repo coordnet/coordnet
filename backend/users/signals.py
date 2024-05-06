@@ -37,7 +37,7 @@ def password_reset_token_created(
         "current_user": reset_password_token.user,
         "email": reset_password_token.user.email,
         "reset_password_url": build_absolute_url(
-            sender.request, f"/auth/reset-password/{reset_password_token.key}"
+            instance.request, f"/auth/reset-password/{reset_password_token.key}"
         ),
         "reset_token": reset_password_token.key,
     }

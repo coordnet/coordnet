@@ -1,13 +1,15 @@
 import clsx from "clsx";
+import { ReactNode } from "react";
 import { useRouteError } from "react-router-dom";
 import { ErrorObject, serializeError } from "serialize-error";
+import store from "store2";
 
 import { isAxiosError } from "@/api";
 
 interface ErrorInfo {
   title: string;
   subTitle: string;
-  message: string;
+  message: ReactNode;
 }
 
 export default function ErrorPage({
@@ -31,6 +33,32 @@ export default function ErrorPage({
       title: "Request Error",
       subTitle: "There was an error in a request to the Coordination Network API",
       message: `${parsedError.name}: ${parsedError.message}`,
+    },
+    ERR_PERMISSION_DENIED: {
+      title: "Permissions Error",
+      subTitle: "You do not have permission to access this resource",
+      message: `${parsedError.name}: ${parsedError.message}`,
+    },
+    NO_SPACES: {
+      title: "No spaces",
+      subTitle: "It looks like you haven't been added to any spaces yet",
+      message: (
+        <>
+          Contact someone from Coordination.network to create one for you
+          <br />
+          <a
+            href="#"
+            className="underline"
+            onClick={(e) => {
+              store.remove("coordnet-auth");
+              window.location.href = "/auth/login";
+              e.preventDefault();
+            }}
+          >
+            Log out
+          </a>
+        </>
+      ),
     },
     default: {
       title: "Oops!",

@@ -1,9 +1,12 @@
 import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
+import { Tooltip } from "react-tooltip";
 import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
 import pSBC from "shade-blend-color";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
+import { useNode } from "@/hooks";
 import { GraphNode } from "@/types";
 
 import { EditableNode } from "../";
@@ -24,6 +27,7 @@ interface GraphNodeComponentProps {
 }
 
 const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => {
+  const { nodesMap } = useNode();
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
@@ -44,6 +48,12 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   }, []);
 
   useEffect(() => {
+    if (data?.editing === true) {
+      onClickEdit();
+    }
+  }, [data]);
+
+  useEffect(() => {
     if (isFocused === false) {
       setIsEditing(false);
 
@@ -51,25 +61,24 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
     }
   }, [isFocused]);
 
-  const onClickEdit = (e: MouseEvent) => {
-    e.preventDefault();
-    if (isEditing == false) {
-      setTimeout(function () {
-        if (!inputRef.current) return;
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.selectNodeContents(inputRef.current);
-        range.collapse(false);
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-        inputRef?.current?.scrollTo(0, inputRef?.current?.scrollHeight);
-      }, 0);
-    }
-    setIsEditing(!isEditing);
+  const onClickEdit = (e?: MouseEvent) => {
+    e?.preventDefault();
+    setIsEditing(true);
+    setTimeout(function () {
+      if (!inputRef.current) return;
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(inputRef.current);
+      range.collapse(false);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      inputRef?.current?.scrollTo(0, inputRef?.current?.scrollHeight);
+    }, 0);
   };
 
-  const onDoubleClick = () => {
-    if (isEditing) return;
+  const onDoubleClick = (e: MouseEvent) => {
+    if (isEditing || data?.syncing) return;
+    e.preventDefault();
     setNodePage(id);
   };
 
@@ -79,7 +88,7 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
     nodeStyle.background = `linear-gradient(to right, ${
       data?.borderColor ? pSBC(0.9, data?.borderColor) : "#eeeeee"
     } ${data?.progress}%, white ${data?.progress}%)`;
-  if (data?.loading) nodeStyle.opacity = 0.8;
+  if (data?.loading) nodeStyle.opacity = 0.5;
 
   return (
     <>
@@ -109,19 +118,36 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         ref={nodeRef}
         onDoubleClick={onDoubleClick}
       >
-        {/* {!isEditing && (
-          <button
-            onClick={onClickEdit}
-            className="hidden group-hover:flex absolute top-2 right-2 rounded border items-center px-2 py-1 bg-white text-xs"
-          >
-            <Pencil className="size-3 mr-1" /> Edit
-          </button>
-        )} */}
+        {data?.syncing && (
+          <>
+            <div
+              className={clsx(
+                "h-4 bg-white rounded border border-gray-1 flex items-center justify-center",
+                "cursor-default nodrag absolute -top-2 right-2 text-[10px] gap-1 px-1",
+              )}
+              style={{ borderColor: nodeStyle.borderColor }}
+              data-tooltip-id="syncing"
+              data-tooltip-place="top"
+            >
+              Syncing <Loader2 className="animate-spin size-2.5" />
+            </div>
+            <Tooltip id="syncing">
+              <div className="text-xs w-[180px]">
+                Some features of a node such as the node page or graph are only available after the
+                initial sync
+              </div>
+            </Tooltip>
+          </>
+        )}
         <EditableNode
           id={id}
           ref={inputRef}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            const node = nodesMap.get(id);
+            if (node) nodesMap.set(id, { ...node, data: { ...node.data, editing: false } });
+          }}
           contentEditable={isEditing}
           className={clsx("w-full items-center justify-center", {
             "nodrag cursor-text h-full overflow-hidden": isEditing,

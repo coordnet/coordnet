@@ -1,6 +1,16 @@
 import "dotenv/config";
 
-import { bool, cleanEnv, num, str } from "envalid";
+import { bool, cleanEnv, EnvError, makeValidator, num, str } from "envalid";
+
+const strMinThirtyChars = makeValidator<string>((input: string) => {
+  if (typeof input !== "string") {
+    throw new EnvError("Input must be a string");
+  }
+  if (input.length < 30) {
+    throw new EnvError("String must be at least 30 characters long");
+  }
+  return input;
+});
 
 export const settings = cleanEnv(process.env, {
   HOCUSPOCUS_PORT: num({ default: 8010 }),
@@ -13,6 +23,8 @@ export const settings = cleanEnv(process.env, {
   POSTGRES_DB: str(),
   POSTGRES_USER: str(),
   POSTGRES_PASSWORD: str(),
+  BACKEND_URL: str(),
+  WEBSOCKET_API_KEY: strMinThirtyChars(),
 });
 
 export const hocuspocusSettings = {

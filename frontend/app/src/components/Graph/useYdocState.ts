@@ -31,6 +31,7 @@ const isEdgeRemoveChange = (change: EdgeChange): change is EdgeRemoveChange =>
 
 function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
   const {
+    node: graphNode,
     nodesMap,
     edgesMap,
     nodesSelection,
@@ -57,9 +58,13 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
             } else {
               newSelection.delete(change.id);
             }
-          } else if (node && change.type !== "remove") {
+          } else if (
+            node &&
+            change.type !== "remove" &&
+            graphNode?.allowed_actions?.includes("write")
+          ) {
             nodesMap.set(change.id, node);
-          } else if (change.type === "remove") {
+          } else if (change.type === "remove" && graphNode?.allowed_actions?.includes("delete")) {
             const deletedNode = nodesMap.get(change.id);
             nodesMap.delete(change.id);
             // when a node is removed, we also need to remove the connected edges
@@ -71,16 +76,16 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       });
       setNodesSelection(newSelection);
     },
-    [edgesMap, nodesMap, nodesSelection],
+    [edgesMap, nodesMap, nodesSelection, graphNode],
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
+      if (!graphNode?.allowed_actions?.includes("write")) return;
       const currentEdges = Array.from(edgesMap.values()).filter((e) => e);
       const nextEdges = applyEdgeChanges(changes, currentEdges);
       const newSelection = new Set([...edgesSelection]);
       changes.forEach((change: EdgeChange) => {
-        console.log(change);
         if (isEdgeRemoveChange(change)) {
           edgesMap.delete(change.id);
         } else if (!isEdgeAddChange(change) && !isEdgeResetChange(change)) {
@@ -97,7 +102,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       });
       setEdgesSelection(newSelection);
     },
-    [edgesMap, edgesSelection],
+    [edgesMap, edgesSelection, graphNode],
   );
 
   const onConnect = useCallback(

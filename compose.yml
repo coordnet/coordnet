@@ -89,6 +89,7 @@ services:
     env_file:
       - ./.envs/.local/.hocuspocus
       - ./.envs/.local/.postgres
+      - ./.envs/.local/.secrets
     ports:
       - "8010:8010"
 

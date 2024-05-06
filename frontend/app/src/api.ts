@@ -1,36 +1,140 @@
 import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
+import store from "store2";
 
 import {
+  ApiError,
   BackendNode,
   Buddy,
   LLMTokenCount,
+  Me,
   NodeVersion,
   PaginatedApiResponse,
+  Permission,
+  PermissionModel,
   Space,
 } from "./types";
+
+const authToken = store("coordnet-auth");
+
+const headers: { [key: string]: string } = {
+  Accept: "application/json",
+  "Content-Type": "application/json",
+};
+
+if (authToken) headers["Authorization"] = `Token ${authToken}`;
 
 export const isAxiosError = <ResponseType>(error: unknown): error is AxiosError<ResponseType> => {
   return axios.isAxiosError(error);
 };
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
-  headers: {
-    Accept: "application/json",
-    "Content-Type": "application/json",
+export const api = axios.create({ baseURL: import.meta.env.VITE_BACKEND_URL, headers });
+export const authApi = axios.create({ baseURL: import.meta.env.VITE_BACKEND_URL, headers });
+
+api.interceptors.response.use(
+  function (response) {
+    return response;
   },
-});
+  function (error) {
+    if (error.code === "ECONNABORTED" || error.code == "ERR_CANCELED") {
+      return;
+    }
+    console.log(error);
+
+    if (!error.response) {
+      toast.error(error.message);
+    }
+
+    // if (error?.response?.status === 403) {
+    //   toast.error("You do not have permission to access this resource");
+    // }
+
+    if (!error?.response?.config?.url?.includes("auth/login/") && error.response.status === 401) {
+      store.remove("coordnet-auth");
+      window.location.href = "/auth/login";
+    }
+    return Promise.reject(error);
+  },
+);
+
+export const getMe: () => Promise<Me> = async () => {
+  const data = await api.get("api/users/me/");
+  return data.data;
+};
+
+export const getSpaces = async (signal: AbortSignal | undefined): Promise<Space[]> => {
+  const response = await api.get("api/nodes/spaces/", { signal });
+  return response.data;
+};
 
 export const getSpace = async (signal: AbortSignal | undefined, id?: string): Promise<Space> => {
   const response = await api.get(`api/nodes/spaces/${id}/`, { signal });
   return response.data;
 };
 
-export const updateSpace = async (
-  id: string,
-  data: Pick<Space, "default_node">,
-): Promise<Space> => {
+export const updateSpace = async (id: string, data: Partial<Space>): Promise<Space> => {
   const response = await api.patch(`api/nodes/spaces/${id}/`, data);
+  return response.data;
+};
+
+export const getSpacePermissions = async (
+  signal: AbortSignal | undefined,
+  id?: string,
+): Promise<Permission[]> => {
+  const response = await api.get(`api/nodes/spaces/${id}/permissions/`, { signal });
+  return response.data;
+};
+
+export const createPermission = async (
+  type: PermissionModel,
+  spaceId: string,
+  data: Pick<Permission, "role" | "user">,
+): Promise<Permission[]> => {
+  if (type == PermissionModel.Space) {
+    const response = await api.post(`api/nodes/spaces/${spaceId}/permissions/`, data);
+    return response.data;
+  }
+  return [];
+};
+
+export const getNodePermissions = async (
+  signal: AbortSignal | undefined,
+  id?: string,
+): Promise<Permission[]> => {
+  const response = await api.get(`api/nodes/nodes/${id}/permissions/`, { signal });
+  return response.data;
+};
+
+// export const updatePermission = async (
+//   type: PermissionModel,
+//   spaceId: string,
+//   id: string,
+//   data: Pick<Permission, "role" | "user">,
+// ): Promise<Permission[]> => {
+//   if (type == PermissionModel.Space) {
+//     const response = await api.patch(`api/nodes/spaces/${spaceId}/permissions/${id}`, data);
+//     return response.data;
+//   }
+//   return [];
+// };
+
+export const deletePermission = async (
+  type: PermissionModel,
+  spaceId?: string,
+  id?: string,
+): Promise<Permission[]> => {
+  if (type == PermissionModel.Space) {
+    const response = await api.delete(`api/nodes/spaces/${spaceId}/permissions/${id}/`);
+    return response.data;
+  }
+  return [];
+};
+
+export const getNode = async (
+  signal: AbortSignal | undefined,
+  id?: string,
+): Promise<BackendNode> => {
+  const response = await api.get(`api/nodes/nodes/${id}/`, { signal });
   return response.data;
 };
 
@@ -155,4 +259,29 @@ export const getLLMResponse = (
   })();
 
   return { on };
+};
+
+export const handleApiError = (
+  e: unknown,
+  formData: { [key: string]: unknown },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setError: any,
+): void => {
+  const error = isAxiosError(e);
+  if (error) {
+    if (e.response?.status == 400) {
+      const errors = e.response.data as ApiError;
+      for (const [key, value] of Object.entries(errors)) {
+        if (key in formData) {
+          setError(key, { type: "custom", message: value.join(" ") });
+        } else {
+          toast.error(`${key}: ${value.join(" ")}`);
+        }
+      }
+    } else {
+      console.error(e.response);
+      const data = e.response?.data as { [key: string]: string };
+      toast.error("detail" in data ? data.detail : `${data}`);
+    }
+  }
 };

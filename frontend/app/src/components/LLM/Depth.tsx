@@ -47,7 +47,7 @@ const Depth = ({
             renderMark={(props) => {
               const key = parseInt((props.key ?? 1).toString(), 10);
               return (
-                <>
+                <div key={`slider-${key}`}>
                   <div
                     {...props}
                     className={clsx("absolute size-3 rounded-full bg-violet-700", {
@@ -58,13 +58,14 @@ const Depth = ({
                     data-tooltip-place="top"
                   />
                   <Tooltip id={`depth-slider-${key}`}>{depthLabels[key]}</Tooltip>
-                </>
+                </div>
               );
             }}
-            renderTrack={(props) => {
+            renderTrack={(props, state) => {
               return (
                 <div
                   {...props}
+                  key={`track-${state.index}`}
                   className={clsx("h-[2px] top-[5px] bg-white", {
                     "!bg-violet-700": props.key == "track-0",
                   })}
@@ -72,16 +73,15 @@ const Depth = ({
               );
             }}
             renderThumb={(props, state) => (
-              <>
-                <div
-                  {...props}
-                  className="size-3"
-                  data-tooltip-id="depth-slider-handle"
-                  data-tooltip-place="top"
-                >
-                  <Tooltip id="depth-slider-handle">{depthLabels[state.valueNow]}</Tooltip>
-                </div>
-              </>
+              <div
+                {...props}
+                key={`thumb-${state.index}`}
+                className="size-3"
+                data-tooltip-id="depth-slider-handle"
+                data-tooltip-place="top"
+              >
+                <Tooltip id="depth-slider-handle">{depthLabels[state.valueNow]}</Tooltip>
+              </div>
             )}
           />
         </div>

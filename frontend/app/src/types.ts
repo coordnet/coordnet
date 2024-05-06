@@ -2,32 +2,66 @@ import { Edge, Node as ReactFlowNode } from "reactflow";
 import { z } from "zod";
 
 import { buddyModels } from "./constants";
-import { zodEnumFromObjKeys } from "./utils";
 
-// export type Space = {
-//   id: string;
-//   name: string;
-//   defaultNode: string;
-// };
-export interface Space {
+// https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
+export const zodEnumFromObjKeys = <K extends string>(
+  obj: Record<K, unknown>,
+): z.ZodEnum<[K, ...K[]]> => {
+  const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
+  return z.enum([firstKey, ...otherKeys]);
+};
+
+export interface Me {
   id: string;
-  url: string;
-  nodes: Node[];
-  title_slug: string;
-  created_at: Date;
-  updated_at: Date;
-  title: string;
-  deleted_nodes: string[];
-  default_node: string | null;
+  name: string;
+  email: string;
 }
 
-export interface Node {
-  public_id: string;
-  title: string;
-  text_token_count: number | null;
-  title_token_count: number;
-  url: string;
+export const PermissionSchema = z.object({
+  id: z.string(),
+  role: z.union([z.literal("Owner"), z.literal("Member"), z.literal("Viewer")]),
+  user: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export type Permission = z.infer<typeof PermissionSchema>;
+
+export enum PermissionModel {
+  Node = "node",
+  Space = "space",
 }
+
+export interface ApiError {
+  [key: string]: string[];
+}
+
+const AllowedActionsSchema = z.enum(["read", "write", "delete", "manage"]);
+
+const NodeSchema = z.object({
+  public_id: z.string(),
+  title: z.string(),
+  text_token_count: z.number().nullable(),
+  title_token_count: z.number(),
+  url: z.string(),
+});
+
+export const SpaceSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  nodes: z.array(NodeSchema),
+  title_slug: z.string(),
+  created_at: z.date(),
+  updated_at: z.date(),
+  title: z.string(),
+  deleted_nodes: z.array(z.string()),
+  default_node: z.string().nullable(),
+  allowed_actions: z.array(AllowedActionsSchema),
+});
+
+export type AllowedActions = z.infer<typeof AllowedActionsSchema>;
+export type Space = z.infer<typeof SpaceSchema>;
+export type Node = z.infer<typeof NodeSchema>;
 
 export type SpaceNode = {
   id: string;
@@ -48,6 +82,8 @@ export interface BackendNode {
   text: null | string;
   text_token_count: number | null;
   subnodes: string[];
+  allowed_actions: AllowedActions[];
+  is_public: boolean;
 }
 
 export const BuddySchema = z.object({

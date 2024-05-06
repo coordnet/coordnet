@@ -44,7 +44,7 @@ const QuickView = () => {
           <iframe
             ref={iframeRef}
             className="size-full"
-            src={`/space/${space?.id}/${nodeId}`}
+            src={`/spaces/${space?.id}/${nodeId}`}
           ></iframe>
         )}
 
@@ -56,7 +56,7 @@ const QuickView = () => {
             <X className="size-4" />
           </button>
           <Link
-            to={`/space/${space?.id}/${nodeId}`}
+            to={`/spaces/${space?.id}/${nodeId}`}
             target="_top"
             className="size-7 overflow-hidden rounded-full bg-black hover:text-white text-white flex items-center justify-center"
           >

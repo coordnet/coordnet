@@ -15,7 +15,7 @@ import { Button } from "../ui/button";
 import Versions from "./Versions";
 
 const Controls = () => {
-  const { id } = useNode();
+  const { id, node } = useNode();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
     defaultValue: true,
@@ -24,7 +24,7 @@ const Controls = () => {
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", 1],
     queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", 1),
-    enabled: Boolean(id),
+    enabled: node?.allowed_actions.includes("write"),
     initialData: { count: 0, next: "", previous: "", results: [] },
     refetchInterval: 1000 * 60,
   });
@@ -49,25 +49,27 @@ const Controls = () => {
           <Map className="size-5" />
         </Button>
       </Panel>
-      <Panel position="bottom-left" className="flex gap-1 !bottom-2 !left-2 !m-0">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="size-9 p-0" variant="outline">
-              <History className="size-5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
-            <ReactFlowProvider>
-              <Versions />
-            </ReactFlowProvider>
-          </DialogContent>
-        </Dialog>
-        {Boolean(versions?.results?.length) && (
-          <div className="text-xs text-gray-700 self-end ml-2">
-            Saved {formatTimeAgo(versions.results[0].created_at)}
-          </div>
-        )}
-      </Panel>
+      {node?.allowed_actions.includes("write") && (
+        <Panel position="bottom-left" className="flex gap-1 !bottom-2 !left-2 !m-0">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="size-9 p-0" variant="outline">
+                <History className="size-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
+              <ReactFlowProvider>
+                <Versions />
+              </ReactFlowProvider>
+            </DialogContent>
+          </Dialog>
+          {Boolean(versions?.results?.length) && (
+            <div className="text-xs text-gray-700 self-end ml-2">
+              Saved {formatTimeAgo(versions.results[0].created_at)}
+            </div>
+          )}
+        </Panel>
+      )}
       {miniMapVisible && <MiniMap pannable={true} className="!bottom-12 !right-2 !m-0 !mb-1" />}
     </>
   );

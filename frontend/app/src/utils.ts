@@ -1,9 +1,12 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { JSONContent } from "@tiptap/core";
 import { Schema } from "@tiptap/pm/model";
+import DOMPurify from "dompurify";
+import store from "store2";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
-import { z } from "zod";
+
+import { getNode } from "./api";
 
 /*
  * Get a string representation of an error, whether it is a string, an Error instance, or an object
@@ -45,20 +48,62 @@ export const getErrorMessage = (error: any): string => {
 };
 
 export const setNodePageContent = (content: JSONContent, roomName: string, schema: Schema) => {
+  const token = store("coordnet-auth");
   const ydoc = new Y.Doc({ guid: roomName });
   new HocuspocusProvider({
     url: import.meta.env.VITE_HOCUSPOCUS_URL,
     name: roomName,
     document: ydoc,
+    token,
   });
   const xml = ydoc?.getXmlFragment("default");
   prosemirrorJSONToYXmlFragment(schema, content, xml);
 };
 
-// https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
-export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>,
-): z.ZodEnum<[K, ...K[]]> => {
-  const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
-  return z.enum([firstKey, ...otherKeys]);
+export const title = (title: string = "") => {
+  document.title = `${title} - coordination.network`;
+};
+
+export class CustomError extends Error {
+  code: string;
+  name: string;
+
+  constructor({ code, name, message }: { code: string; name: string; message: string }) {
+    super(message);
+    this.code = code;
+    this.name = name;
+    Object.setPrototypeOf(this, CustomError.prototype);
+  }
+}
+
+export const metaKey = (shortcut: string | number) => {
+  const platform = navigator.userAgent.toLowerCase();
+  if (platform.includes("mac")) {
+    return "⌘" + shortcut;
+  } else {
+    return "Ctrl + " + shortcut;
+  }
+};
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const waitForNode = async (id: string, maxRetries = 20, retryDelay = 500) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await getNode(undefined, id);
+      return;
+    } catch (error) {
+      console.error(`Node not found yet (${attempt}/${maxRetries}):`);
+      if (attempt === maxRetries) {
+        throw new Error(`Failed to retrieve node after ${maxRetries} attempts`);
+      }
+      await delay(retryDelay);
+    }
+  }
+};
+
+export const cleanNodeTitle = (title: string | undefined) => {
+  return DOMPurify.sanitize(title ?? "", {
+    ALLOWED_TAGS: [],
+  });
 };

@@ -2,12 +2,12 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { createContext } from "react";
 import * as Y from "yjs";
 
-import { GraphEdge, GraphNode } from "@/types";
+import { BackendNode, GraphEdge, GraphNode } from "@/types";
 
 type NodeContextType = {
   id: string;
-  connected: boolean;
-  synced: boolean;
+  node: BackendNode | undefined;
+  isLoading: boolean;
   editorProvider: HocuspocusProvider | undefined;
   editorYdoc: Y.Doc;
   graphYdoc: Y.Doc;
@@ -19,6 +19,15 @@ type NodeContextType = {
   edgesSelection: Set<string>;
   setNodesSelection: React.Dispatch<React.SetStateAction<Set<string>>>;
   setEdgesSelection: React.Dispatch<React.SetStateAction<Set<string>>>;
+  error: Error | null;
+  connected: boolean;
+  synced: boolean;
+  graphError: Error | null;
+  graphConnected: boolean;
+  graphSynced: boolean;
+  editorError: Error | null;
+  editorConnected: boolean;
+  editorSynced: boolean;
 };
 
 /**

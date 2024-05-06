@@ -2,12 +2,14 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import store from "store2";
 import useLocalStorageState from "use-local-storage-state";
 import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
 import { getSpace, getSpaceNodes, updateSpace } from "@/api";
 import { SpaceNode } from "@/types";
+import { CustomError } from "@/utils";
 
 import { SpaceContext } from "./context";
 
@@ -20,14 +22,23 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const [connected, setConnected] = useState<boolean>(false);
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
   const queryClient = useQueryClient();
+  const [spaceError, setSpaceError] = useState<Error | null>(null);
 
-  const { data: space, error } = useQuery({
-    queryKey: ["space", spaceId],
+  const {
+    data: space,
+    error,
+    isLoading: spaceLoading,
+  } = useQuery({
+    queryKey: ["spaces", spaceId],
     queryFn: ({ signal }) => getSpace(signal, spaceId),
     enabled: Boolean(spaceId),
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    setSpaceError(error);
+  }, [error]);
 
   const [breadcrumbs, setBreadcrumbs] = useLocalStorageState<string[]>(
     `coordnet:breadcrumbs-${spaceId}`,
@@ -35,7 +46,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const { data: backendNodes } = useQuery({
-    queryKey: ["space", space?.id, "nodes"],
+    queryKey: ["spaces", space?.id, "nodes"],
     queryFn: ({ signal }) => getSpaceNodes(signal, space?.id),
     enabled: Boolean(space),
     retry: false,
@@ -50,10 +61,21 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   );
   const provider = useMemo(() => {
     if (!space || !ydoc) return;
+    const token = store("coordnet-auth");
     return new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
-      name: `space-${space.id}`,
+      name: `space-${spaceId}`,
       document: ydoc,
+      token,
+      onAuthenticationFailed(data) {
+        setSpaceError(
+          new CustomError({
+            code: "ERR_PERMISSION_DENIED",
+            name: "Space Websocket Authentication Failed",
+            message: data.reason,
+          }),
+        );
+      },
       onSynced() {
         setSynced(true);
       },
@@ -79,8 +101,8 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
         clearInterval(poll);
         // Update the space with the default node and clear queries
         await updateSpace(spaceId, { default_node: id });
-        queryClient.invalidateQueries({ queryKey: ["space", spaceId] });
-        queryClient.invalidateQueries({ queryKey: ["space", spaceId, "nodes"] });
+        queryClient.invalidateQueries({ queryKey: ["spaces", spaceId] });
+        queryClient.invalidateQueries({ queryKey: ["spaces", spaceId, "nodes"] });
       }
     }, 500);
     return () => clearInterval(poll);
@@ -109,7 +131,8 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     space: space,
-    spaceError: error,
+    spaceLoading,
+    spaceError,
     nodes,
     nodesMap,
     deletedNodes,
@@ -119,6 +142,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     backendNodes: backendNodes ?? [],
     breadcrumbs,
     setBreadcrumbs,
+    scope: provider?.authorizedScope,
   };
 
   return <SpaceContext.Provider value={value}>{children}</SpaceContext.Provider>;
