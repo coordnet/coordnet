@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
     from nodes import models as nodes_models
 
 
-class Buddy(utils_models.BaseModel):
+class Buddy(utils_models.SoftDeletableBaseModel):
     """A buddy is a template used to query an LLM model."""
 
     name = models.CharField(max_length=255)
@@ -83,7 +83,7 @@ class Buddy(utils_models.BaseModel):
             {"role": "user", "content": query},
         ]
 
-    class Meta(utils_models.BaseModel.Meta):
+    class Meta(utils_models.SoftDeletableBaseModel.Meta):
         verbose_name_plural = "buddies"
 
     def __str__(self) -> str:

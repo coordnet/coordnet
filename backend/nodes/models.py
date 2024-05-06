@@ -98,14 +98,12 @@ class Node(permissions.models.MembershipBaseModel):
                 **{
                     prefix_field("members__user", prefix): user,
                     prefix_field("members__role__role__in", prefix): roles,
-                    prefix_field("members__is_removed", prefix): False,
                 }
             )
             queryset_filters |= Q(
                 **{
                     prefix_field("spaces__members__user", prefix): user,
                     prefix_field("spaces__members__role__role__in", prefix): roles,
-                    prefix_field("spaces__members__is_removed", prefix): False,
                     prefix_field("spaces__is_removed", prefix): False,
                 }
             )
@@ -113,7 +111,6 @@ class Node(permissions.models.MembershipBaseModel):
                 **{
                     prefix_field("parents__members__user", prefix): user,
                     prefix_field("parents__members__role__role__in", prefix): roles,
-                    prefix_field("parents__members__is_removed", prefix): False,
                     prefix_field("parents__is_removed", prefix): False,
                 }
             )
@@ -173,15 +170,29 @@ class Node(permissions.models.MembershipBaseModel):
     def get_role_annotation_query(user: "user_typing.AnyUserType") -> Coalesce | models.Case:
         public_subquery = models.Case(
             models.When(
-                (Q(is_public=True) & Q(is_public_writable=True))
-                | (Q(spaces__is_public=True) & Q(spaces__is_public_writable=True))
-                | (Q(parents__is_public=True) & Q(parents__is_public_writable=True)),
+                (Q(is_public=True, is_public_writable=True, is_removed=False))
+                | (
+                    Q(
+                        spaces__is_public=True,
+                        spaces__is_public_writable=True,
+                        spaces__is_removed=False,
+                    )
+                )
+                | (
+                    Q(
+                        parents__is_public=True,
+                        parents__is_public_writable=True,
+                        parents__is_removed=False,
+                    )
+                ),
                 then=models.Value(
                     ["viewer", "writer"], output_field=ArrayField(models.CharField())
                 ),
             ),
             models.When(
-                Q(is_public=True) | Q(spaces__is_public=True) | Q(parents__is_public=True),
+                Q(is_public=True, is_removed=False)
+                | Q(spaces__is_public=True, spaces__is_removed=False)
+                | Q(parents__is_public=True, parents__is_removed=False),
                 then=models.Value(
                     ["viewer"],
                     output_field=ArrayField(models.CharField()),
@@ -224,7 +235,7 @@ class Node(permissions.models.MembershipBaseModel):
         )
 
         role_subquery = (
-            permissions.models.ObjectMembership.available_objects.filter(
+            permissions.models.ObjectMembership.objects.filter(
                 models.Q(content_type=node_content_type, object_id=models.OuterRef("pk"))
                 | models.Q(
                     content_type=node_content_type, object_id__in=models.OuterRef("parents__pk")
@@ -265,8 +276,7 @@ class Node(permissions.models.MembershipBaseModel):
                                 & models.Exists(node_public_subquery)
                             ),
                             then=models.Value(
-                                ["viewer"],
-                                output_field=ArrayField(models.CharField()),
+                                ["viewer"], output_field=ArrayField(models.CharField())
                             ),
                         ),
                         default=models.Value([], output_field=ArrayField(models.CharField())),
@@ -385,11 +395,13 @@ class Node(permissions.models.MembershipBaseModel):
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
 
-    class Meta(permissions.models.MembershipModelMixin.Meta, utils.models.BaseModel.Meta):
+    class Meta(
+        permissions.models.MembershipModelMixin.Meta, utils.models.SoftDeletableBaseModel.Meta
+    ):
         pass
 
 
-class DocumentVersion(utils.models.BaseModel):
+class DocumentVersion(utils.models.SoftDeletableBaseModel):
     """Task for storing the version of a document."""
 
     document_type = models.CharField(max_length=255, choices=DocumentType.choices)
@@ -472,7 +484,6 @@ class Space(permissions.models.MembershipBaseModel):
                 **{
                     prefix_field("members__user", prefix): user,
                     prefix_field("members__role__role__in", prefix): roles,
-                    prefix_field("members__is_removed", prefix): False,
                 }
             )
 
@@ -502,13 +513,13 @@ class Space(permissions.models.MembershipBaseModel):
         #       and there are no parents to consider.
         public_subquery = models.Case(
             models.When(
-                Q(is_public=True) & Q(is_public_writable=True),
+                Q(is_public=True, is_public_writable=True, is_removed=False),
                 then=models.Value(
                     ["viewer", "writer"], output_field=ArrayField(models.CharField())
                 ),
             ),
             models.When(
-                Q(is_public=True),
+                Q(is_public=True, is_removed=False),
                 then=models.Value(
                     ["viewer"],
                     output_field=ArrayField(models.CharField()),
@@ -537,7 +548,7 @@ class Space(permissions.models.MembershipBaseModel):
         )
 
         role_subquery = (
-            permissions.models.ObjectMembership.available_objects.filter(
+            permissions.models.ObjectMembership.objects.filter(
                 content_type=space_content_type,
                 object_id=models.OuterRef("pk"),
                 user=user,
@@ -580,7 +591,9 @@ class Space(permissions.models.MembershipBaseModel):
             output_field=ArrayField(models.CharField()),
         )
 
-    class Meta(permissions.models.MembershipModelMixin.Meta, utils.models.BaseModel.Meta):
+    class Meta(
+        permissions.models.MembershipModelMixin.Meta, utils.models.SoftDeletableBaseModel.Meta
+    ):
         pass
 
 

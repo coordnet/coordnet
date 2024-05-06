@@ -676,4 +676,4 @@ class ObjectMembershipTestCase(BaseTestCase):
         # Hard delete the node
         nodes.models.Node.all_objects.all().delete()
 
-        self.assertEqual(0, permissions.models.ObjectMembership.all_objects.count())
+        self.assertEqual(0, permissions.models.ObjectMembership.objects.count())

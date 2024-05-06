@@ -5,12 +5,12 @@ from nodes import models as node_models
 from utils import serializers as coord_serializers
 
 
-class BuddySerializer(coord_serializers.BaseSerializer):
+class BuddySerializer(coord_serializers.BaseSoftDeletableSerializer[models.Buddy]):
     url = serializers.HyperlinkedIdentityField(
         view_name="buddies:buddies-detail", lookup_field="public_id"
     )
 
-    class Meta(coord_serializers.BaseSerializer.Meta):
+    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Buddy
 
 

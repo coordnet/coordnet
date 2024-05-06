@@ -29,7 +29,7 @@ class BaseSerializer(serializers.ModelSerializer[T], typing.Generic[T]):
     """
 
     id = serializers.ModelField(
-        model_field=models.BaseModel._meta.get_field("public_id"), read_only=True
+        model_field=models.SoftDeletableBaseModel._meta.get_field("public_id"), read_only=True
     )
 
     serializer_related_field = PublicIdRelatedField
@@ -49,4 +49,14 @@ class BaseSerializer(serializers.ModelSerializer[T], typing.Generic[T]):
     class Meta:
         # Since we are using UUIDs as primary keys with the key `id`, we don't need to show the
         # `public_id` field.
-        exclude = ["public_id", "is_removed"]
+        exclude = ["public_id"]
+
+
+class BaseSoftDeletableSerializer(BaseSerializer[T], typing.Generic[T]):
+    """
+    Base serializer for all soft-deletable serializers in the project.
+    - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+    """
+
+    class Meta(BaseSerializer.Meta):
+        exclude = BaseSerializer.Meta.exclude + ["is_removed"]

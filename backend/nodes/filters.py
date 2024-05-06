@@ -52,18 +52,15 @@ class NodePermissionFilterBackend(DRYPermissionFiltersBase):
             queryset_filters |= Q(
                 members__user=request.user,
                 members__role__role__in=READ_ROLES,
-                members__is_removed=False,
             )
             queryset_filters |= Q(
                 spaces__members__user=request.user,
                 spaces__members__role__role__in=READ_ROLES,
-                spaces__members__is_removed=False,
                 spaces__is_removed=False,
             )
             queryset_filters |= Q(
                 parents__members__user=request.user,
                 parents__members__role__role__in=READ_ROLES,
-                parents__members__is_removed=False,
                 parents__is_removed=False,
             )
         return queryset.filter(queryset_filters).distinct()
@@ -79,7 +76,6 @@ class SpacePermissionFilterBackend(DRYPermissionFiltersBase):
             queryset_filters |= Q(
                 members__user=request.user,
                 members__role__role__in=READ_ROLES,
-                members__is_removed=False,
             )
         return queryset.filter(queryset_filters).distinct()
 
@@ -99,19 +95,16 @@ class DocumentVersionPermissionFilterBackend(DRYPermissionFiltersBase):
                 Q(
                     document__space__members__user=request.user,
                     document__space__members__role__role__in=READ_ROLES,
-                    document__space__members__is_removed=False,
                     document__space__is_removed=False,
                 )
                 | Q(
                     document__node_editor__members__user=request.user,
                     document__node_editor__members__role__role__in=READ_ROLES,
-                    document__node_editor__members__is_removed=False,
                     document__node_editor__is_removed=False,
                 )
                 | Q(
                     document__node_graph__members__user=request.user,
                     document__node_graph__members__role__role__in=READ_ROLES,
-                    document__node_graph__members__is_removed=False,
                     document__node_graph__is_removed=False,
                 )
             )

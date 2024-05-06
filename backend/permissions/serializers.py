@@ -5,7 +5,7 @@ from users import models as user_models
 from utils import serializers as utils_serializers
 
 
-class ObjectPermissionModelSerializer(utils_serializers.BaseSerializer):
+class ObjectPermissionModelSerializer(utils_serializers.BaseSerializer[models.ObjectMembership]):
     """
     Serializer for the ObjectPermission model.
     Because of our currently simple role setup, role is replaced by a simple string and translated
@@ -44,4 +44,7 @@ class ObjectPermissionModelSerializer(utils_serializers.BaseSerializer):
 
     class Meta(utils_serializers.BaseSerializer.Meta):
         model = models.ObjectMembership
-        exclude = utils_serializers.BaseSerializer.Meta.exclude + ["content_type", "object_id"]
+        exclude = utils_serializers.BaseSerializer.Meta.exclude + [
+            "content_type",
+            "object_id",
+        ]

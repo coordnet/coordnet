@@ -23,16 +23,6 @@ if typing.TYPE_CHECKING:
 
     import users.typing
 
-    # This is a workaround for the fact that Django does not support generic classes.
-    class GenericBase(typing.Generic[T]):
-        pass
-
-else:
-
-    class GenericBase:
-        def __class_getitem__(cls, _):
-            return cls
-
 
 READ: typing.Final = "read"
 WRITE: typing.Final = "write"
@@ -133,7 +123,7 @@ class ObjectMembership(utils.models.BaseModel):
         return self.__has_object_permission_management_permission(request)
 
 
-class MembershipModelMixin(utils.typing.ModelBase[T], GenericBase[T]):
+class MembershipModelMixin(utils.typing.ModelBase[T], utils.typing.GenericBase[T]):
     """
     Mixin for models that can have members.
     """
@@ -241,7 +231,7 @@ class MembershipModelMixin(utils.typing.ModelBase[T], GenericBase[T]):
         self.__user_roles_cache = []
 
 
-class MembershipBaseModel(MembershipModelMixin, utils.models.BaseModel):
+class MembershipBaseModel(MembershipModelMixin, utils.models.SoftDeletableBaseModel):
     """
     Base model for models that can have members.
     """

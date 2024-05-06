@@ -9,8 +9,9 @@ from utils.testcases import BaseTestCase
 
 
 class MembershipModelQuerySetMixinTestCase(BaseTestCase):
-    def test_role_annotations(self) -> None:
+    def test_role_annotations(self) -> None:  # noqa: PLR0915
         """Test that the user_roles annotation is added to the queryset."""
+        # TODO: Split this test into multiple smaller tests
         owner = self.owner_user
         node = nodes_factories.NodeFactory.create(owner=owner)
         subnodes = nodes_factories.NodeFactory.create_batch(10)
@@ -88,11 +89,9 @@ class MembershipModelQuerySetMixinTestCase(BaseTestCase):
 
         self.assertEqual(space_queryset.count(), 1)
         for result_space in space_queryset:
-            print(result_space.user_roles)
-            # print(result_node.resolved_is_public)
-            # print(result_node.resolved_is_public_writable)
             self.assertEqual(result_space.user_roles, [])
 
+        # Check that the space transfers the public permissions to its nodes.
         space.is_public = True
         space.save()
 
@@ -107,3 +106,30 @@ class MembershipModelQuerySetMixinTestCase(BaseTestCase):
         self.assertEqual(space_queryset.count(), 1)
         for result_space in space_queryset:
             self.assertEqual(result_space.user_roles, [permissions.models.RoleOptions.VIEWER])
+
+        with self.assertNumQueries(1):
+            node_queryset = nodes.models.Node.available_objects.annotate_user_permissions(
+                user=member
+            )
+
+            # Force evaluation of the queryset
+            repr(node_queryset)
+
+        self.assertEqual(node_queryset.count(), 11)
+        for result_node in node_queryset:
+            self.assertListEqual(result_node.user_roles, [permissions.models.RoleOptions.VIEWER])
+
+        # Now soft delete the space and check that the permissions are not transferred anymore
+        space.delete()
+
+        with self.assertNumQueries(1):
+            node_queryset = nodes.models.Node.available_objects.annotate_user_permissions(
+                user=member
+            )
+
+            # Force evaluation of the queryset
+            repr(node_queryset)
+
+        self.assertEqual(node_queryset.count(), 11)
+        for result_node in node_queryset:
+            self.assertListEqual(result_node.user_roles, [])

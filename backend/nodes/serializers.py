@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
     from django.db import models as django_models
     from django_stubs_ext import WithAnnotations
 
-    class AvailableSubnodes(typing.TypedDict):
+    class AvailableSubnodes(typing.TypedDict, total=False):
         available_subnodes: list[str]
 
     AnnotatedNode = WithAnnotations[models.Node, AvailableSubnodes]
@@ -18,7 +18,7 @@ else:
     AnnotatedNode = models.Node
 
 
-class NodeSerializer(coord_serializers.BaseSerializer[models.Node]):
+class NodeSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node]):
     url = serializers.HyperlinkedIdentityField(
         view_name="nodes:nodes-detail", lookup_field="public_id"
     )
@@ -31,15 +31,15 @@ class NodeSerializer(coord_serializers.BaseSerializer[models.Node]):
     def get_subnodes(self, obj: AnnotatedNode) -> list[str]:
         return [str(item) for item in obj.available_subnodes]
 
-    class Meta(coord_serializers.BaseSerializer.Meta):
+    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Node
-        exclude = coord_serializers.BaseSerializer.Meta.exclude + [
+        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + [
             "graph_document",
             "editor_document",
         ]
 
 
-class NodeTokenSerializer(coord_serializers.BaseSerializer[models.Node]):
+class NodeTokenSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node]):
     url = serializers.HyperlinkedIdentityField(
         view_name="nodes:nodes-detail", lookup_field="public_id"
     )
@@ -57,7 +57,7 @@ class SpaceDefaultNodeField(serializers.HyperlinkedRelatedField):
         return models.Node.available_objects.none()
 
 
-class SpaceSerializer(coord_serializers.BaseSerializer[models.Space]):
+class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space]):
     # TODO: don't let the API client pick their own id for the project, it should be auto-generated.
     url = serializers.HyperlinkedIdentityField(
         view_name="nodes:spaces-detail", lookup_field="public_id"
@@ -79,11 +79,13 @@ class SpaceSerializer(coord_serializers.BaseSerializer[models.Space]):
         ),
     )
 
-    class Meta(coord_serializers.BaseSerializer.Meta):
+    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space
 
 
-class DocumentVersionSerializer(coord_serializers.BaseSerializer[models.DocumentVersion]):
+class DocumentVersionSerializer(
+    coord_serializers.BaseSoftDeletableSerializer[models.DocumentVersion]
+):
     url = serializers.HyperlinkedIdentityField(
         view_name="nodes:document-versions-detail", lookup_field="public_id"
     )
@@ -91,6 +93,6 @@ class DocumentVersionSerializer(coord_serializers.BaseSerializer[models.Document
         view_name="nodes:document-versions-crdt", lookup_field="public_id"
     )
 
-    class Meta(coord_serializers.BaseSerializer.Meta):
+    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.DocumentVersion
-        exclude = coord_serializers.BaseSerializer.Meta.exclude + ["data", "json_hash"]
+        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + ["data", "json_hash"]

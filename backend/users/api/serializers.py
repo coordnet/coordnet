@@ -9,7 +9,7 @@ from django_rest_passwordreset.models import ResetPasswordToken
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from utils.serializers import BaseSerializer
+import utils.serializers
 from utils.urls import build_absolute_url
 
 if typing.TYPE_CHECKING:
@@ -19,7 +19,7 @@ if typing.TYPE_CHECKING:
 User = get_user_model()
 
 
-class UserSerializer(BaseSerializer):
+class UserSerializer(utils.serializers.BaseSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name="auth:user-detail", lookup_field="public_id"
     )

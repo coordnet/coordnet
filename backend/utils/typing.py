@@ -16,7 +16,7 @@ else:
             return cls
 
 
-class ModelBase(GenericBase[T], models.Model):
+class ModelBase(models.Model, GenericBase[T]):
     objects: "models.Manager[T]"
 
     class Meta:
