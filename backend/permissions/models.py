@@ -123,7 +123,7 @@ class ObjectMembership(utils.models.BaseModel):
         return self.__has_object_permission_management_permission(request)
 
 
-class MembershipModelMixin(utils.typing.ModelBase[T], utils.typing.GenericBase[T]):
+class MembershipModelMixin(utils.typing.ModelBase):
     """
     Mixin for models that can have members.
     """
