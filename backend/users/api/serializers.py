@@ -63,7 +63,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         email_plaintext_message = render_to_string("email/user_verify_email.txt", context)
 
         msg = EmailMultiAlternatives(
-            subject="coordnet.dev - Email Verification",
+            subject="Welcome to Coordination Network! Please verify your email address.",
             body=email_plaintext_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[token.user.email],

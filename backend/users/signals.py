@@ -47,7 +47,7 @@ def password_reset_token_created(
     email_plaintext_message = render_to_string("email/user_reset_password.txt", context)
 
     msg = EmailMultiAlternatives(
-        subject=f"{settings.EMAIL_SUBJECT_PREFIX} Password Reset",
+        subject="Coordination Network - Password Reset",
         body=email_plaintext_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[reset_password_token.user.email],

@@ -2,19 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Verify Email</title>
+    <title>Email Verification</title>
   </head>
   <body>
+    <p>Hello,</p>
     <p>
-      User: {{ current_user }}
-      <br />
-      Username: {{ username }}
-      <br />
-      Email: {{ email }}
-      <br />
-      Verify Password URL: {{ verify_email_url }}
-      <br />
-      Token: {{ verify_token }}
+      Thank you for registering on Coordination Network. To complete your registration, please verify your email address by clicking on the link below:
     </p>
+    <p>
+      <a href="{{ verify_email_url }}">Verify Email Address</a>
+    </p>
+    <p>If you cannot click on the link, please copy and paste the following URL into your browser:</p>
+    <p>{{ verify_email_url }}</p>
+    <p>
+      Your verification token is: <strong>{{ verify_token }}</strong>. You may need it for verification process.
+    </p>
+    <p>If you did not sign up for Coordination Network, please disregard this email.</p>
+    <p>Best regards,</p>
+    <p>The Coordination Network Team</p>
   </body>
 </html>

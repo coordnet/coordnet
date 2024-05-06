@@ -1,5 +1,13 @@
-User: {{current_user}}
-Username: {{username}}
-Email: {{email}}
-Verify Password URL: {{verify_email_url}}
-Token: {{verify_token}}
+Hello,
+
+Thank you for registering on Coordination Network. To complete your registration, please verify your email address by clicking on the link below:
+
+Verify Email Address: {{verify_email_url}}
+
+Your verification token is: {{verify_token}}. You may need it for the verification process.
+
+If you did not sign up for Coordination Network, please disregard this email.
+
+Best regards,
+
+The Coordination Network Team
