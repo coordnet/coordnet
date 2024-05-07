@@ -34,7 +34,6 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
 
   const inputRef = useRef<HTMLDivElement>(null);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [lineClamp, setLineClamp] = useState<number>(3);
 
@@ -52,14 +51,6 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
       onClickEdit();
     }
   }, [data]);
-
-  useEffect(() => {
-    if (isFocused === false) {
-      setIsEditing(false);
-
-      inputRef?.current?.scrollTo(0, 0);
-    }
-  }, [isFocused]);
 
   const onClickEdit = (e?: MouseEvent) => {
     e?.preventDefault();
@@ -142,9 +133,9 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         <EditableNode
           id={id}
           ref={inputRef}
-          onFocus={() => setIsFocused(true)}
           onBlur={() => {
-            setIsFocused(false);
+            setIsEditing(false);
+            inputRef?.current?.scrollTo(0, 0);
             const node = nodesMap.get(id);
             if (node) nodesMap.set(id, { ...node, data: { ...node.data, editing: false } });
           }}

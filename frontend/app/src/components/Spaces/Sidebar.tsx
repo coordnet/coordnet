@@ -73,7 +73,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
         ) : (
           <ul>
             {spaces?.map((space, i) => {
-              const icon = blockies.create({ seed: space?.id }).toDataURL();
+              // const icon = blockies.create({ seed: space?.id }).toDataURL();
               return (
                 <li
                   key={`spaces-${space?.id}`}
@@ -86,7 +86,8 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
                     to={`/spaces/${space?.id}`}
                     className="flex items-center gap-2 text-neutral-700 hover:text-neutral-700"
                   >
-                    <img src={icon} className="size-4 rounded-full" /> {space?.title}
+                    {/* <img src={icon} className="size-4 rounded-full" />  */}
+                    {space?.title}
                     <div
                       className={clsx("ml-auto text-sm text-neutral-400", {
                         "group-hover:hidden": space?.allowed_actions?.includes("write"),
