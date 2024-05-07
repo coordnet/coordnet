@@ -5,18 +5,20 @@ from django.db import migrations
 
 def remove_duplicate_document_versions(apps, schema_editor):
     document_version = apps.get_model("nodes", "DocumentVersion")
-    document_versions = document_version.objects.order_by("document", "-created_at")
+    document_versions = document_version.objects.order_by("document", "-created_at").only(
+        "document_id", "json_hash"
+    )
 
     # Iterate over all document versions, if two consecutive versions have the same document and
     # hash, delete the newer one
 
-    previous_document = None
+    previous_document_id = None
     previous_hash = None
     for version in document_versions:
-        if version.document == previous_document and version.json_hash == previous_hash:
+        if version.document_id == previous_document_id and version.json_hash == previous_hash:
             version.delete()
             continue
-        previous_document = version.document
+        previous_document_id = version.document_id
         previous_hash = version.json_hash
 
 
