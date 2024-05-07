@@ -88,9 +88,8 @@ class Node(permissions.models.MembershipBaseModel):
         Return a Q object that filters whether the user has permission to do <action> on this
         object.
         Note: We're not filtering out whether the object itself is deleted, this should be done
-              before calling this method, but we're checking whether the parents, spaces or object
-              memberships are deleted.
-              Roles are not soft-deletable, so those aren't checked either.
+              before calling this method, but we're checking whether the parents or spaces are
+              deleted. Roles are not soft-deletable, so those aren't checked either.
         """
 
         def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:

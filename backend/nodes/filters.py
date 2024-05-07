@@ -85,27 +85,32 @@ class DocumentVersionPermissionFilterBackend(DRYPermissionFiltersBase):
         self, request: request.Request, queryset: QuerySet, view: views.APIView
     ) -> "QuerySet[models.DocumentVersion]":
         """Only return spaces that the user has access to."""
+        user = request.user or AnonymousUser()
         queryset_filters = (
-            Q(document__space__is_public=True, document__space__is_removed=False)
-            | Q(document__node_editor__is_public=True, document__node_editor__is_removed=False)
-            | Q(document__node_graph__is_public=True, document__node_graph__is_removed=False)
-        )
-        if request.user and request.user.is_authenticated:
-            queryset_filters |= (
-                Q(
-                    document__space__members__user=request.user,
-                    document__space__members__role__role__in=READ_ROLES,
-                    document__space__is_removed=False,
-                )
-                | Q(
-                    document__node_editor__members__user=request.user,
-                    document__node_editor__members__role__role__in=READ_ROLES,
-                    document__node_editor__is_removed=False,
-                )
-                | Q(
-                    document__node_graph__members__user=request.user,
-                    document__node_graph__members__role__role__in=READ_ROLES,
-                    document__node_graph__is_removed=False,
+            (
+                Q(document__space__isnull=False)
+                & (
+                    models.Space.get_user_has_permission_filter(
+                        "read", user, prefix="document__space"
+                    )
                 )
             )
+            | (
+                Q(document__node_editor__isnull=False)
+                & Q(
+                    models.Node.get_user_has_permission_filter(
+                        "read", user, prefix="document__node_editor"
+                    )
+                )
+            )
+            | (
+                Q(document__node_graph__isnull=False)
+                & Q(
+                    models.Node.get_user_has_permission_filter(
+                        "read", user, prefix="document__node_graph"
+                    )
+                )
+            )
+        )
+
         return queryset.filter(queryset_filters).distinct()

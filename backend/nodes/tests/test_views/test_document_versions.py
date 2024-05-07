@@ -103,3 +103,24 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
+
+    def test_permission_inheritance(self) -> None:
+        """
+        Regression test to see if space permissions trickle down to document versions of their
+        nodes.
+        """
+
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        document = factories.DocumentFactory.create()
+        node = factories.NodeFactory.create(editor_document=document)
+        space.nodes.add(node)
+        document_version = factories.DocumentVersionFactory.create(document=document)
+
+        response = self.owner_client.get(
+            reverse("nodes:document-versions-detail", args=[document_version.public_id])
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response = self.owner_client.get(reverse("nodes:document-versions-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
