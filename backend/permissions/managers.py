@@ -28,7 +28,7 @@ class MembershipModelQuerySetMixin(models.QuerySet[T_co], typing.Generic[T_co]):
             user = request.user
 
         role_subquery = self.model.get_role_annotation_query(user or AnonymousUser())
-        return self.annotate(user_roles=role_subquery)
+        return self.annotate(user_roles=role_subquery).distinct()
 
 
 class SoftDeletableMembershipModelQuerySet(
