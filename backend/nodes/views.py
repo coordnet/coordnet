@@ -33,7 +33,7 @@ class NodeModelViewSet(
             django_models.Prefetch(
                 "subnodes",
                 to_attr="available_subnodes",
-                queryset=models.Node.available_objects.all(),
+                queryset=models.Node.available_objects.only("id", "public_id"),
             )
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
@@ -58,7 +58,7 @@ class SpaceModelViewSet(
             django_models.Prefetch(
                 "nodes",
                 to_attr="available_nodes",
-                queryset=models.Node.available_objects.all(),
+                queryset=models.Node.available_objects.only("id", "public_id"),
             ),
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
