@@ -34,6 +34,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+    "colorthief": "^2.4.0",
     "date-fns": "^3.6.0",
     "dompurify": "^3.1.2",
     "downshift": "^9.0.4",

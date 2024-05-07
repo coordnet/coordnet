@@ -6,6 +6,13 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   build: {
     target: "esnext",
+    rollupOptions: {
+      output: {
+        entryFileNames: `static/[name].js`,
+        chunkFileNames: `static/[name].js`,
+        assetFileNames: `static/[name].[ext]`,
+      },
+    },
   },
   esbuild: {
     target: "esnext",

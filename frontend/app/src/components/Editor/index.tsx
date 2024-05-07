@@ -1,23 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { EditorContent, useEditor } from "@tiptap/react";
+import * as blockies from "blockies-ts";
 import clsx from "clsx";
+import ColorThief from "colorthief";
 import { History, Search, X } from "lucide-react";
 import { useEffect } from "react";
 import { Tooltip } from "react-tooltip";
 import { format as formatTimeAgo } from "timeago.js";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
-import { getNodeVersions } from "@/api";
+import { getMe, getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useFocus } from "@/hooks";
 import useNode from "@/hooks/useNode";
+import { rgbToHex } from "@/utils";
 
 import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
 import { loadExtensions } from "./extensions";
 import { MenuBar } from "./MenuBar";
 import Versions from "./Versions";
+
+const colorThief = new ColorThief();
 
 type EditorProps = { id: string; className?: string };
 
@@ -28,6 +33,8 @@ const Editor = ({ id, className }: EditorProps) => {
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
+
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: getMe });
 
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "EDITOR", 1],
@@ -51,6 +58,23 @@ const Editor = ({ id, className }: EditorProps) => {
     // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
     setEditor(editor);
   }, [editor, editorSynced, editorYdoc, setEditor]);
+
+  useEffect(() => {
+    if (user && editor && editor.commands.updateUser) {
+      console.log("HI!!!", user, editor, editor.commands.updateUser);
+      const image = blockies.create({ seed: user?.email }).toDataURL();
+      const img = document.createElement("img");
+      img.src = image;
+      img.addEventListener("load", function () {
+        const [r, g, b] = colorThief.getColor(img);
+        editor.commands.updateUser({
+          displayName: user?.name || user?.email,
+          image: image,
+          color: rgbToHex(r, g, b),
+        });
+      });
+    }
+  }, [user, editor]);
 
   if (!id) return <></>;
 

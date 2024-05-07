@@ -106,12 +106,12 @@ function Login() {
               <Button type="submit" className="w-full bg-violet-600 rounded my-2">
                 Login
               </Button>
-              <Link to="/auth/reset-password">
+              <Link to="/reset-password">
                 <Button variant="ghost" className="w-full -my-2">
                   Reset password
                 </Button>
               </Link>
-              {/* <Link to="/auth/signup">
+              {/* <Link to="/sign-up">
                 <Button variant="ghost" className="w-full">
                   Sign up
                 </Button>

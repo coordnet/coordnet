@@ -1,11 +1,11 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import Link from "@tiptap/extension-link";
 import { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
 
+import { CollaborationCursor } from "./CollaborationCursor";
 import Node from "./Node";
 
 export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, readOnly = false) => {
