@@ -80,7 +80,7 @@ export default function ErrorPage({
     >
       <div className="self-center grayscale max-w-[700px]">
         <div className="flex items-center mb-4 justify-center">
-          <img src="/coordination-network.png" alt="Error" className="w-12 mr-3" />
+          <img src="/static/coordination-network.png" alt="Error" className="w-12 mr-3" />
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
         </div>
         <p className="text-lg text-gray-700 mb-2 text-center">{subTitle}</p>

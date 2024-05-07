@@ -53,7 +53,7 @@ function ResetPassword() {
           {sent ? (
             <>
               <img
-                src="/coordination-network-logo.png"
+                src="/static/coordination-network-logo.png"
                 className="max-w-[250px] w-full m-auto mb-5"
               />
               <h1 className="text-lg flex items-center justify-center font-medium">
@@ -73,7 +73,7 @@ function ResetPassword() {
           ) : (
             <Form {...form}>
               <img
-                src="/coordination-network-logo.png"
+                src="/static/coordination-network-logo.png"
                 className="max-w-[250px] w-full m-auto mb-4"
               />
               <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-y-2">

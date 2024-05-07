@@ -76,7 +76,7 @@ function Signup() {
           {sent ? (
             <>
               <img
-                src="/coordination-network-logo.png"
+                src="/static/coordination-network-logo.png"
                 className="max-w-[250px] w-full m-auto mb-5"
               />
               <h1 className="text-lg flex items-center justify-center font-medium">
@@ -96,7 +96,7 @@ function Signup() {
           ) : (
             <Form {...form}>
               <img
-                src="/coordination-network-logo.png"
+                src="/static/coordination-network-logo.png"
                 className="max-w-[250px] w-full m-auto mb-4"
               />
               <h1 className="text-lg font-medium mb-4 text-center">Sign up</h1>

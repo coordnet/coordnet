@@ -69,7 +69,7 @@ function Login() {
         <div className="bg-white min-w-[35vw] max-w-[500px] shadow-lg rounded-md border p-5">
           <Form {...form}>
             <img
-              src="/coordination-network-logo.png"
+              src="/static/coordination-network-logo.png"
               className="max-w-[250px] w-full m-auto mb-4"
             />
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-y-2">
