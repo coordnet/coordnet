@@ -13,14 +13,9 @@ if typing.TYPE_CHECKING:
     class AvailableSubnodes(typing.TypedDict, total=False):
         available_subnodes: django_models.QuerySet[models.Node]
 
-    class AvailableNodes(typing.TypedDict, total=False):
-        available_nodes: django_models.QuerySet[models.Node]
-
     AnnotatedNode = WithAnnotations[models.Node, AvailableSubnodes]
-    AnnotatedSpace = WithAnnotations[models.Space, AvailableNodes]
 else:
     AnnotatedNode = models.Node
-    AnnotatedSpace = models.Space
 
 
 class NodeSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node]):
@@ -58,22 +53,20 @@ class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space
     # TODO: don't let the API client pick their own id for the project, it should be auto-generated.
     title_slug = serializers.SlugField(read_only=True)
     default_node = SpaceDefaultNodeField(allow_null=True, read_only=False, required=False)
+    node_count = serializers.IntegerField(read_only=True)
     allowed_actions = serializers.SerializerMethodField()
-    nodes = serializers.SerializerMethodField()
 
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(self.context["request"])
 
-    def get_nodes(self, obj: AnnotatedSpace) -> list[str]:
-        if getattr(obj, "available_nodes", None) is None:
-            # Normally we can prevent N+1 queries by prefetching the nodes, but we can't easily do
-            # that when creating a new Space, so this is a fallback.
-            obj.available_nodes = obj.nodes.filter(is_removed=False)
-        return [str(item.public_id) for item in obj.available_nodes]
-
     class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space
-        read_only_fields = ["nodes", "default_node"]
+        read_only_fields = ["default_node"]
+        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + [
+            "nodes",
+            "deleted_nodes",
+            "document",
+        ]
 
 
 class DocumentVersionSerializer(
