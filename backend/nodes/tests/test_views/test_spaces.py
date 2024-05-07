@@ -71,11 +71,12 @@ class SpacesViewTestCase(BaseTransactionTestCase):
     def test_default_node_setting(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)
         node = factories.NodeFactory.create()
+        space.nodes.add(node)
         response = self.owner_client.patch(
             reverse("nodes:spaces-detail", args=[space.public_id]),
             {"default_node": str(node.public_id)},
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
         space.refresh_from_db()
         self.assertEqual(space.default_node, node)
 
