@@ -52,7 +52,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     retry: false,
     initialData: [],
     refetchOnWindowFocus: false,
-    refetchInterval: 1000,
+    refetchInterval: 10000,
   });
 
   const ydoc = useMemo(
