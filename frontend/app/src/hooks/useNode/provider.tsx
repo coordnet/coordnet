@@ -1,6 +1,6 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import store from "store2";
 import * as Y from "yjs";
 
@@ -22,6 +22,9 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
   const [edgesSelection, setEdgesSelection] = useState<Set<string>>(new Set());
   const [editorError, setEditorError] = useState<Error | null>(null);
   const [graphError, setGraphError] = useState<Error | null>(null);
+  const [graphYdoc, setGraphYdoc] = useState<Y.Doc | null>(null);
+  const [editorProvider, setEditorProvider] = useState<HocuspocusProvider | null>(null);
+  const [editorYdoc, setEditorYdoc] = useState<Y.Doc | null>(null);
 
   const { data: node, isLoading } = useQuery({
     queryKey: ["node", id],
@@ -31,18 +34,21 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     refetchOnWindowFocus: false,
   });
 
-  const editorRoomName = `node-editor-${id}`;
-  const editorYdoc = useMemo(() => new Y.Doc({ guid: editorRoomName }), [editorRoomName]);
-  const editorProvider = useMemo(() => {
+  useEffect(() => {
+    setEditorYdoc(!id ? null : new Y.Doc({ guid: `node-editor-${id}` }));
+  }, [id]);
+
+  useEffect(() => {
     setEditorConnected(false);
     setEditorSynced(false);
-    if (!id) return;
+    if (!id || !editorYdoc) return;
     const token = store("coordnet-auth");
-    return new HocuspocusProvider({
+    const newProvider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
-      name: editorRoomName,
+      name: `node-editor-${id}`,
       document: editorYdoc,
       token,
+      preserveConnection: false,
       onAuthenticationFailed(data) {
         setEditorError(
           new CustomError({
@@ -59,20 +65,30 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
         setEditorConnected(data.status == "connected");
       },
     });
-  }, [id, editorRoomName, editorYdoc]);
+    setEditorProvider(newProvider);
 
-  const graphRoomName = `node-graph-${id}`;
-  const graphYdoc = useMemo(() => new Y.Doc({ guid: graphRoomName }), [graphRoomName]);
-  useMemo(() => {
+    return () => {
+      newProvider.destroy();
+    };
+  }, [id, editorYdoc]);
+
+  useEffect(() => {
+    setGraphYdoc(!id ? null : new Y.Doc({ guid: `node-graph-${id}` }));
+  }, [id]);
+
+  useEffect(() => {
     setGraphConnected(false);
     setGraphSynced(false);
-    if (!id || !graphYdoc) return;
+    if (!id || !graphYdoc) {
+      return;
+    }
     const token = store("coordnet-auth");
-    return new HocuspocusProvider({
+    const newProvider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
-      name: graphRoomName,
+      name: `node-graph-${id}`,
       document: graphYdoc,
-      token: token,
+      token,
+      preserveConnection: false,
       onAuthenticationFailed(data) {
         setGraphError(
           new CustomError({
@@ -89,10 +105,14 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
         setGraphConnected(data.status == "connected");
       },
     });
-  }, [id, graphRoomName, graphYdoc]);
 
-  const nodesMap = graphYdoc.getMap<GraphNode>("nodes");
-  const edgesMap = graphYdoc.getMap<GraphEdge>("edges");
+    return () => {
+      newProvider.destroy();
+    };
+  }, [id, graphYdoc]);
+
+  const nodesMap = graphYdoc?.getMap<GraphNode>("nodes");
+  const edgesMap = graphYdoc?.getMap<GraphEdge>("edges");
 
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [edges, setEdges] = useState<GraphEdge[]>([]);
