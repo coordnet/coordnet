@@ -28,15 +28,22 @@ updates:
           - 'version-update:semver-minor'
 
   - package-ecosystem: 'docker'
-    # Look for a `Dockerfile` in the `compose/local/node` directory
-    directory: 'compose/node/'
+    # Look for a `Dockerfile` in the `compose/frontend` directory
+    directory: 'compose/frontend/'
     # Every weekday
     schedule:
       interval: 'daily'
 
   - package-ecosystem: 'docker'
-    # Look for a `Dockerfile` in the `compose/production/postgres` directory
+    # Look for a `Dockerfile` in the `compose/postgres` directory
     directory: 'compose/postgres/'
+    # Every weekday
+    schedule:
+      interval: 'daily'
+
+  - package-ecosystem: 'docker'
+    # Look for a `Dockerfile` in the `compose/hocuspocus` directory
+    directory: 'compose/hocuspocus/'
     # Every weekday
     schedule:
       interval: 'daily'
