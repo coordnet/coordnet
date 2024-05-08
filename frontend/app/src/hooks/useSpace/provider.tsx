@@ -1,6 +1,6 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import store from "store2";
 import useLocalStorageState from "use-local-storage-state";
@@ -23,6 +23,8 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
   const queryClient = useQueryClient();
   const [spaceError, setSpaceError] = useState<Error | null>(null);
+  const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
+  const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
 
   const {
     data: space,
@@ -55,18 +57,20 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     refetchInterval: 10000,
   });
 
-  const ydoc = useMemo(
-    () => (space ? new Y.Doc({ guid: `space-${space.id}` }) : undefined),
-    [space],
-  );
-  const provider = useMemo(() => {
-    if (!space || !ydoc) return;
+  useEffect(() => {
+    if (!space) return;
+    setYdoc(new Y.Doc({ guid: `space-${space.id}` }));
+  }, [space]);
+
+  useEffect(() => {
+    if (!spaceId || !ydoc) return;
     const token = store("coordnet-auth");
-    return new HocuspocusProvider({
+    const newProvider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
       name: `space-${spaceId}`,
       document: ydoc,
       token,
+      preserveConnection: false,
       onAuthenticationFailed(data) {
         setSpaceError(
           new CustomError({
@@ -83,7 +87,12 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
         setConnected(data.status == "connected");
       },
     });
-  }, [space, ydoc]);
+    setProvider(newProvider);
+
+    return () => {
+      newProvider.destroy();
+    };
+  }, [spaceId, space, ydoc]);
 
   const nodesMap = ydoc?.getMap<SpaceNode>("nodes");
   const deletedNodes = ydoc?.getArray<string>("deletedNodes");

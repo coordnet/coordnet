@@ -8,11 +8,11 @@ type NodeContextType = {
   id: string;
   node: BackendNode | undefined;
   isLoading: boolean;
-  editorProvider: HocuspocusProvider | undefined;
-  editorYdoc: Y.Doc;
-  graphYdoc: Y.Doc;
-  nodesMap: Y.Map<GraphNode>;
-  edgesMap: Y.Map<GraphEdge>;
+  editorProvider: HocuspocusProvider | null;
+  editorYdoc: Y.Doc | null;
+  graphYdoc: Y.Doc | null;
+  nodesMap: Y.Map<GraphNode> | undefined;
+  edgesMap: Y.Map<GraphEdge> | undefined;
   nodes: GraphNode[];
   edges: GraphEdge[];
   nodesSelection: Set<string>;
