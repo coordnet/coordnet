@@ -53,13 +53,8 @@ class SpaceModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.Space]":
-        queryset = models.Space.available_objects.prefetch_related(
-            "deleted_nodes",
-            django_models.Prefetch(
-                "nodes",
-                to_attr="available_nodes",
-                queryset=models.Node.available_objects.only("id", "public_id"),
-            ),
+        queryset = models.Space.available_objects.annotate(
+            node_count=django_models.Count("nodes", filter=~django_models.Q(nodes__is_removed=True))
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset.annotate_user_permissions(request=self.request)

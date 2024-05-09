@@ -1,6 +1,6 @@
-import factories
 from django.urls import reverse
 
+from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
 
 
@@ -8,14 +8,14 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
     def test_list(self) -> None:
         response = self.owner_client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data["count"], 0)
 
         document = factories.DocumentFactory.create()
         factories.NodeFactory.create(owner=self.owner_user, editor_document=document)
         factories.DocumentVersionFactory.create(document=document)
         response = self.owner_client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
     def test_retrieve(self) -> None:
         document = factories.DocumentFactory.create()
@@ -78,9 +78,9 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
             reverse("nodes:document-versions-list"), {"document": document.public_id}
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data["count"], 2)
         self.assertSetEqual(
-            {item["id"] for item in response.data},
+            {item["id"] for item in response.data["results"]},
             {str(document_version.public_id), str(document_version_with_different_type.public_id)},
         )
 
@@ -88,21 +88,21 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
             reverse("nodes:document-versions-list"), {"document": another_document.public_id}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
         factories.DocumentVersionFactory.create(document=another_document, document_type="type")
         response = self.owner_client.get(
             reverse("nodes:document-versions-list"), {"document_type": "type"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data["count"], 2)
 
         response = self.owner_client.get(
             reverse("nodes:document-versions-list"),
             {"document_type": "type", "document": document.public_id},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
     def test_permission_inheritance(self) -> None:
         """
@@ -123,4 +123,4 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
 
         response = self.owner_client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)

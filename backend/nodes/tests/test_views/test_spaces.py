@@ -1,7 +1,7 @@
-import factories
 from django.urls import reverse
 
 from nodes import models
+from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
 
 
@@ -9,26 +9,26 @@ class SpacesViewTestCase(BaseTransactionTestCase):
     def test_list(self) -> None:
         response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data["count"], 0)
         space = factories.SpaceFactory.create(owner=self.owner_user)
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
         nodes = factories.NodeFactory.create_batch(10)
         space.nodes.set(nodes)
 
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
         # Test that soft deleted spaces are not returned
         space.delete()
         response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
     def test_retrieve(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)
@@ -85,7 +85,7 @@ class SpacesViewTestCase(BaseTransactionTestCase):
 
         response = self.viewer_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
         response = self.viewer_client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
         self.assertEqual(response.status_code, 403)

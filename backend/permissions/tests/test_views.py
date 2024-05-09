@@ -100,13 +100,13 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
             set(response_data["allowed_actions"]), {"read", "write", "manage", "delete"}
         )
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(3):
             response = self.owner_client.get(reverse("nodes:nodes-list"))
             self.assertEqual(response.status_code, 200)
 
         response_data = response.json()
-        self.assertEqual(len(response_data), 11)
-        for node_data in response_data:
+        self.assertEqual(response_data["count"], 11)
+        for node_data in response_data["results"]:
             self.assertEqual(len(node_data["allowed_actions"]), 4)
             self.assertSetEqual(
                 set(node_data["allowed_actions"]), {"read", "write", "manage", "delete"}
@@ -117,7 +117,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
 
         space = node_factories.SpaceFactory.create_batch(10, owner=self.owner_user)
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(1):
             response = self.owner_client.get(
                 reverse("nodes:spaces-detail", args=[str(space[0].public_id)])
             )
@@ -128,13 +128,13 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
             set(response_data["allowed_actions"]), {"read", "write", "manage", "delete"}
         )
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:spaces-list"))
             self.assertEqual(response.status_code, 200)
 
         response_data = response.json()
-        self.assertEqual(len(response_data), 10)
-        for node_data in response_data:
+        self.assertEqual(response_data["count"], 10)
+        for node_data in response_data["results"]:
             self.assertEqual(len(node_data["allowed_actions"]), 4)
             self.assertSetEqual(
                 set(node_data["allowed_actions"]), {"read", "write", "manage", "delete"}

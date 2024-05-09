@@ -1,6 +1,6 @@
-import factories
 from django.urls import reverse
 
+from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
 
 
@@ -8,11 +8,11 @@ class NodesViewTestCase(BaseTransactionTestCase):
     def test_list(self) -> None:
         response = self.owner_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data["count"], 0)
         factories.NodeFactory.create(owner=self.owner_user)
         response = self.owner_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
     def test_retrieve(self) -> None:
         node = factories.NodeFactory.create(owner=self.owner_user)
@@ -60,21 +60,21 @@ class NodesViewTestCase(BaseTransactionTestCase):
             reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], str(node.public_id))
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["id"], str(node.public_id))
 
         response = self.owner_client.get(
             reverse("nodes:nodes-list"), {"spaces": str(another_space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
     def test_permissions(self) -> None:
         node = factories.NodeFactory.create()
 
         response = self.viewer_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 403)
@@ -95,7 +95,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
             reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data["count"], 1)
 
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 200)
@@ -111,7 +111,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
             reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data["count"], 2)
 
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[subnode.public_id]))
         self.assertEqual(response.status_code, 200)
@@ -129,7 +129,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
             reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data["count"], 2)
 
         # We can also access the subnode directly because we have access to its parent node.
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[subnode.public_id]))
@@ -142,7 +142,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
             reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data["count"], 0)
 
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 404)
