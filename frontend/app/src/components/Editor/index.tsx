@@ -37,10 +37,12 @@ const Editor = ({ id, className }: EditorProps) => {
   });
 
   const { data: versions } = useQuery({
-    queryKey: ["page-versions", id, "EDITOR", 1],
-    queryFn: ({ signal }) => getNodeVersions(signal, id, "EDITOR", 1),
+    queryKey: ["page-versions", id, "EDITOR", "latest"],
+    queryFn: ({ signal }) => getNodeVersions(signal, id, "EDITOR", 0, 1),
     enabled: Boolean(id),
     initialData: { count: 0, next: "", previous: "", results: [] },
+    refetchInterval: 1000 * 60,
+    retry: false,
   });
 
   const editor = useEditor(

@@ -155,11 +155,12 @@ export const getNodeVersions = async (
   signal: AbortSignal | undefined,
   document?: string,
   document_type: string = "GRAPH",
-  page: number = 1,
-  page_size: number = 100,
+  offset: number = 0,
+  limit: number = 10,
+  ordering: string = "-created_at",
 ): Promise<PaginatedApiResponse<NodeVersion>> => {
   const response = await api.get("api/nodes/versions/", {
-    params: { document, document_type, page, page_size },
+    params: { document, document_type, offset, limit, ordering },
     signal,
   });
   return response.data;
