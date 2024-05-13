@@ -19,9 +19,11 @@ const nodeTypes = {
   GraphNode: GraphNodeComponent,
 };
 
+const LIMIT = 10;
+
 const Versions = ({ className }: { className?: string }) => {
   const { id, nodesMap, edgesMap } = useNode();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [currentVersion, setCurrentVersion] = useState<NodeVersion>();
   const [currentVersionYdoc, setCurrentVersionYdoc] = useState<Y.Doc>();
   const [detailLoading, setDetailLoading] = useState(false);
@@ -33,9 +35,10 @@ const Versions = ({ className }: { className?: string }) => {
     data: versions,
     isLoading,
     isFetched,
+    isFetching,
   } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", currentPage],
-    queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", currentPage),
+    queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", currentPage * LIMIT, LIMIT),
     enabled: Boolean(id),
     initialData: { count: 0, next: "", previous: "", results: [] },
   });
@@ -137,38 +140,47 @@ const Versions = ({ className }: { className?: string }) => {
           </div>
         </div>
       )}
-      {isFetched && versions?.results && (
-        <div className="flex flex-col">
-          <div className="w-[200px] overflow-auto flex-grow">
-            {versions.results.map((v) => (
-              <div
-                key={v.id}
-                className="border-b p-4 cursor-pointer hover:bg-slate-50"
-                onClick={() => setCurrentVersion(v)}
+      <div className="flex flex-col relative" key={`versions-graph-${currentPage}`}>
+        {(isFetching || isLoading) && (
+          <div className="w-[200px] absolute bg-white/50 h-full flex items-center justify-center z-10">
+            Loading <Loader2Icon className="animate-spin size-4 ml-3" />
+          </div>
+        )}
+        {versions?.results && (
+          <>
+            <div className="w-[200px] overflow-auto flex-grow">
+              {versions.results.map((v) => (
+                <div
+                  key={v.id}
+                  className={clsx("border-b p-4 cursor-pointer hover:bg-slate-50", {
+                    "bg-neutral-100": currentVersion?.id === v.id,
+                  })}
+                  onClick={() => setCurrentVersion(v)}
+                >
+                  <div className="font-medium">{formatTimeAgo(v.created_at)}</div>
+                  <div>{format(parseISO(v.created_at), "HH:mm - MMM dd yyyy")}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex ml-auto select-none">
+              <Button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                variant="ghost"
               >
-                <div className="font-medium">{formatTimeAgo(v.created_at)}</div>
-                <div>{format(parseISO(v.created_at), "HH:mm - MMM dd yyyy")}</div>
-              </div>
-            ))}
-          </div>
-          <div className="flex ml-auto select-none">
-            <Button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              variant="ghost"
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!versions?.next}
-              variant="ghost"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+                Previous
+              </Button>
+              <Button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!versions?.next}
+                variant="ghost"
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
