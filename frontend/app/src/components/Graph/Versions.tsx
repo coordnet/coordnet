@@ -45,7 +45,7 @@ const Versions = ({ className }: { className?: string }) => {
   };
 
   const revertVersion = () => {
-    if (!currentVersionYdoc) return;
+    if (!currentVersionYdoc || !nodesMap || !edgesMap) return;
     const foundNodes = Array.from(currentVersionYdoc?.getMap("nodes").values()) as GraphNode[];
     const foundEdges = Array.from(currentVersionYdoc?.getMap("edges").values()) as GraphEdge[];
     nodesMap.clear();
@@ -64,7 +64,8 @@ const Versions = ({ className }: { className?: string }) => {
       const loadVersion = async () => {
         if (!currentVersion) return;
         setDetailLoading(true);
-        const response = await api.get(currentVersion.crdt, { responseType: "arraybuffer" });
+        const url = "api/nodes/versions/" + currentVersion.id + "/crdt";
+        const response = await api.get(url, { responseType: "arraybuffer" });
         const deserializedYDoc = new Y.Doc();
         setCurrentVersionYdoc(deserializedYDoc);
         Y.applyUpdate(deserializedYDoc, Y.mergeUpdates([new Uint8Array(response.data)]));

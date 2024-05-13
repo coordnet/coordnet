@@ -44,6 +44,8 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
   // When the changes are applied to the map, the observer will be triggered and updates the nodes state.
   const onNodesChanges: OnNodesChange = useCallback(
     (changes) => {
+      if (!nodesMap) return console.error("Nodes map is not initialized");
+      if (!edgesMap) return console.error("Edges map is not initialized");
       const nodes = Array.from(nodesMap.values());
 
       const nextNodes = applyNodeChanges(changes, nodes);
@@ -82,6 +84,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
       if (!graphNode?.allowed_actions?.includes("write")) return;
+      if (!edgesMap) return console.error("Edges map is not initialized");
       const currentEdges = Array.from(edgesMap.values()).filter((e) => e);
       const nextEdges = applyEdgeChanges(changes, currentEdges);
       const newSelection = new Set([...edgesSelection]);
@@ -96,6 +99,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
               newSelection.delete(change.id);
             }
           } else {
+            // @ts-expect-error change id is not never in this context
             edgesMap.set(change.id, nextEdges.find((n) => n.id === change.id) as GraphEdge);
           }
         }
@@ -110,7 +114,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       const { source, sourceHandle, target, targetHandle } = params;
       const id = `edge-${source}${sourceHandle || ""}-${target}${targetHandle || ""}`;
 
-      edgesMap.set(id, {
+      edgesMap?.set(id, {
         id,
         ...params,
       } as GraphEdge);

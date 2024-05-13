@@ -24,14 +24,15 @@ export const cleanDocumentName = (name: string) => {
   return name.replace(/^(node-graph-|space-|node-editor-)/, "");
 };
 
-export const backendRequest = (path: string, token: string) => {
-  return fetch(`${settings.BACKEND_URL}/${path}`, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+export const backendRequest = (path: string, token?: string) => {
+  const headers: { [key: string]: string } = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Token ${token}`;
+  }
+  return fetch(`${settings.BACKEND_URL}/${path}`, { headers });
 };
 
 export const authRequest = (request: Request) => {

@@ -7,7 +7,7 @@ import { BackendNode, Space, SpaceNode } from "@/types";
 type SpaceContextType = {
   space: Space | undefined;
   spaceLoading: boolean;
-  spaceError: Error | null;
+  spaceError: Error | undefined;
   nodesMap: Y.Map<SpaceNode> | undefined;
   nodes: SpaceNode[];
   synced: boolean;

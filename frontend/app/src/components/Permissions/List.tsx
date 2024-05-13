@@ -4,7 +4,8 @@ import clsx from "clsx";
 import { Loader2, Settings2 } from "lucide-react";
 import { useState } from "react";
 
-import { getMe, getNodePermissions, getSpacePermissions } from "@/api";
+import { getNodePermissions, getSpacePermissions } from "@/api";
+import useUser from "@/hooks/useUser";
 import { Space } from "@/types";
 
 import { Button } from "../ui/button";
@@ -26,9 +27,7 @@ const List = ({
 }) => {
   const [memberOpen, setMemberOpen] = useState<boolean>(false);
   const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
-
-  // const id = space.id;
+  const { user, isLoading: userLoading } = useUser();
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: ["spaces", id, "permissions"],
@@ -55,7 +54,7 @@ const List = ({
   return (
     <ul className={clsx("mt-1 max-h-40 overflow-auto", className)} key={`${model}-${id}`}>
       <Dialog open={memberOpen} onOpenChange={setMemberOpen}>
-        {permissions?.length === 0 && (
+        {!permissionsLoading && permissions?.length === 0 && (
           <div className="flex items-center justify-center mt-6 italic text-neutral-400">
             No permissions set
           </div>

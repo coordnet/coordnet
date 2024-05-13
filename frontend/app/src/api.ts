@@ -58,12 +58,22 @@ api.interceptors.response.use(
 );
 
 export const getMe: () => Promise<Me> = async () => {
-  const data = await api.get("api/users/me/");
+  const data = await authApi.get("api/users/me/");
   return data.data;
 };
 
-export const getSpaces = async (signal: AbortSignal | undefined): Promise<Space[]> => {
-  const response = await api.get("api/nodes/spaces/", { signal });
+export const getSpaces = async (
+  signal: AbortSignal | undefined,
+): Promise<PaginatedApiResponse<Space>> => {
+  const response = await api.get("api/nodes/spaces/", { signal, params: { limit: 10000 } });
+
+  // Filter out public spaces for now
+  if (response.data.count !== 0) {
+    return {
+      ...response.data,
+      results: response.data.results.filter((space: Space) => !space.is_public),
+    };
+  }
   return response.data;
 };
 
@@ -141,9 +151,9 @@ export const getNode = async (
 export const getSpaceNodes = async (
   signal: AbortSignal | undefined,
   spaceId?: string,
-): Promise<BackendNode[]> => {
+): Promise<PaginatedApiResponse<BackendNode>> => {
   const response = await api.get("api/nodes/nodes/", {
-    params: { spaces: spaceId },
+    params: { spaces: spaceId, limit: 10000 },
     signal,
   });
   return response.data;
@@ -163,7 +173,9 @@ export const getNodeVersions = async (
   return response.data;
 };
 
-export const getBuddies = async (signal: AbortSignal | undefined): Promise<Buddy[]> => {
+export const getBuddies = async (
+  signal: AbortSignal | undefined,
+): Promise<PaginatedApiResponse<Buddy>> => {
   const response = await api.get("api/buddies/", { signal });
   return response.data;
 };
@@ -189,7 +201,7 @@ export const deleteBuddy = async (id: string): Promise<Buddy> => {
 };
 
 export const getLLMTokenCount = async (
-  buddyId: string,
+  buddyId: string | undefined,
   message: string,
   nodes: string[],
   level: number,
@@ -206,7 +218,7 @@ export const getLLMTokenCount = async (
 
 export const getLLMResponse = (
   abortController: AbortController,
-  buddyId: string,
+  buddyId: string | undefined,
   message: string,
   nodes: string[],
   level: number,

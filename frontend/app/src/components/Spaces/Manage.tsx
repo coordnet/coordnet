@@ -7,7 +7,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { getMe, getSpace, getSpacePermissions, handleApiError, updateSpace } from "@/api";
+import { getSpace, getSpacePermissions, handleApiError, updateSpace } from "@/api";
+import useUser from "@/hooks/useUser";
 import { SpaceSchema } from "@/types";
 
 import PermissionsList from "../Permissions/List";
@@ -31,7 +32,7 @@ const Manage = ({
 }) => {
   const [memberOpen, setMemberOpen] = useState<boolean>(false);
   const queryClient = useQueryClient();
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
+  const { user, isLoading: userLoading } = useUser();
 
   const {
     data: space,

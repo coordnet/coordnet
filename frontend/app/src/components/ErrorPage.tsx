@@ -2,9 +2,9 @@ import clsx from "clsx";
 import { ReactNode } from "react";
 import { useRouteError } from "react-router-dom";
 import { ErrorObject, serializeError } from "serialize-error";
-import store from "store2";
 
 import { isAxiosError } from "@/api";
+import useUser from "@/hooks/useUser";
 
 interface ErrorInfo {
   title: string;
@@ -19,6 +19,7 @@ export default function ErrorPage({
   error?: Error | null;
   className?: string;
 }) {
+  const { logout } = useUser();
   const routerError = useRouteError();
   const parsedError: ErrorObject = serializeError(error ? error : routerError);
 
@@ -50,8 +51,7 @@ export default function ErrorPage({
             href="#"
             className="underline"
             onClick={(e) => {
-              store.remove("coordnet-auth");
-              window.location.href = "/auth/login";
+              logout();
               e.preventDefault();
             }}
           >

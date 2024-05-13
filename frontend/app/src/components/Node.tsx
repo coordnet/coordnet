@@ -8,6 +8,7 @@ import { ReactFlowProvider } from "reactflow";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { NodeProvider, useNode, useSpace } from "@/hooks";
+import useUser from "@/hooks/useUser";
 
 import { Graph, Loader } from "./";
 import ErrorPage from "./ErrorPage";
@@ -17,6 +18,7 @@ type NodeProps = { id: string; className?: string };
 
 const Node = ({ id, className }: NodeProps) => {
   const { space } = useSpace();
+  const { isGuest } = useUser();
   const { graphError, graphConnected, graphSynced, isLoading } = useNode();
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
@@ -30,7 +32,12 @@ const Node = ({ id, className }: NodeProps) => {
 
   return (
     <div className={clsx("relative", className)}>
-      <div className="absolute top-0 left-24 z-20 flex h-9 leading-9 gap-2 ">
+      <div
+        className={clsx(
+          "absolute top-0 z-20 flex h-9 leading-9 gap-2",
+          isGuest ? "left-2" : "left-24",
+        )}
+      >
         <div className="border border-neutral-200 bg-white text-neutral-900 font-medium text-sm px-3 rounded flex items-center">
           {/* <EditableNode id={id} /> */}
           {space && (

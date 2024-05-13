@@ -43,13 +43,13 @@ const HoverMenu = ({
   });
 
   const setProgress = (progress: number) => {
-    const node = nodesMap.get(id);
-    if (node) nodesMap.set(id, { ...node, data: { ...node?.data, progress } });
+    const node = nodesMap?.get(id);
+    if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, progress } });
   };
 
   const setColor = (color: { color: string; value: string }) => {
-    const node = nodesMap.get(id);
-    if (node) nodesMap.set(id, { ...node, data: { ...node?.data, borderColor: color.color } });
+    const node = nodesMap?.get(id);
+    if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, borderColor: color.color } });
   };
 
   return (

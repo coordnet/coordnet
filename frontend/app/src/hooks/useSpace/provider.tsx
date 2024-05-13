@@ -2,15 +2,15 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import store from "store2";
 import useLocalStorageState from "use-local-storage-state";
 import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
 import { getSpace, getSpaceNodes, updateSpace } from "@/api";
 import { SpaceNode } from "@/types";
-import { CustomError } from "@/utils";
+import { CustomError, waitForNode } from "@/utils";
 
+import useUser from "../useUser";
 import { SpaceContext } from "./context";
 
 /**
@@ -18,13 +18,14 @@ import { SpaceContext } from "./context";
  */
 export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const { spaceId } = useParams();
+  const { token } = useUser();
   const [synced, setSynced] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
   const queryClient = useQueryClient();
-  const [spaceError, setSpaceError] = useState<Error | null>(null);
-  const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
-  const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
+  const [spaceError, setSpaceError] = useState<Error | undefined>();
+  const [provider, setProvider] = useState<HocuspocusProvider | undefined>();
+  const [ydoc, setYdoc] = useState<Y.Doc | undefined>();
 
   const {
     data: space,
@@ -39,7 +40,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   useEffect(() => {
-    setSpaceError(error);
+    if (error) setSpaceError(error);
   }, [error]);
 
   const [breadcrumbs, setBreadcrumbs] = useLocalStorageState<string[]>(
@@ -52,7 +53,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     queryFn: ({ signal }) => getSpaceNodes(signal, space?.id),
     enabled: Boolean(space),
     retry: false,
-    initialData: [],
+    initialData: { count: 0, next: "", previous: null, results: [] },
     refetchOnWindowFocus: false,
     refetchInterval: 10000,
   });
@@ -64,7 +65,6 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!spaceId || !ydoc) return;
-    const token = store("coordnet-auth");
     const newProvider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
       name: `space-${spaceId}`,
@@ -98,31 +98,25 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const deletedNodes = ydoc?.getArray<string>("deletedNodes");
 
   // Update the space with a default node if it doesn't have one
-  const updateSpaceDefaultNode = (spaceId: string) => {
+  const updateSpaceDefaultNode = async (spaceId: string) => {
     const id = uuid();
     nodesMap?.set(id, { id, title: space?.title ?? "Default Node" });
 
-    // Poll for the node to be created on the back-end so it can be updated on the space
-    const poll = setInterval(async () => {
-      const nodes = await getSpaceNodes(undefined, spaceId);
-      const node = nodes.find((node) => node.id === id);
-      if (node) {
-        clearInterval(poll);
-        // Update the space with the default node and clear queries
-        await updateSpace(spaceId, { default_node: id });
-        queryClient.invalidateQueries({ queryKey: ["spaces", spaceId] });
-        queryClient.invalidateQueries({ queryKey: ["spaces", spaceId, "nodes"] });
-      }
-    }, 500);
-    return () => clearInterval(poll);
+    // Wait for node to appear in backend
+    await waitForNode(id);
+
+    // Update the space with the default node and clear queries
+    await updateSpace(spaceId, { default_node: id });
+    queryClient.invalidateQueries({ queryKey: ["spaces", spaceId] });
+    queryClient.invalidateQueries({ queryKey: ["spaces", spaceId, "nodes"] });
   };
 
   // No default node, create one
   useEffect(() => {
     if (connected && nodesMap && space && !space?.default_node) {
-      const cleanup = updateSpaceDefaultNode(space.id);
-      return () => cleanup();
+      updateSpaceDefaultNode(space.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [space, nodesMap, connected]);
 
   // Here we are observing the nodesMap and updating the nodes state whenever the map changes.
@@ -148,7 +142,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     synced,
     connected,
     provider,
-    backendNodes: backendNodes ?? [],
+    backendNodes: backendNodes?.results ?? [],
     breadcrumbs,
     setBreadcrumbs,
     scope: provider?.authorizedScope,

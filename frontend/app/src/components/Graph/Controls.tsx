@@ -24,7 +24,7 @@ const Controls = () => {
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", 1],
     queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", 1),
-    enabled: node?.allowed_actions.includes("write"),
+    enabled: Boolean(node?.allowed_actions.includes("write")),
     initialData: { count: 0, next: "", previous: "", results: [] },
     refetchInterval: 1000 * 60,
   });

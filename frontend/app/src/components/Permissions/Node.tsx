@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { getMe, getNodePermissions, handleApiError } from "@/api";
+import { getNodePermissions, handleApiError } from "@/api";
 import {
   Select,
   SelectContent,
@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNode, useSpace } from "@/hooks";
+import useUser from "@/hooks/useUser";
 import { PermissionSchema } from "@/types";
 
 import { Button } from "../ui/button";
@@ -35,8 +36,7 @@ const NodePermissions = ({
 }) => {
   const [memberOpen, setMemberOpen] = useState<boolean>(false);
   const queryClient = useQueryClient();
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
-
+  const { user, isLoading: userLoading } = useUser();
   const { node } = useNode();
   const { space } = useSpace();
 

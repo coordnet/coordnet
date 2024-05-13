@@ -72,6 +72,7 @@ const Graph = ({ className }: { className?: string }) => {
     const id = uuidv4();
     const flowPosition = reactFlowInstance.screenToFlowPosition(position);
     if (!flowPosition) alert("Failed to add node");
+    if (!nodesMap) return alert("nodesMap is not initialised");
     const newNode: GraphNode = {
       id,
       type: "GraphNode",
@@ -89,10 +90,8 @@ const Graph = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (!wrapperRef.current) {
-      window.alert("Could not find Graph wrapperRef.");
-      return;
-    }
+    if (!wrapperRef.current) return alert("Could not find Graph wrapperRef.");
+    if (!nodesMap) return alert("nodesMap is not initialised");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
 
     // Check if a file was dropped and if it's a PDF:
@@ -180,7 +179,7 @@ const Graph = ({ className }: { className?: string }) => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
-          nodesConnectable={node?.allowed_actions.includes("write")}
+          nodesConnectable={Boolean(node?.allowed_actions.includes("write"))}
           minZoom={0.1}
           maxZoom={2}
         >

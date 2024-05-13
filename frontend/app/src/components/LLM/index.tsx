@@ -13,6 +13,7 @@ import { useDebounceValue } from "usehooks-ts";
 import { getLLMResponse, getLLMTokenCount } from "@/api";
 import { useFocus, useSpace } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
+import useUser from "@/hooks/useUser";
 import { readOnlyEditor } from "@/lib/readOnlyEditor";
 import { LLMTokenCount } from "@/types";
 
@@ -24,7 +25,7 @@ import usePosition from "./usePosition";
 
 const WIDTH = 600;
 
-const getTokenCountForDepth = (tokenCount: LLMTokenCount, depth: string): string => {
+const getTokenCountForDepth = (tokenCount: LLMTokenCount, depth: string | number): string => {
   if (depth in tokenCount) {
     return tokenCount[depth.toString()].toLocaleString();
   }
@@ -42,6 +43,7 @@ const getTokenCountForDepth = (tokenCount: LLMTokenCount, depth: string): string
 const LLM = ({ id }: { id: string }) => {
   const { nodesMap: spaceNodesMap } = useSpace();
   const { buddy, buddyId } = useBuddy();
+  const { isGuest } = useUser();
   const { position, dragItem, handleDragStart } = usePosition(WIDTH);
   const { reactFlowInstance, nodesMap, editor, focus, nodes } = useFocus();
 
@@ -161,10 +163,12 @@ const LLM = ({ id }: { id: string }) => {
               <Button variant="outline" onClick={() => abortController?.abort()}>
                 <StopCircle className="size-4 mr-2" /> Stop
               </Button>
-            ) : (
+            ) : !isGuest ? (
               <Button variant="outline" onClick={() => addNode()}>
                 <Plus className="size-4 mr-1" /> Add to {focus === "graph" ? "Graph" : "Editor"}
               </Button>
+            ) : (
+              <></>
             )}
           </div>
         )}

@@ -5,10 +5,11 @@ import { ChevronsLeft, Loader2, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { getMe, getSpaces } from "@/api";
+import { getSpaces } from "@/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SheetClose } from "@/components/ui/sheet";
 import { useSpace } from "@/hooks";
+import useUser from "@/hooks/useUser";
 import { metaKey } from "@/utils";
 
 import { Button } from "../ui/button";
@@ -19,7 +20,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   const [manageSpaceOpen, setManageSpaceOpen] = useState<boolean>(false);
   const [manageSpaceId, setManageSpaceId] = useState<string | null>(null);
   const { space: currentSpace } = useSpace();
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
+  const { user, isLoading: userLoading } = useUser();
   const { data: spaces, isLoading } = useQuery({
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
@@ -29,19 +30,19 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   const icon = blockies.create({ seed: user?.email }).toDataURL();
 
   useEffect(() => {
-    const validKeys = spaces?.map((_, i) => i + 1);
+    const validKeys = spaces?.results.map((_, i) => i + 1);
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey && validKeys?.includes(Number(e.key)) && open) {
         e.preventDefault();
         const index = Number(e.key) - 1;
-        if (spaces && index >= 0 && index < spaces.length) {
-          navigate(`/spaces/${spaces[index]?.id}`);
+        if (spaces && index >= 0 && index < spaces.count) {
+          navigate(`/spaces/${spaces?.results[index]?.id}`);
         }
       }
     };
 
-    if (spaces && spaces.length > 0) {
+    if (spaces && spaces.count > 0) {
       document.addEventListener("keydown", onKeyDown);
     }
 
@@ -72,7 +73,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
           </div>
         ) : (
           <ul>
-            {spaces?.map((space, i) => {
+            {spaces?.results.map((space, i) => {
               // const icon = blockies.create({ seed: space?.id }).toDataURL();
               return (
                 <li

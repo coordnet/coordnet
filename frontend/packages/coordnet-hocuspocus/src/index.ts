@@ -10,7 +10,6 @@ import config from "../knexfile";
 import { addToGraph } from "./addToGraph";
 import { addToNodePage } from "./addToNodePage";
 import { hocuspocusSettings } from "./settings";
-import { Me } from "./types";
 import { authRequest, backendRequest, cleanDocumentName, getDocumentType } from "./utils";
 
 const transformer = TiptapTransformer.extensions([StarterKit]);
@@ -31,23 +30,23 @@ const server = Server.configure({
     const document_type = getDocumentType(documentName);
     const public_id = cleanDocumentName(documentName);
 
-    const request = await backendRequest(`api/users/me/`, token);
-    const user = (await request.json()) as Me;
-
     if (document_type === "SPACE" || document_type === "GRAPH" || document_type === "EDITOR") {
       const model = document_type === "SPACE" ? "spaces" : "nodes";
-      const request = await backendRequest(`api/nodes/${model}/${public_id}/`, token);
-      const response = await request.json();
+      const request = await backendRequest(
+        `api/nodes/${model}/${public_id}/`,
+        token == "public" ? undefined : token,
+      );
       if (request.status !== 200) {
         throw new Error("Not authorized!");
-      } else if (!response.allowed_actions.includes("write")) {
+      }
+
+      const response = await request.json();
+      if (!response.allowed_actions.includes("write")) {
         data.connection.readOnly = true;
       }
     } else {
       throw new Error("Not authorized!");
     }
-
-    return { user };
   },
   async onLoadDocument({ document, documentName }) {
     const document_type = getDocumentType(documentName);

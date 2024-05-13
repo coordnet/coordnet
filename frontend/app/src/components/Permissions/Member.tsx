@@ -7,13 +7,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  createPermission,
-  deletePermission,
-  getMe,
-  getSpacePermissions,
-  handleApiError,
-} from "@/api";
+import { createPermission, deletePermission, getSpacePermissions, handleApiError } from "@/api";
 import {
   Select,
   SelectContent,
@@ -21,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useUser from "@/hooks/useUser";
 import { PermissionModel, PermissionSchema, Space } from "@/types";
 
 import { Button } from "../ui/button";
@@ -45,7 +40,7 @@ const Member = ({
   className?: string;
 }) => {
   const queryClient = useQueryClient();
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
+  const { user, isLoading: userLoading } = useUser();
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: ["spaces", space.id, "permissions"],
