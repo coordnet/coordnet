@@ -35,7 +35,7 @@ function Signup() {
   const sent = location.pathname.endsWith("/sent");
 
   useEffect(() => {
-    title(`Signup`);
+    title(`Sign Up`);
 
     const getUser = async () => {
       try {
@@ -99,7 +99,7 @@ function Signup() {
                 src="/static/coordination-network-logo.png"
                 className="max-w-[250px] w-full m-auto mb-4"
               />
-              <h1 className="text-lg font-medium mb-4 text-center">Sign up</h1>
+              <h1 className="text-lg font-medium mb-4 text-center">Private Beta Sign Up</h1>
               <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-y-2">
                 <FormField
                   control={form.control}
@@ -161,8 +161,19 @@ function Signup() {
                     </FormItem>
                   )}
                 />
+                <div className="text-sm mt-3 mb-2 text-center">
+                  Participation in the private beta follows our
+                  <br />
+                  <a
+                    href="https://app.coord.dev/spaces/7aa361ce-e6dc-44b9-9761-ba0e1ba4c4e7?nodePage=95836692-619e-438d-9fd5-7b6be89ff1f0"
+                    target="_blank"
+                  >
+                    testing community guidelines, terms and conditions
+                  </a>
+                  .
+                </div>
                 <Button type="submit" className="w-full bg-violet-600 rounded my-2">
-                  Signup
+                  Sign Up
                 </Button>
                 <Link to="/auth/reset-password">
                   <Button variant="ghost" className="w-full -my-2">
