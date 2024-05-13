@@ -25,7 +25,7 @@ drf-spectacular==0.27.0  # https://github.com/tfranzel/drf-spectacular
 # DRY REST Permissions for easier permission management
 django-dry-rest-permissions==1.2.0  # https://github.com/FJNR-inc/dry-rest-permissions
 # Django Filter for filtering on api endpoints
-django-filter==23.3  # https://github.com/carltongibson/django-filter
+django-filter==24.2  # https://github.com/carltongibson/django-filter
 # Secure DRF token authentication
 django-rest-knox==4.2.0  # https://github.com/jazzband/django-rest-knox
 # DRF Password Reset for password reset functionality
