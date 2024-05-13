@@ -66,14 +66,6 @@ export const getSpaces = async (
   signal: AbortSignal | undefined,
 ): Promise<PaginatedApiResponse<Space>> => {
   const response = await api.get("api/nodes/spaces/", { signal, params: { limit: 10000 } });
-
-  // Filter out public spaces for now
-  if (response.data.count !== 0) {
-    return {
-      ...response.data,
-      results: response.data.results.filter((space: Space) => !space.is_public),
-    };
-  }
   return response.data;
 };
 

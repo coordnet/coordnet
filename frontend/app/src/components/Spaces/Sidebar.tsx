@@ -27,29 +27,33 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
     enabled: Boolean(user),
   });
 
+  const filteredSpaces = spaces?.results.filter(
+    (space) => !(space.is_public && !space.allowed_actions.includes("manage")),
+  );
+
   const icon = blockies.create({ seed: user?.email }).toDataURL();
 
   useEffect(() => {
-    const validKeys = spaces?.results.map((_, i) => i + 1);
+    const validKeys = filteredSpaces?.map((_, i) => i + 1);
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey && validKeys?.includes(Number(e.key)) && open) {
         e.preventDefault();
         const index = Number(e.key) - 1;
-        if (spaces && index >= 0 && index < spaces.count) {
-          navigate(`/spaces/${spaces?.results[index]?.id}`);
+        if (filteredSpaces && index >= 0 && index < filteredSpaces.length) {
+          navigate(`/spaces/${filteredSpaces[index]?.id}`);
         }
       }
     };
 
-    if (spaces && spaces.count > 0) {
+    if (filteredSpaces && filteredSpaces.length > 0) {
       document.addEventListener("keydown", onKeyDown);
     }
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, navigate, spaces]);
+  }, [open, navigate, filteredSpaces]);
 
   return (
     <>
@@ -73,7 +77,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
           </div>
         ) : (
           <ul>
-            {spaces?.results.map((space, i) => {
+            {filteredSpaces?.map((space, i) => {
               // const icon = blockies.create({ seed: space?.id }).toDataURL();
               return (
                 <li
