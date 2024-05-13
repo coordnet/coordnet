@@ -56,3 +56,9 @@ updates:
     # Every weekday
     schedule:
       interval: 'daily'
+
+  # Enable version updates for npm packages
+  - package-ecosystem: 'npm'
+    directory: 'frontend'
+    schedule:
+      interval: 'daily'
