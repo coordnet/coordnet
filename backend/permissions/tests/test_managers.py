@@ -1,5 +1,3 @@
-from django.contrib.contenttypes import models as content_type_models
-
 import nodes.models
 import permissions.models
 import permissions.utils
@@ -9,18 +7,13 @@ from utils.testcases import BaseTestCase
 
 
 class MembershipModelQuerySetMixinTestCase(BaseTestCase):
-    def test_role_annotations(self) -> None:  # noqa: PLR0915
+    def test_role_annotations(self) -> None:
         """Test that the user_roles annotation is added to the queryset."""
         # TODO: Split this test into multiple smaller tests
         owner = self.owner_user
         node = nodes_factories.NodeFactory.create(owner=owner)
         subnodes = nodes_factories.NodeFactory.create_batch(10)
         node.subnodes.set(subnodes)
-
-        # Preload the content types, so that the queries are not counted (and the query count is not
-        # flaky)
-        content_type_models.ContentType.objects.get_for_model(nodes.models.Node)
-        content_type_models.ContentType.objects.get_for_model(nodes.models.Space)
 
         # Check that a node transfers the permissions to its subnodes.
         with self.assertNumQueries(1):

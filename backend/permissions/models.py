@@ -185,7 +185,7 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     @staticmethod
     def get_user_has_permission_filter(
-        action: Action, user: "users.typing.AnyUserType"
+        action: Action, user: "users.typing.AnyUserType | None"
     ) -> models.Q:
         raise NotImplementedError
 

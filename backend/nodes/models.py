@@ -3,7 +3,10 @@ from collections import OrderedDict
 
 import model_utils
 import pgtrigger
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes import models as content_type_models
+from django.contrib.postgres import indexes as pg_indexes
+from django.contrib.postgres import search as pg_search
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -81,7 +84,7 @@ class Node(permissions.models.MembershipBaseModel):
     @staticmethod
     def get_user_has_permission_filter(
         action: permissions.models.Action,
-        user: "user_typing.AnyUserType",
+        user: "user_typing.AnyUserType | None" = None,
         prefix: str | None = None,
     ) -> Q:
         """
@@ -91,6 +94,7 @@ class Node(permissions.models.MembershipBaseModel):
               before calling this method, but we're checking whether the parents or spaces are
               deleted. Roles are not soft-deletable, so those aren't checked either.
         """
+        user = user or AnonymousUser()
 
         def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
             queryset_filters = Q(
@@ -399,7 +403,12 @@ class Node(permissions.models.MembershipBaseModel):
     class Meta(
         permissions.models.MembershipModelMixin.Meta, utils.models.SoftDeletableBaseModel.Meta
     ):
-        pass
+        indexes = utils.models.SoftDeletableBaseModel.Meta.indexes + [
+            pg_indexes.GinIndex(
+                pg_search.SearchVector("title", "text", config="english"),
+                name="search_vector_idx",
+            )
+        ]
 
 
 class DocumentVersion(utils.models.SoftDeletableBaseModel):
@@ -469,7 +478,7 @@ class Space(permissions.models.MembershipBaseModel):
     @staticmethod
     def get_user_has_permission_filter(
         action: permissions.models.Action,
-        user: "user_typing.AnyUserType",
+        user: "user_typing.AnyUserType | None" = None,
         prefix: str | None = None,
     ) -> Q:
         """
@@ -479,6 +488,7 @@ class Space(permissions.models.MembershipBaseModel):
               before calling this method, but we're checking whether memberships are deleted.
               Roles are not soft-deletable, so those aren't checked either.
         """
+        user = user or AnonymousUser()
 
         def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
             return Q(

@@ -1,6 +1,8 @@
 from django import test
+from django.contrib.contenttypes import models as content_type_models
 from rest_framework import test as drf_test
 
+import nodes.models
 from permissions import models as permissions_models
 from users.tests import factories as users_factories
 
@@ -37,6 +39,10 @@ class BaseSetupTestCase:
 
         self.viewer_client = drf_test.APIClient()
         self.viewer_client.force_authenticate(user=self.viewer_user)
+
+        # To de-flake tests, prefetch content types here.
+        content_type_models.ContentType.objects.get_for_model(nodes.models.Node)
+        content_type_models.ContentType.objects.get_for_model(nodes.models.Space)
 
 
 @test.override_settings(**TEST_SETTINGS)

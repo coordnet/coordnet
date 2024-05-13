@@ -3,8 +3,8 @@ import typing
 from rest_framework import serializers
 
 import permissions.models
+import utils.serializers
 from nodes import models
-from utils import serializers as coord_serializers
 
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
@@ -18,10 +18,7 @@ else:
     AnnotatedNode = models.Node
 
 
-class NodeSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node]):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="nodes:nodes-detail", lookup_field="public_id"
-    )
+class NodeSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
     subnodes = serializers.SerializerMethodField()
     allowed_actions = serializers.SerializerMethodField()
 
@@ -31,9 +28,9 @@ class NodeSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node])
     def get_subnodes(self, obj: AnnotatedNode) -> list[str]:
         return [str(item.public_id) for item in obj.available_subnodes]
 
-    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
+    class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Node
-        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + [
+        exclude = utils.serializers.BaseSoftDeletableSerializer.Meta.exclude + [
             "content",
             "text",
             "graph_document",
@@ -41,7 +38,36 @@ class NodeSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Node])
         ]
 
 
-class SpaceDefaultNodeField(coord_serializers.PublicIdRelatedField):
+class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
+    spaces = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
+
+    class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
+        model = models.Node
+        exclude = utils.serializers.BaseSoftDeletableSerializer.Meta.exclude + [
+            "content",
+            "text",
+            "graph_document",
+            "editor_document",
+            "subnodes",
+            "is_public",
+            "is_public_writable",
+        ]
+
+
+class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[models.Space]":
+        user = self.context["request"].user
+        return models.Space.available_objects.filter(
+            models.Space.get_user_has_permission_filter(action=permissions.models.READ, user=user)
+        )
+
+
+class NodeSearchQuerySerializer(serializers.Serializer):
+    q = serializers.CharField(required=True)
+    space = AvailableSpaceField(required=False)
+
+
+class SpaceDefaultNodeField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[models.Node]":
         space = self.root.instance
         if space is not None:
@@ -49,7 +75,7 @@ class SpaceDefaultNodeField(coord_serializers.PublicIdRelatedField):
         return models.Node.available_objects.none()
 
 
-class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space]):
+class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space]):
     # TODO: don't let the API client pick their own id for the project, it should be auto-generated.
     title_slug = serializers.SlugField(read_only=True)
     default_node = SpaceDefaultNodeField(allow_null=True, read_only=False, required=False)
@@ -59,10 +85,10 @@ class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(self.context["request"])
 
-    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
+    class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space
         read_only_fields = ["default_node"]
-        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + [
+        exclude = utils.serializers.BaseSoftDeletableSerializer.Meta.exclude + [
             "nodes",
             "deleted_nodes",
             "document",
@@ -70,8 +96,8 @@ class SpaceSerializer(coord_serializers.BaseSoftDeletableSerializer[models.Space
 
 
 class DocumentVersionSerializer(
-    coord_serializers.BaseSoftDeletableSerializer[models.DocumentVersion]
+    utils.serializers.BaseSoftDeletableSerializer[models.DocumentVersion]
 ):
-    class Meta(coord_serializers.BaseSoftDeletableSerializer.Meta):
+    class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.DocumentVersion
-        exclude = coord_serializers.BaseSoftDeletableSerializer.Meta.exclude + ["data", "json_hash"]
+        exclude = utils.serializers.BaseSoftDeletableSerializer.Meta.exclude + ["data", "json_hash"]
