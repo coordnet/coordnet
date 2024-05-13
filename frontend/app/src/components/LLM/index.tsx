@@ -54,6 +54,7 @@ const LLM = ({ id }: { id: string }) => {
   const [debouncedInput] = useDebounceValue(input, 500);
   const [abortController, setAbortController] = useState(new AbortController());
   const [response, setResponse] = useState<string>("");
+  const [autoScroll, setAutoScroll] = useState(true);
   const [llmSettingsOpen, setLlmSettingsOpen] = useLocalStorageState<boolean>(
     `coordnet:llmSettingsOpen`,
     { defaultValue: false },
@@ -63,6 +64,41 @@ const LLM = ({ id }: { id: string }) => {
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const autoScrollToBottom = () => {
+    const element = scrollRef.current;
+    if (element) {
+      element.scrollTop = element.scrollHeight - element.clientHeight;
+    }
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleScroll = () => {
+    const element = scrollRef.current;
+    if (!element) return;
+
+    const threshold = 100;
+    const userScrolledUp =
+      element.scrollHeight - element.scrollTop - element.clientHeight > threshold;
+    setAutoScroll(!userScrolledUp);
+  };
+
+  useEffect(() => {
+    if (autoScroll) {
+      autoScrollToBottom();
+    }
+  }, [response]);
+
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (element) {
+      element.addEventListener("scroll", handleScroll);
+
+      return () => {
+        element.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, [handleScroll]);
 
   const queryNodes = useMemo(() => {
     const selectedNodes = nodes.filter((node) => node.selected);
@@ -90,8 +126,6 @@ const LLM = ({ id }: { id: string }) => {
       string += data;
       const sanitizedResponse = DOMPurify.sanitize(await marked.parse(string));
       setResponse(sanitizedResponse);
-      const elem = scrollRef?.current;
-      if (elem) elem.scrollTop = elem?.scrollHeight;
     });
     stream.on("end", () => setLoading(false));
     stream.on("error", (error: Error) => {
