@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import DOMPurify from "dompurify";
 import { FocusEventHandler, forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { mergeRefs } from "react-merge-refs";
 
@@ -12,6 +13,9 @@ interface EditableNodeProps {
   onBlur?: FocusEventHandler<HTMLDivElement>;
 }
 
+const ALLOWED_TAGS = ["a", "b", "strong", "i", "em", "strike", "u"];
+const FORBID_ATTR = ["style"];
+
 const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
   ({ id, contentEditable = true, className = "", onFocus, onBlur, ...props }, ref) => {
     const { nodes, nodesMap, scope } = useSpace();
@@ -23,28 +27,48 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
 
     useEffect(() => {
       if (!inputRef.current || isFocused) return;
-      inputRef.current.innerHTML = node?.title ?? "";
+      const cleaned = DOMPurify.sanitize(node?.title ?? "", { ALLOWED_TAGS, FORBID_ATTR });
+      inputRef.current.innerHTML = cleaned;
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [inputRef, node]);
 
     useEffect(() => {
       const node = nodes?.find((n) => n.id === id);
       if (node?.title === inputRef.current?.innerHTML || !inputRef.current) return;
-      inputRef.current.innerHTML = node?.title ?? "";
+      const cleaned = DOMPurify.sanitize(node?.title ?? "", { ALLOWED_TAGS, FORBID_ATTR });
+      inputRef.current.innerHTML = cleaned;
     }, [inputRef, nodes, id]);
 
     const onInput = useCallback(
       (e: React.FormEvent<HTMLDivElement>) => {
-        nodesMap?.set(id, { id: id, title: e.currentTarget.innerHTML });
+        const cleaned = DOMPurify.sanitize(e.currentTarget.innerHTML, {
+          ALLOWED_TAGS,
+          FORBID_ATTR,
+        });
+        nodesMap?.set(id, { id: id, title: cleaned });
       },
       [nodesMap, id],
     );
+
+    function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      // @ts-expect-error window.clipboardData is a fallback for older browser
+      const clipboardData = e.clipboardData || window.clipboardData;
+      const pastedData = clipboardData.getData("text/html");
+      const cleaned = DOMPurify.sanitize(pastedData, { ALLOWED_TAGS, FORBID_ATTR });
+
+      if (inputRef.current) inputRef.current.innerHTML = cleaned;
+      nodesMap?.set(id, { id: id, title: cleaned });
+    }
 
     return (
       <div
         ref={mergeRefs([inputRef, ref])}
         contentEditable={scope == "read-write" && contentEditable}
         onInput={onInput}
+        onPaste={handlePaste}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
