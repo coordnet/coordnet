@@ -6,7 +6,6 @@ import React, { ReactNode } from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, Navigate, RouterProvider, useParams } from "react-router-dom";
 import { Toaster } from "sonner";
-import store from "store2";
 import { QueryParamProvider } from "use-query-params";
 import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 
@@ -22,15 +21,6 @@ import ErrorPage from "./components/ErrorPage";
 import Dashboard from "./Dashboard";
 
 const queryClient = new QueryClient();
-
-const withAuth = (children: JSX.Element) => {
-  const authToken = store("coordnet-auth");
-  if (authToken) {
-    return <>{children}</>;
-  } else {
-    return <Navigate to="/auth/login" />;
-  }
-};
 
 const addProviders = (element: ReactNode) => {
   return (
@@ -57,7 +47,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/spaces/:spaceId/:pageId?",
-    element: withAuth(addProviders(<App />)),
+    element: addProviders(<App />),
     errorElement: <ErrorPage />,
   },
   {

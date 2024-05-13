@@ -4,12 +4,13 @@ import { Navigate } from "react-router-dom";
 
 import { Loader } from "@/components";
 
-import { getMe, getSpaces } from "./api";
+import { getSpaces } from "./api";
 import ErrorPage from "./components/ErrorPage";
+import useUser from "./hooks/useUser";
 import { CustomError } from "./utils";
 
 function Dashboard() {
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
+  const { user, isGuest, isLoading: userLoading } = useUser();
   const { data: spaces, isLoading: spacesLoading } = useQuery({
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
@@ -17,15 +18,15 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    if (!userLoading && !user) window.location.href = "/auth/login";
-  }, [user, userLoading]);
+    if (!userLoading && isGuest) window.location.href = "/auth/login";
+  }, [isGuest, userLoading]);
 
   if (userLoading || spacesLoading) return <Loader message="Loading" />;
 
-  if (!spaces || spaces.length === 0)
+  if (!spaces || spaces.count === 0)
     return <ErrorPage error={new CustomError({ code: "NO_SPACES", name: "", message: "" })} />;
 
-  return <Navigate to={`/spaces/${spaces?.[0].id}`} replace />;
+  return <Navigate to={`/spaces/${spaces?.results[0].id}`} replace />;
 }
 
 export default Dashboard;

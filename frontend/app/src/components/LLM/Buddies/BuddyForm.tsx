@@ -43,7 +43,7 @@ const CreateBuddy = ({
   const queryClient = useQueryClient();
   const { buddies } = useBuddy();
 
-  const buddy = buddies.find((buddy) => buddy.id === buddyId);
+  const buddy = buddies?.results.find((buddy) => buddy.id === buddyId);
 
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),

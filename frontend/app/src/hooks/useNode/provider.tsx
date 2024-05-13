@@ -1,30 +1,31 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import store from "store2";
 import * as Y from "yjs";
 
 import { getNode } from "@/api";
 import { GraphEdge, GraphNode } from "@/types";
 import { CustomError } from "@/utils";
 
+import useUser from "../useUser";
 import { NodeContext } from "./context";
 
 /**
  * Provider for sharing node between components
  */
 export function NodeProvider({ id, children }: { id: string; children: React.ReactNode }) {
+  const { token } = useUser();
   const [graphSynced, setGraphSynced] = useState<boolean>(false);
   const [graphConnected, setGraphConnected] = useState<boolean>(false);
   const [editorSynced, setEditorSynced] = useState<boolean>(false);
   const [editorConnected, setEditorConnected] = useState<boolean>(false);
   const [nodesSelection, setNodesSelection] = useState<Set<string>>(new Set());
   const [edgesSelection, setEdgesSelection] = useState<Set<string>>(new Set());
-  const [editorError, setEditorError] = useState<Error | null>(null);
-  const [graphError, setGraphError] = useState<Error | null>(null);
-  const [graphYdoc, setGraphYdoc] = useState<Y.Doc | null>(null);
-  const [editorProvider, setEditorProvider] = useState<HocuspocusProvider | null>(null);
-  const [editorYdoc, setEditorYdoc] = useState<Y.Doc | null>(null);
+  const [editorError, setEditorError] = useState<Error | undefined>();
+  const [graphError, setGraphError] = useState<Error | undefined>();
+  const [graphYdoc, setGraphYdoc] = useState<Y.Doc | undefined>();
+  const [editorProvider, setEditorProvider] = useState<HocuspocusProvider | undefined>();
+  const [editorYdoc, setEditorYdoc] = useState<Y.Doc | undefined>();
 
   const { data: node, isLoading } = useQuery({
     queryKey: ["node", id],
@@ -35,14 +36,13 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
   });
 
   useEffect(() => {
-    setEditorYdoc(!id ? null : new Y.Doc({ guid: `node-editor-${id}` }));
+    setEditorYdoc(!id ? undefined : new Y.Doc({ guid: `node-editor-${id}` }));
   }, [id]);
 
   useEffect(() => {
     setEditorConnected(false);
     setEditorSynced(false);
     if (!id || !editorYdoc) return;
-    const token = store("coordnet-auth");
     const newProvider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
       name: `node-editor-${id}`,
@@ -73,7 +73,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
   }, [id, editorYdoc]);
 
   useEffect(() => {
-    setGraphYdoc(!id ? null : new Y.Doc({ guid: `node-graph-${id}` }));
+    setGraphYdoc(!id ? undefined : new Y.Doc({ guid: `node-graph-${id}` }));
   }, [id]);
 
   useEffect(() => {
@@ -82,7 +82,6 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     if (!id || !graphYdoc) {
       return;
     }
-    const token = store("coordnet-auth");
     const newProvider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
       name: `node-graph-${id}`,

@@ -22,16 +22,16 @@ export const useUndoRedo = () => {
 
   // Serialize the current state of the Yjs maps
   const serializeState = (): HistoryState => ({
-    nodes: Array.from(nodesMap.entries()),
-    edges: Array.from(edgesMap.entries()),
+    nodes: Array.from(nodesMap ? nodesMap.entries() : []),
+    edges: Array.from(edgesMap ? edgesMap.entries() : []),
   });
 
   // Apply a previously saved state to the Yjs maps
   const applyState = (state: HistoryState) => {
-    nodesMap.clear();
-    edgesMap.clear();
-    state.nodes.forEach(([key, value]) => nodesMap.set(key, value));
-    state.edges.forEach(([key, value]) => edgesMap.set(key, value));
+    nodesMap?.clear();
+    edgesMap?.clear();
+    state.nodes.forEach(([key, value]) => nodesMap?.set(key, value));
+    state.edges.forEach(([key, value]) => edgesMap?.set(key, value));
   };
 
   const takeSnapshot = useCallback(() => {

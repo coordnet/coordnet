@@ -48,15 +48,14 @@ const NodeSchema = z.object({
 
 export const SpaceSchema = z.object({
   id: z.string(),
-  url: z.string(),
-  nodes: z.array(NodeSchema),
   title_slug: z.string(),
   created_at: z.date(),
   updated_at: z.date(),
   title: z.string(),
-  deleted_nodes: z.array(z.string()),
   default_node: z.string().nullable(),
   allowed_actions: z.array(AllowedActionsSchema),
+  is_public: z.boolean(),
+  is_public_writable: z.boolean(),
 });
 
 export type AllowedActions = z.infer<typeof AllowedActionsSchema>;

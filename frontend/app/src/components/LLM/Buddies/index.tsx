@@ -74,7 +74,7 @@ const Buddies = ({ className }: { className?: string }) => {
                   </div>
                 }
               >
-                {buddies.map((buddy) => (
+                {buddies?.results.map((buddy) => (
                   <CommandItem
                     key={`buddies-${buddy.id}`}
                     onSelect={() => {

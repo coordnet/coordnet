@@ -1,12 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import { ChevronsRight, Loader } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import store from "store2";
 
-import { getMe } from "@/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useSpace } from "@/hooks";
+import useUser from "@/hooks/useUser";
 import { cleanNodeTitle } from "@/utils";
 
 import SpaceSidebar from "./Spaces/Sidebar";
 import { Button } from "./ui/button";
 
 const Header = ({ id, className }: { id: string; className?: string }) => {
+  const { logout, user, isGuest, isLoading: userLoading } = useUser();
   const { space: currentSpace, nodes, breadcrumbs } = useSpace();
-  const { data: user, isLoading: userLoading } = useQuery({ queryKey: ["me"], queryFn: getMe });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   const userIcon = blockies.create({ seed: user?.email }).toDataURL();
@@ -61,40 +59,40 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
         )}
       </div>
 
-      <div className="absolute top-6 left-2 z-30 flex h-9 leading-9 gap-2">
-        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="size-9 p-0">
-              <ChevronsRight strokeWidth={2.8} className="size-4 text-neutral-500" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[320px] p-0">
-            <SpaceSidebar open={sidebarOpen} />
-          </SheetContent>
-        </Sheet>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="size-9 p-0">
-              {userLoading ? (
-                <Loader className="animate-spin size-4 text-neutral-500" />
-              ) : (
-                <img src={userIcon} className="rounded-full size-4" />
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => {
-                store.remove("coordnet-auth");
-                window.location.href = "/auth/login";
-              }}
-            >
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {isGuest ? (
+        <></>
+      ) : (
+        <div className="absolute top-6 left-2 z-30 flex h-9 leading-9 gap-2">
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="size-9 p-0">
+                <ChevronsRight strokeWidth={2.8} className="size-4 text-neutral-500" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[320px] p-0">
+              <SpaceSidebar open={sidebarOpen} />
+            </SheetContent>
+          </Sheet>
+          {!userLoading && user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="size-9 p-0">
+                  {userLoading ? (
+                    <Loader className="animate-spin size-4 text-neutral-500" />
+                  ) : (
+                    <img src={userIcon} className="rounded-full size-4" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem className="cursor-pointer" onClick={logout}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )}
     </>
   );
 };

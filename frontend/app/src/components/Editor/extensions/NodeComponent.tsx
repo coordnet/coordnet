@@ -7,7 +7,13 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { EditableNode } from "@/components";
 import Footer from "@/components/Graph/Footer";
 
-const NodeComponent = ({ node: pmNode, selected }: { node: ProseMirrorNode; seleced: boolean }) => {
+const NodeComponent = ({
+  node: pmNode,
+  selected,
+}: {
+  node: ProseMirrorNode;
+  selected: boolean;
+}) => {
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });

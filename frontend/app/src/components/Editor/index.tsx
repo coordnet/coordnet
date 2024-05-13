@@ -9,11 +9,12 @@ import { Tooltip } from "react-tooltip";
 import { format as formatTimeAgo } from "timeago.js";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
-import { getMe, getNodeVersions } from "@/api";
+import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useFocus } from "@/hooks";
 import useNode from "@/hooks/useNode";
+import useUser from "@/hooks/useUser";
 import { rgbToHex } from "@/utils";
 
 import ErrorPage from "../ErrorPage";
@@ -28,13 +29,12 @@ type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
   const { editorError, editorSynced, editorYdoc, editorProvider, node } = useNode();
+  const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
 
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
-
-  const { data: user } = useQuery({ queryKey: ["me"], queryFn: getMe });
 
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "EDITOR", 1],
@@ -48,7 +48,7 @@ const Editor = ({ id, className }: EditorProps) => {
       extensions: loadExtensions(editorProvider, editorYdoc),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: node?.allowed_actions.includes("write"),
+      editable: Boolean(node?.allowed_actions.includes("write")),
     },
     [id, node],
   );
@@ -61,7 +61,6 @@ const Editor = ({ id, className }: EditorProps) => {
 
   useEffect(() => {
     if (user && editor && editor.commands.updateUser) {
-      console.log("HI!!!", user, editor, editor.commands.updateUser);
       const image = blockies.create({ seed: user?.email }).toDataURL();
       const img = document.createElement("img");
       img.src = image;
@@ -121,16 +120,18 @@ const Editor = ({ id, className }: EditorProps) => {
             Saved {formatTimeAgo(versions.results[0].created_at)}
           </div>
         )}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="size-9 p-0" variant="outline">
-              <History className="size-5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
-            <Versions editor={editor} />
-          </DialogContent>
-        </Dialog>
+        {!isGuest && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="size-9 p-0" variant="outline">
+                <History className="size-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
+              <Versions editor={editor} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );

@@ -136,8 +136,8 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
           onBlur={() => {
             setIsEditing(false);
             inputRef?.current?.scrollTo(0, 0);
-            const node = nodesMap.get(id);
-            if (node) nodesMap.set(id, { ...node, data: { ...node.data, editing: false } });
+            const node = nodesMap?.get(id);
+            if (node) nodesMap?.set(id, { ...node, data: { ...node.data, editing: false } });
           }}
           contentEditable={isEditing}
           className={clsx("w-full items-center justify-center", {
