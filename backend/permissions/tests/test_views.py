@@ -100,7 +100,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
             set(response_data["allowed_actions"]), {"read", "write", "manage", "delete"}
         )
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:nodes-list"))
             self.assertEqual(response.status_code, 200)
 

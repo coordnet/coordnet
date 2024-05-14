@@ -23,7 +23,7 @@ class NodeModelViewSet(
 ):
     """API endpoint that allows nodes to be viewed."""
 
-    serializer_class = serializers.NodeSerializer
+    serializer_class = serializers.NodeListSerializer
     filterset_fields = ("spaces",)
     filter_backends = (filters.NodePermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYObjectPermissions,)
@@ -31,15 +31,29 @@ class NodeModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.Node]":
-        queryset = models.Node.available_objects.prefetch_related(
-            django_models.Prefetch(
-                "subnodes",
-                to_attr="available_subnodes",
-                queryset=models.Node.available_objects.only("id", "public_id"),
+        queryset = models.Node.available_objects.only(
+            "id", "public_id", "title_token_count", "text_token_count"
+        )
+
+        assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
+        queryset = queryset.annotate_user_permissions(request=self.request).annotate(
+            subnode_count=django_models.Count(
+                "subnodes", filter=~django_models.Q(subnodes__is_removed=True)
             )
         )
+
+        if self.action == "retrieve":
+            queryset = queryset.prefetch_related(
+                django_models.Prefetch("subnodes", to_attr="available_subnodes", queryset=queryset)
+            )
+
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
-        return queryset.annotate_user_permissions(request=self.request)
+        return queryset
+
+    def get_serializer_class(self) -> type[serializers.NodeListSerializer]:
+        if self.action == "retrieve":
+            return serializers.NodeDetailSerializer
+        return self.serializer_class
 
 
 class SpaceModelViewSet(

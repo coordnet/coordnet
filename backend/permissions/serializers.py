@@ -44,7 +44,7 @@ class ObjectPermissionModelSerializer(utils_serializers.BaseSerializer[models.Ob
 
     class Meta(utils_serializers.BaseSerializer.Meta):
         model = models.ObjectMembership
-        exclude = utils_serializers.BaseSerializer.Meta.exclude + [
+        exclude = (utils_serializers.BaseSerializer.Meta.exclude or []) + [
             "content_type",
             "object_id",
         ]

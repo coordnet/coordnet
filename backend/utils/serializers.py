@@ -49,7 +49,7 @@ class BaseSerializer(serializers.ModelSerializer[T], typing.Generic[T]):
     class Meta:
         # Since we are using UUIDs as primary keys with the key `id`, we don't need to show the
         # `public_id` field.
-        exclude = ["public_id"]
+        exclude: list[str] | None = ["public_id"]
 
 
 class BaseSoftDeletableSerializer(BaseSerializer[T], typing.Generic[T]):
@@ -59,4 +59,4 @@ class BaseSoftDeletableSerializer(BaseSerializer[T], typing.Generic[T]):
     """
 
     class Meta(BaseSerializer.Meta):
-        exclude = BaseSerializer.Meta.exclude + ["is_removed"]
+        exclude: list[str] | None = (BaseSerializer.Meta.exclude or []) + ["is_removed"]
