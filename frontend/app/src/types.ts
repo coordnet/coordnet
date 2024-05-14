@@ -89,6 +89,7 @@ export type BackendNodeDetail = z.infer<typeof BackendNodeDetailSchema>;
 export const NodeSearchResultSchema = z.object({
   id: z.string(),
   spaces: z.array(z.string()),
+  parents: z.array(z.string()),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
   title: z.string(),

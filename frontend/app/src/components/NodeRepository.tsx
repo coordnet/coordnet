@@ -1,11 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
-import { Loader2, Plus, Search, View } from "lucide-react";
+import { Ellipsis, Loader2, Plus, RefreshCcw, Search, View } from "lucide-react";
 import numeral from "numeral";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { getSpaces, searchNodes } from "@/api"; // Adjust the import based on your project structure
+import { getSpaces, searchNodes } from "@/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useFocus, useQuickView, useSpace } from "@/hooks";
 import { GraphNode, NodeSearchResult } from "@/types";
 
@@ -17,6 +25,7 @@ type NodeProps = { className?: string };
 const NodeRepository = ({ className }: NodeProps) => {
   const { space, nodesMap: spaceNodesMap } = useSpace();
   const { isQuickViewOpen, showQuickView } = useQuickView();
+  const navigate = useNavigate();
   const { data: spaces, isLoading: spacesLoading } = useQuery({
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
@@ -172,9 +181,8 @@ const NodeRepository = ({ className }: NodeProps) => {
                 { "bg-neutral-100": index === selectedIndex },
               )}
               key={item.id + index}
-              onClick={() => addNode(item)}
             >
-              <div className="flex flex-col cursor-pointer">
+              <div className="flex flex-col">
                 <span>{item.title.replace(/(<([^>]+)>)/gi, "")}</span>
                 <div className="flex gap-1 text-xs text-neutral-400 font-medium">
                   {!spacesLoading && (
@@ -192,6 +200,46 @@ const NodeRepository = ({ className }: NodeProps) => {
                     token
                     {(item.title_token_count ?? 0) + (item.text_token_count ?? 0) > 1 ? "s" : ""}
                   </span>
+                  {Boolean(item?.parents.length > 0) && (
+                    <>
+                      <span>·</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <span className="flex items-center underline cursor-pointer">
+                            <RefreshCcw className="size-2.5" />
+                            {item?.parents.length}
+                          </span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="z-70 w-[200px]" align="start">
+                          <DropdownMenuLabel>Canvases</DropdownMenuLabel>
+                          {item?.parents.map((parent, i) => (
+                            <DropdownMenuItem
+                              key={`${item?.id}-${i}`}
+                              className="flex items-center cursor-pointer"
+                              onClick={() => {
+                                navigate(`/spaces/${space?.id}/${parent}`);
+                                setVisible(false);
+                              }}
+                            >
+                              {spaceNodesMap?.get(parent)?.title}
+
+                              <Button
+                                variant="ghost"
+                                className="p-0 h-auto flex items-center ml-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  showQuickView(parent);
+                                }}
+                              >
+                                <View className="size-4 text-neutral-600" />
+                              </Button>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+
                   <span>·</span>
                   <span>Edited: {format(new Date(item.updated_at), "dd MMM, HH:mm")}</span>
                 </div>
@@ -207,9 +255,23 @@ const NodeRepository = ({ className }: NodeProps) => {
                 >
                   <View className="size-4 text-neutral-600" />
                 </Button>
-                {/* <Button variant="ghost" className="p-0 h-auto flex items-center">
-                  <Ellipsis className="size-4 text-neutral-600" />
-                </Button> */}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="p-0 h-auto flex items-center">
+                      <Ellipsis className="size-4 text-neutral-600" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="z-70 w-[200px]" align="start">
+                    <DropdownMenuItem
+                      className="font-normal flex items-center cursor-pointer"
+                      onClick={() => addNode(item)}
+                    >
+                      <Plus className="size-3 mr-1" /> Add to Canvas
+                      <div className="ml-auto text-xs text-neutral-500">⏎</div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </li>
           ))}
