@@ -31,8 +31,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     queryKey: ["node", id],
     queryFn: ({ signal }) => getNode(signal, id),
     enabled: Boolean(id),
-    retry: false,
-    refetchOnWindowFocus: false,
+    refetchInterval: 5000,
   });
 
   useEffect(() => {

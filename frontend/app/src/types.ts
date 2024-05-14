@@ -70,20 +70,21 @@ export type SpaceNode = {
 export type GraphNode = ReactFlowNode;
 export type GraphEdge = Edge;
 
-export interface BackendNode {
-  id: string;
-  url: string;
-  created_at: string;
-  updated_at: string;
-  title: string;
-  title_token_count: number;
-  // content:           NodeContent | null;
-  text: null | string;
-  text_token_count: number | null;
-  subnodes: string[];
-  allowed_actions: AllowedActions[];
-  is_public: boolean;
-}
+export const BackendNodeSchema = z.object({
+  id: z.string(),
+  title_token_count: z.number(),
+  text_token_count: z.null(),
+  allowed_actions: z.array(z.string()),
+  subnode_count: z.number(),
+});
+
+export type BackendNode = z.infer<typeof BackendNodeSchema>;
+
+export const BackendNodeDetailSchema = BackendNodeSchema.extend({
+  subnodes: z.array(z.lazy(() => BackendNodeSchema)),
+});
+
+export type BackendNodeDetail = z.infer<typeof BackendNodeDetailSchema>;
 
 export const NodeSearchResultSchema = z.object({
   id: z.string(),

@@ -4,7 +4,7 @@ import { CSSProperties } from "react";
 import { Tooltip } from "react-tooltip";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
-import { useQuickView, useSpace } from "@/hooks";
+import { useNode, useQuickView } from "@/hooks";
 
 const Footer = ({
   id,
@@ -15,10 +15,10 @@ const Footer = ({
   nodeStyle: CSSProperties;
   className?: string;
 }) => {
-  const { backendNodes } = useSpace();
+  const { node } = useNode();
   const { showQuickView } = useQuickView();
 
-  const backendNode = backendNodes.find((node) => node.id === id);
+  const backendNode = node?.subnodes.find((node) => node.id === id);
 
   const tokens = (backendNode?.text_token_count ?? 0) + (backendNode?.title_token_count ?? 0);
 
@@ -54,7 +54,7 @@ const Footer = ({
               <Tooltip id="footer-node-page">Node Page</Tooltip>
             </>
           )}
-          {Boolean(backendNode?.subnodes.length) && (
+          {Boolean(backendNode?.subnode_count > 0) && (
             <>
               <div
                 className={clsx(

@@ -2,11 +2,11 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { createContext } from "react";
 import * as Y from "yjs";
 
-import { BackendNode, GraphEdge, GraphNode } from "@/types";
+import { BackendNodeDetail, GraphEdge, GraphNode } from "@/types";
 
 type NodeContextType = {
   id: string;
-  node: BackendNode | undefined;
+  node: BackendNodeDetail | undefined;
   isLoading: boolean;
   editorProvider: HocuspocusProvider | undefined;
   editorYdoc: Y.Doc | undefined;

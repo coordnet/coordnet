@@ -5,6 +5,7 @@ import store from "store2";
 import {
   ApiError,
   BackendNode,
+  BackendNodeDetail,
   Buddy,
   LLMTokenCount,
   Me,
@@ -136,7 +137,7 @@ export const deletePermission = async (
 export const getNode = async (
   signal: AbortSignal | undefined,
   id?: string,
-): Promise<BackendNode> => {
+): Promise<BackendNodeDetail> => {
   const response = await api.get(`api/nodes/nodes/${id}/`, { signal });
   return response.data;
 };

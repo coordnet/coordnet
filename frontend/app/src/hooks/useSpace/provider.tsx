@@ -6,7 +6,7 @@ import useLocalStorageState from "use-local-storage-state";
 import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
-import { getSpace, getSpaceNodes, updateSpace } from "@/api";
+import { getSpace, updateSpace } from "@/api";
 import { SpaceNode } from "@/types";
 import { CustomError, waitForNode } from "@/utils";
 
@@ -47,16 +47,6 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     `coordnet:breadcrumbs-${spaceId}`,
     { defaultValue: [] },
   );
-
-  const { data: backendNodes } = useQuery({
-    queryKey: ["spaces", space?.id, "nodes"],
-    queryFn: ({ signal }) => getSpaceNodes(signal, space?.id),
-    enabled: Boolean(space),
-    retry: false,
-    initialData: { count: 0, next: "", previous: null, results: [] },
-    refetchOnWindowFocus: false,
-    refetchInterval: 10000,
-  });
 
   useEffect(() => {
     if (!space) return;
@@ -142,7 +132,6 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     synced,
     connected,
     provider,
-    backendNodes: backendNodes?.results ?? [],
     breadcrumbs,
     setBreadcrumbs,
     scope: provider?.authorizedScope,

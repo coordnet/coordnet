@@ -28,13 +28,13 @@ const HoverMenu = ({
   onClickEdit: (e: React.MouseEvent) => void;
   className?: string;
 }) => {
-  const { nodesMap } = useNode();
+  const { nodesMap, node } = useNode();
   const { showQuickView } = useQuickView();
-  const { space, backendNodes, scope } = useSpace();
+  const { space, scope } = useSpace();
   const navigate = useNavigate();
 
-  const backendNode = backendNodes.find((node) => node.id === id);
-  const hasGraph = Boolean(backendNode?.subnodes.length);
+  const backendNode = node?.subnodes.find((node) => node.id === id);
+  const hasGraph = Boolean(backendNode?.subnode_count ?? 0 > 0);
   const hasPage = Boolean(backendNode?.text_token_count);
   const GraphIcon = hasGraph ? Share2 : GitBranchPlus;
 
