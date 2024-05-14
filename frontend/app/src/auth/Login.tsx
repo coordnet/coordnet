@@ -106,7 +106,7 @@ function Login() {
               <Button type="submit" className="w-full bg-violet-600 rounded my-2">
                 Login
               </Button>
-              <Link to="/reset-password">
+              <Link to="/auth/reset-password">
                 <Button variant="ghost" className="w-full -my-2">
                   Reset password
                 </Button>
