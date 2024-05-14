@@ -44,9 +44,6 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.36.0
         version: 5.36.0(@tanstack/react-query@5.36.0)(react@18.3.1)
-      '@tanstack/react-virtual':
-        specifier: ^3.5.0
-        version: 3.5.0(react-dom@18.3.1)(react@18.3.1)
       '@tiptap/core':
         specifier: ^2.3.2
         version: 2.3.2(@tiptap/pm@2.3.2)
@@ -2021,21 +2018,6 @@ packages:
     dependencies:
       '@tanstack/query-core': 5.36.0
       react: 18.3.1
-    dev: false
-
-  /@tanstack/react-virtual@3.5.0(react-dom@18.3.1)(react@18.3.1):
-    resolution: {integrity: sha512-rtvo7KwuIvqK9zb0VZ5IL7fiJAEnG+0EiFZz8FUOs+2mhGqdGmjKIaT1XU7Zq0eFqL0jonLlhbayJI/J2SA/Bw==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-    dependencies:
-      '@tanstack/virtual-core': 3.5.0
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-    dev: false
-
-  /@tanstack/virtual-core@3.5.0:
-    resolution: {integrity: sha512-KnPRCkQTyqhanNC0K63GBG3wA8I+D1fQuVnAvcBF8f13akOKeQp1gSbu6f77zCxhEk727iV5oQnbHLYzHrECLg==}
     dev: false
 
   /@tiptap/core@2.3.2(@tiptap/pm@2.3.2):
