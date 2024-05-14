@@ -183,8 +183,10 @@ const NodeRepository = ({ className }: NodeProps) => {
               )}
               key={item.id + index}
             >
-              <div className="flex flex-col">
-                <span>{DOMPurify.sanitize(item.title ?? "", { ALLOWED_TAGS: [] })}</span>
+              <div className="flex flex-col mr-2">
+                <div className="cursor-pointer" onClick={() => addNode(item)}>
+                  {DOMPurify.sanitize(item.title ?? "", { ALLOWED_TAGS: [] })}
+                </div>
                 <div className="flex gap-1 text-xs text-neutral-400 font-medium">
                   {!spacesLoading && (
                     <>
