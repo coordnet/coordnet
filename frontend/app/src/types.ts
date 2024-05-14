@@ -85,6 +85,17 @@ export interface BackendNode {
   is_public: boolean;
 }
 
+export const NodeSearchResultSchema = z.object({
+  id: z.string(),
+  spaces: z.array(z.string()),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  title: z.string(),
+  title_token_count: z.number(),
+  text_token_count: z.number(),
+});
+export type NodeSearchResult = z.infer<typeof NodeSearchResultSchema>;
+
 export const BuddySchema = z.object({
   id: z.string().uuid(),
   created_at: z.date(),

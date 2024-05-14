@@ -40,7 +40,7 @@ export const addNodeToGraph = async (
     type: "GraphNode",
     position: flowPosition,
     style: { width: 200, height: 80 },
-    data: { syncing: true },
+    data: { syncing: body ? true : false },
   };
   spaceNodesMap.set(id, { id: id, title });
   nodesMap.set(id, newNode);

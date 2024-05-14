@@ -44,6 +44,9 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.36.0
         version: 5.36.0(@tanstack/react-query@5.36.0)(react@18.3.1)
+      '@tanstack/react-virtual':
+        specifier: ^3.5.0
+        version: 3.5.0(react-dom@18.3.1)(react@18.3.1)
       '@tiptap/core':
         specifier: ^2.3.2
         version: 2.3.2(@tiptap/pm@2.3.2)
@@ -98,6 +101,9 @@ importers:
       marked:
         specifier: ^12.0.2
         version: 12.0.2
+      numeral:
+        specifier: ^2.0.6
+        version: 2.0.6
       pdfjs-dist:
         specifier: ^4.2.67
         version: 4.2.67
@@ -186,6 +192,9 @@ importers:
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.0.5
+      '@types/numeral':
+        specifier: ^2.0.5
+        version: 2.0.5
       '@types/react':
         specifier: ^18.3.2
         version: 18.3.2
@@ -2014,6 +2023,21 @@ packages:
       react: 18.3.1
     dev: false
 
+  /@tanstack/react-virtual@3.5.0(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-rtvo7KwuIvqK9zb0VZ5IL7fiJAEnG+0EiFZz8FUOs+2mhGqdGmjKIaT1XU7Zq0eFqL0jonLlhbayJI/J2SA/Bw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@tanstack/virtual-core': 3.5.0
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    dev: false
+
+  /@tanstack/virtual-core@3.5.0:
+    resolution: {integrity: sha512-KnPRCkQTyqhanNC0K63GBG3wA8I+D1fQuVnAvcBF8f13akOKeQp1gSbu6f77zCxhEk727iV5oQnbHLYzHrECLg==}
+    dev: false
+
   /@tiptap/core@2.3.2(@tiptap/pm@2.3.2):
     resolution: {integrity: sha512-4sMpzYuxiG+fYMwPRXy+mLRVU315KEqzQUcBc2FEgSsmw9Kionykmkq3DvEco7rH8r0NdV/l9R49wVEtX54VqQ==}
     peerDependencies:
@@ -2600,6 +2624,10 @@ packages:
     resolution: {integrity: sha512-vDg9PZ/zi+Nqp6boSOT7plNuthRugEKixDv5sFTIpkE89MmNtEArAShI4mxuX2+UrLEe9pxC1vm2cjm9YlWbJw==}
     dependencies:
       undici-types: 5.26.5
+    dev: true
+
+  /@types/numeral@2.0.5:
+    resolution: {integrity: sha512-kH8I7OSSwQu9DS9JYdFWbuvhVzvFRoCPCkGxNwoGgaPeDfEPJlcxNvEOypZhQ3XXHsGbfIuYcxcJxKUfJHnRfw==}
     dev: true
 
   /@types/prop-types@15.7.12:
@@ -4996,6 +5024,10 @@ packages:
       set-blocking: 2.0.0
     dev: false
     optional: true
+
+  /numeral@2.0.6:
+    resolution: {integrity: sha512-qaKRmtYPZ5qdw4jWJD6bxEf1FJEqllJrwxCLIm0sQU/A7v2/czigzOb+C2uSiFsa9lBUzeH7M1oK+Q+OLxL3kA==}
+    dev: false
 
   /oauth-sign@0.9.0:
     resolution: {integrity: sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==}

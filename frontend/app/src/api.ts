@@ -8,6 +8,7 @@ import {
   Buddy,
   LLMTokenCount,
   Me,
+  NodeSearchResult,
   NodeVersion,
   PaginatedApiResponse,
   Permission,
@@ -146,6 +147,18 @@ export const getSpaceNodes = async (
 ): Promise<PaginatedApiResponse<BackendNode>> => {
   const response = await api.get("api/nodes/nodes/", {
     params: { spaces: spaceId, limit: 10000 },
+    signal,
+  });
+  return response.data;
+};
+
+export const searchNodes = async (
+  signal: AbortSignal | undefined,
+  q: string,
+  space: string,
+): Promise<PaginatedApiResponse<NodeSearchResult>> => {
+  const response = await api.get("api/nodes/search/", {
+    params: { q, space, limit: 25 },
     signal,
   });
   return response.data;
