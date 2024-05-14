@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
+import DOMPurify from "dompurify";
 import { Ellipsis, Loader2, Plus, RefreshCcw, Search, View } from "lucide-react";
 import numeral from "numeral";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -183,7 +184,7 @@ const NodeRepository = ({ className }: NodeProps) => {
               key={item.id + index}
             >
               <div className="flex flex-col">
-                <span>{item.title.replace(/(<([^>]+)>)/gi, "")}</span>
+                <span>{DOMPurify.sanitize(item.title ?? "", { ALLOWED_TAGS: [] })}</span>
                 <div className="flex gap-1 text-xs text-neutral-400 font-medium">
                   {!spacesLoading && (
                     <>
@@ -212,29 +213,34 @@ const NodeRepository = ({ className }: NodeProps) => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="z-70 w-[200px]" align="start">
                           <DropdownMenuLabel>Canvases</DropdownMenuLabel>
-                          {item?.parents.map((parent, i) => (
-                            <DropdownMenuItem
-                              key={`${item?.id}-${i}`}
-                              className="flex items-center cursor-pointer"
-                              onClick={() => {
-                                navigate(`/spaces/${space?.id}/${parent}`);
-                                setVisible(false);
-                              }}
-                            >
-                              {spaceNodesMap?.get(parent)?.title}
-
-                              <Button
-                                variant="ghost"
-                                className="p-0 h-auto flex items-center ml-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  showQuickView(parent);
+                          {item?.parents.map((parent, i) => {
+                            if (!spaceNodesMap?.get(parent)?.title) return null;
+                            return (
+                              <DropdownMenuItem
+                                key={`${item?.id}-${i}`}
+                                className="flex items-center cursor-pointer"
+                                onClick={() => {
+                                  navigate(`/spaces/${space?.id}/${parent}`);
+                                  setVisible(false);
                                 }}
                               >
-                                <View className="size-4 text-neutral-600" />
-                              </Button>
-                            </DropdownMenuItem>
-                          ))}
+                                {DOMPurify.sanitize(spaceNodesMap?.get(parent)?.title ?? "", {
+                                  ALLOWED_TAGS: [],
+                                })}
+
+                                <Button
+                                  variant="ghost"
+                                  className="p-0 h-auto flex items-center ml-auto"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    showQuickView(parent);
+                                  }}
+                                >
+                                  <View className="size-4 text-neutral-600" />
+                                </Button>
+                              </DropdownMenuItem>
+                            );
+                          })}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </>

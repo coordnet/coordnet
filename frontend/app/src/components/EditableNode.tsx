@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import { FocusEventHandler, forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { mergeRefs } from "react-merge-refs";
 
+import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
 import useSpace from "@/hooks/useSpace";
 
 interface EditableNodeProps {
@@ -12,9 +13,6 @@ interface EditableNodeProps {
   onFocus?: FocusEventHandler<HTMLDivElement>;
   onBlur?: FocusEventHandler<HTMLDivElement>;
 }
-
-const ALLOWED_TAGS = ["a", "b", "strong", "i", "em", "strike", "u"];
-const FORBID_ATTR = ["style"];
 
 const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
   ({ id, contentEditable = true, className = "", onFocus, onBlur, ...props }, ref) => {

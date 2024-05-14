@@ -16,3 +16,6 @@ export const buddyModels = {
   "gpt-4-turbo-preview": "GPT-4",
   "gpt-3.5-turbo-0125": "GPT-3.5",
 };
+
+export const ALLOWED_TAGS = ["a", "b", "strong", "i", "em", "strike", "u"];
+export const FORBID_ATTR = ["style"];
