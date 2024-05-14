@@ -40,6 +40,7 @@ class NodeDetailSerializer(NodeListSerializer):
 
 class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
     spaces = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
+    parents = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Node

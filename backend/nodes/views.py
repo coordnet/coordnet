@@ -115,7 +115,10 @@ class SearchView(generics.ListAPIView):
             .prefetch_related(
                 django_models.Prefetch(
                     "spaces", queryset=models.Space.available_objects.only("id", "public_id")
-                )
+                ),
+                django_models.Prefetch(
+                    "parents", queryset=models.Node.available_objects.only("id", "public_id")
+                ),
             )
             .annotate(
                 rank=pg_search.SearchRank(
