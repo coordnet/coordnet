@@ -59,8 +59,14 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
       const pastedData = clipboardData.getData("text/html");
       const cleaned = DOMPurify.sanitize(pastedData, { ALLOWED_TAGS, FORBID_ATTR });
 
-      if (inputRef.current) inputRef.current.innerHTML = cleaned;
-      nodesMap?.set(id, { id: id, title: cleaned });
+      // Insert the cleaned HTML at the cursor position
+      document.execCommand("insertHTML", false, cleaned);
+
+      // Update the nodesMap with the new content
+      if (inputRef.current) {
+        const updatedContent = inputRef.current.innerHTML;
+        nodesMap?.set(id, { id: id, title: updatedContent });
+      }
     }
 
     return (
