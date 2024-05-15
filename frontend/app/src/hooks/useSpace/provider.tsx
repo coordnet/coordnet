@@ -1,6 +1,6 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useLocalStorageState from "use-local-storage-state";
 import { v4 as uuid } from "uuid";
@@ -25,7 +25,6 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
   const [spaceError, setSpaceError] = useState<Error | undefined>();
   const [provider, setProvider] = useState<HocuspocusProvider | undefined>();
-  const [ydoc, setYdoc] = useState<Y.Doc | undefined>();
 
   const {
     data: space,
@@ -48,10 +47,10 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     { defaultValue: [] },
   );
 
-  useEffect(() => {
-    if (!space) return;
-    setYdoc(new Y.Doc({ guid: `space-${space.id}` }));
-  }, [space]);
+  const ydoc = useMemo(
+    () => (!space?.id ? undefined : new Y.Doc({ guid: `space-${space.id}` })),
+    [space],
+  );
 
   useEffect(() => {
     if (!spaceId || !ydoc) return;

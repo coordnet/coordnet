@@ -1,6 +1,6 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as Y from "yjs";
 
 import { getNode } from "@/api";
@@ -23,9 +23,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
   const [edgesSelection, setEdgesSelection] = useState<Set<string>>(new Set());
   const [editorError, setEditorError] = useState<Error | undefined>();
   const [graphError, setGraphError] = useState<Error | undefined>();
-  const [graphYdoc, setGraphYdoc] = useState<Y.Doc | undefined>();
   const [editorProvider, setEditorProvider] = useState<HocuspocusProvider | undefined>();
-  const [editorYdoc, setEditorYdoc] = useState<Y.Doc | undefined>();
 
   const { data: node, isLoading } = useQuery({
     queryKey: ["node", id],
@@ -34,9 +32,10 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     refetchInterval: 5000,
   });
 
-  useEffect(() => {
-    setEditorYdoc(!id ? undefined : new Y.Doc({ guid: `node-editor-${id}` }));
-  }, [id]);
+  const editorYdoc = useMemo(
+    () => (!id ? undefined : new Y.Doc({ guid: `node-editor-${id}` })),
+    [id],
+  );
 
   useEffect(() => {
     setEditorConnected(false);
@@ -71,9 +70,10 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     };
   }, [id, editorYdoc]);
 
-  useEffect(() => {
-    setGraphYdoc(!id ? undefined : new Y.Doc({ guid: `node-graph-${id}` }));
-  }, [id]);
+  const graphYdoc = useMemo(
+    () => (!id ? undefined : new Y.Doc({ guid: `node-graph-${id}` })),
+    [id],
+  );
 
   useEffect(() => {
     setGraphConnected(false);
