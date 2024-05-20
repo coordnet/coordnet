@@ -78,6 +78,7 @@ class Node(permissions.models.MembershipBaseModel):
     graph_document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_graph"
     )
+    search_vector = pg_search.SearchVectorField(editable=False, null=True)
 
     tracker = model_utils.FieldTracker()
 
@@ -404,9 +405,19 @@ class Node(permissions.models.MembershipBaseModel):
         permissions.models.MembershipModelMixin.Meta, utils.models.SoftDeletableBaseModel.Meta
     ):
         indexes = utils.models.SoftDeletableBaseModel.Meta.indexes + [
-            pg_indexes.GinIndex(
-                pg_search.SearchVector("title", "text", config="english"),
-                name="search_vector_idx",
+            pg_indexes.GinIndex("search_vector", name="search_vector_idx")
+        ]
+        triggers = [
+            pgtrigger.Trigger(
+                name="node_update_search_vector",
+                operation=pgtrigger.Update | pgtrigger.Insert,
+                when=pgtrigger.Before,
+                func=pgtrigger.Func(
+                    """
+                    NEW.search_vector := setweight(to_tsvector('pg_catalog.english', coalesce(new.title,'')), 'A') || setweight(to_tsvector('pg_catalog.english', coalesce(new.text,'')), 'C');
+                    return NEW;
+                    """  # noqa: E501
+                ),
             )
         ]
 

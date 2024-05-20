@@ -122,12 +122,13 @@ class SearchView(generics.ListAPIView):
             )
             .annotate(
                 rank=pg_search.SearchRank(
-                    pg_search.SearchVector("title", "text", config="english"),
+                    "search_vector",
                     pg_search.SearchQuery(search_query_serializer.validated_data["q"]),
-                ),
-                search=pg_search.SearchVector("title", "text", config="english"),
+                )
             )
-            .filter(search=pg_search.SearchQuery(search_query_serializer.validated_data["q"]))
+            .filter(
+                search_vector=pg_search.SearchQuery(search_query_serializer.validated_data["q"])
+            )
             .order_by("-rank")
         )
 
