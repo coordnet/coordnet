@@ -103,3 +103,9 @@ class SpacesViewTestCase(BaseTransactionTestCase):
 
         response = self.viewer_client.delete(reverse("nodes:spaces-detail", args=[space.public_id]))
         self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_creation(self) -> None:
+        """Regression test to check that unauthenticated users can't create Spaces."""
+        response = self.client.post(reverse("nodes:spaces-list"), {"title": "new space"})
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(models.Space.objects.count(), 0)

@@ -65,7 +65,7 @@ class SpaceModelViewSet(
     queryset = models.Space.available_objects.prefetch_related("nodes").all()
     serializer_class = serializers.SpaceSerializer
     filter_backends = (filters.SpacePermissionFilterBackend, base_filters.BaseFilterBackend)
-    permission_classes = (dry_permissions.DRYObjectPermissions,)
+    permission_classes = (dry_permissions.DRYPermissions,)
 
     def get_queryset(
         self,

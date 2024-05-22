@@ -1,5 +1,6 @@
 import typing
 
+import dry_rest_permissions.generics
 from django.contrib.contenttypes import fields as content_type_fields
 from django.contrib.contenttypes import models as content_type_models
 from django.db import models
@@ -219,6 +220,12 @@ class MembershipModelMixin(utils.typing.ModelBase):
     def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user has write permissions for this object."""
         return self.get_allowed_action_for_user(request, WRITE)
+
+    @staticmethod
+    @dry_rest_permissions.generics.authenticated_users
+    def has_create_permission(request: "http.HttpRequest") -> bool:
+        """Return True because any authenticated user can create a new object."""
+        return True
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init__(*args, **kwargs)
