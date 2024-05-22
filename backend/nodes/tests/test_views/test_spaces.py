@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+import permissions.models
 from nodes import models
 from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
@@ -46,6 +47,11 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 201, response.data)
         self.assertEqual(response.data["title"], "new space")
         self.assertEqual(response.data["title_slug"], "new-space")
+        self.assertTrue(
+            models.Space.objects.get(public_id=response.data["id"])
+            .members.filter(user=self.owner_user, role__role=permissions.models.OWNER)
+            .exists()
+        )
 
     def test_update(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)

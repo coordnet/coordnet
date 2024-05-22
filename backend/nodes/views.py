@@ -8,6 +8,7 @@ from rest_framework import decorators, generics, pagination, response
 
 import permissions.managers
 import permissions.models
+import permissions.utils
 import permissions.views
 from nodes import filters, models, serializers
 from utils import filters as base_filters
@@ -74,6 +75,10 @@ class SpaceModelViewSet(
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset.annotate_user_permissions(request=self.request)
+
+    def perform_create(self, serializer: serializers.SpaceSerializer) -> None:  # type: ignore[override]
+        space = serializer.save()
+        space.members.create(user=self.request.user, role=permissions.utils.get_owner_role())
 
 
 class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.DocumentVersion]):
