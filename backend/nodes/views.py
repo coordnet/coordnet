@@ -2,6 +2,7 @@ import typing
 
 import django.contrib.postgres.search as pg_search
 import dry_rest_permissions.generics as dry_permissions
+import rest_framework.filters
 from django import http
 from django.db import models as django_models
 from rest_framework import decorators, generics, pagination, response
@@ -90,7 +91,10 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
     filter_backends = (
         filters.DocumentVersionPermissionFilterBackend,
         base_filters.BaseFilterBackend,
+        rest_framework.filters.OrderingFilter,
     )
+    ordering_fields = ["created_at"]
+    ordering = ["-created_at"]
     permission_classes = (dry_permissions.DRYObjectPermissions,)
     pagination_class = pagination.PageNumberPagination
 

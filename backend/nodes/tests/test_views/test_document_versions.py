@@ -124,3 +124,33 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
+
+    def test_ordering(self) -> None:
+        document = factories.DocumentFactory.create()
+        factories.NodeFactory.create(owner=self.owner_user, editor_document=document)
+        document_version_1 = factories.DocumentVersionFactory.create(
+            document=document, created_at="2021-01-01T00:00:00Z"
+        )
+        document_version_2 = factories.DocumentVersionFactory.create(
+            document=document, created_at="2021-01-02T00:00:00Z"
+        )
+
+        response = self.owner_client.get(
+            reverse("nodes:document-versions-list"), {"ordering": "created_at"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        self.assertListEqual(
+            [item["id"] for item in response.data["results"]],
+            [str(document_version_1.public_id), str(document_version_2.public_id)],
+        )
+
+        response = self.owner_client.get(
+            reverse("nodes:document-versions-list"), {"ordering": "-created_at"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        self.assertListEqual(
+            [item["id"] for item in response.data["results"]],
+            [str(document_version_2.public_id), str(document_version_1.public_id)],
+        )
