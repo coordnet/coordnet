@@ -23,11 +23,6 @@ class PermissionViewSetMixin(generics.GenericAPIView[T_co], typing.Generic[T_co]
     )
     def manage_permissions(self, request: "request.Request", public_id: str) -> Response:
         if request.method == "GET":
-            print(
-                serializers.ObjectPermissionModelSerializer(
-                    self.get_object().members.all(), many=True
-                ).data
-            )
             return Response(self.get_serializer(self.get_object().members.all(), many=True).data)
         else:
             content_object = self.get_object()
