@@ -109,3 +109,18 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         response = self.client.post(reverse("nodes:spaces-list"), {"title": "new space"})
         self.assertEqual(response.status_code, 401)
         self.assertEqual(models.Space.objects.count(), 0)
+
+    def test_list_permissions(self) -> None:
+        """Check that unauthenticated users can't list Spaces, but authenticated ones can."""
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+
+        response = self.client.get(
+            reverse("nodes:spaces-manage-permissions", args=[space.public_id])
+        )
+        self.assertEqual(response.status_code, 401)
+
+        response = self.owner_client.get(
+            reverse("nodes:spaces-manage-permissions", args=[space.public_id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)

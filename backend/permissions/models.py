@@ -93,6 +93,18 @@ class ObjectMembership(utils.models.BaseModel):
             )
         ]
 
+    @dry_rest_permissions.generics.authenticated_users
+    @staticmethod
+    def has_read_permission(request: "http.HttpRequest") -> bool:
+        """Return True in general and handle on detail level."""
+        return True
+
+    @dry_rest_permissions.generics.authenticated_users
+    @staticmethod
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """Return True in general and handle on detail level."""
+        return True
+
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user is the owner of the object."""
         if not self.content_object:
