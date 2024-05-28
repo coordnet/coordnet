@@ -22,9 +22,14 @@ def create_periodic_tasks(sender: typing.Any, **kwargs: typing.Any) -> None:
     )
 
     # Create a schedule for the document versioning task
-    schedule, created = IntervalSchedule.objects.get_or_create(
-        every=settings.NODE_VERSIONING_TASK_INTERVAL, period=IntervalSchedule.SECONDS
-    )
+    try:
+        schedule, created = IntervalSchedule.objects.get_or_create(
+            every=settings.NODE_VERSIONING_TASK_INTERVAL, period=IntervalSchedule.SECONDS
+        )
+    except IntervalSchedule.MultipleObjectsReturned:
+        schedule = IntervalSchedule.objects.filter(
+            every=settings.NODE_VERSIONING_TASK_INTERVAL, period=IntervalSchedule.SECONDS
+        ).first()
 
     # Associate this schedule with the task
     PeriodicTask.objects.update_or_create(
