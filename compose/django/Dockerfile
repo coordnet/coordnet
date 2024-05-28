@@ -69,25 +69,29 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
   && rm -rf /wheels/
 
 COPY ./compose/django/entrypoint /entrypoint
-RUN sed -i 's/\r$//g' /entrypoint
-RUN chmod +x /entrypoint
+RUN sed -i 's/\r$//g' /entrypoint \
+  && chmod +x /entrypoint
 
 COPY ./compose/django/start /start
-RUN sed -i 's/\r$//g' /start
-RUN chmod +x /start
+RUN sed -i 's/\r$//g' /start \
+  && chmod +x /start
 
 
 COPY ./compose/django/celery/worker/start /start-celeryworker
-RUN sed -i 's/\r$//g' /start-celeryworker
-RUN chmod +x /start-celeryworker
+RUN sed -i 's/\r$//g' /start-celeryworker \
+  && chmod +x /start-celeryworker
 
 COPY ./compose/django/celery/beat/start /start-celerybeat
-RUN sed -i 's/\r$//g' /start-celerybeat
-RUN chmod +x /start-celerybeat
+RUN sed -i 's/\r$//g' /start-celerybeat \
+  && chmod +x /start-celerybeat
 
 COPY ./compose/django/celery/flower/start /start-flower
-RUN sed -i 's/\r$//g' /start-flower
-RUN chmod +x /start-flower
+RUN sed -i 's/\r$//g' /start-flower \
+  && chmod +x /start-flower
+
+COPY ./compose/django/celery/pubsub-listener/start /start-pubsub-listener
+RUN sed -i 's/\r$//g' /start-pubsub-listener \
+  && chmod +x /start-pubsub-listener
 
 # copy application code to WORKDIR
 COPY . ${APP_HOME}

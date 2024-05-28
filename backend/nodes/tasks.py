@@ -12,8 +12,8 @@ from nodes import models
 logger = logging.getLogger(__name__)
 
 
-@shared_task(ignore_result=True, expires=settings.NODE_CRDT_EVENTS_INTERVAL * 5)
-def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR0915
+@shared_task(ignore_result=True, expires=10)
+def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR0915, PLR0912
     """
     Process document events and update the corresponding Nodes and Spaces.
     TODO: Check whether we have an issue with Out of Order Processing.

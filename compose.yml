@@ -68,9 +68,18 @@ services:
     depends_on:
       - redis
       - postgres
-      - mailpit
     ports: []
     command: /start-celerybeat
+
+  pubsub:
+    <<: *django
+    image: coordnet_local_pubsub
+    container_name: coordnet_local_pubsub
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-pubsub-listener
 
   flower:
     <<: *django

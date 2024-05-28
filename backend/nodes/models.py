@@ -26,6 +26,8 @@ if typing.TYPE_CHECKING:
 
     from users import typing as user_typing
 
+PG_NOTIFY_CHANNEL = "nodes_document_change"
+
 
 class DocumentType(models.TextChoices):
     EDITOR = "EDITOR", "Editor"
@@ -656,6 +658,7 @@ class Document(models.Model):
                     ELSIF (TG_OP = 'DELETE') THEN
                         INSERT INTO nodes_documentevent (public_id, document_type, action, created_at, old_data) VALUES (OLD.public_id, OLD.document_type, '{DocumentEvent.EventType.DELETE}', NOW(), OLD.json);
                     END IF;
+                    NOTIFY {PG_NOTIFY_CHANNEL};
                     RETURN NEW;
                     """  # noqa: E501
                 ),
