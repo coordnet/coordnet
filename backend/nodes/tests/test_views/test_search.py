@@ -9,7 +9,9 @@ class SearchViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:search"))
         self.assertEqual(response.status_code, 400)
 
-        node = factories.NodeFactory.create(owner=self.owner_user, title="Sunny the barking dog")
+        node = factories.NodeFactory.create(
+            owner=self.owner_user, title="Sunny the barking dog", text="Sunny is a good dog."
+        )
         with self.assertNumQueries(4):
             response = self.owner_client.get(reverse("nodes:search"), {"q": node.title})
         self.assertEqual(response.status_code, 200)
@@ -21,11 +23,15 @@ class SearchViewTestCase(BaseTransactionTestCase):
 
     def test_search_with_space(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)
-        node = factories.NodeFactory.create(owner=self.owner_user, title="Sunny the barking dog")
+        node = factories.NodeFactory.create(
+            owner=self.owner_user, title="Sunny the barking dog", text="Sunny is a good dog."
+        )
 
         factories.NodeFactory.create(owner=self.owner_user, title=node.title)
         space.nodes.add(node)
-        parent_node = factories.NodeFactory.create(owner=self.owner_user, title="something else")
+        parent_node = factories.NodeFactory.create(
+            owner=self.owner_user, title="something else", text=""
+        )
         space.nodes.add(parent_node)
         parent_node.subnodes.add(node)
 
@@ -46,7 +52,9 @@ class SearchViewTestCase(BaseTransactionTestCase):
 
     def test_search_with_not_owned_objects(self) -> None:
         space = factories.SpaceFactory.create()
-        node = factories.NodeFactory.create(title="Sunny the barking dog")
+        node = factories.NodeFactory.create(
+            title="Sunny the barking dog", text="Sunny is a good dog."
+        )
         space.nodes.add(node)
 
         response = self.owner_client.get(
