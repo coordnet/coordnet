@@ -6,9 +6,10 @@ requires-python = ">=3.11"
 line-length = 100
 fix = true
 show-fixes = true
-unfixable = []
 src = ["backend"]
 
+[tool.ruff.lint]
+unfixable = []
 select = [
   # pyflakes
   "F",
@@ -45,11 +46,10 @@ select = [
   # Unused noqa checking
   "RUF100",
 ]
-
 ignore = [
-  # Being forced to use constants for every integer except 0 and 1 is silly.
-  "PLR2004",
-]
+    # Being forced to use constants for every integer except 0 and 1 is silly.
+    "PLR2004",
+  ]
 
 # ==== mypy ====
 [tool.mypy]

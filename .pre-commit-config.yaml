@@ -89,7 +89,7 @@ repos:
         language_version: python3.11
         types: [python]
         require_serial: true
-        entry: bash .pre-commit-run.sh ruff
+        entry: bash .pre-commit-run.sh ruff check
       - id: mypy
         name: mypy
         entry: bash .pre-commit-run.sh mypy
