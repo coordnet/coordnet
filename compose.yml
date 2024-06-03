@@ -1,5 +1,3 @@
-version: "3"
-
 volumes:
   coordnet_local_postgres_data: {}
   coordnet_local_postgres_data_backups: {}
