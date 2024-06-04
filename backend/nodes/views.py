@@ -11,6 +11,7 @@ import permissions.managers
 import permissions.models
 import permissions.utils
 import permissions.views
+import utils.pagination
 from nodes import filters, models, serializers
 from utils import filters as base_filters
 from utils import views
@@ -107,6 +108,7 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
 class SearchView(generics.ListAPIView):
     """API endpoint that allows searching for nodes."""
 
+    pagination_class = utils.pagination.NoCountLimitOffsetPagination
     queryset = models.Node.available_objects.none()
 
     def get(
