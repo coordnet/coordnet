@@ -87,7 +87,7 @@ export const metaKey = (shortcut: string | number) => {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const waitForNode = async (id: string, maxRetries = 20, retryDelay = 500) => {
+export const waitForNode = async (id: string, maxRetries = 50, retryDelay = 500) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await getNode(undefined, id);
