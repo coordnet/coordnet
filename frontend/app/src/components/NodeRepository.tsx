@@ -6,6 +6,7 @@ import { Ellipsis, Loader2, Plus, RefreshCcw, Search, View } from "lucide-react"
 import numeral from "numeral";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDebounceValue } from "usehooks-ts";
 
 import { getSpaces, searchNodes } from "@/api";
 import {
@@ -95,10 +96,11 @@ const NodeRepository = ({ className }: NodeProps) => {
   };
 
   const [inputValue, setInputValue] = useState<string>("");
+  const [debouncedInputvalue] = useDebounceValue(inputValue, 300);
   const { data, isLoading } = useQuery({
-    queryKey: ["searchNodes", inputValue],
-    queryFn: ({ signal }) => searchNodes(signal, inputValue, space?.id ?? ""),
-    enabled: Boolean(inputValue && space),
+    queryKey: ["searchNodes", debouncedInputvalue],
+    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, space?.id ?? ""),
+    enabled: Boolean(debouncedInputvalue && space),
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
