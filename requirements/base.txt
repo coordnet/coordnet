@@ -21,7 +21,7 @@ django-redis==5.4.0  # https://github.com/jazzband/django-redis
 djangorestframework==3.15.1  # https://github.com/encode/django-rest-framework
 django-cors-headers==4.3.1  # https://github.com/adamchainz/django-cors-headers
 # DRF-spectacular for api documentation
-drf-spectacular==0.27.0  # https://github.com/tfranzel/drf-spectacular
+drf-spectacular==0.27.2  # https://github.com/tfranzel/drf-spectacular
 # DRY REST Permissions for easier permission management
 django-dry-rest-permissions==1.2.0  # https://github.com/FJNR-inc/dry-rest-permissions
 # Django Filter for filtering on api endpoints
