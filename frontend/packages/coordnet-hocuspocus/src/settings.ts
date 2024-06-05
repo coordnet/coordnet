@@ -26,7 +26,7 @@ export const settings = cleanEnv(process.env, {
   BACKEND_URL: str(),
   WEBSOCKET_API_KEY: strMinThirtyChars(),
   SENTRY_DSN: str({ default: "" }),
-  SENTRY_ENVIRONMENT: str({ default: "" }),
+  SENTRY_ENVIRONMENT: str({ default: "production" }),
   SENTRY_TRACES_SAMPLE_RATE: num({ default: 1.0 }),
   SENTRY_PROFILES_SAMPLE_RATE: num({ default: 1.0 }),
 });
