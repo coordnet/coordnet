@@ -1,0 +1,68 @@
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "coordnet"
+primary_region = "ams"
+console_command = "/app/backend/manage.py shell"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+swap_size_mb = 1024
+
+[build]
+  dockerfile = "compose/django/Dockerfile"
+
+[build.args]
+  BUILD_ENVIRONMENT= "production"
+  VITE_HOCUSPOCUS_URL= "wss://ws.coord.dev"
+  VITE_BACKEND_URL= "https://app.coord.dev"
+  SENTRY_AUTH_TOKEN= "REDACTED"
+
+[deploy]
+  release_command = "bash -c '/app/backend/manage.py migrate --noinput'"
+  # Add this if we switch to a CDN / cloud storage
+  # && /app/backend/manage.py collectstatic --noinput'"
+
+
+[env]
+  USE_DOCKER="no"
+  DJANGO_SETTINGS_MODULE="config.settings.production"
+  DJANGO_ALLOWED_HOSTS="coordnet.fly.dev,app.coord.dev"
+  SENTRY_ENVIRONMENT="production"
+
+[http_service]
+  internal_port = 5000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 4
+  processes = ["app"]
+
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024
+  processes = ["worker"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+  processes = ["beat", "pubsub"]
+
+[[statics]]
+  guest_path = "/app/backend/staticfiles"
+  url_prefix = "/assets/"
+
+[processes]
+  app = "/start-production"
+  worker = "/start-celeryworker-production"
+  beat = "/start-celerybeat-production"
+  pubsub = "/start-pubsub-listener"

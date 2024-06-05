@@ -7,6 +7,7 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
+import django.db.models.signals
 
 from .base import *  # noqa: F403
 from .base import env
@@ -66,14 +67,14 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", def
 # GS_DEFAULT_ACL = "publicRead"
 # # STATIC
 # # ------------------------
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "coordnet.utils.storages.MediaGoogleCloudStorage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
+STORAGES = {
+    # "default": {
+    #     "BACKEND": "coordnet.utils.storages.MediaGoogleCloudStorage",
+    # },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 # # MEDIA
 # # ------------------------------------------------------------------------------
 # MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
@@ -81,7 +82,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", def
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
-DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="Coordnet <noreply@coordnet.dev>")
+DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="Coordnet <hello@coordnet.dev>")
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-subject-prefix
@@ -99,11 +100,12 @@ INSTALLED_APPS += ["anymail"]  # noqa: F405
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
 # https://anymail.readthedocs.io/en/stable/esps/sendgrid/
-# EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
-# ANYMAIL = {
-#     "SENDGRID_API_KEY": env("SENDGRID_API_KEY"),
-#     "SENDGRID_API_URL": env("SENDGRID_API_URL", default="https://api.sendgrid.com/v3/"),
-# }
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+ANYMAIL = {
+    "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
+    "MAILGUN_API_URL": "https://api.eu.mailgun.net/v3",
+    "MAILGUN_SENDER_DOMAIN": env("MAILGUN_DOMAIN"),
+}
 
 # LOGGING
 # ------------------------------------------------------------------------------
@@ -148,12 +150,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",  # Change this to "DEBUG" for even more detailed logs
+            "propagate": True,
+        },
     },
 }
 
 # Sentry
 # ------------------------------------------------------------------------------
-SENTRY_DSN = env("SENTRY_DSN")
 SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
 
 sentry_logging = LoggingIntegration(
@@ -162,12 +168,17 @@ sentry_logging = LoggingIntegration(
 )
 integrations = [
     sentry_logging,
-    DjangoIntegration(),
-    CeleryIntegration(),
+    DjangoIntegration(
+        signals_denylist=[
+            django.db.models.signals.pre_init,
+            django.db.models.signals.post_init,
+        ]
+    ),
+    CeleryIntegration(monitor_beat_tasks=True),
     RedisIntegration(),
 ]
 sentry_sdk.init(
-    dsn=SENTRY_DSN,
+    dsn=env("SENTRY_DSN"),
     integrations=integrations,
     environment=env("SENTRY_ENVIRONMENT", default="production"),
     traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=1.0),
@@ -180,6 +191,12 @@ sentry_sdk.init(
 SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
     {"url": "https://coordnet.dev", "description": "Production server"},
 ]
+
+# Celery
+# ------------------------------------------------------------------------------
+CELERY_RESULT_BACKEND = "django-db"
+INSTALLED_APPS += ["django_celery_results"]
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = ["https://coordnet.fly.dev"]
