@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Get the hostname of the container
+HOSTNAME=$(hostname -f | sed 's/\./-/g')
+
+# Set the RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS environment variable
+export RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="-kernel inetrc '/etc/rabbitmq/erl_inetrc' -proto_dist inet6_tcp -name rabbit@${HOSTNAME}.vm.coordnet-rabbitmq.internal -setcookie ${ERL_COOKIE}"
+
+hostname ${HOSTNAME}.vm.coordnet-rabbitmq.internal
+echo ${ERL_COOKIE} > /var/lib/rabbitmq/.erlang.cookie
+chmod 600 /var/lib/rabbitmq/.erlang.cookie
+
+# Start RabbitMQ
+exec docker-entrypoint.sh rabbitmq-server

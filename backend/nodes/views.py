@@ -5,7 +5,7 @@ import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
 from django import http
 from django.db import models as django_models
-from rest_framework import decorators, generics, pagination, response
+from rest_framework import decorators, generics, response
 
 import permissions.managers
 import permissions.models
@@ -97,7 +97,6 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
     ordering_fields = ["created_at"]
     ordering = ["-created_at"]
     permission_classes = (dry_permissions.DRYObjectPermissions,)
-    pagination_class = pagination.PageNumberPagination
 
     @decorators.action(detail=True, methods=["get"])
     def crdt(self, request: "request.Request", public_id: str | None = None) -> http.HttpResponse:
@@ -141,6 +140,7 @@ class SearchView(generics.ListAPIView):
                 search_vector=pg_search.SearchQuery(search_query_serializer.validated_data["q"])
             )
             .order_by("-rank")
+            .distinct()
         )
 
         if "space" in search_query_serializer.validated_data:

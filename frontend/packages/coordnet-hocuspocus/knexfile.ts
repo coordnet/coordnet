@@ -4,24 +4,12 @@ import { settings } from "./src/settings";
 const config: { [key: string]: Knex.Config } = {
   development: {
     client: "postgresql",
-    connection: {
-      host: settings.POSTGRES_HOST,
-      database: settings.POSTGRES_DB,
-      port: settings.POSTGRES_PORT,
-      user: settings.POSTGRES_USER,
-      password: settings.POSTGRES_PASSWORD,
-    },
+    connection: settings.DATABASE_URL,
   },
 
   staging: {
     client: "postgresql",
-    connection: {
-      host: settings.POSTGRES_HOST,
-      database: settings.POSTGRES_DB,
-      port: settings.POSTGRES_PORT,
-      user: settings.POSTGRES_USER,
-      password: settings.POSTGRES_PASSWORD,
-    },
+    connection: settings.DATABASE_URL,
     pool: {
       min: 2,
       max: 10,
@@ -33,13 +21,7 @@ const config: { [key: string]: Knex.Config } = {
 
   production: {
     client: "postgresql",
-    connection: {
-      host: settings.POSTGRES_HOST,
-      database: settings.POSTGRES_DB,
-      port: settings.POSTGRES_PORT,
-      user: settings.POSTGRES_USER,
-      password: settings.POSTGRES_PASSWORD,
-    },
+    connection: settings.DATABASE_URL,
     pool: {
       min: 2,
       max: 10,
