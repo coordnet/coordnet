@@ -25,6 +25,8 @@
     "@hocuspocus/extension-database": "^2.12.2",
     "@hocuspocus/server": "^2.12.2",
     "@hocuspocus/transformer": "^2.12.2",
+    "@sentry/node": "^8.7.0",
+    "@sentry/profiling-node": "^8.7.0",
     "@tanstack/react-query-devtools": "^5.36.0",
     "@tiptap/core": "^2.3.2",
     "@tiptap/html": "^2.3.2",

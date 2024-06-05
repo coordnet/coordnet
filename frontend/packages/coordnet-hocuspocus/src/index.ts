@@ -1,5 +1,8 @@
+import "./instrument";
+
 import { Server } from "@hocuspocus/server";
 import { TiptapTransformer } from "@hocuspocus/transformer";
+import * as Sentry from "@sentry/node";
 import StarterKit from "@tiptap/starter-kit";
 import express from "express";
 import expressWebsockets from "express-ws";
@@ -124,6 +127,8 @@ app.post("/add-to-node-page", async (request, response) => {
 app.ws("/", (websocket, request) => {
   server.handleConnection(websocket, request, {});
 });
+
+Sentry.setupExpressErrorHandler(app);
 
 app.listen(hocuspocusSettings.port, () =>
   console.log(`Listening on http://127.0.0.1:${hocuspocusSettings.port}`),
