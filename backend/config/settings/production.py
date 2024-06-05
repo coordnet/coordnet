@@ -1,6 +1,7 @@
 import logging
 import warnings
 
+import django.db.models.signals
 import sentry_sdk
 from corsheaders.defaults import default_headers
 from sentry_sdk.integrations.celery import CeleryIntegration

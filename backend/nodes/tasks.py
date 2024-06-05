@@ -49,7 +49,9 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
 
                                 if not node.graph_document:
                                     try:
-                                        node.graph_document = models.Document.objects.only("id").get(
+                                        node.graph_document = models.Document.objects.only(
+                                            "id"
+                                        ).get(
                                             public_id=document_event.public_id,
                                             document_type=models.DocumentType.GRAPH,
                                         )
@@ -58,7 +60,9 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
 
                                 if not node.editor_document:
                                     try:
-                                        node.editor_document = models.Document.objects.only("id").get(
+                                        node.editor_document = models.Document.objects.only(
+                                            "id"
+                                        ).get(
                                             public_id=document_event.public_id,
                                             document_type=models.DocumentType.EDITOR,
                                         )
@@ -117,6 +121,14 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     except models.Document.DoesNotExist:
                                         pass
 
+                                space_nodes = (
+                                    models.Node.all_objects.select_for_update(no_key=True)
+                                    .filter(public_id__in=node_titles.keys())
+                                    .defer("content", "text")
+                                    .order_by("-created_at")
+                                )
+                                space.nodes.set(space_nodes)
+
                                 deleted_nodes = (
                                     models.Node.all_objects.select_for_update(no_key=True)
                                     .filter(
@@ -164,7 +176,9 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
 
                                     # This is in case the node was synced meanwhile.
                                     try:
-                                        node.graph_document = models.Document.objects.only("id").get(
+                                        node.graph_document = models.Document.objects.only(
+                                            "id"
+                                        ).get(
                                             public_id=document_event.public_id,
                                             document_type=models.DocumentType.GRAPH,
                                         )
@@ -172,7 +186,9 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                         pass
 
                                     try:
-                                        node.editor_document = models.Document.objects.only("id").get(
+                                        node.editor_document = models.Document.objects.only(
+                                            "id"
+                                        ).get(
                                             public_id=document_event.public_id,
                                             document_type=models.DocumentType.EDITOR,
                                         )
