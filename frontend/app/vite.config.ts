@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -6,6 +7,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   build: {
     target: "esnext",
+
     rollupOptions: {
       output: {
         entryFileNames: `static/[name].js`,
@@ -13,6 +15,8 @@ export default defineConfig({
         assetFileNames: `static/[name].[ext]`,
       },
     },
+
+    sourcemap: true,
   },
   esbuild: {
     target: "esnext",
@@ -22,5 +26,13 @@ export default defineConfig({
       target: "esnext",
     },
   },
-  plugins: [tsconfigPaths(), react()],
+  plugins: [
+    tsconfigPaths(),
+    react(),
+    sentryVitePlugin({
+      org: "lateral",
+      project: "coordination-network",
+      url: "https://sentry.lateral.io",
+    }),
+  ],
 });

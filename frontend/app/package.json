@@ -20,6 +20,7 @@
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
+    "@sentry/vite-plugin": "^2.18.0",
     "@tanstack/react-query": "^5.36.0",
     "@tanstack/react-query-devtools": "^5.36.0",
     "@tiptap/core": "^2.3.2",
