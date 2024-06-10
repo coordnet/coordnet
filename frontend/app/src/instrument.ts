@@ -19,6 +19,7 @@ Sentry.init({
       useNavigationType,
       createRoutesFromChildren,
       matchRoutes,
+      enableInp: true,
     }),
     Sentry.replayIntegration(),
   ],

@@ -2,6 +2,7 @@ import "reactflow/dist/style.css";
 import "./react-flow.css";
 
 import clsx from "clsx";
+import DOMPurify from "dompurify";
 import { DragEvent, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Background,
@@ -15,6 +16,7 @@ import ReactFlow, {
 } from "reactflow";
 import { v4 as uuidv4 } from "uuid";
 
+import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
 import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
 import { readPdf } from "@/lib/pdfjs";
 import { GraphNode } from "@/types";
@@ -22,6 +24,7 @@ import { waitForNode } from "@/utils";
 
 import Controls from "./Controls";
 import GraphNodeComponent from "./GraphNode";
+import MultiNodeToolbar from "./MultiNodeToolbar";
 import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import useUndoRedo from "./useUndoRedo";
@@ -90,8 +93,10 @@ const Graph = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
+    if (!node?.allowed_actions.includes("write")) return;
     if (!wrapperRef.current) return alert("Could not find Graph wrapperRef.");
     if (!nodesMap) return alert("nodesMap is not initialised");
+    const transferredHtml = event.dataTransfer.getData("text/html");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
 
     // Check if a file was dropped and if it's a PDF:
@@ -106,6 +111,28 @@ const Graph = ({ className }: { className?: string }) => {
           y: event.clientY - wrapperBounds.top - 20,
         };
         addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, file.name, pdfText, position);
+      }
+    } else if (transferredHtml) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(transferredHtml, "text/html");
+      const listItems = doc.querySelectorAll("li");
+      if (!spaceNodesMap) return alert("spaceNodesMap not found");
+
+      if (listItems.length > 0) {
+        listItems.forEach((li, index) => {
+          const position: XYPosition = {
+            x: event.clientX - wrapperBounds.x - 80 + index * 25,
+            y: event.clientY - wrapperBounds.top - 20 + index * 50,
+          };
+          const cleaned = DOMPurify.sanitize(li || "", { ALLOWED_TAGS, FORBID_ATTR });
+          addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, cleaned, undefined, position);
+        });
+      } else {
+        const cleaned = DOMPurify.sanitize(transferredHtml, { ALLOWED_TAGS, FORBID_ATTR });
+        addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, cleaned, undefined, {
+          x: event.clientX - wrapperBounds.x - 80,
+          y: event.clientY - wrapperBounds.top - 20,
+        });
       }
     } else {
       addNode({
@@ -164,6 +191,7 @@ const Graph = ({ className }: { className?: string }) => {
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("graph")}>
       <Sidebar className="absolute z-40 top-1/2 -translate-y-1/2" addNode={addNode} />
+      <MultiNodeToolbar />
       <div className="grow h-full Graph" ref={wrapperRef}>
         <ReactFlow
           nodes={nodes}

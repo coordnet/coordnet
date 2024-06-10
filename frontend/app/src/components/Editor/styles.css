@@ -50,3 +50,35 @@
   border-top-right-radius: 5px;
   padding-right: 3px;
 }
+
+.draggable-handle {
+  cursor: move;
+  user-select: none;
+  position: absolute;
+  left: -24px;
+  top: 2px;
+  padding: 10px;
+}
+
+.handle {
+  width: 5px;
+  height: 5px;
+  background-color: #d1d5db;
+  padding: 0;
+  border-radius: 100px;
+  opacity: 0;
+}
+
+.draggable-handle:active {
+  cursor: grabbing;
+}
+.tiptap li[draggable="true"] {
+  position: relative;
+  /* list-style-type: none; */
+  /* display: flex;
+  align-items: start; */
+}
+
+.content-wrapper {
+  flex-grow: 1;
+}

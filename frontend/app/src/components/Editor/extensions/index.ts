@@ -5,7 +5,9 @@ import { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
 
+import { BulletList } from "./BulletList";
 import { CollaborationCursor } from "./CollaborationCursor";
+import { ListItem } from "./ListItem";
 import Node from "./Node";
 
 export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, readOnly = false) => {
@@ -13,7 +15,7 @@ export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, read
 
   // Register collaboration if set
   if (ydoc && provider) {
-    extensions.push(StarterKit.configure({ history: false }));
+    extensions.push(StarterKit.configure({ history: false, bulletList: false, listItem: false }));
     extensions.push(Collaboration.configure({ document: ydoc }));
     if (!readOnly) extensions.push(CollaborationCursor.configure({ provider }));
 
@@ -23,6 +25,8 @@ export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, read
   }
 
   extensions.push(Node);
+  extensions.push(BulletList);
+  extensions.push(ListItem);
 
   return extensions;
 };
