@@ -124,7 +124,12 @@ const Graph = ({ className }: { className?: string }) => {
             x: event.clientX - wrapperBounds.x - 80 + index * 25,
             y: event.clientY - wrapperBounds.top - 20 + index * 50,
           };
-          const cleaned = DOMPurify.sanitize(li || "", { ALLOWED_TAGS, FORBID_ATTR });
+
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = li.innerHTML;
+          tempDiv.querySelectorAll("ul, ol").forEach((subList) => subList.remove());
+          const cleaned = DOMPurify.sanitize(tempDiv, { ALLOWED_TAGS, FORBID_ATTR });
+
           addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, cleaned, undefined, position);
         });
       } else {
