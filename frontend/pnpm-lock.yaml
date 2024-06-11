@@ -170,6 +170,9 @@ importers:
       use-query-params:
         specifier: ^2.2.1
         version: 2.2.1(react-dom@18.3.1)(react-router-dom@6.23.1)(react@18.3.1)
+      use-session-storage-state:
+        specifier: ^18.2.0
+        version: 18.2.0(react-dom@18.3.1)(react@18.3.1)
       usehooks-ts:
         specifier: ^3.1.0
         version: 3.1.0(react@18.3.1)
@@ -7269,6 +7272,17 @@ packages:
       react-dom: 18.3.1(react@18.3.1)
       react-router-dom: 6.23.1(react-dom@18.3.1)(react@18.3.1)
       serialize-query-params: 2.0.2
+    dev: false
+
+  /use-session-storage-state@18.2.0(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-FO+L8B73DA78SxbeWo80Q/Dt+EtK/BgkONwFK3pmbntMolNh9Mij43qBxKFWfVWl7OOpeYm/M984var2utSEJQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
     dev: false
 
   /use-sidecar@1.1.2(@types/react@18.3.2)(react@18.3.1):

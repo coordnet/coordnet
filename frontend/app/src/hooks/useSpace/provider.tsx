@@ -2,7 +2,7 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import useLocalStorageState from "use-local-storage-state";
+import useSessionStorageState from "use-session-storage-state";
 import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
@@ -42,7 +42,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) setSpaceError(error);
   }, [error]);
 
-  const [breadcrumbs, setBreadcrumbs] = useLocalStorageState<string[]>(
+  const [breadcrumbs, setBreadcrumbs] = useSessionStorageState<string[]>(
     `coordnet:breadcrumbs-${spaceId}`,
     { defaultValue: [] },
   );

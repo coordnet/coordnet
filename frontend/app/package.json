@@ -64,6 +64,7 @@
     "tippy.js": "^6.3.7",
     "use-local-storage-state": "^19.2.0",
     "use-query-params": "^2.2.1",
+    "use-session-storage-state": "^18.2.0",
     "usehooks-ts": "^3.1.0",
     "uuid": "^9.0.1",
     "y-prosemirror": "^1.2.5",
