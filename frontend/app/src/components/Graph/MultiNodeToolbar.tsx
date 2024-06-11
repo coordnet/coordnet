@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Tooltip } from "react-tooltip";
 import {
@@ -8,9 +8,10 @@ import {
   Node,
   NodeToolbarProps,
   Position,
+  ReactFlowState,
   Rect,
   Transform,
-  useOnSelectionChange,
+  useStore,
   useViewport,
 } from "reactflow";
 
@@ -82,29 +83,26 @@ function getTransform(
   return `translate(${pos[0]}px, ${pos[1]}px) translate(${shift[0]}%, ${shift[1]}%)`;
 }
 
+const selectedNodesSelector = (state: ReactFlowState) =>
+  state.getNodes().filter((node) => node.selected).length;
+
 function NodeToolbar({
   className,
-  isVisible,
   position = Position.Top,
   offset = 10,
   align = "center",
   ...rest
 }: NodeToolbarProps) {
   const { x, y, zoom } = useViewport();
-  const { nodesMap } = useNode();
-  const [selectedNodes, setSelectedNodes] = useState<Node[]>([]);
+  const { nodes, nodesMap } = useNode();
+  const selectedNodesCount = useStore(selectedNodesSelector);
 
-  useOnSelectionChange({
-    onChange: useCallback(({ nodes }) => {
-      setSelectedNodes(nodes);
-    }, []),
-  });
-
-  const isActive = typeof isVisible === "boolean" ? isVisible : selectedNodes.length > 0;
-
-  if (!isActive || selectedNodes.length === 0) {
+  if (selectedNodesCount < 2) {
     return null;
   }
+
+  const selectedNodes = nodes.filter((n) => n?.selected);
+  const nodeRect: Rect = getNodesBounds(selectedNodes as Node[], [0, 0]);
 
   const setProgress = (progress: number) => {
     selectedNodes.forEach((n) => {
@@ -120,8 +118,6 @@ function NodeToolbar({
         nodesMap?.set(node.id, { ...node, data: { ...node?.data, borderColor: color.color } });
     });
   };
-
-  const nodeRect: Rect = getNodesBounds(selectedNodes, [0, 0]);
 
   return (
     <NodeToolbarPortal>
