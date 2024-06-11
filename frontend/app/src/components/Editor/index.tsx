@@ -52,7 +52,7 @@ const Editor = ({ id, className }: EditorProps) => {
       editorProps: { attributes: { class: "prose focus:outline-none" } },
       editable: Boolean(node?.allowed_actions.includes("write")),
     },
-    [id, node?.allowed_actions],
+    [id, node?.allowed_actions, editorSynced],
   );
 
   useEffect(() => {

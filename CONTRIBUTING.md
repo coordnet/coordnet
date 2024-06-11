@@ -26,7 +26,7 @@ Scopes should be used to add further detail to area of the project that is being
 - **db**
 - **deployment**
 - **editor**
-- **graph**
+- **canvas**
 - **llm**
 - **nodes**
 - **permissions**
