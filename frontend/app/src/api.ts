@@ -52,8 +52,10 @@ api.interceptors.response.use(
     // }
 
     if (!error?.response?.config?.url?.includes("auth/login/") && error.response.status === 401) {
+      const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      const loginUrl = `/auth/login?redirect=${currentUrl}`;
       store.remove("coordnet-auth");
-      window.location.href = "/auth/login";
+      window.location.href = loginUrl;
     }
     return Promise.reject(error);
   },
