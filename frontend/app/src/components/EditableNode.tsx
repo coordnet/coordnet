@@ -54,11 +54,16 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
 
       // @ts-expect-error window.clipboardData is a fallback for older browser
       const clipboardData = e.clipboardData || window.clipboardData;
-      const pastedData = clipboardData.getData("text/html");
-      const cleaned = DOMPurify.sanitize(pastedData, { ALLOWED_TAGS, FORBID_ATTR });
+      const pastedHtml = clipboardData.getData("text/html");
+      if (pastedHtml) {
+        const cleaned = DOMPurify.sanitize(pastedHtml, { ALLOWED_TAGS, FORBID_ATTR });
 
-      // Insert the cleaned HTML at the cursor position
-      document.execCommand("insertHTML", false, cleaned);
+        // Insert the cleaned HTML at the cursor position
+        document.execCommand("insertHTML", false, cleaned);
+      } else {
+        const pastedText = clipboardData.getData("text/plain");
+        document.execCommand("insertText", false, pastedText);
+      }
 
       // Update the nodesMap with the new content
       if (inputRef.current) {
