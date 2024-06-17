@@ -26,7 +26,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
         response = openai.Client(api_key=settings.OPENAI_API_KEY).chat.completions.create(
             model=self.model,
-            messages=self.__get_messages(level, nodes, query),  # type: ignore[arg-type]
+            messages=self._get_messages(level, nodes, query),  # type: ignore[arg-type]
             stream=True,
             timeout=180,
         )
@@ -54,12 +54,12 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         token_counts: dict[int, int] = {}
         for depth in range(max_depth_achieved + 1):
             token_counts[depth] = tokens.num_tokens_from_messages(
-                self.__get_messages(depth, nodes, query, nodes_at_depth), self.model
+                self._get_messages(depth, nodes, query, nodes_at_depth), self.model
             )
 
         return token_counts
 
-    def __get_messages(
+    def _get_messages(
         self,
         level: int,
         nodes: list["nodes_models.Node"],
