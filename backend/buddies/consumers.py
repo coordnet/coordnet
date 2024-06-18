@@ -1,11 +1,12 @@
 import json
 
 import openai
+import rest_framework.exceptions
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from knox.auth import TokenAuthentication
-import rest_framework.exceptions
+
 import buddies.models
 import buddies.serializers
 
@@ -65,3 +66,4 @@ class QueryConsumer(AsyncWebsocketConsumer):
             chunk_content = chunk.choices[0].delta.content
             if chunk_content is not None:
                 await self.send(chunk_content)
+        await self.close()
