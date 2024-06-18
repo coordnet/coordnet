@@ -66,3 +66,4 @@ class QueryConsumer(AsyncWebsocketConsumer):
             chunk_content = chunk.choices[0].delta.content
             if chunk_content is not None:
                 await self.send(chunk_content)
+        await self.close()
