@@ -7,10 +7,12 @@ import { marked } from "marked";
 import { useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { Tooltip } from "react-tooltip";
+import { toast } from "sonner";
+import store from "store2";
 import useLocalStorageState from "use-local-storage-state";
 import { useDebounceValue } from "usehooks-ts";
 
-import { getLLMResponse, getLLMTokenCount } from "@/api";
+import { getLLMTokenCount } from "@/api";
 import { useFocus, useSpace } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
 import useUser from "@/hooks/useUser";
@@ -120,18 +122,38 @@ const LLM = ({ id }: { id: string }) => {
     if (abortController) abortController.abort();
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
-    const stream = getLLMResponse(newAbortController, buddyId, promptInput, queryNodes, depth);
+
+    const socket = new WebSocket(`${import.meta.env.VITE_BACKEND_WS_URL}/buddies/${buddyId}/`);
+    socket.onopen = () => {
+      const payload = JSON.stringify({
+        message: promptInput,
+        nodes: queryNodes,
+        level: depth,
+        token: store("coordnet-auth"),
+      });
+      socket.send(payload);
+    };
+
     let string = "";
-    stream.on("data", async (data: string) => {
-      string += data;
+    socket.onmessage = async (event) => {
+      string += event.data;
       const sanitizedResponse = DOMPurify.sanitize(await marked.parse(string));
       setResponse(sanitizedResponse);
-    });
-    stream.on("end", () => setLoading(false));
-    stream.on("error", (error: Error) => {
+    };
+
+    socket.onerror = (error) => {
       setLoading(false);
-      console.error("Stream error", error);
-      // handleApiError(error);
+      console.error("Websocket error", error);
+      toast.error("Error from websocket");
+    };
+
+    socket.onclose = () => {
+      setLoading(false);
+    };
+
+    // Close socket if aborted
+    newAbortController.signal.addEventListener("abort", () => {
+      socket.close();
     });
   };
 
