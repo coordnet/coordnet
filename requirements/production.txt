@@ -8,4 +8,4 @@ psycopg[c]==3.1.19  # https://github.com/psycopg/psycopg
 # Django
 # ------------------------------------------------------------------------------
 django-storages[google]==1.14.3  # https://github.com/jschneier/django-storages
-django-anymail[sendgrid]==10.3  # https://github.com/anymail/django-anymail
+django-anymail[sendgrid]==11.0  # https://github.com/anymail/django-anymail
