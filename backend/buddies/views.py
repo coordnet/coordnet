@@ -1,9 +1,12 @@
 import typing
 
+from adrf.decorators import api_view
+from django.conf import settings
 from django.http import StreamingHttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from rest_framework.decorators import action
+from openai import AsyncOpenAI
+from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.response import Response
 
 from buddies import models, serializers
@@ -48,3 +51,32 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         message = validated_data.get("message") or ""
 
         return Response(buddy.calculate_token_counts(nodes, max_depth, message))
+
+
+# @api_view(["POST"])
+@api_view(["POST"])
+@authentication_classes([])
+@permission_classes([])
+async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
+    openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+    validated_data = serializers.OpenAIQuerySerializer(data=request.data)
+    validated_data.is_valid(raise_exception=True)
+
+    response = await openai_client.chat.completions.create(**validated_data.validated_data)
+
+    async def generate(resp):
+        async for chunk in resp:
+            data = chunk.model_dump_json()
+            yield data.encode()
+
+    # def generate(resp):
+    #     for chunk in resp:
+    #         try:
+    #             if chunk.choices[0].delta.content is not None:
+    #                 print(chunk.choices[0].delta.content)
+    #                 yield chunk.choices[0].delta.content
+    #         except (AttributeError, IndexError):
+    #             continue
+
+    return StreamingHttpResponse(generate(response), content_type="text/event-stream")
