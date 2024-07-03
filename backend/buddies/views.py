@@ -1,11 +1,12 @@
+import json
 import typing
 
 from adrf.decorators import api_view
 from django.conf import settings
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.response import Response
 
@@ -57,6 +58,7 @@ class BuddyModelViewSet(views.BaseModelViewSet):
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([])
+@middlewares.disable_gzip
 async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
     openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -67,16 +69,11 @@ async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
 
     async def generate(resp):
         async for chunk in resp:
-            data = chunk.model_dump_json()
-            yield data.encode()
+            data = chunk.model_dump_json(exclude_unset=True)
+            print(f"data: {data}\n\n")
+            yield f"data: {data}\n\n"
+        yield "data: [DONE]\n\n"
 
-    # def generate(resp):
-    #     for chunk in resp:
-    #         try:
-    #             if chunk.choices[0].delta.content is not None:
-    #                 print(chunk.choices[0].delta.content)
-    #                 yield chunk.choices[0].delta.content
-    #         except (AttributeError, IndexError):
-    #             continue
-
-    return StreamingHttpResponse(generate(response), content_type="text/event-stream")
+    return StreamingHttpResponse(
+        generate(response), content_type="text/event-stream", charset="utf-8"
+    )
