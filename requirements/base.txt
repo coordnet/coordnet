@@ -36,4 +36,4 @@ django-pgtrigger==4.11.1  # https://github.com/Opus10/django-pgtrigger
 # LLM
 # ------------------------------------------------------------------------------
 tiktoken==0.7.0  # https://github.com/openai/tiktoken
-openai==1.14.2  # https://github.com/openai/openai-python
+openai==1.35.10  # https://github.com/openai/openai-python
