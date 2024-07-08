@@ -1,9 +1,13 @@
+import json
 import typing
 
-from django.http import StreamingHttpResponse
+from adrf.decorators import api_view
+from django.conf import settings
+from django.http import StreamingHttpResponse, HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from rest_framework.decorators import action
+from openai import AsyncOpenAI, OpenAI
+from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.response import Response
 
 from buddies import models, serializers
@@ -48,3 +52,28 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         message = validated_data.get("message") or ""
 
         return Response(buddy.calculate_token_counts(nodes, max_depth, message))
+
+
+# @api_view(["POST"])
+@api_view(["POST"])
+@authentication_classes([])
+@permission_classes([])
+@middlewares.disable_gzip
+async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
+    openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+    validated_data = serializers.OpenAIQuerySerializer(data=request.data)
+    validated_data.is_valid(raise_exception=True)
+
+    response = await openai_client.chat.completions.create(**validated_data.validated_data)
+
+    async def generate(resp):
+        async for chunk in resp:
+            data = chunk.model_dump_json(exclude_unset=True)
+            print(f"data: {data}\n\n")
+            yield f"data: {data}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingHttpResponse(
+        generate(response), content_type="text/event-stream", charset="utf-8"
+    )

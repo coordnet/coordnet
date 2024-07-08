@@ -3,7 +3,7 @@ import { JSONContent } from "@tiptap/core";
 import { Schema } from "@tiptap/pm/model";
 import DOMPurify from "dompurify";
 import store from "store2";
-import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
+import { prosemirrorJSONToYXmlFragment, yXmlFragmentToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 
 import { getNode } from "./api";
@@ -45,6 +45,58 @@ export const getErrorMessage = (error: any): string => {
   }
 
   return `An error occurred: ${String(error)}`;
+};
+
+export const proseMirrorJSONToText = (jsonData: JSONContent) => {
+  const textValues: string[] = [];
+
+  // Recursive function to traverse the JSON structure
+  function extractText(node: JSONContent) {
+    if (node.type === "text" && node.text) {
+      textValues.push(node.text);
+    }
+
+    if (node.content && Array.isArray(node.content)) {
+      for (const child of node.content) {
+        extractText(child);
+      }
+    }
+  }
+
+  // Start extraction from the "content" array
+  if (jsonData.content && Array.isArray(jsonData.content)) {
+    for (const contentItem of jsonData.content) {
+      extractText(contentItem);
+    }
+  }
+
+  // Join the extracted text values with a space
+  return textValues.join(" ");
+};
+
+export const getNodePageContent = async (id: string): Promise<string> => {
+  const token = store("coordnet-auth");
+  const roomName = `node-editor-${id}`;
+  const ydoc = new Y.Doc({ guid: roomName });
+
+  return new Promise((resolve, reject) => {
+    new HocuspocusProvider({
+      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      name: roomName,
+      document: ydoc,
+      token,
+      onSynced() {
+        try {
+          const fragment = ydoc?.getXmlFragment("default");
+          const json = yXmlFragmentToProsemirrorJSON(fragment);
+          const text = proseMirrorJSONToText(json);
+          resolve(text);
+        } catch (error) {
+          reject(error);
+        }
+      },
+    });
+  });
 };
 
 export const setNodePageContent = (content: JSONContent, roomName: string, schema: Schema) => {
@@ -118,4 +170,47 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
       })
       .join("")
   );
+};
+
+export const createConnectedYDoc = async (
+  name: string,
+  token: string,
+): Promise<[Y.Doc, HocuspocusProvider]> => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return new Promise((resolve, _reject) => {
+    const doc = new Y.Doc();
+    const provider = new HocuspocusProvider({
+      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      name,
+      document: doc,
+      token,
+      preserveConnection: false,
+    });
+
+    let isConnected = false;
+    let isSynced = false;
+
+    const checkReady = () => {
+      if (isConnected && isSynced) {
+        resolve([doc, provider]);
+      }
+    };
+
+    const onStatus = (event: { status: string }) => {
+      if (event.status === "connected") {
+        isConnected = true;
+        checkReady();
+      }
+    };
+
+    const onSynced = () => {
+      if (provider.isSynced) {
+        isSynced = true;
+        checkReady();
+      }
+    };
+
+    provider.on("status", onStatus);
+    provider.on("synced", onSynced);
+  });
 };

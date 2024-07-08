@@ -1,3 +1,4 @@
+import adrf.serializers
 from rest_framework import serializers
 
 from buddies import models
@@ -22,3 +23,11 @@ class BuddyQuerySerializer(serializers.Serializer):
         allow_empty=False,
     )
     level = serializers.IntegerField(required=False)
+
+
+class OpenAIQuerySerializer(adrf.serializers.Serializer):
+    messages = serializers.ListField(child=serializers.DictField())
+    model = serializers.CharField()
+    stream = serializers.BooleanField(default=True)
+    tool_choice = serializers.DictField()
+    tools = serializers.ListField(child=serializers.DictField())

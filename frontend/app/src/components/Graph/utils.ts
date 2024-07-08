@@ -1,17 +1,21 @@
 import { generateJSON } from "@tiptap/core";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import { Node, ReactFlowInstance, XYPosition } from "reactflow";
-import { v4 as uuid } from "uuid";
+import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
 import { extensions, readOnlyEditor } from "@/lib/readOnlyEditor";
-import { GraphNode, SpaceNode } from "@/types";
-import { setNodePageContent, waitForNode } from "@/utils";
+import { GraphEdge, GraphNode, SpaceNode } from "@/types";
+import { createConnectedYDoc, setNodePageContent, waitForNode } from "@/utils";
+
+import { SingleNode } from "./tasks/types";
 
 export const findExtremePositions = (nodes: Node[]) => {
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
+  let minX = 0;
+  let maxX = -0;
+  let minY = 0;
+  let maxY = -0;
 
   nodes.forEach((node) => {
     const { x, y } = node.position;
@@ -31,10 +35,10 @@ export const addNodeToGraph = async (
   title = "New node",
   body: string | undefined,
   position: XYPosition = { x: 100, y: 100 },
-) => {
+): Promise<string> => {
   const flowPosition = reactFlowInstance.screenToFlowPosition(position);
   if (!flowPosition) alert("Failed to add node");
-  const id = uuid();
+  const id = crypto.randomUUID();
   const newNode: GraphNode = {
     id,
     type: "GraphNode",
@@ -44,7 +48,7 @@ export const addNodeToGraph = async (
   };
   spaceNodesMap.set(id, { id: id, title });
   nodesMap.set(id, newNode);
-  if (!body) return;
+  if (!body) return id;
 
   try {
     await waitForNode(id);
@@ -55,4 +59,102 @@ export const addNodeToGraph = async (
   } catch (error) {
     alert("Failed to load new node from API");
   }
+  return id;
+};
+
+export const addEdge = async (
+  edgesMap: Y.Map<GraphEdge> | undefined,
+  source: string,
+  target: string,
+  sourceHandle: string = "target-bottom",
+  targetHandle: string = "target-top",
+): Promise<void> => {
+  const id = `edge-${source}${sourceHandle || ""}-${target}${targetHandle || ""}`;
+
+  edgesMap?.set(id, {
+    id,
+    source,
+    target,
+    sourceHandle,
+    targetHandle,
+  } as GraphEdge);
+};
+
+export const findCentralNode = (ids: string[], nodesMap: Y.Map<GraphNode>) => {
+  const sourceNodes = ids.map((id) => nodesMap.get(id) as GraphNode);
+  const averageX = sourceNodes.reduce((acc, node) => acc + node.position.x, 0) / sourceNodes.length;
+  const averageY = sourceNodes.reduce((acc, node) => acc + node.position.y, 0) / sourceNodes.length;
+  const centralTargetNode = sourceNodes.reduce(
+    (nearest, node) => {
+      const distance = Math.sqrt(
+        Math.pow(node.position.x - averageX, 2) + Math.pow(node.position.y - averageY, 2),
+      );
+      return nearest.distance < distance ? nearest : { node, distance };
+    },
+    { node: sourceNodes[0], distance: Infinity },
+  );
+  return centralTargetNode.node;
+};
+
+interface AddNodeOptions {
+  spaceId: string | undefined;
+  graphId: string;
+  nodes: SingleNode[];
+  edges: Array<{ source: string; target: string }>;
+}
+
+export const addToGraph = async (options: AddNodeOptions, token: string) => {
+  const { spaceId, graphId, nodes, edges } = options;
+
+  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
+  const [graphDoc, graphProvider] = await createConnectedYDoc(`node-graph-${graphId}`, token);
+
+  const nodesMap = graphDoc.getMap<GraphNode>("nodes");
+  const edgesMap = graphDoc.getMap<GraphEdge>("edges");
+  const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");
+
+  // let centralNodePosition: XYPosition = { x: 0, y: 0 };
+  const nodePositions = findExtremePositions(Array.from(nodesMap.values()));
+  // if (centralNode) centralNodePosition = centralNode.position;
+  console.log("nodePositions", nodePositions);
+
+  nodes.forEach(async (node, i) => {
+    const id = crypto.randomUUID();
+    const newNode: GraphNode = {
+      id,
+      type: "GraphNode",
+      position: {
+        x: nodePositions.minX + 210 * i,
+        y: nodePositions.maxY + 120,
+      },
+      style: { width: 200, height: 80 },
+      data: {},
+    };
+    const newNOde = nodesMap.set(id, newNode);
+    console.log(newNOde);
+    spaceMap.set(id, { id, title: node.title });
+
+    if (node.markdown) {
+      await waitForNode(id);
+      const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+      try {
+        const xml = editorDoc.getXmlFragment("default");
+        const html = DOMPurify.sanitize(await marked.parse(node.markdown));
+        const json = generateJSON(html, extensions);
+        prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, json, xml);
+      } catch (error) {
+        console.error("Failed to add to node page", error);
+      } finally {
+        editorProvider.destroy();
+      }
+    }
+  });
+
+  edges.forEach((edge) => {
+    const id = `edge-${edge.source}-${edge.target}`;
+    edgesMap.set(id, { id, source: edge.source, target: edge.target });
+  });
+
+  spaceProvider.destroy();
+  graphProvider.destroy();
 };
