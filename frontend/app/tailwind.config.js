@@ -49,6 +49,7 @@ export default {
       boxShadow: {
         DEFAULT: "0px 3px 5px 0px rgba(0, 0, 0, 0.05)",
         "node-selected": "0 0 0 6px rgb(191, 194, 255)",
+        "node-active": "0px 0px 0px 6px rgb(101, 12, 215, 0.5)",
         background: "0px 2px 5px 0px rgba(0, 0, 0, 0.2)",
         "node-repo": "0px 4px 6px 0px rgba(0, 0, 0, 0.09)",
       },

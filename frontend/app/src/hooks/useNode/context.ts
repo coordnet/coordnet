@@ -4,7 +4,7 @@ import * as Y from "yjs";
 
 import { BackendNodeDetail, GraphEdge, GraphNode } from "@/types";
 
-type NodeContextType = {
+export type NodeContextType = {
   id: string;
   node: BackendNodeDetail | undefined;
   isLoading: boolean;
