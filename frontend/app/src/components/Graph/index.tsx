@@ -23,6 +23,7 @@ import { GraphNode } from "@/types";
 import { waitForNode } from "@/utils";
 
 import Controls from "./Controls";
+import { getLayoutedNodes } from "./getLayoutedNodes";
 import GraphNodeComponent from "./GraphNode";
 import MultiNodeToolbar from "./MultiNodeToolbar";
 import Sidebar from "./Sidebar";
@@ -171,6 +172,17 @@ const Graph = ({ className }: { className?: string }) => {
     [onConnect, takeSnapshot],
   );
 
+  const onLayoutNodes = useCallback(async () => {
+    takeSnapshot();
+    const layouted = await getLayoutedNodes(nodes, edges, "DOWN");
+    for (const node of layouted) {
+      const mapNode = nodesMap?.get(node.id);
+      if (mapNode) {
+        nodesMap?.set(node.id, { ...mapNode, position: node.position });
+      }
+    }
+  }, [edges, nodes, nodesMap, takeSnapshot]);
+
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -195,7 +207,11 @@ const Graph = ({ className }: { className?: string }) => {
 
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("graph")}>
-      <Sidebar className="absolute z-40 top-1/2 -translate-y-1/2" addNode={addNode} />
+      <Sidebar
+        className="absolute z-40 top-1/2 -translate-y-1/2"
+        addNode={addNode}
+        onLayoutNodes={onLayoutNodes}
+      />
       <MultiNodeToolbar />
       <div className="grow h-full Graph" ref={wrapperRef}>
         <ReactFlow

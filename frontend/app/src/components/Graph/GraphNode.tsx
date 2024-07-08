@@ -7,7 +7,7 @@ import pSBC from "shade-blend-color";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { useNode } from "@/hooks";
-import { GraphNode } from "@/types";
+import { GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { EditableNode } from "../";
 import Footer from "./Footer";
@@ -103,7 +103,11 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         className={clsx(
           "GraphNode border border-gray-1 rounded-lg p-3 bg-white",
           "size-full overflow-hidden flex items-center justify-center text-center text-sm",
-          { "border-2": Boolean(data.borderColor), "shadow-node-selected": selected },
+          {
+            "border-2": Boolean(data.borderColor),
+            "shadow-node-selected": selected,
+            "shadow-node-active": data?.active ?? false,
+          },
         )}
         style={nodeStyle}
         ref={nodeRef}
@@ -130,6 +134,13 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
             </Tooltip>
           </>
         )}
+        {data?.type && data?.type !== NodeType.Default && (
+          <div className="absolute top-0 left-2 text-[10px]">
+            {nodeTypeMap[data.type as NodeType]}
+          </div>
+        )}
+        <div className="absolute top-0 right-2 text-[10px] font-mono">{id.slice(0, 8)}</div>
+
         <EditableNode
           id={id}
           ref={inputRef}

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Edit, FileText, GitBranchPlus, Share2 } from "lucide-react";
+import { Edit, FileText, GitBranchPlus, Share2, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
 import { useNode, useQuickView, useSpace } from "@/hooks";
-import { GraphNode } from "@/types";
+import { GraphNode, NodeType } from "@/types";
 
 import { Button } from "../ui/button";
 
@@ -50,6 +50,11 @@ const HoverMenu = ({
   const setColor = (color: { color: string; value: string }) => {
     const node = nodesMap?.get(id);
     if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, borderColor: color.color } });
+  };
+
+  const setType = (type: NodeType) => {
+    const node = nodesMap?.get(id);
+    if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, type } });
   };
 
   return (
@@ -147,6 +152,29 @@ const HoverMenu = ({
         </MenubarMenu>
       </Menubar>
       <Tooltip id="node-progress">Progress</Tooltip>
+      <div className="border-r border-gray h-5"></div>
+      <Menubar unstyled>
+        <MenubarMenu>
+          <MenubarTrigger asChild>
+            <Button
+              variant="ghost"
+              className="p-0 h-auto"
+              data-tooltip-id="node-type"
+              disabled={!backendNode?.allowed_actions.includes("write")}
+            >
+              <Tag className="cursor-pointer size-4" />
+            </Button>
+          </MenubarTrigger>
+          <MenubarContent className="min-w-20">
+            {Object.values(NodeType).map((value) => (
+              <MenubarItem key={value} className="capitalize" onClick={() => setType(value)}>
+                {value}
+              </MenubarItem>
+            ))}
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+      <Tooltip id="node-type">Type</Tooltip>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Plus, Search } from "lucide-react";
+import { LayoutDashboard, PlayCircle, Plus, Search } from "lucide-react";
 import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { useOnViewportChange, XYPosition } from "reactflow";
@@ -7,6 +7,7 @@ import { useOnViewportChange, XYPosition } from "reactflow";
 import { useFocus, useNode } from "@/hooks";
 
 import { Button } from "../ui/button";
+import { useRunCanvas } from "./tasks/useRunCanvas";
 
 const onDragStart = (event: DragEvent, nodeType: string) => {
   event.dataTransfer.setData("application/reactflow", nodeType);
@@ -16,14 +17,17 @@ const onDragStart = (event: DragEvent, nodeType: string) => {
 const Sidebar = ({
   addNode,
   className,
+  onLayoutNodes,
 }: {
   addNode: (position: XYPosition) => void;
   className?: string;
+  onLayoutNodes: () => Promise<void>;
 }) => {
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
   const { setNodeRepositoryVisible } = useFocus();
   const { node } = useNode();
+  const runCanvas = useRunCanvas();
 
   useOnViewportChange({
     onChange: () => {
@@ -81,6 +85,28 @@ const Sidebar = ({
           <Search strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>
         <Tooltip id="node-repository">Node Repository</Tooltip>
+        <Button
+          variant="outline"
+          className="size-9 p-0 shadow"
+          onClick={() => onLayoutNodes()}
+          data-tooltip-id="layout-nodes"
+          data-tooltip-place="right"
+          disabled={!node?.allowed_actions.includes("write")}
+        >
+          <LayoutDashboard strokeWidth={2.8} className="text-neutral-600 size-4" />
+        </Button>
+        <Tooltip id="layout-nodes">Layout nodes</Tooltip>
+        <Button
+          variant="outline"
+          className="size-9 p-0 shadow"
+          onClick={() => runCanvas()}
+          data-tooltip-id="run-canvas"
+          data-tooltip-place="right"
+          disabled={!node?.allowed_actions.includes("write")}
+        >
+          <PlayCircle strokeWidth={2.8} className="text-neutral-600 size-4" />
+        </Button>
+        <Tooltip id="run-canvas">Run Canvas</Tooltip>
       </div>
     </aside>
   );

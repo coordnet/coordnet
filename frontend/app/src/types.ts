@@ -130,3 +130,21 @@ export interface NodeVersion {
   document_type: "GRAPH" | "SPACE" | "EDITOR";
   document: string;
 }
+
+export enum NodeType {
+  Default = "default",
+  Loop = "loop",
+  Output = "output",
+  Prompt = "prompt",
+  ResponseSingle = "response_single",
+  ResponseMultiple = "response_multiple",
+}
+
+export const nodeTypeMap = {
+  [NodeType.Default]: "Default",
+  [NodeType.Loop]: "Loop",
+  [NodeType.Output]: "Output",
+  [NodeType.Prompt]: "Prompt",
+  [NodeType.ResponseSingle]: "Responses (one node)",
+  [NodeType.ResponseMultiple]: "Responses (many nodes)",
+};
