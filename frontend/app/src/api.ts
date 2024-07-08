@@ -225,63 +225,6 @@ export const getLLMTokenCount = async (
   return response.data;
 };
 
-export const getLLMResponse = (
-  abortController: AbortController,
-  buddyId: string | undefined,
-  message: string,
-  nodes: string[],
-  level: number,
-) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const events: { [key: string]: Array<(data?: any) => void> } = {};
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function on(eventName: string, listener: (data?: any) => void): void {
-    events[eventName] = events[eventName] || [];
-    events[eventName].push(listener);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function emit(eventName: string, data?: any): void {
-    if (events[eventName]) {
-      events[eventName].forEach((listener) => listener(data));
-    }
-  }
-
-  (async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/buddies/${buddyId}/query/`,
-        {
-          method: "post",
-          signal: abortController.signal,
-          body: JSON.stringify({ message, nodes, level }),
-          headers: { "Content-Type": "application/json", "Accept-Encoding": "in" },
-        },
-      );
-      if (response.body === null) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          emit("end");
-          break;
-        }
-        const decoded = decoder.decode(value, { stream: true });
-        emit("data", decoded);
-      }
-    } catch (error) {
-      emit("error", error);
-    }
-  })();
-
-  return { on };
-};
-
 export const handleApiError = (
   e: unknown,
   formData: { [key: string]: unknown },

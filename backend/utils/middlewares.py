@@ -1,7 +1,13 @@
 import typing
 from functools import wraps
 
+from asgiref.sync import sync_to_async
+from channels.auth import AuthMiddlewareStack
+from django.contrib.auth.models import AnonymousUser
 from django.middleware.gzip import GZipMiddleware
+from knox.auth import TokenAuthentication
+from knox.settings import knox_settings
+from rest_framework import exceptions
 
 if typing.TYPE_CHECKING:
     from django.http import HttpRequest, HttpResponseBase
