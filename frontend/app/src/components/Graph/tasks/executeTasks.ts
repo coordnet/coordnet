@@ -1,8 +1,8 @@
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import * as Y from "yjs";
 
-import { Buddy, SpaceNode } from "@/types";
-import { getNodePageContent, waitForNode } from "@/utils";
+import { Buddy, NodeType, SpaceNode } from "@/types";
+import { getCanvasNodes, getNodePageContent, waitForNode } from "@/utils";
 
 import { Task } from "./types";
 
@@ -24,19 +24,27 @@ export const generatePrompt = async (
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: buddy?.system_message },
   ];
+
+  const formatNode = async (nodeId: string) => {
+    const spaceNode = spaceNodesMap?.get(nodeId);
+    const nodePageContent = await getNodePageContent(nodeId);
+    return ["Title: " + (spaceNode?.title ?? ""), "Content: " + nodePageContent, ""].join("/n");
+  };
+
   for await (const graphNode of task.inputNodes) {
-    const spaceNode = spaceNodesMap?.get(graphNode.id);
-    await waitForNode(graphNode.id);
-    const nodePageContent = await getNodePageContent(graphNode?.id ?? "");
-    const content: string[] = [];
-    content.push("Title: " + spaceNode?.title);
-    content.push("Content: " + nodePageContent);
-    content.push("");
-    messages.push({
-      role: "user",
-      content: content.join("/n"),
-      name: formatName(spaceNode?.title ?? ""),
-    });
+    if (
+      graphNode.data.type == NodeType.ResponseSingle ||
+      graphNode.data.type == NodeType.ResponseMultiple
+    ) {
+      const nodes = await getCanvasNodes(graphNode.id);
+      const content = await Promise.all(nodes.map((node) => formatNode(node.id)));
+      messages.push({ role: "user", content: content.join("/n") });
+    } else {
+      await waitForNode(graphNode.id);
+      const content = await formatNode(graphNode.id);
+      const spaceNode = spaceNodesMap?.get(graphNode.id);
+      messages.push({ role: "user", content, name: formatName(spaceNode?.title ?? "") });
+    }
   }
   const spaceNode = spaceNodesMap?.get(task.promptNode.id);
   messages.push({ role: "user", content: spaceNode?.title ?? "" });
