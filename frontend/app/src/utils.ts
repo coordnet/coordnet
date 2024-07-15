@@ -7,6 +7,7 @@ import { prosemirrorJSONToYXmlFragment, yXmlFragmentToProsemirrorJSON } from "y-
 import * as Y from "yjs";
 
 import { getNode } from "./api";
+import { GraphNode } from "./types";
 
 /*
  * Get a string representation of an error, whether it is a string, an Error instance, or an object
@@ -213,4 +214,13 @@ export const createConnectedYDoc = async (
     provider.on("status", onStatus);
     provider.on("synced", onSynced);
   });
+};
+
+export const getCanvasNodes = async (id: string): Promise<GraphNode[]> => {
+  const token = store("coordnet-auth");
+  const [graphDoc, graphProvider] = await createConnectedYDoc(`node-graph-${id}`, token);
+  const nodesMap = graphDoc.getMap<GraphNode>("nodes");
+  const nodes = Array.from(nodesMap.values());
+  graphProvider.destroy();
+  return nodes;
 };

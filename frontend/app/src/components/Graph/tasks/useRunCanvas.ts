@@ -6,23 +6,21 @@ import { z } from "zod";
 
 import { useNode, useSpace } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import useUser from "@/hooks/useUser";
-import { GraphNode, NodeType, SpaceNode } from "@/types";
-import { createConnectedYDoc } from "@/utils";
+import { NodeType, SpaceNode } from "@/types";
+import { getCanvasNodes } from "@/utils";
 
-import { addToGraph } from "../utils";
+import { addToGraph, setNodeTitleAndContent } from "../utils";
 import { createTasks } from "./createTasks";
 import { generatePrompt } from "./executeTasks";
 import {
   ExecutionContext,
-  Graph,
   MultipleNodesResponse,
   MultipleNodesSchema,
   SingleNode,
   SingleNodeResponse,
   SingleNodeSchema,
 } from "./types";
-import { isResponseNode, setNodesActive } from "./utils";
+import { createGraph, isResponseNode, setNodesActive } from "./utils";
 
 const oai = new OpenAI({
   baseURL: import.meta.env.VITE_BACKEND_URL + "/api/llm/",
@@ -66,7 +64,6 @@ function logExecutionPlan(context: ExecutionContext, spaceNodesMap: Y.Map<SpaceN
 export const useRunCanvas = () => {
   const { nodes, edges, nodesMap } = useNode();
   const { space, nodesMap: spaceNodesMap } = useSpace();
-  const { token } = useUser();
   const { buddy } = useBuddy();
 
   const runCanvas = useCallback(async () => {
@@ -74,24 +71,9 @@ export const useRunCanvas = () => {
     if (!spaceNodesMap) return alert("Space node map not found");
     console.log(nodes, edges);
 
-    // Create adjacency list from edges
     const nodeIds = nodes.map((nodes) => nodes.id);
-    const adjacencyList: { [id: string]: string[] } = {};
-    edges.forEach((edge) => {
-      if (nodeIds.includes(edge.source) && nodeIds.includes(edge.target)) {
-        if (!adjacencyList[edge.source]) adjacencyList[edge.source] = [];
-        if (!adjacencyList[edge.target]) adjacencyList[edge.target] = [];
-        adjacencyList[edge.source].push(edge.target);
-        adjacencyList[edge.target].push(edge.source);
-      }
-    });
     setNodesActive(nodeIds, nodesMap, false);
-
-    const graph: Graph = {
-      nodes: nodes.reduce((acc, node) => ({ ...acc, [node.id]: node }), {}),
-      edges: edges.reduce((acc, edge) => ({ ...acc, [edge.id]: edge }), {}),
-      adjacencyList,
-    };
+    const graph = createGraph(nodes, edges);
     console.log(graph);
 
     // Initialize execution context
@@ -102,6 +84,7 @@ export const useRunCanvas = () => {
 
     // Create initial tasks
     createTasks(graph, context);
+
     if (spaceNodesMap) console.log(logExecutionPlan(context, spaceNodesMap));
 
     let index = 0;
@@ -114,48 +97,35 @@ export const useRunCanvas = () => {
       const selectedIds = [task.promptNode.id, ...task.inputNodes.map((node) => node.id)];
       setNodesActive(selectedIds, nodesMap);
 
-      const hasResponseTask = task.inputNodes.some((node) => isResponseNode(node));
       let tasks = [task];
 
-      if (hasResponseTask) {
+      // If this has a loop, then we need to get the response nodes and create a task for each
+      if (task?.loop === true) {
         tasks = [];
-        const taskWithoutResponseNodes = {
-          ...task,
-          inputNodes: task.inputNodes.filter((node) => !isResponseNode(node)),
-        };
+        const otherNodes = task.inputNodes.filter((node) => !isResponseNode(node));
         for await (const inputNode of task.inputNodes) {
           if (isResponseNode(inputNode)) {
-            const [graphDoc, graphProvider] = await createConnectedYDoc(
-              `node-graph-${inputNode.id}`,
-              token,
-            );
-            const nodesMap = graphDoc.getMap<GraphNode>("nodes");
-            const responseNodes = Array.from(nodesMap.values());
-            for await (const responseNode of responseNodes) {
-              const taskWithResponseNode = {
-                ...taskWithoutResponseNodes,
-                inputNodes: [...taskWithoutResponseNodes.inputNodes, responseNode],
-              };
-              tasks.push(taskWithResponseNode);
+            const inputNodeNodes = await getCanvasNodes(inputNode.id);
+            for await (const responseNode of inputNodeNodes) {
+              tasks.push({ ...task, inputNodes: [...otherNodes, responseNode] });
             }
-            graphProvider.destroy();
           }
         }
       }
 
-      console.log("executing tasks", tasks);
       for await (const task of tasks) {
         const messages = await generatePrompt(task, buddy, spaceNodesMap);
         console.log("Got messages", messages);
-
-        console.log(task.outputNode, task.outputNode?.data.type);
 
         try {
           const response_model: { schema: z.AnyZodObject; name: string } = {
             schema: MultipleNodesSchema,
             name: "MultipleNodes",
           };
-          if (task.outputNode?.data.type === NodeType.ResponseSingle) {
+          if (
+            task.outputNode?.data.type === NodeType.ResponseSingle ||
+            task.outputNode?.data.type === NodeType.ResponseCombined
+          ) {
             response_model.schema = SingleNodeSchema;
             response_model.name = "SingleNode";
           }
@@ -168,7 +138,10 @@ export const useRunCanvas = () => {
 
           const nodes: SingleNode[] = [];
 
-          if (task.outputNode?.data.type === NodeType.ResponseSingle) {
+          if (
+            task.outputNode?.data.type === NodeType.ResponseCombined ||
+            task.outputNode?.data.type === NodeType.ResponseSingle
+          ) {
             // TODO: Look into https://island.novy.work/docs/stream-hooks/getting-started
             let extractedNode: SingleNodeResponse = {};
             for await (const result of response) {
@@ -188,10 +161,24 @@ export const useRunCanvas = () => {
             nodes.push(...(extractedData.nodes as SingleNode[]));
           }
 
-          await addToGraph(
-            { spaceId: space?.id, graphId: task?.outputNode?.id ?? "", nodes, edges: [] },
-            token,
-          );
+          if (
+            task.outputNode?.data.type === NodeType.ResponseSingle ||
+            task.outputNode?.data.type === NodeType.ResponseMultiple
+          ) {
+            await addToGraph({
+              spaceId: space?.id,
+              graphId: task?.outputNode?.id ?? "",
+              nodes,
+              edges: [],
+            });
+          } else {
+            setNodeTitleAndContent(
+              space?.id,
+              task?.outputNode?.id ?? "",
+              nodes[0].title,
+              nodes[0].markdown,
+            );
+          }
         } catch (e) {
           console.error(e);
           alert("Error when calling LLM, check console for details");

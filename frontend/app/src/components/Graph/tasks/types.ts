@@ -7,12 +7,14 @@ export interface Graph {
   nodes: { [id: string]: GraphNode };
   edges: { [id: string]: GraphEdge };
   adjacencyList: { [id: string]: string[] };
+  topologicallySortedNodes: string[];
 }
 
 export interface Task {
   inputNodes: GraphNode[];
   outputNode: GraphNode | null;
   promptNode: GraphNode;
+  loop?: boolean;
 }
 
 export interface ExecutionContext {
