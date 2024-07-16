@@ -1,12 +1,21 @@
+import { DialogTitle } from "@radix-ui/react-dialog";
 import clsx from "clsx";
 import { LayoutDashboard, PlayCircle, Plus, Search } from "lucide-react";
 import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { useOnViewportChange, XYPosition } from "reactflow";
 
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useFocus, useNode } from "@/hooks";
 
 import { Button } from "../ui/button";
+import ExecutionPlanRenderer from "./ExecutionPlan";
 import { useRunCanvas } from "./tasks/useRunCanvas";
 
 const onDragStart = (event: DragEvent, nodeType: string) => {
@@ -25,9 +34,10 @@ const Sidebar = ({
 }) => {
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
+  const [planOpen, setPlanOpen] = useState(false);
   const { setNodeRepositoryVisible } = useFocus();
   const { node } = useNode();
-  const runCanvas = useRunCanvas();
+  const { runCanvas, resetCanvas } = useRunCanvas();
 
   useOnViewportChange({
     onChange: () => {
@@ -96,18 +106,49 @@ const Sidebar = ({
           <LayoutDashboard strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>
         <Tooltip id="layout-nodes">Layout nodes</Tooltip>
-        <Button
-          variant="outline"
-          className="size-9 p-0 shadow"
-          onClick={() => runCanvas()}
-          data-tooltip-id="run-canvas"
-          data-tooltip-place="right"
-          disabled={!node?.allowed_actions.includes("write")}
-        >
-          <PlayCircle strokeWidth={2.8} className="text-neutral-600 size-4" />
-        </Button>
-        <Tooltip id="run-canvas">Run Canvas</Tooltip>
+
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="size-9 p-0 shadow focus-visible:!ring-0"
+              disabled={!node?.allowed_actions.includes("write")}
+            >
+              <PlayCircle strokeWidth={2.8} className="text-neutral-600 size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-20 mt-1" side="right" align="start">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => runCanvas()}>
+              Run Canvas
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => runCanvas(true)}>
+              Run Selection
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => setPlanOpen(true)}>
+              Show Analysis
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => resetCanvas()}
+              data-tooltip-id="run-canvas"
+              data-tooltip-place="right"
+            >
+              Reset Canvas
+            </DropdownMenuItem>
+            <Tooltip id="run-canvas">
+              Use this to remove highlighted state from nodes if processing was interrupted
+            </Tooltip>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <Dialog onOpenChange={(open) => setPlanOpen(open)} open={planOpen}>
+        <DialogTrigger></DialogTrigger>
+        <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
+          <DialogTitle className="hidden">Test</DialogTitle>
+          <ExecutionPlanRenderer />
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 };

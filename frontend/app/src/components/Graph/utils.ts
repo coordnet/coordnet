@@ -2,6 +2,7 @@ import { generateJSON } from "@tiptap/core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 import { Node, ReactFlowInstance, XYPosition } from "reactflow";
+import store from "store2";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
@@ -103,8 +104,9 @@ interface AddNodeOptions {
   edges: Array<{ source: string; target: string }>;
 }
 
-export const addToGraph = async (options: AddNodeOptions, token: string) => {
+export const addToGraph = async (options: AddNodeOptions) => {
   const { spaceId, graphId, nodes, edges } = options;
+  const token = store("coordnet-auth");
 
   const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
   const [graphDoc, graphProvider] = await createConnectedYDoc(`node-graph-${graphId}`, token);
@@ -157,4 +159,32 @@ export const addToGraph = async (options: AddNodeOptions, token: string) => {
 
   spaceProvider.destroy();
   graphProvider.destroy();
+};
+
+export const setNodeTitleAndContent = async (
+  spaceId: string | undefined,
+  id: string,
+  title: string,
+  markdown: string,
+) => {
+  const token = store("coordnet-auth");
+
+  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
+
+  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+  try {
+    const xml = editorDoc.getXmlFragment("default");
+    const html = DOMPurify.sanitize(await marked.parse(markdown));
+    const json = generateJSON(html, extensions);
+    prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, json, xml);
+  } catch (error) {
+    console.error("Failed to add to node page", error);
+  } finally {
+    editorProvider.destroy();
+  }
+
+  const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");
+  const spaceNode = spaceMap.get(id);
+  if (spaceNode) spaceMap.set(id, { ...spaceNode, title });
+  spaceProvider.destroy();
 };

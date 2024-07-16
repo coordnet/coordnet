@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 import { GraphNode, NodeType } from "@/types";
 
 import { ExecutionContext, Graph, Task } from "./types";
@@ -45,23 +47,37 @@ export const createTasks = (graph: Graph, context: ExecutionContext) => {
   };
 
   // Iterate over each node in the graph and process if it's a prompt node
-  Object.values(graph.nodes).forEach((node) => {
+  Object.values(graph.topologicallySortedNodes).forEach((nodeId) => {
+    const node = graph.nodes[nodeId];
     if (node.data.type === NodeType.Prompt) {
       // Initialize a base task for the prompt node
       const baseTask: Task = { inputNodes: [], outputNode: null, promptNode: node };
       const loopItems: GraphNode[][] = [];
 
+      // Find the output node
+      for (const key in graph.adjacencyList) {
+        const relations = graph.adjacencyList[key];
+        if (relations.includes(nodeId)) {
+          if (baseTask.outputNode !== null) {
+            console.warn("Multiple output nodes found for prompt node", node);
+            toast.warning("Note: Multiple output nodes found for prompt, only one will be used.");
+          }
+          if (isResponseNode(graph.nodes[key])) {
+            baseTask.outputNode = graph.nodes[key];
+            console.log("Found output node", baseTask.outputNode);
+          } else {
+            toast.error("The output node of a prompt must be a response node.");
+            throw new Error("Output node must be a response node");
+          }
+        }
+      }
+
       // First find the output and normal input nodes
-      graph.adjacencyList[node.id].forEach((targetNodeId) => {
+      graph.adjacencyList[node.id]?.forEach((targetNodeId) => {
         const targetNode = graph.nodes[targetNodeId];
 
         // Check if the target node is a response node
-        if (isResponseNode(targetNode)) {
-          baseTask.outputNode = targetNode;
-        }
-
-        // If it's an input node then add it to the inputNodes list
-        else if (isInputNode(targetNode)) {
+        if (isResponseNode(targetNode) || isInputNode(targetNode)) {
           baseTask.inputNodes.push(targetNode);
         }
 
@@ -76,6 +92,15 @@ export const createTasks = (graph: Graph, context: ExecutionContext) => {
 
       // If there are loop items, create tasks recursively otherwise add baseTask
       if (loopItems.length > 0) {
+        // Check if any loop items contain response nodes
+        const containsResponseNode = loopItems.some((items) =>
+          items.some((item) => isResponseNode(item)),
+        );
+
+        if (containsResponseNode) {
+          baseTask.loop = true;
+        }
+
         createTasksRecursively(baseTask, loopItems, 0);
       } else {
         context.taskList.push(baseTask);

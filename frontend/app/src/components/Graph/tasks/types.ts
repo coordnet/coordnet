@@ -1,4 +1,5 @@
 import { CompletionMeta } from "@instructor-ai/instructor";
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { z } from "zod";
 
 import { GraphEdge, GraphNode } from "@/types";
@@ -7,12 +8,14 @@ export interface Graph {
   nodes: { [id: string]: GraphNode };
   edges: { [id: string]: GraphEdge };
   adjacencyList: { [id: string]: string[] };
+  topologicallySortedNodes: string[];
 }
 
 export interface Task {
   inputNodes: GraphNode[];
   outputNode: GraphNode | null;
   promptNode: GraphNode;
+  loop?: boolean;
 }
 
 export interface ExecutionContext {
@@ -40,3 +43,5 @@ export const MultipleNodesSchema = z.object({
 export type MultipleNodesResponse = Partial<{ nodes: { title: string; markdown: string }[] }> & {
   _meta?: CompletionMeta | undefined;
 };
+
+export type ExecutionPlan = { tasks: { task: Task; messages: ChatCompletionMessageParam[] }[] };

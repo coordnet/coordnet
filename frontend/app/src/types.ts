@@ -136,6 +136,7 @@ export enum NodeType {
   Loop = "loop",
   Output = "output",
   Prompt = "prompt",
+  ResponseCombined = "response_combined",
   ResponseSingle = "response_single",
   ResponseMultiple = "response_multiple",
 }
@@ -145,6 +146,7 @@ export const nodeTypeMap = {
   [NodeType.Loop]: "Loop",
   [NodeType.Output]: "Output",
   [NodeType.Prompt]: "Prompt",
+  [NodeType.ResponseCombined]: "Response (combined)",
   [NodeType.ResponseSingle]: "Responses (one node)",
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
 };
