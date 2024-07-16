@@ -27,66 +27,60 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
         for document_event in events:
             logger.debug(f"Processing event {document_event.pk} for {document_event.public_id}")
             try:
-                if document_event.document_type == models.DocumentType.EDITOR:
-                    # It would be nice to split this into a separate task, but keeping the lock
-                    # is a good way to ensure that we don't process the same event twice.
-                    if document_event.action in (
-                        models.DocumentEvent.EventType.INSERT,
-                        models.DocumentEvent.EventType.UPDATE,
-                    ):
-                        try:
-                            node = models.Node.all_objects.select_for_update(no_key=True).get(
-                                public_id=document_event.public_id
+                with transaction.atomic():
+                    if document_event.document_type == models.DocumentType.EDITOR:
+                        # It would be nice to split this into a separate task, but keeping the lock
+                        # is a good way to ensure that we don't process the same event twice.
+                        if document_event.action in (
+                            models.DocumentEvent.EventType.INSERT,
+                            models.DocumentEvent.EventType.UPDATE,
+                        ):
+                            try:
+                                node = models.Node.all_objects.select_for_update(no_key=True).get(
+                                    public_id=document_event.public_id
+                                )
+                            except models.Node.DoesNotExist:
+                                node = models.Node(public_id=document_event.public_id)
+
+                            if not node.graph_document:
+                                try:
+                                    node.graph_document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id,
+                                        document_type=models.DocumentType.GRAPH,
+                                    )
+                                except models.Document.DoesNotExist:
+                                    pass
+
+                            if not node.editor_document:
+                                try:
+                                    node.editor_document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id,
+                                        document_type=models.DocumentType.EDITOR,
+                                    )
+                                except models.Document.DoesNotExist:
+                                    pass
+
+                            node.content = document_event.new_data
+                            node.save()
+
+                        elif document_event.action == models.DocumentEvent.EventType.DELETE:
+                            # We don't actually expect the document to be deleted in the database,
+                            # they are just marked as deleted.
+                            logger.warning(
+                                f"Deletion event for {document_event.public_id} received. "
+                                "Ignoring..."
                             )
-                        except models.Node.DoesNotExist:
-                            node = models.Node(public_id=document_event.public_id)
-
-                        if not node.graph_document:
-                            try:
-                                node.graph_document = models.Document.objects.only("id").get(
-                                    public_id=document_event.public_id,
-                                    document_type=models.DocumentType.GRAPH,
-                                )
-                            except models.Document.DoesNotExist:
-                                pass
-
-                        if not node.editor_document:
-                            try:
-                                node.editor_document = models.Document.objects.only("id").get(
-                                    public_id=document_event.public_id,
-                                    document_type=models.DocumentType.EDITOR,
-                                )
-                            except models.Document.DoesNotExist:
-                                pass
-
-                        node.content = document_event.new_data
-                        node.save()
-
-                    elif document_event.action == models.DocumentEvent.EventType.DELETE:
-                        # We don't actually expect the document to be deleted in the database, they
-                        # are just marked as deleted.
-                        logger.warning(
-                            f"Deletion event for {document_event.public_id} received. ignoring..."
-                        )
-                    else:
-                        logger.warning(
-                            f"Unknown action {document_event.action} for "
-                            f"{document_event.public_id} received. ignoring..."
-                        )
-                elif document_event.document_type == models.DocumentType.SPACE:
-                    if document_event.action in (
-                        models.DocumentEvent.EventType.INSERT,
-                        models.DocumentEvent.EventType.UPDATE,
-                    ):
-                        with transaction.atomic():
+                        else:
+                            logger.warning(
+                                f"Unknown action {document_event.action} for "
+                                f"{document_event.public_id} received. ignoring..."
+                            )
+                    elif document_event.document_type == models.DocumentType.SPACE:
+                        if document_event.action in (
+                            models.DocumentEvent.EventType.INSERT,
+                            models.DocumentEvent.EventType.UPDATE,
+                        ):
                             # 1. Update the space
-                            deleted_nodes = (
-                                models.Node.all_objects.select_for_update()
-                                .filter(
-                                    public_id__in=document_event.new_data.get("deletedNodes", [])
-                                )
-                                .defer("content", "text")
-                            )
 
                             # Extract nodes and titles from space data
                             node_titles = {
@@ -109,12 +103,24 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 continue
 
                             if not space.document:
-                                space.document = models.Document.objects.only("id").get(
-                                    public_id=document_event.public_id
-                                )
-                                space.save(update_fields=["document"])
+                                try:
+                                    space.document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id
+                                    )
+                                    space.save(update_fields=["document"])
+                                except models.Document.DoesNotExist:
+                                    pass
 
+                            deleted_nodes = (
+                                models.Node.all_objects.select_for_update(no_key=True)
+                                .filter(
+                                    public_id__in=document_event.new_data.get("deletedNodes", [])
+                                )
+                                .defer("content", "text")
+                                .order_by("-created_at")
+                            )
                             space.deleted_nodes.set(deleted_nodes)
+
                             space_nodes = (
                                 models.Node.all_objects.select_for_update(no_key=True)
                                 .filter(public_id__in=node_titles.keys())
@@ -168,47 +174,50 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 node.save()
                                 space.nodes.add(node)
 
-                    elif document_event.action == models.DocumentEvent.EventType.DELETE:
-                        logger.warning(
-                            f"Deletion event for {document_event.public_id} received. ignoring..."
-                        )
-                    else:
-                        logger.warning(
-                            f"Unknown action {document_event.action} for "
-                            f"{document_event.public_id} received. ignoring..."
-                        )
-                elif document_event.document_type == models.DocumentType.GRAPH:
-                    if document_event.action in (
-                        models.DocumentEvent.EventType.INSERT,
-                        models.DocumentEvent.EventType.UPDATE,
-                    ):
-                        # 1. Update the nodes based on the graph data
-                        try:
-                            node = models.Node.all_objects.select_for_update(no_key=True).get(
-                                public_id=document_event.public_id
+                        elif document_event.action == models.DocumentEvent.EventType.DELETE:
+                            logger.warning(
+                                f"Deletion event for {document_event.public_id} received. "
+                                "Ignoring..."
                             )
-                        except models.Node.DoesNotExist:
-                            node = models.Node.objects.create(public_id=document_event.public_id)
-
-                        for node_id in document_event.new_data.get("nodes", []):
+                        else:
+                            logger.warning(
+                                f"Unknown action {document_event.action} for "
+                                f"{document_event.public_id} received. ignoring..."
+                            )
+                    elif document_event.document_type == models.DocumentType.GRAPH:
+                        if document_event.action in (
+                            models.DocumentEvent.EventType.INSERT,
+                            models.DocumentEvent.EventType.UPDATE,
+                        ):
+                            # 1. Update the nodes based on the graph data
                             try:
-                                subnode = models.Node.all_objects.select_for_update(
-                                    no_key=True
-                                ).get(public_id=node_id)
+                                node = models.Node.all_objects.select_for_update(no_key=True).get(
+                                    public_id=document_event.public_id
+                                )
                             except models.Node.DoesNotExist:
-                                subnode = models.Node.objects.create(public_id=node_id)
-                            node.subnodes.add(subnode)
+                                node = models.Node.objects.create(
+                                    public_id=document_event.public_id
+                                )
 
-                    elif document_event.action == models.DocumentEvent.EventType.DELETE:
-                        logger.warning(
-                            f"Deletion event for {document_event.public_id} received. ignoring..."
-                        )
-                    else:
-                        logger.warning(
-                            f"Unknown action {document_event.action} for "
-                            f"{document_event.public_id} received. ignoring..."
-                        )
+                            for node_id in document_event.new_data.get("nodes", []):
+                                try:
+                                    subnode = models.Node.all_objects.select_for_update(
+                                        no_key=True
+                                    ).get(public_id=node_id)
+                                except models.Node.DoesNotExist:
+                                    subnode = models.Node.objects.create(public_id=node_id)
+                                node.subnodes.add(subnode)
 
+                        elif document_event.action == models.DocumentEvent.EventType.DELETE:
+                            logger.warning(
+                                f"Deletion event for {document_event.public_id} received. "
+                                "Ignoring..."
+                            )
+                        else:
+                            logger.warning(
+                                f"Unknown action {document_event.action} for "
+                                f"{document_event.public_id} received. ignoring..."
+                            )
             except Exception as e:
                 logger.exception(f"Error processing event {document_event.pk}: {e}")
                 if raise_exception:
