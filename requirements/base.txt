@@ -37,7 +37,8 @@ django-pgtrigger==4.11.1  # https://github.com/Opus10/django-pgtrigger
 channels==4.1.0  # https://github.com/django/channels
 # Async DRF endpoints
 adrf==0.1.6  # https://github.com/em1208/adrf
-
+# Postgres lock support
+django-pglock==1.5.1  # https://github.com/Opus10/django-pglock
 
 # LLM
 # ------------------------------------------------------------------------------
