@@ -5,7 +5,7 @@ primary_region = "ams"
   dockerfile = "compose/pgbouncer/Dockerfile"
 
 [env]
-  POOL_MODE = "transaction"
+  POOL_MODE = "session"
   LISTEN_ADDR = "::"
   SERVER_TLS_SSLMODE = "disable"
   AUTH_TYPE = "scram-sha-256"

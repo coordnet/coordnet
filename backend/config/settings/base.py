@@ -63,7 +63,6 @@ if "DATABASE_URL" in env:
         "default": env.db("DATABASE_URL"),
         "direct": env.db("DIRECT_DATABASE_URL", env.str("DATABASE_URL")),
     }
-    DATABASES["default"]["ATOMIC_REQUESTS"] = True
 else:
     DATABASES = {
         "default": {
@@ -73,7 +72,6 @@ else:
             "PASSWORD": env("POSTGRES_PASSWORD"),
             "HOST": env("POSTGRES_HOST"),
             "PORT": env("POSTGRES_PORT", default="5432"),
-            "ATOMIC_REQUESTS": True,
         }
     }
 

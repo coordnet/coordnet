@@ -131,14 +131,6 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 )
                                 space.deleted_nodes.set(deleted_nodes)
 
-                                space_nodes = (
-                                    models.Node.all_objects.select_for_update(no_key=True)
-                                    .filter(public_id__in=node_titles.keys())
-                                    .defer("content", "text")
-                                    .order_by("-created_at")
-                                )
-                                space.nodes.set(space_nodes)
-
                                 # 2. Set the deleted nodes (and undelete if necessary)
                                 for deleted_node in deleted_nodes:
                                     # Doing this manually for now because I want to keep any signals
@@ -183,13 +175,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 models.DocumentEvent.EventType.INSERT,
                                 models.DocumentEvent.EventType.UPDATE,
                             ):
-                                # 1. Fetch and lock the existing subnodes
-                                subnodes = document_event.new_data.get("nodes", [])
-                                existing_subnodes = models.Node.all_objects.filter(
-                                    public_id__in=subnodes
-                                ).only("id", "public_id")
-
-                                # 2. Get or create the parent node
+                                # 1. Get or create the parent node
                                 try:
                                     node = models.Node.all_objects.select_for_update(
                                         no_key=True
@@ -212,13 +198,15 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                         public_id=document_event.public_id
                                     )
 
-                                # 3. Update the subnodes property and create missing subnodes
-                                missing_subnodes = set(subnodes) - set(
-                                    map(str, existing_subnodes.values_list("public_id", flat=True))
-                                )
+                                # 2. Set subnodes
 
-                                for node_id in missing_subnodes:
-                                    subnode = models.Node.objects.create(public_id=node_id)
+                                for node_id in document_event.new_data.get("nodes", []):
+                                    try:
+                                        subnode = models.Node.all_objects.select_for_update(
+                                            no_key=True
+                                        ).get(public_id=node_id)
+                                    except models.Node.DoesNotExist:
+                                        subnode = models.Node.objects.create(public_id=node_id)
                                     node.subnodes.add(subnode)
 
                             elif document_event.action == models.DocumentEvent.EventType.DELETE:
