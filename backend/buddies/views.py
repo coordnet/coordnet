@@ -1,3 +1,4 @@
+import functools
 import json
 import typing
 
@@ -13,6 +14,21 @@ from rest_framework.response import Response
 from buddies import models, serializers
 from utils import middlewares, views
 
+try:
+    from sentry_sdk.ai.monitoring import ai_track
+except ImportError:
+    # Replace decorator with a no-op
+    def ai_track(pipeline_name: str) -> typing.Callable[[typing.Callable], typing.Callable]:
+        def decorator(func: typing.Callable) -> typing.Callable:
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+
 if typing.TYPE_CHECKING:
     from rest_framework.request import Request
 
@@ -21,6 +37,7 @@ class BuddyModelViewSet(views.BaseModelViewSet):
     queryset = models.Buddy.available_objects.all()
     serializer_class = serializers.BuddySerializer
 
+    @ai_track("Buddy Query")
     @action(detail=True, methods=["post"], serializer_class=serializers.BuddyQuerySerializer)
     @extend_schema(
         responses={(200, "text/event-stream"): OpenApiTypes.STR, 404: None},
@@ -70,7 +87,6 @@ async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
     async def generate(resp):
         async for chunk in resp:
             data = chunk.model_dump_json(exclude_unset=True)
-            print(f"data: {data}\n\n")
             yield f"data: {data}\n\n"
         yield "data: [DONE]\n\n"
 

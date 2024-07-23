@@ -7,7 +7,7 @@ import typing
 
 import psycopg
 from django.core.management import BaseCommand
-from django.db import connection
+from django.db import connections
 
 import nodes.models
 import nodes.tasks
@@ -29,9 +29,16 @@ class Command(BaseCommand):
     help = "Listen for changes in the document table"
 
     def handle(self, *args: typing.Any, **options: typing.Any) -> None:
+        if "direct" in connections:
+            connection = connections["direct"]
+            logger.info("Using direct connection")
+        else:
+            connection = connections["default"]
+            logger.error("Using default connection instead of direct connection")
         with connection.cursor() as curs:
             conn = curs.connection
             curs.execute(f"LISTEN {nodes.models.PG_NOTIFY_CHANNEL};")
+            self.stdout.write(self.style.SUCCESS("Listening for notifications..."))
 
             sel = selectors.DefaultSelector()
             sel.register(conn, selectors.EVENT_READ)

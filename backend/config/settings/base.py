@@ -9,6 +9,7 @@ import warnings
 from pathlib import Path
 
 import environ
+from tutorial.settings import DEFAULT_AUTO_FIELD
 
 if typing.TYPE_CHECKING:
     import django_stubs_ext
@@ -58,7 +59,11 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 if "DATABASE_URL" in env:
-    DATABASES = {"default": env.db("DATABASE_URL")}
+    DATABASES = {
+        "default": env.db("DATABASE_URL"),
+        "direct": env.db("DIRECT_DATABASE_URL", env.str("DATABASE_URL")),
+    }
+    DATABASES["default"]["ATOMIC_REQUESTS"] = True
 else:
     DATABASES = {
         "default": {
@@ -275,7 +280,7 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "INFO",
+            "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         }
@@ -286,11 +291,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
-        # "django.db.backends": {
-        #     "level": "DEBUG",
-        #     "handlers": ["console"],
-        #     "propagate": False,
-        # },
+        "django.db.backends": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
     },
     # "root": {"level": "DEBUG", "handlers": ["console"]},
 }

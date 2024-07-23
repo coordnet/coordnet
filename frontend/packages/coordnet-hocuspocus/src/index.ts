@@ -40,7 +40,7 @@ const server = Server.configure({
         token == "public" ? undefined : token,
       );
       if (request.status !== 200) {
-        throw new Error("Not authorized!");
+        throw new Error("Not authorized! Status code: " + request.status);
       }
 
       const response = await request.json();
@@ -48,7 +48,7 @@ const server = Server.configure({
         data.connection.readOnly = true;
       }
     } else {
-      throw new Error("Not authorized!");
+      throw new Error("Not authorized! Invalid document type");
     }
   },
   async onLoadDocument({ document, documentName }) {

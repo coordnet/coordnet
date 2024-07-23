@@ -47,17 +47,6 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 except models.Node.DoesNotExist:
                                     node = models.Node(public_id=document_event.public_id)
 
-                                if not node.graph_document:
-                                    try:
-                                        node.graph_document = models.Document.objects.only(
-                                            "id"
-                                        ).get(
-                                            public_id=document_event.public_id,
-                                            document_type=models.DocumentType.GRAPH,
-                                        )
-                                    except models.Document.DoesNotExist:
-                                        pass
-
                                 if not node.editor_document:
                                     try:
                                         node.editor_document = models.Document.objects.only(
@@ -117,9 +106,10 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                         space.document = models.Document.objects.only("id").get(
                                             public_id=document_event.public_id
                                         )
-                                        space.save(update_fields=["document"])
                                     except models.Document.DoesNotExist:
                                         pass
+                                    else:
+                                        space.save(update_fields=["document"])
 
                                 space_nodes = (
                                     models.Node.all_objects.select_for_update(no_key=True)
@@ -174,27 +164,6 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                         title=node_titles[node_id],
                                     )
 
-                                    # This is in case the node was synced meanwhile.
-                                    try:
-                                        node.graph_document = models.Document.objects.only(
-                                            "id"
-                                        ).get(
-                                            public_id=document_event.public_id,
-                                            document_type=models.DocumentType.GRAPH,
-                                        )
-                                    except models.Document.DoesNotExist:
-                                        pass
-
-                                    try:
-                                        node.editor_document = models.Document.objects.only(
-                                            "id"
-                                        ).get(
-                                            public_id=document_event.public_id,
-                                            document_type=models.DocumentType.EDITOR,
-                                        )
-                                    except models.Document.DoesNotExist:
-                                        pass
-
                                     node.save()
                                     space.nodes.add(node)
 
@@ -208,6 +177,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     f"Unknown action {document_event.action} for "
                                     f"{document_event.public_id} received. ignoring..."
                                 )
+
                         elif document_event.document_type == models.DocumentType.GRAPH:
                             if document_event.action in (
                                 models.DocumentEvent.EventType.INSERT,
@@ -224,6 +194,19 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     node = models.Node.all_objects.select_for_update(
                                         no_key=True
                                     ).get(public_id=document_event.public_id)
+                                    if not node.graph_document:
+                                        try:
+                                            node.graph_document = models.Document.objects.only(
+                                                "id"
+                                            ).get(
+                                                public_id=document_event.public_id,
+                                                document_type=models.DocumentType.GRAPH,
+                                            )
+                                        except models.Document.DoesNotExist:
+                                            pass
+                                        else:
+                                            node.save(update_fields=["graph_document"])
+
                                 except models.Node.DoesNotExist:
                                     node = models.Node.objects.create(
                                         public_id=document_event.public_id
@@ -248,6 +231,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     f"Unknown action {document_event.action} for "
                                     f"{document_event.public_id} received. ignoring..."
                                 )
+
                 except Exception as e:
                     logger.exception(f"Error processing event {document_event.pk}: {e}")
                     if raise_exception:
