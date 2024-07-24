@@ -74,19 +74,26 @@ export const proseMirrorJSONToText = (jsonData: JSONContent) => {
   // Join the extracted text values with a space
   return textValues.join(" ");
 };
-
 export const getNodePageContent = async (id: string): Promise<string> => {
   const token = store("coordnet-auth");
   const roomName = `node-editor-${id}`;
   const ydoc = new Y.Doc({ guid: roomName });
 
   return new Promise((resolve, reject) => {
-    new HocuspocusProvider({
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+
+    const provider = new HocuspocusProvider({
       url: import.meta.env.VITE_HOCUSPOCUS_URL,
       name: roomName,
       document: ydoc,
       token,
+      onOpen() {
+        timeout = setTimeout(() => {
+          reject(new Error("Timeout: Operation took longer than 15 seconds: " + id));
+        }, 15000);
+      },
       onSynced() {
+        if (timeout) clearTimeout(timeout); // Clear the timeout if operation is successful
         try {
           const fragment = ydoc?.getXmlFragment("default");
           const json = yXmlFragmentToProsemirrorJSON(fragment);
@@ -96,6 +103,12 @@ export const getNodePageContent = async (id: string): Promise<string> => {
           reject(error);
         }
       },
+    });
+
+    // Reject the promise if there's an error with the provider setup
+    provider.on("error", (error: unknown) => {
+      if (timeout) clearTimeout(timeout);
+      reject(error);
     });
   });
 };

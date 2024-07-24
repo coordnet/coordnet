@@ -50,8 +50,6 @@ export const getLayoutedNodes = async (
     })),
   };
 
-  console.log(graph);
-
   try {
     const layoutedGraph = await elk.layout(graph);
     return layoutedGraph?.children?.map((node) => ({
