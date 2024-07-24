@@ -2,6 +2,7 @@ import { generateJSON } from "@tiptap/core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 import { Node, ReactFlowInstance, XYPosition } from "reactflow";
+import { toast } from "sonner";
 import store from "store2";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
@@ -118,7 +119,6 @@ export const addToGraph = async (options: AddNodeOptions) => {
   // let centralNodePosition: XYPosition = { x: 0, y: 0 };
   const nodePositions = findExtremePositions(Array.from(nodesMap.values()));
   // if (centralNode) centralNodePosition = centralNode.position;
-  console.log("nodePositions", nodePositions);
 
   nodes.forEach(async (node, i) => {
     const id = crypto.randomUUID();
@@ -132,22 +132,26 @@ export const addToGraph = async (options: AddNodeOptions) => {
       style: { width: 200, height: 80 },
       data: {},
     };
-    const newNOde = nodesMap.set(id, newNode);
-    console.log(newNOde);
+    nodesMap.set(id, newNode);
     spaceMap.set(id, { id, title: node.title });
 
     if (node.markdown) {
-      await waitForNode(id);
-      const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
       try {
-        const xml = editorDoc.getXmlFragment("default");
-        const html = DOMPurify.sanitize(await marked.parse(node.markdown));
-        const json = generateJSON(html, extensions);
-        prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, json, xml);
+        await waitForNode(id);
+        const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+        try {
+          const xml = editorDoc.getXmlFragment("default");
+          const html = DOMPurify.sanitize(await marked.parse(node.markdown));
+          const json = generateJSON(html, extensions);
+          prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, json, xml);
+        } catch (error) {
+          console.error("Failed to add to node page", error);
+        } finally {
+          editorProvider.destroy();
+        }
       } catch (error) {
-        console.error("Failed to add to node page", error);
-      } finally {
-        editorProvider.destroy();
+        toast.error("Failed to load new node from API");
+        console.error(`Could not find node ${id} after 50 attempts`, error);
       }
     }
   });

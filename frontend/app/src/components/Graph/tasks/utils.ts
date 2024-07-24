@@ -24,6 +24,18 @@ export const isResponseNode = (node: GraphNode) => {
   );
 };
 
+export const isSingleResponseType = (node: GraphNode | null) => {
+  return (
+    node?.data?.type === NodeType.ResponseSingle || node?.data?.type === NodeType.ResponseCombined
+  );
+};
+
+export const isMultipleResponseNode = (node: GraphNode | null) => {
+  return (
+    node?.data?.type === NodeType.ResponseSingle || node?.data?.type === NodeType.ResponseMultiple
+  );
+};
+
 export const topologicalSort = (adjacencyList: Record<string, string[]>): string[] => {
   const visited: Set<string> = new Set();
   const stack: string[] = [];

@@ -2,21 +2,30 @@ import clsx from "clsx";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useSpace } from "@/hooks";
+
 import { ExecutionPlan } from "./tasks/types";
 import { useRunCanvas } from "./tasks/useRunCanvas";
 
 const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
   const { prepareExecutionPlan } = useRunCanvas();
   const [executionPlan, setExecutionPlan] = useState<ExecutionPlan | null>(null);
+  const { nodesMap } = useSpace();
 
   useEffect(() => {
     const fetchExecutionPlan = async () => {
       const plan = await prepareExecutionPlan();
-      if (plan) setExecutionPlan(plan);
+      if (plan) setExecutionPlan(plan as ExecutionPlan);
     };
 
     fetchExecutionPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getTitle = (nodeId: string) => {
+    const node = nodesMap?.get(nodeId);
+    return node?.title || "";
+  };
 
   if (!executionPlan) {
     return (
@@ -33,7 +42,7 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
         <div key={index} className="mb-6 p-4 border rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold mb-2">Task {index + 1}</h2>
           <div className="mb-2">
-            <strong>Prompt Node:</strong> {taskItem.task.promptNode.data.title} (ID:{" "}
+            <strong>Prompt Node:</strong> {getTitle(taskItem.task.promptNode.id)} (ID:{" "}
             {taskItem.task.promptNode.id})
           </div>
           <div className="mb-2">
@@ -41,14 +50,14 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
             <ul className="list-disc list-inside ml-4">
               {taskItem.task.inputNodes.map((node) => (
                 <li key={node.id}>
-                  {node.data.title} (ID: {node.id})
+                  {getTitle(node.id)} (ID: {node.id})
                 </li>
               ))}
             </ul>
           </div>
           {taskItem.task.outputNode && (
             <div className="mb-2">
-              <strong>Output Node:</strong> {taskItem.task.outputNode.data.title} (ID:{" "}
+              <strong>Output Node:</strong> {getTitle(taskItem.task.outputNode.id)} (ID:{" "}
               {taskItem.task.outputNode.id})
             </div>
           )}
