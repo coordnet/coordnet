@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import * as Y from "yjs";
 import { z } from "zod";
 
+import { querySemanticScholar } from "@/api";
 import { Buddy, GraphNode, NodeType, Space, SpaceNode } from "@/types";
 import { getCanvasNodes, getNodePageContent, waitForNode } from "@/utils";
 
@@ -80,12 +81,20 @@ export const processTasks = async (
     }
 
     for await (const task of tasks) {
-      const messages = await generatePrompt(task, buddy, spaceNodesMap);
-
-      if (dryRun) {
-        executionPlan.tasks.push({ task, messages });
+      if (task.promptNode.data.type === NodeType.PaperFinder) {
+        const query = await generateKeywords(task, spaceNodesMap);
+        if (dryRun) {
+          executionPlan.tasks.push({ task, query, type: "PAPERS" });
+        } else {
+          await executeKeywordTask(task, space, query);
+        }
       } else {
-        await executeTask(task, space, messages);
+        const messages = await generatePrompt(task, buddy, spaceNodesMap);
+        if (dryRun) {
+          executionPlan.tasks.push({ task, messages, type: "PROMPT" });
+        } else {
+          await executePromptTask(task, space, messages);
+        }
       }
     }
     setNodesActive(selectedIds, nodesMap, false);
@@ -94,7 +103,7 @@ export const processTasks = async (
   return executionPlan;
 };
 
-export const executeTask = async (
+export const executePromptTask = async (
   task: Task,
   space: Space,
   messages: ChatCompletionMessageParam[],
@@ -202,4 +211,57 @@ export const generatePrompt = async (
   messages.push({ role: "user", content: spaceNode?.title ?? "" });
 
   return messages;
+};
+
+export const executeKeywordTask = async (task: Task, space: Space, query: string) => {
+  try {
+    const papers = await querySemanticScholar(query);
+    const nodes: SingleNode[] = papers.map((paper) => ({
+      title: paper.title,
+      markdown: `**Year:** ${paper.year}\n
+**Citations:** ${paper.citationCount}\n
+**References:** ${paper.referenceCount}\n
+**Open Access:** ${paper.isOpenAccess ? "Yes" : "No"}\n
+**Authors:** ${paper?.authors?.map((author) => author.name).join(", ")}\n
+**Link:** [Semantic Scholar](${paper.url})\n
+
+## Abstract
+
+${paper.abstract}`,
+    }));
+    await addToGraph({
+      spaceId: space?.id,
+      graphId: task?.outputNode?.id ?? "",
+      nodes,
+      edges: [],
+    });
+  } catch (e) {
+    console.error(e);
+    toast.info("A request to find papers failed, continuing with the next task");
+  }
+};
+
+export const generateKeywords = async (
+  task: Task,
+  spaceNodesMap: Y.Map<SpaceNode>,
+): Promise<string> => {
+  let query = "";
+
+  for await (const graphNode of task.inputNodes) {
+    if (
+      graphNode.data.type == NodeType.ResponseSingle ||
+      graphNode.data.type == NodeType.ResponseMultiple
+    ) {
+      const nodes = await getCanvasNodes(graphNode.id);
+      for (const node of nodes) {
+        const title = spaceNodesMap?.get(node.id)?.title;
+        if (title) query += title;
+      }
+    } else {
+      const title = spaceNodesMap?.get(graphNode.id)?.title;
+      if (title) query += title;
+    }
+  }
+
+  return query;
 };

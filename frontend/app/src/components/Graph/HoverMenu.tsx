@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
 import { useNode, useQuickView, useSpace } from "@/hooks";
-import { GraphNode, NodeType } from "@/types";
+import { GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { Button } from "../ui/button";
 
@@ -168,7 +168,7 @@ const HoverMenu = ({
           <MenubarContent className="min-w-20">
             {Object.values(NodeType).map((value) => (
               <MenubarItem key={value} className="capitalize" onClick={() => setType(value)}>
-                {value}
+                {nodeTypeMap[value]}
               </MenubarItem>
             ))}
           </MenubarContent>

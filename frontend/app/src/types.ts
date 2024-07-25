@@ -139,6 +139,7 @@ export enum NodeType {
   ResponseCombined = "response_combined",
   ResponseSingle = "response_single",
   ResponseMultiple = "response_multiple",
+  PaperFinder = "paper_finder",
 }
 
 export const nodeTypeMap = {
@@ -149,4 +150,16 @@ export const nodeTypeMap = {
   [NodeType.ResponseCombined]: "Response (combined)",
   [NodeType.ResponseSingle]: "Responses (one node)",
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
+  [NodeType.PaperFinder]: "Paper Finder",
 };
+
+export interface SemanticScholarPaper {
+  title: string;
+  year: number;
+  referenceCount: number;
+  citationCount: number;
+  authors: Array<{ name: string }>;
+  url: string;
+  abstract: string;
+  isOpenAccess: boolean;
+}
