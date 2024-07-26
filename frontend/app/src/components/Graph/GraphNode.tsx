@@ -75,8 +75,8 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   const onDoubleClick = (e: MouseEvent) => {
     if (isEditing || data?.syncing) return;
     e.preventDefault();
-    if (hasPage) setNodePage(id);
-    else if (hasGraph) showQuickView(id);
+    if (!hasPage && hasGraph) showQuickView(id);
+    else setNodePage(id);
   };
 
   const nodeStyle: CSSProperties = { background: "", opacity: 1 };
