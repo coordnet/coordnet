@@ -240,7 +240,7 @@ def document_versioning() -> None:
         .distinct("document_id")
         .select_related("document")
         .filter(document__updated_at__lt=threshold_time)
-        .only("document__document_type", "document__data", "document__json")
+        .only("document__document_type", "document__data", "document__json", "json_hash")
     )
 
     for version in latest_versions:
