@@ -1,6 +1,7 @@
 import logging
 import warnings
 
+import django.db.models.signals
 import sentry_sdk
 from corsheaders.defaults import default_headers
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -66,14 +67,14 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", def
 # GS_DEFAULT_ACL = "publicRead"
 # # STATIC
 # # ------------------------
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "coordnet.utils.storages.MediaGoogleCloudStorage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
+STORAGES = {
+    # "default": {
+    #     "BACKEND": "coordnet.utils.storages.MediaGoogleCloudStorage",
+    # },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 # # MEDIA
 # # ------------------------------------------------------------------------------
 # MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
@@ -159,7 +160,6 @@ LOGGING = {
 
 # Sentry
 # ------------------------------------------------------------------------------
-SENTRY_DSN = env("SENTRY_DSN")
 SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
 
 sentry_logging = LoggingIntegration(
@@ -168,12 +168,17 @@ sentry_logging = LoggingIntegration(
 )
 integrations = [
     sentry_logging,
-    DjangoIntegration(),
-    CeleryIntegration(),
+    DjangoIntegration(
+        signals_denylist=[
+            django.db.models.signals.pre_init,
+            django.db.models.signals.post_init,
+        ]
+    ),
+    CeleryIntegration(monitor_beat_tasks=True),
     RedisIntegration(),
 ]
 sentry_sdk.init(
-    dsn=SENTRY_DSN,
+    dsn=env("SENTRY_DSN"),
     integrations=integrations,
     environment=env("SENTRY_ENVIRONMENT", default="production"),
     traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=1.0),
