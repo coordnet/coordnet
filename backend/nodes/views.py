@@ -5,7 +5,7 @@ import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
 from django import http
 from django.db import models as django_models
-from rest_framework import decorators, generics, pagination, response
+from rest_framework import decorators, generics, response
 
 import permissions.managers
 import permissions.models
