@@ -1,0 +1,3 @@
+%% Tells DNS client on RabbitMQ nodes and CLI tools to resolve hostnames to IPv6 addresses.
+%% The trailing dot is not optional.
+{inet6,true}.

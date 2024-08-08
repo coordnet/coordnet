@@ -303,7 +303,7 @@ warnings.simplefilter("always", DeprecationWarning)
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
 CELERY_TIMEZONE = TIME_ZONE
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
-CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=env("REDIS_URL"))
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
@@ -336,6 +336,7 @@ CELERY_TASK_SEND_SENT_EVENT = True
 # has been executed but before the acknowledgement has been sent.
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_acks_late
 CELERY_ACKS_LATE = True
+
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)

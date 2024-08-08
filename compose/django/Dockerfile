@@ -81,9 +81,17 @@ COPY ./compose/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker \
   && chmod +x /start-celeryworker
 
+COPY ./compose/django/celery/worker/start-production /start-celeryworker-production
+RUN sed -i 's/\r$//g' /start-celeryworker-production
+RUN chmod +x /start-celeryworker-production
+
 COPY ./compose/django/celery/beat/start /start-celerybeat
 RUN sed -i 's/\r$//g' /start-celerybeat \
   && chmod +x /start-celerybeat
+
+COPY ./compose/django/celery/beat/start-production /start-celerybeat-production
+RUN sed -i 's/\r$//g' /start-celerybeat-production
+RUN chmod +x /start-celerybeat-production
 
 COPY ./compose/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower \
