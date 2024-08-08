@@ -1,0 +1,55 @@
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "coordnet-rabbitmq"
+primary_region = "ams"
+kill_signal = "SIGINT"
+kill_timeout = 5
+swap_size_mb = 1024
+
+[build]
+  dockerfile = "compose/rabbitmq/Dockerfile"
+
+[env]
+  RABBITMQ_MNESIA_DIR = "/var/lib/rabbitmq/mnesia/data"
+
+[[services]]
+  http_checks = []
+  internal_port = 5672
+  protocol = "tcp"
+  script_checks = []
+
+#  [[services.tcp_checks]]
+#    grace_period = "1s"
+#    interval = "15s"
+#    restart_limit = 0
+#    timeout = "2s"
+
+# rabbitmq admin
+[[services]]
+  http_checks = []
+  internal_port = 15672
+  protocol = "tcp"
+  script_checks = []
+
+  [[services.ports]]
+    handlers = ["http", "tls"]
+    port = "15672"
+
+#  [[services.tcp_checks]]
+#    grace_period = "1s"
+
+[[vm]]
+  count = 3
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[mounts]
+  source="rabbitmq_data"
+  destination="/var/lib/rabbitmq/mnesia/data"
+
+[[metrics]]
+  port = 15692
+  path = "/metrics"

@@ -149,6 +149,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",  # Change this to "DEBUG" for even more detailed logs
+            "propagate": True,
+        },
     },
 }
 
@@ -181,6 +186,12 @@ sentry_sdk.init(
 SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
     {"url": "https://coordnet.dev", "description": "Production server"},
 ]
+
+# Celery
+# ------------------------------------------------------------------------------
+CELERY_RESULT_BACKEND = "django-db"
+INSTALLED_APPS += ["django_celery_results"]
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = ["https://coordnet.fly.dev"]
