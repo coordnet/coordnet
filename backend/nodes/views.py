@@ -140,6 +140,7 @@ class SearchView(generics.ListAPIView):
                 search_vector=pg_search.SearchQuery(search_query_serializer.validated_data["q"])
             )
             .order_by("-rank")
+            .distinct()
         )
 
         if "space" in search_query_serializer.validated_data:
