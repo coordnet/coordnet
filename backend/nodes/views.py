@@ -97,7 +97,6 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
     ordering_fields = ["created_at"]
     ordering = ["-created_at"]
     permission_classes = (dry_permissions.DRYObjectPermissions,)
-    pagination_class = pagination.PageNumberPagination
 
     @decorators.action(detail=True, methods=["get"])
     def crdt(self, request: "request.Request", public_id: str | None = None) -> http.HttpResponse:
