@@ -7,6 +7,9 @@ services:
     build:
       context: .
       dockerfile: compose/django/Dockerfile
+      target: python-run-stage
+      args:
+        DOCKER_BUILDKIT: 1
     image: coordnet_local_django
     container_name: coordnet_local_django
     depends_on:

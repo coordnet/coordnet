@@ -1,6 +1,6 @@
 FROM node:22-slim
 RUN corepack enable
-ENV NODE_ENV=development
+ARG BUILD_ENVIRONMENT
 
 RUN mkdir -p /frontend/packages/coordnet-hocuspocus
 
@@ -15,5 +15,6 @@ RUN pnpm install --frozen-lockfile
 WORKDIR /frontend/packages/coordnet-hocuspocus
 
 COPY ./frontend/packages/coordnet-hocuspocus ./
-
-CMD ["pnpm", "run", "dev"]
+ENV NODE_ENV=${BUILD_ENVIRONMENT}
+RUN pnpm build
+CMD ["pnpm", "start"]

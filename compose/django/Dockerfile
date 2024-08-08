@@ -59,7 +59,6 @@ ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache
 RUN mkdir /opt/tiktoken_cache \
     && wget -O /opt/tiktoken_cache/$(echo -n $TIKTOKEN_URL | sha1sum | head -c 40) $TIKTOKEN_URL
 
-
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
@@ -75,6 +74,10 @@ RUN sed -i 's/\r$//g' /entrypoint \
 COPY ./compose/django/start /start
 RUN sed -i 's/\r$//g' /start \
   && chmod +x /start
+
+COPY ./compose/django/start-production /start-production
+RUN sed -i 's/\r$//g' /start-production
+RUN chmod +x /start-production
 
 
 COPY ./compose/django/celery/worker/start /start-celeryworker
@@ -108,3 +111,38 @@ COPY . ${APP_HOME}
 WORKDIR ${APP_HOME}/backend
 
 ENTRYPOINT ["/entrypoint"]
+
+# Production stages
+FROM node:20-slim as frontend-build-stage
+ARG VITE_HOCUSPOCUS_URL
+ARG VITE_BACKEND_URL
+ARG SENTRY_AUTH_TOKEN
+ARG BUILD_ENVIRONMENT
+ENV VITE_HOCUSPOCUS_URL=${VITE_HOCUSPOCUS_URL}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+
+RUN corepack enable
+
+RUN mkdir -p /frontend/app
+
+WORKDIR /frontend
+
+COPY ./frontend/app/package.json ./app
+COPY ./frontend/pnpm-lock.yaml ./
+COPY ./frontend/pnpm-workspace.yaml ./
+
+RUN pnpm install --frozen-lockfile
+
+# pnpm install doesn't work with NODE_ENV=production somehow.
+# ENV NODE_ENV=${BUILD_ENVIRONMENT}
+
+WORKDIR /frontend/app
+
+COPY ./frontend/app .
+
+RUN ./node_modules/.bin/vite build
+
+FROM python-run-stage as python-run-stage-prod
+COPY --from=frontend-build-stage /frontend/app/dist/static/ /app/backend/coordnet/static/
+COPY --from=frontend-build-stage /frontend/app/dist/*.png /app/backend/coordnet/static/
