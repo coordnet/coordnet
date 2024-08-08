@@ -41,6 +41,24 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                         except models.Node.DoesNotExist:
                             node = models.Node(public_id=document_event.public_id)
 
+                        if not node.graph_document:
+                            try:
+                                node.graph_document = models.Document.objects.only("id").get(
+                                    public_id=document_event.public_id,
+                                    document_type=models.DocumentType.GRAPH,
+                                )
+                            except models.Document.DoesNotExist:
+                                pass
+
+                        if not node.editor_document:
+                            try:
+                                node.editor_document = models.Document.objects.only("id").get(
+                                    public_id=document_event.public_id,
+                                    document_type=models.DocumentType.EDITOR,
+                                )
+                            except models.Document.DoesNotExist:
+                                pass
+
                         node.content = document_event.new_data
                         node.save()
 
@@ -90,6 +108,12 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     raise
                                 continue
 
+                            if not space.document:
+                                space.document = models.Document.objects.only("id").get(
+                                    public_id=document_event.public_id
+                                )
+                                space.save(update_fields=["document"])
+
                             space.deleted_nodes.set(deleted_nodes)
                             space_nodes = (
                                 models.Node.all_objects.select_for_update(no_key=True)
@@ -119,10 +143,29 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
 
                             # 4. Create new nodes that didn't get their content synced yet
                             for node_id in nodes_in_space - nodes_existing:
-                                node = models.Node.objects.create(
+                                node = models.Node(
                                     public_id=node_id,
                                     title=node_titles[node_id],
                                 )
+
+                                # This is in case the node was synced meanwhile.
+                                try:
+                                    node.graph_document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id,
+                                        document_type=models.DocumentType.GRAPH,
+                                    )
+                                except models.Document.DoesNotExist:
+                                    pass
+
+                                try:
+                                    node.editor_document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id,
+                                        document_type=models.DocumentType.EDITOR,
+                                    )
+                                except models.Document.DoesNotExist:
+                                    pass
+
+                                node.save()
                                 space.nodes.add(node)
 
                     elif document_event.action == models.DocumentEvent.EventType.DELETE:
