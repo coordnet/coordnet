@@ -1,6 +1,8 @@
 import logging
+import typing
 
 import tiktoken
+from openai.types.chat import ChatCompletionMessageParam
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ def token_count(text: str | None, model: str = "gpt-4") -> int | None:
 # https://github.com/openai/openai-cookbook/blob/f1e13cfcc7e0f2a9015c562eede167b76b1d60fc/examples/How_to_count_tokens_with_tiktoken.ipynb
 # License: MIT License
 def num_tokens_from_messages(
-    messages: list[dict[str, str]], model: str = "gpt-3.5-turbo-0613"
+    messages: typing.Iterable[ChatCompletionMessageParam], model: str = "gpt-3.5-turbo-0613"
 ) -> int:
     """Return the number of tokens used by a list of messages."""
     try:
@@ -61,7 +63,7 @@ def num_tokens_from_messages(
     for message in messages:
         num_tokens += tokens_per_message
         for key, value in message.items():
-            num_tokens += len(encoding.encode(value))
+            num_tokens += len(encoding.encode(str(value)))
             if key == "name":
                 num_tokens += tokens_per_name
     num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>

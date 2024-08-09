@@ -3,6 +3,7 @@ import typing
 import openai
 from django.conf import settings
 from django.db import models
+from openai.types.chat import ChatCompletionMessageParam
 
 from utils import models as utils_models
 from utils import tokens
@@ -26,14 +27,14 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
         response = openai.Client(api_key=settings.OPENAI_API_KEY).chat.completions.create(
             model=self.model,
-            messages=self.__get_messages(level, nodes, query),  # type: ignore[arg-type]
+            messages=self._get_messages(level, nodes, query),
             stream=True,
             timeout=180,
         )
         try:
             for chunk in response:
-                if chunk.choices[0].delta.content is not None:  # type: ignore[union-attr]
-                    yield chunk.choices[0].delta.content  # type: ignore[union-attr]
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
         except Exception as exc:
             raise ValueError("Failed to query the model.") from exc
 
@@ -54,18 +55,18 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         token_counts: dict[int, int] = {}
         for depth in range(max_depth_achieved + 1):
             token_counts[depth] = tokens.num_tokens_from_messages(
-                self.__get_messages(depth, nodes, query, nodes_at_depth), self.model
+                self._get_messages(depth, nodes, query, nodes_at_depth), self.model
             )
 
         return token_counts
 
-    def __get_messages(
+    def _get_messages(
         self,
         level: int,
         nodes: list["nodes_models.Node"],
         query: str,
         nodes_at_depth: list[dict[int, list["nodes_models.Node"]]] | None | list[None] = None,
-    ) -> list[dict]:
+    ) -> typing.Iterable[ChatCompletionMessageParam]:
         node_context: list[str] = []
         if nodes_at_depth is None:
             nodes_at_depth = [None] * len(nodes)
