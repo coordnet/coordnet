@@ -16,7 +16,6 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 
 import buddies.urls
-from utils.middlewares import DRFAuthMiddlewareStack
 
 # This allows easy placement of apps within the interior coordnet directory.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -26,8 +25,6 @@ sys.path.append(str(BASE_DIR / "coordnet"))
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
-        "websocket": AllowedHostsOriginValidator(
-            DRFAuthMiddlewareStack(URLRouter(buddies.urls.websocket_urlpatterns))
-        ),
+        "websocket": AllowedHostsOriginValidator(URLRouter(buddies.urls.websocket_urlpatterns)),
     }
 )
