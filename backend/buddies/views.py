@@ -54,9 +54,10 @@ class BuddyModelViewSet(views.BaseModelViewSet):
         return Response(buddy.calculate_token_counts(nodes, max_depth, message))
 
 
-@api_view(["POST"])  # type: ignore[type-var]
+@api_view(["POST"])
 @authentication_classes([])
 @permission_classes([])
+@middlewares.disable_gzip
 async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
     openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -67,13 +68,16 @@ async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
 
     async def generate(
         resp: ChatCompletion | AsyncStream[ChatCompletionChunk],
-    ) -> typing.AsyncGenerator[bytes, None]:
+    ) -> typing.AsyncGenerator[str, None]:
         if isinstance(resp, ChatCompletion):
-            yield resp.model_dump_json().encode()
+            yield resp.model_dump_json()
             return
 
         async for chunk in resp:
-            data = chunk.model_dump_json()
-            yield data.encode()
+            data = chunk.model_dump_json(exclude_unset=True)
+            yield f"data: {data}\n\n"
+        yield "data: [DONE]\n\n"
 
-    return StreamingHttpResponse(generate(response), content_type="text/event-stream")
+    return StreamingHttpResponse(
+        generate(response), content_type="text/event-stream", charset="utf-8"
+    )
