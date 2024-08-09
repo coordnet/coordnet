@@ -6,7 +6,7 @@ import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
 import pSBC from "shade-blend-color";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
-import { useNode } from "@/hooks";
+import { useNode, useQuickView } from "@/hooks";
 import { GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { EditableNode } from "../";
@@ -27,7 +27,8 @@ interface GraphNodeComponentProps {
 }
 
 const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => {
-  const { nodesMap } = useNode();
+  const { nodesMap, node } = useNode();
+  const { showQuickView } = useQuickView();
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
@@ -36,6 +37,10 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   const nodeRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [lineClamp, setLineClamp] = useState<number>(3);
+
+  const backendNode = node?.subnodes.find((node) => node.id === id);
+  const hasGraph = Boolean(backendNode?.subnode_count ?? 0 > 0);
+  const hasPage = Boolean(backendNode?.text_token_count);
 
   useEffect(() => {
     if (!nodeRef.current) return;
@@ -70,7 +75,8 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   const onDoubleClick = (e: MouseEvent) => {
     if (isEditing || data?.syncing) return;
     e.preventDefault();
-    setNodePage(id);
+    if (hasPage) setNodePage(id);
+    else if (hasGraph) showQuickView(id);
   };
 
   const nodeStyle: CSSProperties = { background: "", opacity: 1 };
@@ -138,6 +144,10 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
           <div className="absolute top-0 left-2 text-[10px]">
             {nodeTypeMap[data.type as NodeType]}
           </div>
+        )}
+        {/* if domain is localhost show the id */}
+        {window.location.hostname === "localhost" && (
+          <div className="absolute top-0 right-2 text-[10px]">{id.slice(0, 8)}</div>
         )}
 
         <EditableNode
