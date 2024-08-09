@@ -111,6 +111,7 @@ THIRD_PARTY_APPS = [
     "dry_rest_permissions",
     "django_filters",
     "pgtrigger",
+    "adrf",
 ]
 
 LOCAL_APPS = ["users", "nodes", "buddies", "permissions"]
