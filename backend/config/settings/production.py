@@ -202,6 +202,23 @@ INSTALLED_APPS += ["django_celery_results"]
 CORS_ALLOWED_ORIGINS = ["https://coordnet.fly.dev"]
 CSRF_TRUSTED_ORIGINS = ["https://coordnet.fly.dev"]
 
-CORS_ALLOW_HEADERS = (*default_headers, "sentry-trace", "baggage")
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "sentry-trace",
+    "baggage",
+    "x-stainless-os",
+    "x-stainless-arch",
+    "x-stainless-lang",
+    "x-stainless-version",
+    "x-stainless-uid",
+    "x-stainless-async",
+    "x-stainless-async-id",
+    "x-stainless-async-parent-id",
+    "x-stainless-async-root-id",
+    "x-stainless-async-sampled",
+    "x-stainless-runtime",
+    "x-stainless-package-version",
+    "x-stainless-runtime-version",
+)
 
 DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 24 * 7  # 7 days
