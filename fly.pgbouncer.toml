@@ -1,0 +1,20 @@
+app = "coordnet-pgbouncer"
+primary_region = "ams"
+
+[build]
+  dockerfile = "compose/pgbouncer/Dockerfile"
+
+[env]
+  POOL_MODE = "session"
+  LISTEN_ADDR = "::"
+  SERVER_TLS_SSLMODE = "disable"
+  AUTH_TYPE = "scram-sha-256"
+  # We can enable them for debugging if we need to, but they are noisy
+  LOG_CONNECTIONS = "0"
+  LOG_DISCONNECTIONS = "0"
+
+[[vm]]
+  count = 1
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256

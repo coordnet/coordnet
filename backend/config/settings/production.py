@@ -199,8 +199,8 @@ INSTALLED_APPS += ["django_celery_results"]
 
 # Your stuff...
 # ------------------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = ["https://coordnet.fly.dev"]
-CSRF_TRUSTED_ORIGINS = ["https://coordnet.fly.dev"]
+CORS_ALLOWED_ORIGINS = ["https://coordnet.fly.dev", "http://coordnet.internal"]
+CSRF_TRUSTED_ORIGINS = ["https://coordnet.fly.dev", "http://coordnet.internal"]
 
 CORS_ALLOW_HEADERS = (
     *default_headers,
