@@ -14,6 +14,7 @@ import {
   PaginatedApiResponse,
   Permission,
   PermissionModel,
+  SemanticScholarPaper,
   Space,
 } from "./types";
 
@@ -222,6 +223,28 @@ export const getLLMTokenCount = async (
     { signal },
   );
 
+  return response.data;
+};
+
+export const querySemanticScholar = async (
+  query: string,
+  fields: string[] = [
+    "title",
+    "year",
+    "referenceCount",
+    "citationCount",
+    "authors",
+    "url",
+    "abstract",
+    "isOpenAccess",
+  ],
+  signal?: AbortSignal,
+): Promise<SemanticScholarPaper[]> => {
+  const response = await api.get<SemanticScholarPaper[]>("api/buddies/semantic/", {
+    signal,
+    params: { query, fields },
+    paramsSerializer: { indexes: null },
+  });
   return response.data;
 };
 

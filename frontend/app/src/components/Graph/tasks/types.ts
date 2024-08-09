@@ -44,4 +44,11 @@ export type MultipleNodesResponse = Partial<{ nodes: { title: string; markdown: 
   _meta?: CompletionMeta | undefined;
 };
 
-export type ExecutionPlan = { tasks: { task: Task; messages: ChatCompletionMessageParam[] }[] };
+export type ExecutionPlan = {
+  tasks: {
+    task: Task;
+    messages?: ChatCompletionMessageParam[];
+    query?: string;
+    type: "PROMPT" | "PAPERS";
+  }[];
+};

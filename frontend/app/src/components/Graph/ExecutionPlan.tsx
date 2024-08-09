@@ -40,7 +40,9 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
       <h1 className="text-2xl font-bold mb-4">Execution Plan</h1>
       {executionPlan.tasks.map((taskItem, index) => (
         <div key={index} className="mb-6 p-4 border rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-2">Task {index + 1}</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            Task {index + 1} ({taskItem.type.toLowerCase()})
+          </h2>
           <div className="mb-2">
             <strong>Prompt Node:</strong> {getTitle(taskItem.task.promptNode.id)} (ID:{" "}
             {taskItem.task.promptNode.id})
@@ -62,14 +64,26 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
             </div>
           )}
           <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Messages for LLM:</h3>
-            <div className="max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
-              {taskItem.messages.map((message, i) => (
-                <div key={i} className="mb-2">
-                  <strong>{message.role}:</strong> {message.content as string}
+            {taskItem.type == "PROMPT" && (
+              <>
+                <h3 className="text-lg font-semibold mb-2">Messages for LLM:</h3>
+                <div className="max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
+                  {taskItem?.messages?.map((message, i) => (
+                    <div key={i} className="mb-2">
+                      <strong>{message.role}:</strong> {message.content as string}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
+            {taskItem.type == "PAPERS" && (
+              <>
+                <h3 className="text-lg font-semibold mb-2">Query for papers:</h3>
+                <div className="max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
+                  {taskItem.query ?? ""}
+                </div>
+              </>
+            )}
           </div>
         </div>
       ))}
