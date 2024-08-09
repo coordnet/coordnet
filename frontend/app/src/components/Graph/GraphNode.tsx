@@ -139,7 +139,6 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
             {nodeTypeMap[data.type as NodeType]}
           </div>
         )}
-        <div className="absolute top-0 right-2 text-[10px] font-mono">{id.slice(0, 8)}</div>
 
         <EditableNode
           id={id}
