@@ -58,7 +58,10 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 if "DATABASE_URL" in env:
-    DATABASES = {"default": env.db("DATABASE_URL")}
+    DATABASES = {
+        "default": env.db("DATABASE_URL"),
+        "direct": env.db("DIRECT_DATABASE_URL", env.str("DATABASE_URL")),
+    }
 else:
     DATABASES = {
         "default": {
@@ -68,7 +71,6 @@ else:
             "PASSWORD": env("POSTGRES_PASSWORD"),
             "HOST": env("POSTGRES_HOST"),
             "PORT": env("POSTGRES_PORT", default="5432"),
-            "ATOMIC_REQUESTS": True,
         }
     }
 
@@ -275,7 +277,7 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "INFO",
+            "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         }
@@ -286,11 +288,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
-        # "django.db.backends": {
-        #     "level": "DEBUG",
-        #     "handlers": ["console"],
-        #     "propagate": False,
-        # },
+        "django.db.backends": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
     },
     # "root": {"level": "DEBUG", "handlers": ["console"]},
 }
