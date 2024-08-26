@@ -5,14 +5,16 @@ import { GraphNode, NodeType } from "@/types";
 
 import { Graph } from "./types";
 
-export const setNodesActive = (
+export const setNodesState = (
   nodeIds: string[],
   nodesMap: Y.Map<GraphNode> | undefined,
-  active: boolean = true,
+  state: "active" | "executing" | "inactive" = "active",
 ) => {
   nodeIds.forEach((id) => {
     const node = nodesMap?.get(id);
-    if (node) nodesMap?.set(id, { ...node, data: { ...node.data, active } });
+    if (node) {
+      nodesMap?.set(id, { ...node, data: { ...node.data, state } });
+    }
   });
 };
 

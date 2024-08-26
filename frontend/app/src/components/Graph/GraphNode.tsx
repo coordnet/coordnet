@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Loader2 } from "lucide-react";
+import { Loader2, LoaderIcon } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
@@ -81,6 +81,10 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
 
   const nodeStyle: CSSProperties = { background: "", opacity: 1 };
   if (data.borderColor) nodeStyle.borderColor = data.borderColor;
+  if (data?.state === "active" || data?.state === "executing") {
+    nodeStyle.borderColor = "rgb(101, 12, 215)";
+    nodeStyle.borderWidth = "2px";
+  }
   if (data?.progress)
     nodeStyle.background = `linear-gradient(to right, ${
       data?.borderColor ? pSBC(0.9, data?.borderColor) : "#eeeeee"
@@ -112,7 +116,6 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
           {
             "border-2": Boolean(data.borderColor),
             "shadow-node-selected": selected,
-            "shadow-node-active": data?.active ?? false,
           },
         )}
         style={nodeStyle}
@@ -148,6 +151,17 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         {/* if domain is localhost show the id */}
         {window.location.hostname === "localhost" && (
           <div className="absolute top-0 right-2 text-[10px]">{id.slice(0, 8)}</div>
+        )}
+        {data?.state && data?.state == "executing" && (
+          <div
+            className={clsx(
+              "absolute top-[-7px] right-2 flex gap-1",
+              "size-4 bg-white rounded border border-purple flex items-center justify-center",
+              "cursor-pointer nodrag",
+            )}
+          >
+            <LoaderIcon className="size-3 animate-spin text-purple" />
+          </div>
         )}
 
         <EditableNode
