@@ -24,7 +24,7 @@ import {
   isMultipleResponseNode,
   isResponseNode,
   isSingleResponseType,
-  setNodesActive,
+  setNodesState,
 } from "./utils";
 
 const oai = new OpenAI({
@@ -52,18 +52,38 @@ export const processTasks = async (
   space: Space | undefined,
   spaceNodesMap: Y.Map<SpaceNode> | undefined,
   nodesMap: Y.Map<GraphNode> | undefined,
+  cancelRef: React.MutableRefObject<boolean>, // Accept cancellation ref
   dryRun: boolean = false,
 ) => {
-  if (!buddy) return toast.error("Buddy not found");
-  if (!space) return toast.error("Space node map not found");
-  if (!spaceNodesMap) return toast.error("Space node map not found");
-  if (!nodesMap) return toast.error("nodesMap not found");
+  if (!buddy) {
+    toast.error("Buddy not found");
+    return;
+  }
+  if (!space) {
+    toast.error("Space node map not found");
+    return;
+  }
+  if (!spaceNodesMap) {
+    toast.error("Space node map not found");
+    return;
+  }
+  if (!nodesMap) {
+    toast.error("nodesMap not found");
+    return;
+  }
 
   const executionPlan: ExecutionPlan = { tasks: [] };
 
   for await (const task of context.taskList) {
     const selectedIds = [task.promptNode.id, ...task.inputNodes.map((node) => node.id)];
-    if (!dryRun) setNodesActive(selectedIds, nodesMap);
+
+    if (cancelRef.current) {
+      toast.info("Process stopped by user.");
+      setNodesState(selectedIds, nodesMap, "inactive");
+      break;
+    }
+
+    if (!dryRun) setNodesState(selectedIds, nodesMap, "active");
 
     let tasks = [task];
 
@@ -74,6 +94,7 @@ export const processTasks = async (
         if (isResponseNode(inputNode)) {
           const inputNodeNodes = await getCanvasNodes(inputNode.id);
           for await (const responseNode of inputNodeNodes) {
+            if (cancelRef.current) break; // Check for cancellation within nested loop
             tasks.push({ ...task, inputNodes: [...otherNodes, responseNode] });
           }
         }
@@ -81,23 +102,43 @@ export const processTasks = async (
     }
 
     for await (const task of tasks) {
+      if (cancelRef.current) {
+        toast.info("Process stopped by user.");
+        setNodesState(selectedIds, nodesMap, "inactive");
+        break; // Exit the loop if cancellation is requested
+      }
+
       if (task.promptNode.data.type === NodeType.PaperFinder) {
         const query = await generateKeywords(task, spaceNodesMap);
         if (dryRun) {
           executionPlan.tasks.push({ task, query, type: "PAPERS" });
         } else {
-          await executeKeywordTask(task, space, query);
+          try {
+            // setNodesState(selectedIds, nodesMap, "executing");
+            setNodesState([task.promptNode.id], nodesMap, "executing");
+            await executeKeywordTask(task, space, query, cancelRef);
+          } catch (e) {
+            toast.error(`Failed to execute keyword task`);
+            console.error(e);
+          }
         }
       } else {
         const messages = await generatePrompt(task, buddy, spaceNodesMap);
         if (dryRun) {
           executionPlan.tasks.push({ task, messages, type: "PROMPT" });
         } else {
-          await executePromptTask(task, space, messages);
+          try {
+            // setNodesState(selectedIds, nodesMap, "executing");
+            setNodesState([task.promptNode.id], nodesMap, "executing");
+            await executePromptTask(task, space, messages, cancelRef);
+          } catch (e) {
+            toast.error(`Failed to execute prompt task`);
+            console.error(e);
+          }
         }
       }
     }
-    setNodesActive(selectedIds, nodesMap, false);
+    setNodesState(selectedIds, nodesMap, "inactive");
   }
 
   return executionPlan;
@@ -107,6 +148,7 @@ export const executePromptTask = async (
   task: Task,
   space: Space,
   messages: ChatCompletionMessageParam[],
+  cancelRef: React.MutableRefObject<boolean>,
 ) => {
   try {
     const response_model: ResponseModel<z.AnyZodObject> = {
@@ -124,11 +166,14 @@ export const executePromptTask = async (
       response_model,
     });
 
+    if (cancelRef.current) return;
+
     const nodes: SingleNode[] = [];
     if (isSingleResponseType(task.outputNode)) {
       let extractedNode: SingleNodeResponse = {};
       try {
         for await (const result of response) {
+          if (cancelRef.current) break;
           extractedNode = result;
         }
       } catch (e) {
@@ -142,6 +187,7 @@ export const executePromptTask = async (
       let extractedData: MultipleNodesResponse = {};
       try {
         for await (const result of response) {
+          if (cancelRef.current) break;
           extractedData = result;
         }
       } catch (e) {
@@ -150,6 +196,8 @@ export const executePromptTask = async (
       }
       nodes.push(...(extractedData.nodes as SingleNode[]));
     }
+
+    if (cancelRef.current) return;
 
     if (isMultipleResponseNode(task.outputNode)) {
       await addToGraph({
@@ -213,8 +261,14 @@ export const generatePrompt = async (
   return messages;
 };
 
-export const executeKeywordTask = async (task: Task, space: Space, query: string) => {
+export const executeKeywordTask = async (
+  task: Task,
+  space: Space,
+  query: string,
+  cancelRef: React.MutableRefObject<boolean>,
+) => {
   try {
+    if (cancelRef.current) return;
     const papers = await querySemanticScholar(query);
     const nodes: SingleNode[] = papers.map((paper) => ({
       title: paper.title,
@@ -229,6 +283,9 @@ export const executeKeywordTask = async (task: Task, space: Space, query: string
 
 ${paper.abstract}`,
     }));
+
+    if (cancelRef.current) return;
+
     await addToGraph({
       spaceId: space?.id,
       graphId: task?.outputNode?.id ?? "",
