@@ -1,9 +1,9 @@
-import { mergeAttributes, Node } from "@tiptap/core";
+import { mergeAttributes, Node as TipTapNode } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 
 import Component from "./NodeComponent";
 
-const CoordNode = Node.create({
+export const Node = TipTapNode.create({
   name: "CoordNode",
   group: "block",
   atom: true,
@@ -21,5 +21,3 @@ const CoordNode = Node.create({
     return ReactNodeViewRenderer(Component);
   },
 });
-
-export default CoordNode;

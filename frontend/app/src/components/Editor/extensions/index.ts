@@ -8,7 +8,7 @@ import * as Y from "yjs";
 import { BulletList } from "./BulletList";
 import { CollaborationCursor } from "./CollaborationCursor";
 import { ListItem } from "./ListItem";
-import Node from "./Node";
+import { Node } from "./Node";
 
 export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, readOnly = false) => {
   const extensions: Extensions = [Link];
@@ -21,7 +21,7 @@ export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, read
 
     // Otherwise just add starter kit
   } else {
-    extensions.push(StarterKit.configure({}));
+    extensions.push(StarterKit.configure({ bulletList: false, listItem: false }));
   }
 
   extensions.push(Node);

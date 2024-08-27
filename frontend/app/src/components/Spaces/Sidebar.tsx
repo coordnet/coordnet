@@ -10,7 +10,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SheetClose } from "@/components/ui/sheet";
 import { useSpace } from "@/hooks";
 import useUser from "@/hooks/useUser";
-import { metaKey } from "@/utils";
+import { metaKey } from "@/lib/utils";
 
 import { Button } from "../ui/button";
 import Manage from "./Manage";

@@ -4,12 +4,12 @@ import { marked } from "marked";
 import { Node, ReactFlowInstance, XYPosition } from "reactflow";
 import { toast } from "sonner";
 import store from "store2";
-import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
-import { extensions, readOnlyEditor } from "@/lib/readOnlyEditor";
+import { setNodePageContent, waitForNode } from "@/lib/nodes";
+import { extensions } from "@/lib/readOnlyEditor";
+import { createConnectedYDoc } from "@/lib/utils";
 import { GraphEdge, GraphNode, SpaceNode } from "@/types";
-import { createConnectedYDoc, setNodePageContent, waitForNode } from "@/utils";
 
 import { SingleNode } from "./tasks/types";
 
@@ -55,9 +55,10 @@ export const addNodeToGraph = async (
   try {
     await waitForNode(id);
     const responseJson = generateJSON(body, extensions);
-    setNodePageContent(responseJson, `node-editor-${id}`, readOnlyEditor.schema);
+    await setNodePageContent(responseJson, id);
     const node = nodesMap.get(id);
     if (node) nodesMap.set(id, { ...node, data: {} });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     alert("Failed to load new node from API");
   }
@@ -116,9 +117,7 @@ export const addToGraph = async (options: AddNodeOptions) => {
   const edgesMap = graphDoc.getMap<GraphEdge>("edges");
   const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");
 
-  // let centralNodePosition: XYPosition = { x: 0, y: 0 };
   const nodePositions = findExtremePositions(Array.from(nodesMap.values()));
-  // if (centralNode) centralNodePosition = centralNode.position;
 
   nodes.forEach(async (node, i) => {
     const id = crypto.randomUUID();
@@ -138,17 +137,9 @@ export const addToGraph = async (options: AddNodeOptions) => {
     if (node.markdown) {
       try {
         await waitForNode(id);
-        const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
-        try {
-          const xml = editorDoc.getXmlFragment("default");
-          const html = DOMPurify.sanitize(await marked.parse(node.markdown));
-          const json = generateJSON(html, extensions);
-          prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, json, xml);
-        } catch (error) {
-          console.error("Failed to add to node page", error);
-        } finally {
-          editorProvider.destroy();
-        }
+        const html = DOMPurify.sanitize(await marked.parse(node.markdown));
+        const json = generateJSON(html, extensions);
+        await setNodePageContent(json, id);
       } catch (error) {
         toast.error("Failed to load new node from API");
         console.error(`Could not find node ${id} after 50 attempts`, error);
@@ -173,20 +164,11 @@ export const setNodeTitleAndContent = async (
 ) => {
   const token = store("coordnet-auth");
 
+  const html = DOMPurify.sanitize(await marked.parse(markdown));
+  const json = generateJSON(html, extensions);
+  await setNodePageContent(json, id);
+
   const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
-
-  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
-  try {
-    const xml = editorDoc.getXmlFragment("default");
-    const html = DOMPurify.sanitize(await marked.parse(markdown));
-    const json = generateJSON(html, extensions);
-    prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, json, xml);
-  } catch (error) {
-    console.error("Failed to add to node page", error);
-  } finally {
-    editorProvider.destroy();
-  }
-
   const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");
   const spaceNode = spaceMap.get(id);
   if (spaceNode) spaceMap.set(id, { ...spaceNode, title });

@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useFocus } from "@/hooks";
 import useNode from "@/hooks/useNode";
 import useUser from "@/hooks/useUser";
-import { rgbToHex } from "@/utils";
+import { rgbToHex } from "@/lib/utils";
 
 import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
@@ -47,6 +47,7 @@ const Editor = ({ id, className }: EditorProps) => {
 
   const editor = useEditor(
     {
+      immediatelyRender: false,
       extensions: loadExtensions(editorProvider, editorYdoc),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },

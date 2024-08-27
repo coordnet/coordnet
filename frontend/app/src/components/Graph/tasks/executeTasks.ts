@@ -6,8 +6,9 @@ import * as Y from "yjs";
 import { z } from "zod";
 
 import { querySemanticScholar } from "@/api";
+import { getCanvas } from "@/lib/canvases";
+import { getNodePageContent, waitForNode } from "@/lib/nodes";
 import { Buddy, GraphNode, NodeType, Space, SpaceNode } from "@/types";
-import { getCanvasNodes, getNodePageContent, waitForNode } from "@/utils";
 
 import { addToGraph, setNodeTitleAndContent } from "../utils";
 import {
@@ -92,7 +93,7 @@ export const processTasks = async (
       const otherNodes = task.inputNodes.filter((node) => !isResponseNode(node));
       for await (const inputNode of task.inputNodes) {
         if (isResponseNode(inputNode)) {
-          const inputNodeNodes = await getCanvasNodes(inputNode.id);
+          const { nodes: inputNodeNodes } = await getCanvas(inputNode.id);
           for await (const responseNode of inputNodeNodes) {
             if (cancelRef.current) break; // Check for cancellation within nested loop
             tasks.push({ ...task, inputNodes: [...otherNodes, responseNode] });
@@ -241,7 +242,7 @@ export const generatePrompt = async (
       graphNode.data.type == NodeType.ResponseSingle ||
       graphNode.data.type == NodeType.ResponseMultiple
     ) {
-      const nodes = await getCanvasNodes(graphNode.id);
+      const { nodes } = await getCanvas(graphNode.id);
       const content = [];
       for (const node of nodes) {
         const formattedNode = await formatNode(node.id);
@@ -309,7 +310,7 @@ export const generateKeywords = async (
       graphNode.data.type == NodeType.ResponseSingle ||
       graphNode.data.type == NodeType.ResponseMultiple
     ) {
-      const nodes = await getCanvasNodes(graphNode.id);
+      const { nodes } = await getCanvas(graphNode.id);
       for (const node of nodes) {
         const title = spaceNodesMap?.get(node.id)?.title;
         if (title) query += title;

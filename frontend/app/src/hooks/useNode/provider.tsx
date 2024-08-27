@@ -4,8 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import * as Y from "yjs";
 
 import { getNode } from "@/api";
+import { CustomError } from "@/lib/utils";
 import { GraphEdge, GraphNode } from "@/types";
-import { CustomError } from "@/utils";
 
 import useUser from "../useUser";
 import { NodeContext } from "./context";
