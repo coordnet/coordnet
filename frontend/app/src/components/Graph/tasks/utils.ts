@@ -65,14 +65,11 @@ export const topologicalSort = (adjacencyList: Record<string, string[]>): string
 
 export const createGraph = (nodes: GraphNode[], edges: Edge[]): Graph => {
   // Create adjacency list from edges
-  // const nodeIds = nodes.map((nodes) => nodes.id);
   const adjacencyList: { [id: string]: string[] } = {};
   const nodeIds = nodes.map((nodes) => nodes.id);
   edges.forEach((edge) => {
     if (nodeIds.includes(edge.source) && nodeIds.includes(edge.target)) {
-      // if (!adjacencyList[edge.source]) adjacencyList[edge.source] = [];
       if (!adjacencyList[edge.target]) adjacencyList[edge.target] = [];
-      // adjacencyList[edge.source].push(edge.target);
       adjacencyList[edge.target].push(edge.source);
     }
   });

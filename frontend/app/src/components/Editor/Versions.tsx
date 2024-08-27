@@ -11,17 +11,10 @@ import * as Y from "yjs";
 
 import { api, getNodeVersions } from "@/api";
 import { useNode } from "@/hooks";
+import { readOnlyEditor } from "@/lib/readOnlyEditor";
 import { NodeVersion } from "@/types";
 
 import { Button } from "../ui/button";
-import { loadExtensions } from "./extensions";
-
-const extensions = loadExtensions(undefined, undefined, true);
-const readOnlyEditor = new Editor({
-  editable: false,
-  extensions,
-  editorProps: { attributes: { class: "prose focus:outline-none" } },
-});
 
 const LIMIT = 10;
 

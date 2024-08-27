@@ -18,9 +18,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
 import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
+import { waitForNode } from "@/lib/nodes";
 import { readPdf } from "@/lib/pdfjs";
 import { GraphNode } from "@/types";
-import { waitForNode } from "@/utils";
 
 import Controls from "./Controls";
 import { getLayoutedNodes } from "./getLayoutedNodes";

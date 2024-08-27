@@ -7,8 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { api, handleApiError, isAxiosError } from "@/api";
-
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,9 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../components/ui/form";
-import { Input } from "../components/ui/input";
-import { title } from "../utils";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { title } from "@/lib/utils";
 
 const formSchema = z.object({
   token: z.string(),

@@ -50,9 +50,9 @@ repos:
         types: [file]
         exclude: .prettierrc.js|.storybook|.next
         additional_dependencies:
-          - eslint@8.56.0
-          - eslint-plugin-react-hooks@4.6.0
-          - eslint-plugin-react-refresh@0.4.6
+          - eslint@^8.57.0
+          - eslint-plugin-react-hooks@^4.6.2
+          - eslint-plugin-react-refresh@^0.4.11
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: "v3.1.0"
     hooks:

@@ -7,8 +7,9 @@ import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
 import { getSpace, updateSpace } from "@/api";
+import { waitForNode } from "@/lib/nodes";
+import { CustomError } from "@/lib/utils";
 import { SpaceNode } from "@/types";
-import { CustomError, waitForNode } from "@/utils";
 
 import useUser from "../useUser";
 import { SpaceContext } from "./context";

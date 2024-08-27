@@ -3,10 +3,9 @@ import { useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
 import { Editor, Header, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
+import ErrorPage from "@/components/ErrorPage";
 import { NodeProvider, useSpace } from "@/hooks";
-
-import ErrorPage from "./components/ErrorPage";
-import { title } from "./utils";
+import { title } from "@/lib/utils";
 
 function App() {
   const { pageId } = useParams();

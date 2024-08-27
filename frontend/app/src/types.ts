@@ -38,6 +38,7 @@ export interface ApiError {
 
 const AllowedActionsSchema = z.enum(["read", "write", "delete", "manage"]);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const NodeSchema = z.object({
   public_id: z.string(),
   title: z.string(),
@@ -70,10 +71,29 @@ export type SpaceNode = {
 export type GraphNode = ReactFlowNode;
 export type GraphEdge = Edge;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const exportNode = z.object({
+  id: z.string(),
+  width: z.number().nullable().optional(),
+  height: z.number().nullable().optional(),
+  type: z.string().optional(),
+  title: z.string(),
+  data: z.object({
+    borderColor: z.string().nullable(),
+    type: z.string().nullable(),
+  }),
+  content: z.unknown().nullable().optional(),
+});
+
+export type ExportNode = z.infer<typeof exportNode> & {
+  nodes: ExportNode[];
+  edges: GraphEdge[];
+};
+
 export const BackendNodeSchema = z.object({
   id: z.string(),
   title_token_count: z.number(),
-  text_token_count: z.null(),
+  text_token_count: z.number().nullable(),
   allowed_actions: z.array(z.string()),
   subnode_count: z.number(),
 });

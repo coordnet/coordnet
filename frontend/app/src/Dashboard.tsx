@@ -2,12 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 
+import { getSpaces } from "@/api";
 import { Loader } from "@/components";
-
-import { getSpaces } from "./api";
-import ErrorPage from "./components/ErrorPage";
-import useUser from "./hooks/useUser";
-import { CustomError } from "./utils";
+import ErrorPage from "@/components/ErrorPage";
+import useUser from "@/hooks/useUser";
+import { CustomError } from "@/lib/utils";
 
 function Dashboard() {
   const { user, isGuest, isLoading: userLoading } = useUser();

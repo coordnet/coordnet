@@ -13,7 +13,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useSpace } from "@/hooks";
 import useUser from "@/hooks/useUser";
-import { cleanNodeTitle } from "@/utils";
+import { cleanNodeTitle } from "@/lib/nodes";
 
 import SpaceSidebar from "./Spaces/Sidebar";
 import { Button } from "./ui/button";
