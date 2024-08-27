@@ -28,33 +28,39 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
   return (
     <>
       <div className={clsx("h-6 text-sm flex items-center px-3 gap-2", className)}>
-        <Link
-          to={`/spaces/${currentSpace?.id}`}
-          className="hover:underline text-neutral-500 hover:text-neutral-500 font-normal"
-        >
-          {currentSpace?.title}
-        </Link>
+        <div className="max-w-[220px] truncate">
+          <Link
+            to={`/spaces/${currentSpace?.id}`}
+            className="hover:underline text-neutral-500 hover:text-neutral-500 font-normal"
+          >
+            {currentSpace?.title}
+          </Link>
+        </div>
         {Boolean(breadcrumbs.length > 0) && <div className="">&raquo;</div>}
         {breadcrumbs.map((id, index) => (
           <div key={id} className="flex items-center gap-2">
-            <Link
-              to={`/spaces/${currentSpace?.id}/${id}`}
-              className="hover:underline text-neutral-500 hover:text-neutral-500 font-normal"
-            >
-              {cleanNodeTitle(nodes.find((n) => n.id === id)?.title)}
-            </Link>
-            {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
+            <div className="max-w-[220px] truncate">
+              <Link
+                to={`/spaces/${currentSpace?.id}/${id}`}
+                className="hover:underline text-neutral-500 hover:text-neutral-500 font-normal"
+              >
+                {cleanNodeTitle(nodes.find((n) => n.id === id)?.title)}
+              </Link>
+              {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
+            </div>
           </div>
         ))}
         {breadcrumbs[breadcrumbs.length - 1] !== id && id != currentSpace?.default_node && (
           <div className="flex items-center gap-2">
             <div className="">&raquo;</div>
-            <Link
-              to={`/spaces/${currentSpace?.id}/${id}`}
-              className="hover:underline text-neutral-500 hover:text-neutral-500 font-normal"
-            >
-              {cleanNodeTitle(nodes.find((n) => n.id === id)?.title)}
-            </Link>
+            <div className="max-w-[220px] truncate">
+              <Link
+                to={`/spaces/${currentSpace?.id}/${id}`}
+                className="hover:underline text-neutral-500 hover:text-neutral-500 font-normal"
+              >
+                {cleanNodeTitle(nodes.find((n) => n.id === id)?.title)}
+              </Link>
+            </div>
           </div>
         )}
       </div>
