@@ -1,11 +1,14 @@
-import { JSONContent } from "@tiptap/core";
+import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
+import { marked } from "marked";
 import { toast } from "sonner";
 import store from "store2";
 import { prosemirrorJSONToYXmlFragment, yXmlFragmentToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 
 import { getNode } from "@/api";
+import { createConnectedGraph } from "@/components/Graph/utils";
+import { extensions } from "@/lib/readOnlyEditor";
 import { ExportNode, GraphNode, SpaceNode } from "@/types";
 
 import { getCanvas } from "./canvases";
@@ -36,6 +39,18 @@ export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
     console.error("Failed to get node page content", e);
   } finally {
     editorProvider.destroy();
+  }
+};
+
+export const setNodePageMarkdown = async (markdown: string, id: string) => {
+  try {
+    await waitForNode(id);
+    const html = DOMPurify.sanitize(await marked.parse(markdown));
+    const json = generateJSON(html, extensions);
+    await setNodePageContent(json, id);
+  } catch (error) {
+    toast.error("Failed to load new node from API");
+    console.error(`Could not find node ${id} after 50 attempts`, error);
   }
 };
 
@@ -84,6 +99,7 @@ export const getNodeExport = async (node: GraphNode, spaceNode: SpaceNode): Prom
     height: node.height,
     type: node.type,
     title: spaceNode.title,
+    position: node.position,
     data: { borderColor: node.data?.borderColor, type: node.data?.type },
     nodes: [],
     edges: [],
@@ -131,4 +147,44 @@ export const exportNode = async (
     }
   }
   return mainExportNode;
+};
+
+export const importNodeCanvas = async (spaceId: string, graphId: string, node: ExportNode) => {
+  const { disconnect, nodesMap, edgesMap, spaceMap } = await createConnectedGraph(
+    spaceId!,
+    graphId,
+  );
+
+  const idMap: { [k: string]: string } = {};
+  node.nodes.forEach(async (node) => {
+    const id = crypto.randomUUID();
+    idMap[node.id] = id;
+    nodesMap.set(id, {
+      id,
+      type: "GraphNode",
+      position: node.position,
+      style: { width: node.width ? node.width : 200, height: node.height ? node.height : 80 },
+      data: node.data ? node.data : {},
+    });
+    spaceMap.set(id, { id, title: node.title });
+
+    if (node.content) {
+      try {
+        await waitForNode(id);
+        await setNodePageContent(node.content, id);
+      } catch (error) {
+        toast.error("Failed to load new node from API");
+        console.error(`Could not find node ${id} after 50 attempts`, error);
+      }
+    }
+  });
+
+  node.edges.forEach((edge) => {
+    const source = idMap[edge.source];
+    const target = idMap[edge.target];
+    const id = `edge-${source}-${target}`;
+    edgesMap.set(id, { id, source, target });
+  });
+
+  disconnect();
 };

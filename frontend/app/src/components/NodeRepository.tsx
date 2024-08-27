@@ -88,10 +88,7 @@ const NodeRepository = ({ className }: NodeProps) => {
     if (focus === "graph") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap || !spaceNodesMap) return alert("nodesMap not found");
-      addNodeToGraph(reactFlowInstance, nodesMap, spaceNodesMap, text, undefined, {
-        x: 100,
-        y: 100,
-      });
+      addNodeToGraph(nodesMap, spaceNodesMap, text, { x: 100, y: 100 });
     }
   };
 

@@ -1,17 +1,118 @@
-import { generateJSON } from "@tiptap/core";
+import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
-import { marked } from "marked";
-import { Node, ReactFlowInstance, XYPosition } from "reactflow";
+import { Node, XYPosition } from "reactflow";
 import { toast } from "sonner";
 import store from "store2";
 import * as Y from "yjs";
 
-import { setNodePageContent, waitForNode } from "@/lib/nodes";
+import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
+import {
+  importNodeCanvas,
+  setNodePageContent,
+  setNodePageMarkdown,
+  waitForNode,
+} from "@/lib/nodes";
+import { readPdf } from "@/lib/pdfjs";
 import { extensions } from "@/lib/readOnlyEditor";
 import { createConnectedYDoc } from "@/lib/utils";
-import { GraphEdge, GraphNode, SpaceNode } from "@/types";
+import { ExportNode, GraphEdge, GraphNode, Space, SpaceNode } from "@/types";
 
 import { SingleNode } from "./tasks/types";
+
+export const createConnectedGraph = async (spaceId: string, graphId: string) => {
+  const token = store("coordnet-auth");
+  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
+  const [graphDoc, graphProvider] = await createConnectedYDoc(`node-graph-${graphId}`, token);
+
+  return {
+    spaceProvider,
+    graphProvider,
+    nodesMap: graphDoc.getMap<GraphNode>("nodes"),
+    edgesMap: graphDoc.getMap<GraphEdge>("edges"),
+    spaceMap: spaceDoc.getMap<SpaceNode>("nodes"),
+    disconnect: () => {
+      spaceProvider.destroy();
+      graphProvider.destroy();
+    },
+  };
+};
+
+export const handleGraphDrop = async (
+  dataTransfer: React.DragEvent<Element>["dataTransfer"],
+  takeSnapshot: () => void,
+  space: Space,
+  nodesMap: Y.Map<GraphNode>,
+  spaceMap: Y.Map<SpaceNode>,
+  position: XYPosition,
+) => {
+  const transferredHtml = dataTransfer.getData("text/html");
+
+  // If it's a file
+  if (dataTransfer && dataTransfer.files.length > 0) {
+    const file = dataTransfer.files[0];
+    const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
+
+    // Node Import
+    if (file.name.endsWith(".coordnode")) {
+      try {
+        const importNode: ExportNode = JSON.parse(new TextDecoder().decode(arrayBuffer));
+        const { title, content, data, nodes } = importNode;
+        takeSnapshot();
+        const id = await addNodeToGraph(nodesMap, spaceMap, title, position, content, data);
+        if (nodes.length) await importNodeCanvas(space?.id, id, importNode);
+      } catch (e) {
+        console.log("Error importing node", e);
+        toast.error("Error importing node");
+      }
+
+      // PDF Import
+    } else if (file.type === "application/pdf") {
+      try {
+        const pdfText = await readPdf(arrayBuffer);
+        takeSnapshot();
+        addNodeToGraph(nodesMap, spaceMap, file.name, position, pdfText);
+      } catch (e) {
+        console.log("Error importing PDF", e);
+        toast.error("Error importing PDF");
+      }
+    }
+
+    // Dragging from editor
+  } else if (transferredHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(transferredHtml, "text/html");
+    const listItems = doc.querySelectorAll("li");
+
+    // List item
+    if (listItems.length > 0) {
+      listItems.forEach((li, index) => {
+        const liPosition: XYPosition = {
+          x: position.x + index * 25,
+          y: position.y + index * 50,
+        };
+
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = li.innerHTML;
+        tempDiv.querySelectorAll("ul, ol").forEach((subList) => subList.remove());
+        const cleaned = DOMPurify.sanitize(tempDiv, { ALLOWED_TAGS, FORBID_ATTR });
+
+        takeSnapshot();
+        addNodeToGraph(nodesMap, spaceMap, cleaned, liPosition);
+      });
+
+      // Normal HTML
+    } else {
+      const cleaned = DOMPurify.sanitize(transferredHtml, { ALLOWED_TAGS, FORBID_ATTR });
+      takeSnapshot();
+      addNodeToGraph(nodesMap, spaceMap, cleaned, position);
+    }
+
+    // Standard 'add node'
+  } else {
+    takeSnapshot();
+    addNodeToGraph(nodesMap, spaceMap, "New node", position, "", { editing: true });
+  }
+};
 
 export const findExtremePositions = (nodes: Node[]) => {
   let minX = 0;
@@ -31,33 +132,35 @@ export const findExtremePositions = (nodes: Node[]) => {
 };
 
 export const addNodeToGraph = async (
-  reactFlowInstance: ReactFlowInstance,
   nodesMap: Y.Map<GraphNode>,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  spaceMap: Y.Map<SpaceNode>,
   title = "New node",
-  body: string | undefined,
   position: XYPosition = { x: 100, y: 100 },
+  content?: string | JSONContent | undefined,
+  data?: GraphNode["data"],
 ): Promise<string> => {
-  const flowPosition = reactFlowInstance.screenToFlowPosition(position);
-  if (!flowPosition) alert("Failed to add node");
   const id = crypto.randomUUID();
   const newNode: GraphNode = {
     id,
     type: "GraphNode",
-    position: flowPosition,
+    position,
     style: { width: 200, height: 80 },
-    data: { syncing: body ? true : false },
+    data: { syncing: content ? true : false, ...(data ? data : {}) },
   };
-  spaceNodesMap.set(id, { id: id, title });
+  spaceMap.set(id, { id: id, title });
   nodesMap.set(id, newNode);
-  if (!body) return id;
+  if (!content) return id;
 
   try {
     await waitForNode(id);
-    const responseJson = generateJSON(body, extensions);
-    await setNodePageContent(responseJson, id);
+    if (typeof content === "string") {
+      const bodyJson = generateJSON(content, extensions);
+      await setNodePageContent(bodyJson, id);
+    } else {
+      await setNodePageContent(content, id);
+    }
     const node = nodesMap.get(id);
-    if (node) nodesMap.set(id, { ...node, data: {} });
+    if (node) nodesMap.set(id, { ...node, data: data ? data : {} });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     alert("Failed to load new node from API");
@@ -73,14 +176,7 @@ export const addEdge = async (
   targetHandle: string = "target-top",
 ): Promise<void> => {
   const id = `edge-${source}${sourceHandle || ""}-${target}${targetHandle || ""}`;
-
-  edgesMap?.set(id, {
-    id,
-    source,
-    target,
-    sourceHandle,
-    targetHandle,
-  } as GraphEdge);
+  edgesMap?.set(id, { id, source, target, sourceHandle, targetHandle } as GraphEdge);
 };
 
 export const findCentralNode = (ids: string[], nodesMap: Y.Map<GraphNode>) => {
@@ -103,57 +199,29 @@ interface AddNodeOptions {
   spaceId: string | undefined;
   graphId: string;
   nodes: SingleNode[];
-  edges: Array<{ source: string; target: string }>;
 }
 
 export const addToGraph = async (options: AddNodeOptions) => {
-  const { spaceId, graphId, nodes, edges } = options;
-  const token = store("coordnet-auth");
-
-  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
-  const [graphDoc, graphProvider] = await createConnectedYDoc(`node-graph-${graphId}`, token);
-
-  const nodesMap = graphDoc.getMap<GraphNode>("nodes");
-  const edgesMap = graphDoc.getMap<GraphEdge>("edges");
-  const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");
+  const { spaceId, graphId, nodes } = options;
+  const { disconnect, nodesMap, spaceMap } = await createConnectedGraph(spaceId!, graphId);
 
   const nodePositions = findExtremePositions(Array.from(nodesMap.values()));
 
   nodes.forEach(async (node, i) => {
     const id = crypto.randomUUID();
-    const newNode: GraphNode = {
+    nodesMap.set(id, {
       id,
       type: "GraphNode",
-      position: {
-        x: nodePositions.minX + 210 * i,
-        y: nodePositions.maxY + 120,
-      },
+      position: { x: nodePositions.minX + 210 * i, y: nodePositions.maxY + 120 },
       style: { width: 200, height: 80 },
       data: {},
-    };
-    nodesMap.set(id, newNode);
+    });
     spaceMap.set(id, { id, title: node.title });
 
-    if (node.markdown) {
-      try {
-        await waitForNode(id);
-        const html = DOMPurify.sanitize(await marked.parse(node.markdown));
-        const json = generateJSON(html, extensions);
-        await setNodePageContent(json, id);
-      } catch (error) {
-        toast.error("Failed to load new node from API");
-        console.error(`Could not find node ${id} after 50 attempts`, error);
-      }
-    }
+    if (node.markdown) await setNodePageMarkdown(node.markdown, id);
   });
 
-  edges.forEach((edge) => {
-    const id = `edge-${edge.source}-${edge.target}`;
-    edgesMap.set(id, { id, source: edge.source, target: edge.target });
-  });
-
-  spaceProvider.destroy();
-  graphProvider.destroy();
+  disconnect();
 };
 
 export const setNodeTitleAndContent = async (
@@ -164,9 +232,7 @@ export const setNodeTitleAndContent = async (
 ) => {
   const token = store("coordnet-auth");
 
-  const html = DOMPurify.sanitize(await marked.parse(markdown));
-  const json = generateJSON(html, extensions);
-  await setNodePageContent(json, id);
+  await setNodePageMarkdown(markdown, id);
 
   const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
   const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");

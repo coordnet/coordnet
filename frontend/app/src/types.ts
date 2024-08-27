@@ -1,3 +1,4 @@
+import { JSONContent } from "@tiptap/core";
 import { Edge, Node as ReactFlowNode } from "reactflow";
 import { z } from "zod";
 
@@ -72,21 +73,25 @@ export type GraphNode = ReactFlowNode;
 export type GraphEdge = Edge;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const exportNode = z.object({
-  id: z.string(),
-  width: z.number().nullable().optional(),
-  height: z.number().nullable().optional(),
-  type: z.string().optional(),
-  title: z.string(),
-  data: z.object({
-    borderColor: z.string().nullable(),
-    type: z.string().nullable(),
-  }),
-  content: z.unknown().nullable().optional(),
-});
+export type ExportNodeSingle = {
+  id: string;
+  width: number | null | undefined;
+  height: number | null | undefined;
+  type?: string;
+  title: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  data?: {
+    borderColor?: string;
+    type?: string;
+  };
+  content?: JSONContent;
+};
 
-export type ExportNode = z.infer<typeof exportNode> & {
-  nodes: ExportNode[];
+export type ExportNode = ExportNodeSingle & {
+  nodes: ExportNodeSingle[];
   edges: GraphEdge[];
 };
 

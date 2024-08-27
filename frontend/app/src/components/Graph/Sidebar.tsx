@@ -3,7 +3,8 @@ import clsx from "clsx";
 import { LayoutDashboard, PlayCircle, Plus, Search } from "lucide-react";
 import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { useOnViewportChange, XYPosition } from "reactflow";
+import { useOnViewportChange } from "reactflow";
+import * as Y from "yjs";
 
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -13,10 +14,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFocus, useNode } from "@/hooks";
+import { GraphNode, SpaceNode } from "@/types";
 
 import { Button } from "../ui/button";
 import ExecutionPlanRenderer from "./ExecutionPlan";
 import { useRunCanvas } from "./tasks/useRunCanvas";
+import { addNodeToGraph } from "./utils";
 
 const onDragStart = (event: DragEvent, nodeType: string) => {
   event.dataTransfer.setData("application/reactflow", nodeType);
@@ -24,11 +27,15 @@ const onDragStart = (event: DragEvent, nodeType: string) => {
 };
 
 const Sidebar = ({
-  addNode,
+  nodesMap,
+  spaceMap,
+  takeSnapshot,
   className,
   onLayoutNodes,
 }: {
-  addNode: (position: XYPosition) => void;
+  nodesMap: Y.Map<GraphNode>;
+  spaceMap: Y.Map<SpaceNode>;
+  takeSnapshot: () => void;
   className?: string;
   onLayoutNodes: () => Promise<void>;
 }) => {
@@ -65,7 +72,8 @@ const Sidebar = ({
     const targetPosition = event.currentTarget.getBoundingClientRect();
     const x = targetPosition.x + targetPosition.width + 30 + currentClickCount * 25;
     const y = targetPosition.y - targetPosition.height / 2 + currentClickCount * 25;
-    addNode({ x, y });
+    takeSnapshot();
+    addNodeToGraph(nodesMap, spaceMap, "New node", { x, y }, "", { editing: true });
   };
 
   return (
