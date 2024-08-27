@@ -201,12 +201,7 @@ export const executePromptTask = async (
     if (cancelRef.current) return;
 
     if (isMultipleResponseNode(task.outputNode)) {
-      await addToGraph({
-        spaceId: space?.id,
-        graphId: task?.outputNode?.id ?? "",
-        nodes,
-        edges: [],
-      });
+      await addToGraph({ spaceId: space?.id, graphId: task?.outputNode?.id ?? "", nodes });
     } else {
       setNodeTitleAndContent(
         space?.id,
@@ -287,12 +282,7 @@ ${paper.abstract}`,
 
     if (cancelRef.current) return;
 
-    await addToGraph({
-      spaceId: space?.id,
-      graphId: task?.outputNode?.id ?? "",
-      nodes,
-      edges: [],
-    });
+    await addToGraph({ spaceId: space?.id, graphId: task?.outputNode?.id ?? "", nodes });
   } catch (e) {
     console.error(e);
     toast.info("A request to find papers failed, continuing with the next task");
