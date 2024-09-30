@@ -1,8 +1,8 @@
 # define an alias for the specific python version used in this file.
-FROM python:3.11.9-slim-bullseye as python
+FROM python:3.11.9-slim-bullseye AS python
 
 # Python build stage
-FROM python as python-build-stage
+FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=local
 
@@ -21,7 +21,7 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels  \
 
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM python AS python-run-stage
 
 ARG BUILD_ENVIRONMENT=local
 ARG APP_HOME=/app
@@ -113,7 +113,7 @@ WORKDIR ${APP_HOME}/backend
 ENTRYPOINT ["/entrypoint"]
 
 # Production stages
-FROM node:22-slim as frontend-build-stage
+FROM node:22-slim AS frontend-build-stage
 ARG VITE_HOCUSPOCUS_URL
 ARG VITE_BACKEND_URL
 ARG VITE_BACKEND_WS_URL
@@ -160,7 +160,7 @@ COPY ./frontend/app .
 
 RUN ./node_modules/.bin/vite build
 
-FROM python-run-stage as python-run-stage-prod
+FROM python-run-stage AS python-run-stage-prod
 ARG GIT_REVISION
 ENV SENTRY_RELEASE=${GIT_REVISION}
 COPY --from=frontend-build-stage /frontend/app/dist/static/ /app/backend/coordnet/static/
