@@ -1,8 +1,19 @@
 # ruff: noqa: E402
 import os
+import typing
 
 from django.core.asgi import get_asgi_application
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+
+if typing.TYPE_CHECKING:
+    from django.core.handlers.asgi import ASGIHandler
+
+try:
+    from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+except ImportError:
+
+    def SentryAsgiMiddleware(app: "ASGIHandler") -> "ASGIHandler":
+        return app
+
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
 
