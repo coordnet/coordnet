@@ -69,7 +69,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
           </Button>
         </SheetClose>
       </div>
-      <div className="border-t mx-2 py-2">
+      <div className="border-t mx-2 py-2 overflow-auto h-full">
         <h3 className="text-sm font-semibold py-1 px-2">Spaces</h3>
         {isLoading ? (
           <div className="p-4 flex justify-center items-center">
