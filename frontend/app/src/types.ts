@@ -164,6 +164,7 @@ export enum NodeType {
   ResponseCombined = "response_combined",
   ResponseSingle = "response_single",
   ResponseMultiple = "response_multiple",
+  ResponseTable = "response_table",
   PaperFinder = "paper_finder",
 }
 
@@ -173,6 +174,7 @@ export const nodeTypeMap = {
   [NodeType.Output]: "Output",
   [NodeType.Prompt]: "Prompt",
   [NodeType.ResponseCombined]: "Response (combined)",
+  [NodeType.ResponseTable]: "Response (table)",
   [NodeType.ResponseSingle]: "Responses (one node)",
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
   [NodeType.PaperFinder]: "Paper Finder",

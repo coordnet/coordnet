@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useNode, useSpace } from "@/hooks";
@@ -19,6 +19,12 @@ export const useRunCanvas = () => {
     const nodeIds = nodes.map((nodes) => nodes.id);
     setNodesState(nodeIds, nodesMap, "inactive");
   }, [nodes, nodesMap]);
+
+  // Run reset on refresh/page leave as processing will stop
+  useEffect(() => {
+    window.addEventListener("beforeunload", resetCanvas);
+    return () => window.removeEventListener("beforeunload", resetCanvas);
+  }, [resetCanvas]);
 
   const runCanvas = useCallback(
     async (selected: boolean = false) => {

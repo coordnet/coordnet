@@ -97,7 +97,7 @@ export const createTasks = (graph: Graph, context: ExecutionContext) => {
       } else if (node.data.type === NodeType.PaperFinder) {
         console.log(baseTask);
         // For PaperFinder nodes, only allow response nodes as input
-        if (baseTask.outputNode?.data.type !== NodeType.ResponseMultiple) {
+        if (baseTask.outputNode && baseTask.outputNode?.data.type !== NodeType.ResponseMultiple) {
           toast.error("Paper Finder nodes can only have Responses (Many nodes) as output.");
           throw new Error("Paper Finder output must be Responses (Many nodes)");
         } else {

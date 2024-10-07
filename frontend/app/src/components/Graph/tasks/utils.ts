@@ -22,7 +22,8 @@ export const isResponseNode = (node: GraphNode) => {
   return (
     node?.data?.type === NodeType.ResponseMultiple ||
     node?.data?.type === NodeType.ResponseSingle ||
-    node?.data?.type === NodeType.ResponseCombined
+    node?.data?.type === NodeType.ResponseCombined ||
+    node?.data?.type === NodeType.ResponseTable
   );
 };
 
@@ -30,6 +31,10 @@ export const isSingleResponseType = (node: GraphNode | null) => {
   return (
     node?.data?.type === NodeType.ResponseSingle || node?.data?.type === NodeType.ResponseCombined
   );
+};
+
+export const isTableResponseType = (node: GraphNode | null) => {
+  return node?.data?.type === NodeType.ResponseTable;
 };
 
 export const isMultipleResponseNode = (node: GraphNode | null) => {
@@ -82,3 +87,9 @@ export const createGraph = (nodes: GraphNode[], edges: Edge[]): Graph => {
   };
   return graph;
 };
+
+export function formatTitleToKey(title: string): string {
+  return title
+    .toLowerCase() // Convert to lowercase
+    .replace(/[^a-z0-9]/g, "_"); // Replace non-alphanumeric characters with '_'
+}

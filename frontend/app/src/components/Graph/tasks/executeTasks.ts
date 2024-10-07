@@ -11,6 +11,7 @@ import { getNodePageContent, waitForNode } from "@/lib/nodes";
 import { Buddy, GraphNode, NodeType, Space, SpaceNode } from "@/types";
 
 import { addToGraph, setNodeTitleAndContent } from "../utils";
+import { executeTableTask } from "./tables";
 import {
   ExecutionContext,
   ExecutionPlan,
@@ -25,6 +26,7 @@ import {
   isMultipleResponseNode,
   isResponseNode,
   isSingleResponseType,
+  isTableResponseType,
   setNodesState,
 } from "./utils";
 
@@ -35,7 +37,7 @@ const oai = new OpenAI({
   timeout: 10000,
 });
 
-const client = Instructor({ client: oai, mode: "TOOLS" });
+export const client = Instructor({ client: oai, mode: "TOOLS" });
 
 function formatName(input: string) {
   // Replace spaces with underscores
@@ -131,7 +133,7 @@ export const processTasks = async (
           try {
             // setNodesState(selectedIds, nodesMap, "executing");
             setNodesState([task.promptNode.id], nodesMap, "executing");
-            await executePromptTask(task, space, messages, cancelRef);
+            await executePromptTask(task, space, messages, cancelRef, spaceNodesMap);
           } catch (e) {
             toast.error(`Failed to execute prompt task`);
             console.error(e);
@@ -150,7 +152,13 @@ export const executePromptTask = async (
   space: Space,
   messages: ChatCompletionMessageParam[],
   cancelRef: React.MutableRefObject<boolean>,
+  spaceNodesMap: Y.Map<SpaceNode>,
 ) => {
+  if (isTableResponseType(task.outputNode)) {
+    await executeTableTask(task, messages, cancelRef, spaceNodesMap);
+    return;
+  }
+
   try {
     const response_model: ResponseModel<z.AnyZodObject> = {
       schema: MultipleNodesSchema,

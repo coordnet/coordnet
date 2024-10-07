@@ -30,3 +30,19 @@ export const proseMirrorJSONToText = (jsonData: JSONContent) => {
 export const isEmptyDocument = (json: JSONContent): boolean => {
   return JSON.stringify(json) === JSON.stringify({ type: "doc", content: [] });
 };
+
+export const mergeJSONContent = (
+  existingContent: JSONContent,
+  newContent: JSONContent,
+): JSONContent => {
+  // Ensure both contents have a 'content' array
+  if (!existingContent.content) {
+    existingContent.content = [];
+  }
+
+  if (newContent.content) {
+    existingContent.content.push(...newContent.content);
+  }
+
+  return existingContent;
+};
