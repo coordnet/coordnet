@@ -1,6 +1,10 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import Collaboration from "@tiptap/extension-collaboration";
 import Link from "@tiptap/extension-link";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
@@ -27,6 +31,10 @@ export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, read
   extensions.push(Node);
   extensions.push(BulletList);
   extensions.push(ListItem);
+  extensions.push(Table.configure({ resizable: true }));
+  extensions.push(TableRow);
+  extensions.push(TableHeader);
+  extensions.push(TableCell);
 
   return extensions;
 };

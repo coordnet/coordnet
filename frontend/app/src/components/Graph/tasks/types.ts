@@ -44,6 +44,12 @@ export type MultipleNodesResponse = Partial<{ nodes: { title: string; markdown: 
   _meta?: CompletionMeta | undefined;
 };
 
+export type TableRow<TSchema extends z.AnyZodObject> = z.infer<TSchema>;
+
+export type TableResponse<TSchema extends z.AnyZodObject> = Partial<TableRow<TSchema>> & {
+  _meta?: CompletionMeta | undefined;
+};
+
 export type ExecutionPlan = {
   tasks: {
     task: Task;

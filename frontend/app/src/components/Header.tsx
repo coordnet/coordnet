@@ -46,8 +46,8 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
               >
                 {cleanNodeTitle(nodes.find((n) => n.id === id)?.title)}
               </Link>
-              {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
             </div>
+            {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
           </div>
         ))}
         {breadcrumbs[breadcrumbs.length - 1] !== id && id != currentSpace?.default_node && (
