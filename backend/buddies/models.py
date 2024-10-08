@@ -17,8 +17,14 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
     name = models.CharField(max_length=255)
     description = models.TextField()
-    model = models.CharField(max_length=255)
-    system_message = models.TextField()
+    model = models.CharField(
+        verbose_name="LLM Model",
+        help_text="The LLM model this buddy will be using.",
+        max_length=255,
+    )
+    system_message = models.TextField(
+        help_text="The message sent to the LLM before the user's query."
+    )
 
     def query_model(
         self, nodes: list["nodes_models.Node"], level: int, query: str

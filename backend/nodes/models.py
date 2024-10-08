@@ -470,7 +470,13 @@ class Space(permissions.models.MembershipBaseModel):
     deleted_nodes: models.ManyToManyField = models.ManyToManyField(
         Node, related_name="spaces_deleted", blank=True
     )
-    default_node = models.ForeignKey("Node", on_delete=models.SET_NULL, null=True, blank=True)
+    default_node = models.ForeignKey(
+        "Node",
+        help_text="The node that gets displayed when a space is opened.",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="space"
     )

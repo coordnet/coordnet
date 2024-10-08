@@ -1,5 +1,7 @@
 import typing
+import uuid
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 import permissions.models
@@ -55,6 +57,7 @@ class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[m
         ]
 
 
+@extend_schema_field(uuid.UUID)
 class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[models.Space]":
         user = self.context["request"].user
@@ -79,7 +82,12 @@ class SpaceDefaultNodeField(utils.serializers.PublicIdRelatedField):
 class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space]):
     # TODO: don't let the API client pick their own id for the project, it should be auto-generated.
     title_slug = serializers.SlugField(read_only=True)
-    default_node = SpaceDefaultNodeField(allow_null=True, read_only=False, required=False)
+    default_node = SpaceDefaultNodeField(
+        allow_null=True,
+        read_only=False,
+        required=False,
+        help_text=models.Space._meta.get_field("default_node").help_text,
+    )
     node_count = serializers.IntegerField(read_only=True)
     allowed_actions = serializers.SerializerMethodField()
 

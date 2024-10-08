@@ -31,7 +31,7 @@ class DocumentVersionFilterSet(filters.FilterSet):
     document = coord_filters.UUIDModelMultipleChoiceFilter(
         queryset=get_document_queryset, field_name="document__public_id"
     )
-    document_type = filters.CharFilter(lookup_expr="iexact")
+    document_type = filters.ChoiceFilter(lookup_expr="iexact", choices=models.DocumentType.choices)
 
     class Meta:
         model = models.DocumentVersion
