@@ -15,6 +15,7 @@ export const nodeColors = [
 export const buddyModels = {
   "gpt-4-turbo-preview": "GPT-4",
   "gpt-3.5-turbo-0125": "GPT-3.5",
+  // "o1-preview": "GPT-o1",
 };
 
 export const ALLOWED_TAGS = ["a", "b", "strong", "i", "em", "strike", "u"];
