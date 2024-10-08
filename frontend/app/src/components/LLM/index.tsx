@@ -116,7 +116,7 @@ const LLM = ({ id }: { id: string }) => {
 
   const onSubmit = async (promptInput: string = input) => {
     setLoading(true);
-    setResponse("&hellip;");
+    setResponse("Loading...");
     setHasResponse(true);
 
     if (abortController) abortController.abort();
@@ -213,9 +213,23 @@ const LLM = ({ id }: { id: string }) => {
         </div>
         {hasResponse && (
           <div className="p-1 mt-5 mb-2">
-            <div className="leading-6 pb-3 max-h-96 overflow-auto -mt-2" ref={scrollRef}>
-              <EditorContent editor={readOnlyEditor} />
-            </div>
+            {response === "Loading..." ? (
+              <div className="px-2 pt-0 pb-4 text-sm">
+                <div className="flex items-center">
+                  Loading
+                  <div className="animate-spin rounded-full size-3 border-t-2 border-b-2 border-blue-500 ml-3"></div>
+                </div>
+                {buddy?.model == "o1-preview" && (
+                  <div className="mt-2 text-sm italic text-gray-3">
+                    (o1 currently can't stream responses so it may take a moment to appear)
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="leading-6 pb-3 max-h-96 overflow-auto -mt-2" ref={scrollRef}>
+                <EditorContent editor={readOnlyEditor} />
+              </div>
+            )}
             {loading ? (
               <Button variant="outline" onClick={() => abortController?.abort()}>
                 <StopCircle className="size-4 mr-2" /> Stop

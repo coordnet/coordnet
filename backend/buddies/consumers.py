@@ -7,6 +7,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from knox.auth import TokenAuthentication
+from openai.types.chat import ChatCompletion
 
 import buddies.models
 import buddies.serializers
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 class QueryConsumer(AsyncWebsocketConsumer):
     """The same functionality as views/BuddyModelViewSet.query, but as a WebSocket consumer."""
 
-    async def receive(  # noqa: PLR0911,PLR0912
+    async def receive(  # noqa: PLR0911,PLR0912,PLR0915
         self, text_data: str | None = None, bytes_data: bytes | None = None
     ) -> None:
         try:
@@ -66,31 +67,52 @@ class QueryConsumer(AsyncWebsocketConsumer):
                 ).chat.completions.create(
                     model=buddy.model,
                     messages=messages,
-                    stream=True,
+                    stream=not buddy.is_o1,
                     timeout=180,
                 )
             except Exception as e:
                 logger.exception(f"Error while sending messages to OpenAI: {e}")
-                await self.close(code=1006)
+                await self.close(code=1011)
                 return
 
-            try:
-                async for chunk in response:
-                    chunk_content = chunk.choices[0].delta.content
-                    if chunk_content is not None:
-                        await self.send(chunk_content)
-            except Exception as e:
-                logger.info(f"Error while getting response content as iterator: {e}", exc_info=True)
+            # If the response is not streaming
+            if isinstance(response, ChatCompletion):
                 try:
-                    await response.response.aread()
+                    content = response.choices[0].message.content
+                    if content:
+                        await self.send(content)
+                except Exception as e:
+                    logger.exception(
+                        f"Error while getting non-streaming response content: {e}",
+                        exc_info=True,
+                    )
+                    await self.close(code=1011)
+                    return
+
+            # If the response is streaming
+            else:
+                try:
                     async for chunk in response:
                         chunk_content = chunk.choices[0].delta.content
                         if chunk_content is not None:
                             await self.send(chunk_content)
                 except Exception as e:
-                    logger.exception(f"Error while getting response content: {e}", exc_info=True)
-                await self.close(code=1006)
-                return
+                    logger.info(
+                        f"Error while getting response content as iterator: {e}",
+                        exc_info=True,
+                    )
+                    try:
+                        await response.response.aread()
+                        async for chunk in response:
+                            chunk_content = chunk.choices[0].delta.content
+                            if chunk_content is not None:
+                                await self.send(chunk_content)
+                    except Exception as e:
+                        logger.exception(
+                            f"Error while getting response content: {e}", exc_info=True
+                        )
+                    await self.close(code=1006)
+                    return
 
             await self.close()
         except Exception as e:
