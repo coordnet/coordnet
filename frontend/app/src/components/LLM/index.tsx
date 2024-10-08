@@ -162,7 +162,8 @@ const LLM = ({ id }: { id: string }) => {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
       if (!spaceNodesMap) return alert("spaceNodesMap not found");
-      addNodeToGraph(nodesMap, spaceNodesMap, "New node", { x: 50, y: 50 }, response);
+      const position = reactFlowInstance.screenToFlowPosition({ x: 200, y: 100 });
+      addNodeToGraph(nodesMap, spaceNodesMap, "New node", position, response);
     } else if (focus === "editor") {
       editor?.commands.insertContent(response);
     } else {

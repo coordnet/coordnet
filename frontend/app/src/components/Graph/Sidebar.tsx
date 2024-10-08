@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { LayoutDashboard, PlayCircle, Plus, Search } from "lucide-react";
 import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { useOnViewportChange } from "reactflow";
+import { useOnViewportChange, useReactFlow } from "reactflow";
 import * as Y from "yjs";
 
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -45,6 +45,7 @@ const Sidebar = ({
   const { setNodeRepositoryVisible } = useFocus();
   const { node } = useNode();
   const { runCanvas, resetCanvas } = useRunCanvas();
+  const reactFlow = useReactFlow();
 
   useOnViewportChange({
     onChange: () => {
@@ -73,7 +74,8 @@ const Sidebar = ({
     const x = targetPosition.x + targetPosition.width + 30 + currentClickCount * 25;
     const y = targetPosition.y - targetPosition.height / 2 + currentClickCount * 25;
     takeSnapshot();
-    addNodeToGraph(nodesMap, spaceMap, "New node", { x, y }, "", { editing: true });
+    const flowPosition = reactFlow.screenToFlowPosition({ x, y });
+    addNodeToGraph(nodesMap, spaceMap, "New node", flowPosition, "", { editing: true });
   };
 
   return (
