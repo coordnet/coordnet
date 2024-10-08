@@ -12,14 +12,14 @@ class ObjectPermissionModelSerializer(utils_serializers.BaseSerializer[models.Ob
     into the corresponding ObjectMembershipRole object in the to_internal_value method.
     """
 
-    role = serializers.CharField()
+    role = serializers.ChoiceField(choices=models.RoleOptions.choices)
     user = serializers.EmailField()
 
-    def get_role(self, obj: models.ObjectMembership) -> str:
-        return obj.role.role
-
-    def get_user(self, obj: models.ObjectMembership) -> str:
-        return obj.user.email
+    def to_representation(self, instance: models.ObjectMembership) -> dict:
+        representation = super().to_representation(instance)
+        representation["role"] = instance.role.role
+        representation["user"] = instance.user.email
+        return representation
 
     def validate_role(self, value: str) -> models.ObjectMembershipRole:
         value = value.lower()

@@ -50,7 +50,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
                 "nodes:nodes-delete-permission",
                 kwargs={
                     "public_id": str(node.public_id),
-                    "permission_uuid": str(object_permission.public_id),
+                    "permission_uuid": object_permission.public_id,
                 },
             )
         )

@@ -1,5 +1,7 @@
 import typing
 
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,11 +17,30 @@ T_co = typing.TypeVar("T_co", bound="models.MembershipModelMixin", covariant=Tru
 
 
 class PermissionViewSetMixin(generics.GenericAPIView[T_co], typing.Generic[T_co]):
+    @extend_schema(
+        methods=["post"],
+        summary="Create object permission",
+        description="Create a new object permission",
+        responses={
+            status.HTTP_201_CREATED: serializers.ObjectPermissionModelSerializer,
+            status.HTTP_404_NOT_FOUND: None,
+        },
+    )
+    @extend_schema(
+        methods=["get"],
+        summary="List object permissions",
+        description="List all object permissions",
+        responses={
+            status.HTTP_200_OK: serializers.ObjectPermissionModelSerializer(many=True),
+            status.HTTP_404_NOT_FOUND: None,
+        },
+    )
     @action(
         detail=True,
         methods=["get", "post"],
         url_path="permissions",
         serializer_class=serializers.ObjectPermissionModelSerializer,
+        filter_backends=[],
     )
     def manage_permissions(self, request: "request.Request", public_id: str) -> Response:
         if request.method == "GET":
@@ -38,10 +59,24 @@ class PermissionViewSetMixin(generics.GenericAPIView[T_co], typing.Generic[T_co]
 
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @extend_schema(
+        methods=["delete"],
+        summary="Delete object permission",
+        description="Delete an object permission",
+        parameters=[
+            OpenApiParameter(
+                name="permission_uuid",
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.PATH,
+                description="UUID of the permission to delete",
+            )
+        ],
+        responses={status.HTTP_204_NO_CONTENT: None, status.HTTP_404_NOT_FOUND: None},
+    )
     @action(
         detail=True,
         methods=["delete"],
-        url_path="permissions/(?P<permission_uuid>[0-9a-f-]+)",
+        url_path=r"permissions/(?P<permission_uuid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
         serializer_class=serializers.ObjectPermissionModelSerializer,
     )
     def delete_permission(

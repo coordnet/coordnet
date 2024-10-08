@@ -6,7 +6,7 @@ from adrf.decorators import api_view
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from openai import AsyncOpenAI, AsyncStream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from rest_framework.decorators import action, authentication_classes, permission_classes
@@ -22,14 +22,32 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(
+    tags=["Buddies"],
+)
+@extend_schema_view(
+    list=extend_schema(description="List available buddies.", summary="List buddies"),
+    retrieve=extend_schema(description="Retrieve a single buddy.", summary="Retrieve buddy"),
+    create=extend_schema(description="Create a new buddy.", summary="Create buddy"),
+    update=extend_schema(description="Update a buddy.", summary="Update buddy"),
+    partial_update=extend_schema(
+        description="Partial update a buddy.", summary="Partial update buddy"
+    ),
+    destroy=extend_schema(description="Delete a buddy.", summary="Delete buddy"),
+)
 class BuddyModelViewSet(views.BaseModelViewSet):
     queryset = models.Buddy.available_objects.all()
     serializer_class = serializers.BuddySerializer
 
-    @action(detail=True, methods=["post"], serializer_class=serializers.BuddyQuerySerializer)
     @extend_schema(
+        summary="Query a buddy",
+        description="Query a buddy using the given nodes and level. The level defines the depth of "
+        "the query, level 0 meaning that only the node detail page of the node specified is "
+        "queried, level 1 includes the specified node's graph (subnodes), level 2 will also add "
+        "the subnodes detail pages to the context, etc.",
         responses={(200, "text/event-stream"): OpenApiTypes.STR, 404: None},
     )
+    @action(detail=True, methods=["post"], serializer_class=serializers.BuddyQuerySerializer)
     @middlewares.disable_gzip
     def query(self, request: "Request", public_id: str | None = None) -> StreamingHttpResponse:
         buddy = self.get_object()
@@ -45,6 +63,11 @@ class BuddyModelViewSet(views.BaseModelViewSet):
             buddy.query_model(nodes, level, message), content_type="text/event-stream"
         )
 
+    @extend_schema(
+        summary="Calculate token counts",
+        description="Calculate the token counts for each level.",
+        responses={200: dict[int, int], 404: None},
+    )
     @action(detail=True, methods=["post"], serializer_class=serializers.BuddyQuerySerializer)
     def token_counts(self, request: "Request", public_id: str | None = None) -> Response:
         buddy = self.get_object()
@@ -58,14 +81,16 @@ class BuddyModelViewSet(views.BaseModelViewSet):
 
         return Response(buddy.calculate_token_counts(nodes, max_depth, message))
 
-    @action(detail=False, methods=["get"])
     @extend_schema(
+        summary="Query semantic scholar",
+        description="Query the Semantic Scholar API.",
         parameters=[
             OpenApiParameter(name="query", type=str, required=True),
             OpenApiParameter(name="fields", type=str, required=True, many=True),
         ],
-        responses={200: list[dict], 400: None, 500: None},
+        responses={200: list[dict], 400: None, 500: None},  # TODO: Define the response schema
     )
+    @action(detail=False, methods=["get"])
     def semantic(self, request: "Request") -> Response:
         query = request.query_params.get("query")
         if not query:
@@ -104,6 +129,14 @@ class BuddyModelViewSet(views.BaseModelViewSet):
             )
 
 
+@extend_schema(
+    tags=["Buddies"],
+    summary="OpenAI Proxy",
+    description="Proxy to OpenAI's chat API.",
+    request=serializers.OpenAIQuerySerializer,
+    responses={200: OpenApiTypes.STR, 400: None, 500: None},
+    deprecated=True,
+)
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([])

@@ -1,0 +1,2122 @@
+openapi: 3.0.3
+info:
+  title: coordnet API
+  version: 1.0.0
+  description: Documentation of API endpoints of coordnet
+paths:
+  /api/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/delete-user/:
+    post:
+      operationId: auth_delete_user_create
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      security:
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/logoutall/:
+    post:
+      operationId: auth_logoutall_create
+      description: |-
+        Log the user out of all sessions
+        I.E. deletes all auth tokens for the user
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/password-reset/:
+    post:
+      operationId: auth_password_reset_create
+      description: |-
+        An Api View which provides a method to request a password reset token based on an e-mail address
+
+        Sends a signal reset_password_token_created when a reset token was created
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Email'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Email'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Email'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Email'
+          description: ''
+  /api/auth/password-reset/confirm/:
+    post:
+      operationId: auth_password_reset_confirm_create
+      description: An Api View which provides a method to reset a password based on
+        a unique token
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordToken'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordToken'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordToken'
+          description: ''
+  /api/auth/password-reset/validate_token/:
+    post:
+      operationId: auth_password_reset_validate_token_create
+      description: An Api View which provides a method to verify that a token is valid
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetToken'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetToken'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetToken'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /api/auth/token/:
+    post:
+      operationId: auth_token_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: ''
+  /api/auth/verify/:
+    get:
+      operationId: auth_verify_retrieve
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: auth_verify_create
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/buddies/:
+    get:
+      operationId: buddies_list
+      description: List available buddies.
+      summary: List buddies
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - Buddies
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBuddyList'
+          description: ''
+    post:
+      operationId: buddies_create
+      description: Create a new buddy.
+      summary: Create buddy
+      tags:
+      - Buddies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Buddy'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Buddy'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Buddy'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Buddy'
+          description: ''
+  /api/buddies/{public_id}/:
+    get:
+      operationId: buddies_retrieve
+      description: Retrieve a single buddy.
+      summary: Retrieve buddy
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Buddies
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Buddy'
+          description: ''
+    put:
+      operationId: buddies_update
+      description: Update a buddy.
+      summary: Update buddy
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Buddies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Buddy'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Buddy'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Buddy'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Buddy'
+          description: ''
+    patch:
+      operationId: buddies_partial_update
+      description: Partial update a buddy.
+      summary: Partial update buddy
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Buddies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBuddy'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBuddy'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBuddy'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Buddy'
+          description: ''
+    delete:
+      operationId: buddies_destroy
+      description: Delete a buddy.
+      summary: Delete buddy
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Buddies
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/buddies/{public_id}/query/:
+    post:
+      operationId: buddies_query_create
+      description: Query a buddy using the given nodes and level. The level defines
+        the depth of the query, level 0 meaning that only the node detail page of
+        the node specified is queried, level 1 includes the specified node's graph
+        (subnodes), level 2 will also add the subnodes detail pages to the context,
+        etc.
+      summary: Query a buddy
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Buddies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuddyQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BuddyQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BuddyQuery'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          description: ''
+        '404':
+          description: No response body
+  /api/buddies/{public_id}/token_counts/:
+    post:
+      operationId: buddies_token_counts_create
+      description: Calculate the token counts for each level.
+      summary: Calculate token counts
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Buddies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuddyQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BuddyQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BuddyQuery'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+          description: ''
+        '404':
+          description: No response body
+  /api/buddies/semantic/:
+    get:
+      operationId: buddies_semantic_retrieve
+      description: Query the Semantic Scholar API.
+      summary: Query semantic scholar
+      parameters:
+      - in: query
+        name: fields
+        schema:
+          type: array
+          items:
+            type: string
+        required: true
+      - in: query
+        name: query
+        schema:
+          type: string
+        required: true
+      tags:
+      - Buddies
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: {}
+          description: ''
+        '400':
+          description: No response body
+        '500':
+          description: No response body
+  /api/llm/.:
+    post:
+      operationId: llm_._create
+      description: Proxy to OpenAI's chat API.
+      summary: OpenAI Proxy
+      tags:
+      - Buddies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenAIQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OpenAIQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenAIQuery'
+        required: true
+      deprecated: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: ''
+        '400':
+          description: No response body
+        '500':
+          description: No response body
+  /api/nodes/nodes/:
+    get:
+      operationId: nodes_nodes_list
+      description: List available nodes.
+      summary: List nodes
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: spaces
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Public ID of the space to filter by.
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNodeListList'
+          description: ''
+  /api/nodes/nodes/{public_id}/:
+    get:
+      operationId: nodes_nodes_retrieve
+      description: Retrieve a single node.
+      summary: Retrieve a node
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeDetail'
+          description: ''
+  /api/nodes/nodes/{public_id}/permissions/:
+    get:
+      operationId: nodes_nodes_permissions_list
+      description: List all object permissions
+      summary: List object permissions
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedObjectPermissionModelList'
+          description: ''
+        '404':
+          description: No response body
+    post:
+      operationId: nodes_nodes_permissions_create
+      description: Create a new object permission
+      summary: Create object permission
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectPermissionModel'
+          description: ''
+        '404':
+          description: No response body
+  /api/nodes/nodes/{public_id}/permissions/{permission_uuid}/:
+    delete:
+      operationId: nodes_nodes_permissions_destroy
+      description: Delete an object permission
+      summary: Delete object permission
+      parameters:
+      - in: path
+        name: permission_uuid
+        schema:
+          type: string
+          format: uuid
+        description: UUID of the permission to delete
+        required: true
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          description: No response body
+  /api/nodes/search/:
+    get:
+      operationId: nodes_search_list
+      description: Search nodes.
+      summary: Search nodes
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+        required: true
+      - in: query
+        name: space
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNodeSearchResultList'
+          description: ''
+  /api/nodes/spaces/:
+    get:
+      operationId: nodes_spaces_list
+      description: List available spaces.
+      summary: List spaces
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - Spaces
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSpaceList'
+          description: ''
+    post:
+      operationId: nodes_spaces_create
+      description: Create a new space.
+      summary: Create space
+      tags:
+      - Spaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Space'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Space'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Space'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+          description: ''
+  /api/nodes/spaces/{public_id}/:
+    get:
+      operationId: nodes_spaces_retrieve
+      description: Retrieve a single space.
+      summary: Retrieve space
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+          description: ''
+    put:
+      operationId: nodes_spaces_update
+      description: Update a space.
+      summary: Update space
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Space'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Space'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Space'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+          description: ''
+    patch:
+      operationId: nodes_spaces_partial_update
+      description: Partially update a space.
+      summary: Partial update space
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSpace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSpace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSpace'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+          description: ''
+    delete:
+      operationId: nodes_spaces_destroy
+      description: Delete a space.
+      summary: Delete space
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/nodes/spaces/{public_id}/permissions/:
+    get:
+      operationId: nodes_spaces_permissions_list
+      description: List all object permissions
+      summary: List object permissions
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedObjectPermissionModelList'
+          description: ''
+        '404':
+          description: No response body
+    post:
+      operationId: nodes_spaces_permissions_create
+      description: Create a new object permission
+      summary: Create object permission
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectPermissionModel'
+          description: ''
+        '404':
+          description: No response body
+  /api/nodes/spaces/{public_id}/permissions/{permission_uuid}/:
+    delete:
+      operationId: nodes_spaces_permissions_destroy
+      description: Delete an object permission
+      summary: Delete object permission
+      parameters:
+      - in: path
+        name: permission_uuid
+        schema:
+          type: string
+          format: uuid
+        description: UUID of the permission to delete
+        required: true
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Spaces
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          description: No response body
+  /api/nodes/versions/:
+    get:
+      operationId: nodes_versions_list
+      description: List available node versions.
+      summary: List node versions
+      parameters:
+      - in: query
+        name: document
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        explode: true
+        style: form
+      - in: query
+        name: document_type
+        schema:
+          type: string
+          enum:
+          - EDITOR
+          - GRAPH
+          - SPACE
+        description: |-
+          * `EDITOR` - Editor
+          * `SPACE` - Space
+          * `GRAPH` - Graph
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocumentVersionList'
+          description: ''
+  /api/nodes/versions/{public_id}/:
+    get:
+      operationId: nodes_versions_retrieve
+      description: Retrieve a single node version.
+      summary: Retrieve a node version
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentVersion'
+          description: ''
+  /api/nodes/versions/{public_id}/crdt/:
+    get:
+      operationId: nodes_versions_crdt_retrieve
+      description: Retrieve the CRDT file of a node version.
+      summary: Retrieve CRDT of a node version
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentVersion'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/users/{public_id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_update
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    AllowedActionsEnum:
+      enum:
+      - read
+      - write
+      - manage
+      - delete
+      type: string
+    AuthToken:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        token:
+          type: string
+          readOnly: true
+      required:
+      - password
+      - token
+      - username
+    Buddy:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        model:
+          type: string
+          title: LLM Model
+          description: The LLM model this buddy will be using.
+          maxLength: 255
+        system_message:
+          type: string
+          description: The message sent to the LLM before the user's query.
+      required:
+      - created_at
+      - description
+      - id
+      - model
+      - name
+      - system_message
+      - updated_at
+      - url
+    BuddyQuery:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message sent to the buddy
+        nodes:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of nodes to use as context
+        level:
+          type: integer
+          description: Level of depth to query the nodes
+      required:
+      - nodes
+    DocumentTypeEnum:
+      enum:
+      - EDITOR
+      - SPACE
+      - GRAPH
+      type: string
+      description: |-
+        * `EDITOR` - Editor
+        * `SPACE` - Space
+        * `GRAPH` - Graph
+    DocumentVersion:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        document_type:
+          $ref: '#/components/schemas/DocumentTypeEnum'
+        document:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - document
+      - document_type
+      - id
+      - updated_at
+    Email:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    NodeDetail:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        text_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        allowed_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AllowedActionsEnum'
+          readOnly: true
+        subnode_count:
+          type: integer
+          readOnly: true
+        subnodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeList'
+          readOnly: true
+      required:
+      - allowed_actions
+      - id
+      - subnode_count
+      - subnodes
+    NodeList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        text_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        allowed_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AllowedActionsEnum'
+          readOnly: true
+        subnode_count:
+          type: integer
+          readOnly: true
+      required:
+      - allowed_actions
+      - id
+      - subnode_count
+    NodeSearchResult:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        spaces:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        parents:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          nullable: true
+        title_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        text_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        search_vector:
+          type: string
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - id
+      - parents
+      - search_vector
+      - spaces
+      - updated_at
+    ObjectPermissionModel:
+      type: object
+      description: |-
+        Serializer for the ObjectPermission model.
+        Because of our currently simple role setup, role is replaced by a simple string and translated
+        into the corresponding ObjectMembershipRole object in the to_internal_value method.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        user:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - role
+      - updated_at
+      - user
+    OpenAIQuery:
+      type: object
+      description: Base serializer class.
+      properties:
+        messages:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: List of messages
+        model:
+          type: string
+          description: OpenAI model
+        stream:
+          type: boolean
+          default: true
+          description: Stream the response
+        tool_choice:
+          type: object
+          additionalProperties: {}
+        tools:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - messages
+      - model
+      - tool_choice
+      - tools
+    PaginatedBuddyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Buddy'
+    PaginatedDocumentVersionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentVersion'
+    PaginatedNodeListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeList'
+    PaginatedNodeSearchResultList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeSearchResult'
+    PaginatedObjectPermissionModelList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectPermissionModel'
+    PaginatedSpaceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Space'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PasswordToken:
+      type: object
+      properties:
+        password:
+          type: string
+        token:
+          type: string
+      required:
+      - password
+      - token
+    PatchedBuddy:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        model:
+          type: string
+          title: LLM Model
+          description: The LLM model this buddy will be using.
+          maxLength: 255
+        system_message:
+          type: string
+          description: The message sent to the LLM before the user's query.
+    PatchedSpace:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title_slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        default_node:
+          type: string
+          format: uuid
+          nullable: true
+          description: The node that gets displayed when a space is opened.
+        node_count:
+          type: integer
+          readOnly: true
+        allowed_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AllowedActionsEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
+        title:
+          type: string
+          maxLength: 255
+    PatchedUser:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        name:
+          type: string
+          title: Name of user
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+    Register:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+        name:
+          type: string
+          title: Name of user
+          maxLength: 255
+      required:
+      - email
+      - password
+    ResetToken:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+      - token
+    RoleEnum:
+      enum:
+      - owner
+      - member
+      - viewer
+      type: string
+      description: |-
+        * `owner` - Owner
+        * `member` - Member
+        * `viewer` - Viewer
+    Space:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title_slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        default_node:
+          type: string
+          format: uuid
+          nullable: true
+          description: The node that gets displayed when a space is opened.
+        node_count:
+          type: integer
+          readOnly: true
+        allowed_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AllowedActionsEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
+        title:
+          type: string
+          maxLength: 255
+      required:
+      - allowed_actions
+      - created_at
+      - id
+      - node_count
+      - title
+      - title_slug
+      - updated_at
+    User:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        name:
+          type: string
+          title: Name of user
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - email
+      - id
+      - url
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    knoxApiToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

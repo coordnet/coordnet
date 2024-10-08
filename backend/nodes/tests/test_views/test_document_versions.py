@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+import nodes.models
 from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
 
@@ -48,6 +49,8 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_filter_by_document_and_type(self) -> None:
+        nodes.models.DocumentVersion.objects.all().delete()
+
         document = factories.DocumentFactory.create(document_type="type")
         document_with_different_type = factories.DocumentFactory.create(
             public_id=document.public_id, document_type="another_type"
@@ -68,7 +71,7 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
             editor_document=another_document,
         )
         document_version = factories.DocumentVersionFactory.create(
-            document=document, document_type="type"
+            document=document, document_type="GRAPH"
         )
         document_version_with_different_type = factories.DocumentVersionFactory.create(
             document=document_with_different_type, document_type="another_type"
@@ -90,16 +93,16 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
 
-        factories.DocumentVersionFactory.create(document=another_document, document_type="type")
+        factories.DocumentVersionFactory.create(document=another_document, document_type="GRAPH")
         response = self.owner_client.get(
-            reverse("nodes:document-versions-list"), {"document_type": "type"}
+            reverse("nodes:document-versions-list"), {"document_type": "GRAPH"}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 2)
 
         response = self.owner_client.get(
             reverse("nodes:document-versions-list"),
-            {"document_type": "type", "document": document.public_id},
+            {"document_type": "GRAPH", "document": document.public_id},
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)

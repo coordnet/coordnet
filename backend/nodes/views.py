@@ -1,10 +1,12 @@
 import typing
+import uuid
 
 import django.contrib.postgres.search as pg_search
 import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
 from django import http
 from django.db import models as django_models
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, response
 
 import permissions.managers
@@ -20,6 +22,26 @@ if typing.TYPE_CHECKING:
     from rest_framework import request
 
 
+@extend_schema(
+    tags=["Nodes"],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description="List available nodes.",
+        summary="List nodes",
+        parameters=[
+            OpenApiParameter(
+                name="spaces",
+                type=uuid.UUID,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Public ID of the space to filter by.",
+                many=True,
+            )
+        ],
+    ),
+    retrieve=extend_schema(description="Retrieve a single node.", summary="Retrieve a node"),
+)
 class NodeModelViewSet(
     permissions.views.PermissionViewSetMixin[models.Node],
     views.BaseReadOnlyModelViewSet[models.Node],
@@ -59,6 +81,19 @@ class NodeModelViewSet(
         return self.serializer_class
 
 
+@extend_schema(
+    tags=["Spaces"],
+)
+@extend_schema_view(
+    create=extend_schema(description="Create a new space.", summary="Create space"),
+    list=extend_schema(description="List available spaces.", summary="List spaces"),
+    retrieve=extend_schema(description="Retrieve a single space.", summary="Retrieve space"),
+    update=extend_schema(description="Update a space.", summary="Update space"),
+    partial_update=extend_schema(
+        description="Partially update a space.", summary="Partial update space"
+    ),
+    destroy=extend_schema(description="Delete a space.", summary="Delete space"),
+)
 class SpaceModelViewSet(
     permissions.views.PermissionViewSetMixin[models.Space], views.BaseModelViewSet[models.Space]
 ):
@@ -83,6 +118,15 @@ class SpaceModelViewSet(
         space.members.create(user=self.request.user, role=permissions.utils.get_owner_role())
 
 
+@extend_schema(
+    tags=["Nodes"],
+)
+@extend_schema_view(
+    list=extend_schema(description="List available node versions.", summary="List node versions"),
+    retrieve=extend_schema(
+        description="Retrieve a single node version.", summary="Retrieve a node version"
+    ),
+)
 class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.DocumentVersion]):
     """API endpoint that allows document versions to be viewed."""
 
@@ -98,18 +142,31 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
     ordering = ["-created_at"]
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
+    @extend_schema(
+        description="Retrieve the CRDT file of a node version.",
+        summary="Retrieve CRDT of a node version",
+    )
     @decorators.action(detail=True, methods=["get"])
     def crdt(self, request: "request.Request", public_id: str | None = None) -> http.HttpResponse:
         document_version = self.get_object()
         return http.HttpResponse(document_version.data, content_type="application/octet-stream")
 
 
+@extend_schema(
+    tags=["Nodes"],
+)
 class SearchView(generics.ListAPIView):
     """API endpoint that allows searching for nodes."""
 
     pagination_class = utils.pagination.NoCountLimitOffsetPagination
     queryset = models.Node.available_objects.none()
 
+    @extend_schema(
+        description="Search nodes.",
+        summary="Search nodes",
+        parameters=[serializers.NodeSearchQuerySerializer],
+        responses={200: serializers.NodeSearchResultSerializer},
+    )
     def get(
         self, request: "request.Request", *args: typing.Any, **kwargs: typing.Any
     ) -> response.Response:
