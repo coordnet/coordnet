@@ -57,8 +57,8 @@ updates:
     schedule:
       interval: 'daily'
 
-  # Enable version updates for PNPM packages
-  - package-ecosystem: 'pnpm'
+  # Enable version updates for NPM packages
+  - package-ecosystem: 'npm'
     directory: 'frontend'
     schedule:
       interval: 'daily'
