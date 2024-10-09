@@ -20,7 +20,7 @@ export interface Me {
 
 export const PermissionSchema = z.object({
   id: z.string(),
-  role: z.union([z.literal("Owner"), z.literal("Member"), z.literal("Viewer")]),
+  role: z.union([z.literal("owner"), z.literal("member"), z.literal("viewer")]),
   user: z.string(),
   created_at: z.string(),
   updated_at: z.string(),

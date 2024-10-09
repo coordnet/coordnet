@@ -95,11 +95,11 @@ const Manage = ({
           </div>
         </div>
       </div>
-      {ownPermissions?.role !== "Viewer" && (
+      {ownPermissions?.role?.toLowerCase() !== "viewer" && (
         <div>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">Members</h3>
-            {ownPermissions?.role == "Owner" && (
+            {ownPermissions?.role?.toLowerCase() == "owner" && (
               <Dialog open={memberOpen} onOpenChange={setMemberOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -148,7 +148,9 @@ const Manage = ({
             </DialogClose>
             <Button
               className="bg-violet-600 hover:bg-violet-500"
-              disabled={ownPermissions?.role == "Viewer" || form.formState.isSubmitting}
+              disabled={
+                ownPermissions?.role?.toLowerCase() == "viewer" || form.formState.isSubmitting
+              }
             >
               {form.formState.isSubmitting ? (
                 <>

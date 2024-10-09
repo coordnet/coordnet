@@ -145,7 +145,9 @@ const NodePermissions = ({
             </DialogClose>
             <Button
               className="bg-violet-600 hover:bg-violet-500"
-              disabled={ownPermissions?.role == "Viewer" || form.formState.isSubmitting}
+              disabled={
+                ownPermissions?.role?.toLowerCase() == "viewer" || form.formState.isSubmitting
+              }
             >
               {form.formState.isSubmitting ? (
                 <>

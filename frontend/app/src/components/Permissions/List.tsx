@@ -49,7 +49,7 @@ const List = ({
     );
 
   const ownPermissions = permissions?.find((p) => p.user == user?.email);
-  const canEdit = !readOnly && ownPermissions?.role == "Owner";
+  const canEdit = !readOnly && ownPermissions?.role?.toLowerCase() == "owner";
 
   return (
     <ul className={clsx("mt-1 max-h-40 overflow-auto", className)} key={`${model}-${id}`}>
@@ -72,7 +72,7 @@ const List = ({
               {permission?.user == user?.email && (
                 <div className="text-neutral-500 text-xs font-normal">You</div>
               )}
-              <div className="ml-auto text-sm text-neutral-400 group-hover:hidden">
+              <div className="ml-auto text-sm text-neutral-400 group-hover:hidden capitalize">
                 {permission?.role}
               </div>
               {canEdit && (

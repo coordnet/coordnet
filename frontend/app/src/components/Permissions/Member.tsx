@@ -53,7 +53,7 @@ const Member = ({
 
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
-    defaultValues: { role: "Member", user: "" },
+    defaultValues: { role: "member", user: "" },
   });
 
   useEffect(() => {
@@ -143,9 +143,9 @@ const Member = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="z-90">
-                        <SelectItem value="Owner">Owner</SelectItem>
-                        <SelectItem value="Member">Member</SelectItem>
-                        <SelectItem value="Viewer">Viewer</SelectItem>
+                        <SelectItem value="owner">Owner</SelectItem>
+                        <SelectItem value="member">Member</SelectItem>
+                        <SelectItem value="viewer">Viewer</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
