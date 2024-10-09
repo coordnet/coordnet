@@ -400,10 +400,11 @@ NODE_VERSIONING_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=60 * 5)
 NODE_VERSIONING_TASK_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=60)
 NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document_versioning")
 
-# LLMs / API keys
+# LLMs / API settings
 # ------------------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="fake-key")
 SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
+O1_MODELS = {"o1-preview", "o1-mini"}
 
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.

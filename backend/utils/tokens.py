@@ -2,6 +2,7 @@ import logging
 import typing
 
 import tiktoken
+from django.conf import settings
 from openai.types.chat import ChatCompletionMessageParam
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,15 @@ def num_tokens_from_messages(
     elif model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
+    elif model in {
+        *settings.O1_MODELS,
+        "gpt-4o",
+    }:
+        logger.debug(
+            f"Warning: Token counts for {model} will be inaccurate. Using gpt-4-0613 "
+            "token counts."
+        )
+        return num_tokens_from_messages(messages, model="gpt-4-0613")
     elif "gpt-3.5-turbo" in model:
         logger.debug(
             "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming "

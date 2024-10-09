@@ -3,7 +3,7 @@ import typing
 import openai
 from django.conf import settings
 from django.db import models
-from openai.types.chat import ChatCompletionMessageParam
+from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 
 from utils import models as utils_models
 from utils import tokens
@@ -26,6 +26,11 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         help_text="The message sent to the LLM before the user's query."
     )
 
+    @property
+    def is_o1(self) -> bool:
+        """Whether the model is an o1 model or not"""
+        return self.model in settings.O1_MODELS
+
     def query_model(
         self, nodes: list["nodes_models.Node"], level: int, query: str
     ) -> typing.Generator[str, None, None]:
@@ -34,13 +39,20 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         response = openai.Client(api_key=settings.OPENAI_API_KEY).chat.completions.create(
             model=self.model,
             messages=self._get_messages(level, nodes, query),
-            stream=True,
+            stream=not self.is_o1,
             timeout=180,
         )
+
         try:
-            for chunk in response:
-                if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
+            if isinstance(response, ChatCompletion):
+                if response.choices and response.choices[0].message:
+                    if response.choices[0].message.content is not None:
+                        yield response.choices[0].message.content
+            else:
+                for chunk in response:
+                    if chunk.choices[0].delta.content is not None:
+                        yield chunk.choices[0].delta.content
+
         except Exception as exc:
             raise ValueError("Failed to query the model.") from exc
 
@@ -79,16 +91,24 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
         for node, nodes_at_depth_node in zip(nodes, nodes_at_depth, strict=True):
             node_context.append(node.node_context_for_depth(level, nodes_at_depth_node))
-        return [
-            {
-                "role": "system",
-                "content": self.system_message
-                + "\nCurrent text editor state:\n```\n"
-                + "\n".join(node_context)
-                + "\n```",
-            },
-            {"role": "user", "content": query},
-        ]
+
+        system_prompt = str(
+            self.system_message
+            + "\nCurrent text editor state:\n```\n"
+            + "\n".join(node_context)
+            + "\n```",
+        )
+
+        if self.is_o1:
+            return [
+                {"role": "user", "content": system_prompt},
+                {"role": "user", "content": query},
+            ]
+        else:
+            return [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": query},
+            ]
 
     class Meta(utils_models.SoftDeletableBaseModel.Meta):
         verbose_name_plural = "buddies"
