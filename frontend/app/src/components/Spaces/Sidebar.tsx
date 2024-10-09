@@ -56,8 +56,8 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   }, [open, navigate, filteredSpaces]);
 
   return (
-    <>
-      <div className="flex items-center gap-2 text-sm font-medium px-3 py-2">
+    <div className="h-full flex flex-col p-2">
+      <div className="flex items-center gap-2 text-sm font-medium px-1 pb-2">
         {!userLoading && <img src={icon} className="rounded-full size-5" />}
         {user?.name || user?.email}
         {/* <Button variant="ghost" className="p-1 h-auto">
@@ -69,8 +69,8 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
           </Button>
         </SheetClose>
       </div>
-      <div className="border-t mx-2 py-2 overflow-auto h-full">
-        <h3 className="text-sm font-semibold py-1 px-2">Spaces</h3>
+      <h3 className="border-t text-sm font-semibold pb-1 pt-3 px-2">Spaces</h3>
+      <div className="overflow-auto flex-grow">
         {isLoading ? (
           <div className="p-4 flex justify-center items-center">
             Loading <Loader2 className="size-4 ml-3 animate-spin" />
@@ -127,7 +127,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 
