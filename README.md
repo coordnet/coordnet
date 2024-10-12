@@ -1,5 +1,8 @@
 <a id="readme-top"></a>
 
+<!-- [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Apache License 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0) -->
+
 <div align="center">
   <a href="https://github.com/coordnet/coordnet">
     <img src="frontend/app/public/static/coordination-network-circle.png" alt="Coordination Network" width="175" height="175">
@@ -93,3 +96,16 @@ To enable Sentry error tracking, set `SENTRY_AUTH_TOKEN` and `SENTRY_DSN`.
 
 The API is documented using OpenAPI. The documentation is available in `docs/redoc-static.html` or
 [here](https://htmlpreview.github.io/?https://github.com/coordnet/coordnet/blob/main/docs/redoc-static.html).
+
+## Contributing
+
+Please check the [repo issues](https://github.com/coordnet/coordnet/issues) for ideas for contributions and read the [documentation about contributing](CONTRIBUTING.md) for more information.
+
+Any contribution intentionally submitted for inclusion in this repository, shall be dual licensed as below, without any additional terms or conditions.
+
+## License
+
+Licensed under either of:
+
+- [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
+- [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](LICENSE-MIT))
