@@ -42,8 +42,8 @@ updates:
       interval: 'daily'
 
   - package-ecosystem: 'docker'
-    # Look for a `Dockerfile` in the `compose/hocuspocus` directory
-    directory: 'compose/hocuspocus/'
+    # Look for a `Dockerfile` in the `compose/crdt` directory
+    directory: 'compose/crdt/'
     # Every weekday
     schedule:
       interval: 'daily'
