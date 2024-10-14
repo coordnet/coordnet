@@ -90,18 +90,27 @@ services:
       - "5555:5555"
     command: /start-flower
 
-  hocuspocus:
+  crdt:
     build:
       context: .
-      dockerfile: compose/hocuspocus/Dockerfile
-    image: coordnet_local_hocuspocus
-    container_name: coordnet_local_hocuspocus
+      dockerfile: compose/crdt/Dockerfile
+    image: coordnet_local_crdt
+    container_name: coordnet_local_crdt
     env_file:
-      - ./.envs/.local/.hocuspocus
+      - ./.envs/.local/.crdt
       - ./.envs/.local/.postgres
       - ./.envs/.local/.secrets
     ports:
       - "8010:8010"
+    develop:
+      watch:
+        - action: sync
+          path: ./crdt
+          target: /app
+          ignore:
+            - ./crdt/node_modules
+        - action: rebuild
+          path: ./crdt/pnpm-lock.yaml
 
   frontend:
     build:
@@ -113,3 +122,12 @@ services:
       - ./.envs/.local/.frontend
     ports:
       - "5173:5173"
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - ./frontend/node_modules
+        - action: rebuild
+          path: ./frontend/pnpm-lock.yaml
