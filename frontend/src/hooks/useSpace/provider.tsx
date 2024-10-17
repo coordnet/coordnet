@@ -56,7 +56,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!spaceId || !ydoc) return;
     const newProvider = new HocuspocusProvider({
-      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      url: import.meta.env.VITE_CRDT_URL,
       name: `space-${spaceId}`,
       document: ydoc,
       token,

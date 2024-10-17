@@ -1,6 +1,12 @@
 import "./instrument";
 
-import { Server } from "@hocuspocus/server";
+import {
+  onAuthenticatePayload,
+  onConnectPayload,
+  onLoadDocumentPayload,
+  onStoreDocumentPayload,
+  Server,
+} from "@hocuspocus/server";
 import { TiptapTransformer } from "@hocuspocus/transformer";
 import * as Sentry from "@sentry/node";
 import StarterKit from "@tiptap/starter-kit";
@@ -22,12 +28,12 @@ const db = knex(config[environment]);
 if (!db) throw Error("Database not connected");
 
 const server = Server.configure({
-  name: "coordnet-hocuspocus",
+  name: "coordnet-crdt",
   ...hocuspocusSettings,
-  async onConnect({ connection }) {
+  async onConnect({ connection }: onConnectPayload) {
     connection.requiresAuthentication = true;
   },
-  async onAuthenticate(data) {
+  async onAuthenticate(data: onAuthenticatePayload) {
     const { documentName, token } = data;
 
     const document_type = getDocumentType(documentName);
@@ -51,7 +57,7 @@ const server = Server.configure({
       throw new Error("Not authorized!");
     }
   },
-  async onLoadDocument({ document, documentName }) {
+  async onLoadDocument({ document, documentName }: onLoadDocumentPayload) {
     const document_type = getDocumentType(documentName);
     const public_id = cleanDocumentName(documentName);
     const row = await db("nodes_document")
@@ -66,7 +72,7 @@ const server = Server.configure({
     return document;
   },
 
-  async onStoreDocument({ documentName, document }) {
+  async onStoreDocument({ documentName, document }: onStoreDocumentPayload) {
     const data = Buffer.from(Y.encodeStateAsUpdate(document));
 
     const document_type = getDocumentType(documentName);
@@ -123,7 +129,7 @@ app.post("/add-to-node-page", async (request, response) => {
   return await addToNodePage(server, request, response);
 });
 
-// Hocuspocus
+// CRDT
 app.ws("/", (websocket, request) => {
   server.handleConnection(websocket, request, {});
 });

@@ -72,7 +72,6 @@ export type SpaceNode = {
 export type GraphNode = ReactFlowNode;
 export type GraphEdge = Edge;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type ExportNodeSingle = {
   id: string;
   width: number | null | undefined;

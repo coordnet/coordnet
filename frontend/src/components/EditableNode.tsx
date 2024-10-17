@@ -86,11 +86,11 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
         className={clsx("outline-none", className)}
         {...props}
         onFocus={(e) => {
-          typeof onFocus === "function" && onFocus(e);
+          if (typeof onFocus === "function") onFocus(e);
           setIsFocused(true);
         }}
         onBlur={(e) => {
-          typeof onBlur === "function" && onBlur(e);
+          if (typeof onBlur === "function") onBlur(e);
           setIsFocused(false);
         }}
       ></div>

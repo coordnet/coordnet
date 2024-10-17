@@ -42,7 +42,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     setEditorSynced(false);
     if (!id || !editorYdoc) return;
     const newProvider = new HocuspocusProvider({
-      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      url: import.meta.env.VITE_CRDT_URL,
       name: `node-editor-${id}`,
       document: editorYdoc,
       token,
@@ -82,7 +82,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
       return;
     }
     const newProvider = new HocuspocusProvider({
-      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      url: import.meta.env.VITE_CRDT_URL,
       name: `node-graph-${id}`,
       document: graphYdoc,
       token,
