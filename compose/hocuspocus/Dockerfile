@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:23-slim
 RUN corepack enable
 ARG BUILD_ENVIRONMENT
 ARG GIT_REVISION
