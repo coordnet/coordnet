@@ -288,11 +288,12 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
-        "django.db.backends": {
-            "level": "DEBUG",
-            "handlers": ["console"],
-            "propagate": False,
-        },
+        # Logging SQL queries, which can be useful for debugging but is spammy.
+        # "django.db.backends": {
+        #     "level": "DEBUG",
+        #     "handlers": ["console"],
+        #     "propagate": False,
+        # },
     },
     # "root": {"level": "DEBUG", "handlers": ["console"]},
 }
