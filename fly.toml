@@ -13,10 +13,12 @@ swap_size_mb = 1024
   dockerfile = "compose/django/Dockerfile"
 
 [build.args]
-  BUILD_ENVIRONMENT= "production"
-  VITE_HOCUSPOCUS_URL= "wss://ws.coord.dev"
-  VITE_BACKEND_URL= "https://app.coord.dev"
-  SENTRY_AUTH_TOKEN= "REDACTED"
+  BUILD_ENVIRONMENT = "production"
+  VITE_HOCUSPOCUS_URL = "wss://ws.coord.dev"
+  VITE_BACKEND_WS_URL = "wss://app.coord.dev"
+  VITE_BACKEND_URL = "https://app.coord.dev"
+  SENTRY_AUTH_TOKEN = "REDACTED"
+  SENTRY_DSN = "REDACTED"
 
 [deploy]
   release_command = "bash -c '/app/backend/manage.py migrate --noinput'"
@@ -27,12 +29,14 @@ swap_size_mb = 1024
 [env]
   USE_DOCKER="no"
   DJANGO_SETTINGS_MODULE="config.settings.production"
-  DJANGO_ALLOWED_HOSTS="coordnet.fly.dev,app.coord.dev"
+  DJANGO_ALLOWED_HOSTS="coordnet.fly.dev,app.coord.dev,coordnet.internal"
+  DJANGO_SECURE_SSL_REDIRECT="False"  # We're using Fly's SSL termination and this breaks internal connections.
   SENTRY_ENVIRONMENT="production"
+  CONN_MAX_AGE=0  # Disable persistent connections, otherwise they accumulate when using async Django
 
 [http_service]
   internal_port = 5000
-  force_https = true
+  # force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 4
@@ -42,7 +46,7 @@ swap_size_mb = 1024
 [[vm]]
   cpu_kind = "shared"
   cpus = 2
-  memory_mb = 2048
+  memory_mb = 4096
   processes = ["app"]
 
 [[vm]]
@@ -60,6 +64,15 @@ swap_size_mb = 1024
 [[statics]]
   guest_path = "/app/backend/staticfiles"
   url_prefix = "/assets/"
+
+[[restart]]
+  policy = "always"
+  processes = ["worker", "beat", "pubsub"]
+
+[[restart]]
+  policy = "on-failure"
+  retries = 10
+  processes = ["app"]
 
 [processes]
   app = "/start-production"
