@@ -11,6 +11,7 @@ venv
 .git
 .envs/
 fly.toml
+fly.*.toml
 .git/
 *.sqlite3
 node_modules
