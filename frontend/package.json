@@ -48,7 +48,7 @@
     "downshift": "^9.0.8",
     "elkjs": "^0.9.3",
     "file-saver": "^2.0.5",
-    "lucide-react": "^0.452.0",
+    "lucide-react": "^0.453.0",
     "marked": "^14.1.2",
     "numeral": "^2.0.6",
     "openai": "^4.67.3",
