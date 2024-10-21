@@ -91,7 +91,7 @@ export const createConnectedYDoc = async (
   return new Promise((resolve, _reject) => {
     const doc = new Y.Doc();
     const provider = new HocuspocusProvider({
-      url: import.meta.env.VITE_HOCUSPOCUS_URL,
+      url: import.meta.env.VITE_CRDT_URL,
       name,
       document: doc,
       token,

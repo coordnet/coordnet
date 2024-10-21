@@ -1,3 +1,5 @@
+ARG FRONTEND_IMAGE=coordnet_local_frontend
+
 # define an alias for the specific python version used in this file.
 FROM python:3.11.10-slim-bullseye AS python
 
@@ -112,56 +114,10 @@ WORKDIR ${APP_HOME}/backend
 
 ENTRYPOINT ["/entrypoint"]
 
-# Production stages
-FROM node:22-slim AS frontend-build-stage
-ARG VITE_HOCUSPOCUS_URL
-ARG VITE_BACKEND_URL
-ARG VITE_BACKEND_WS_URL
-ARG SENTRY_AUTH_TOKEN
-ARG BUILD_ENVIRONMENT
-ARG GIT_REVISION
-ARG SENTRY_DSN
-ENV VITE_HOCUSPOCUS_URL=${VITE_HOCUSPOCUS_URL}
-ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
-ENV VITE_BACKEND_WS_URL=${VITE_BACKEND_WS_URL}
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-ENV VITE_SENTRY_RELEASE=${GIT_REVISION}
-ENV SENTRY_RELEASE=${GIT_REVISION}
-ENV VITE_SENTRY_DSN=${SENTRY_DSN}
-
-RUN corepack enable
-
-# Install certs
-RUN apt-get update && apt-get install --no-install-recommends -y \
-  ca-certificates \
-  python3 \
-  build-essential \
-  pkg-config \
-  libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /frontend/app
-
-WORKDIR /frontend
-
-COPY ./frontend/app/package.json ./app
-COPY ./frontend/pnpm-lock.yaml ./
-COPY ./frontend/pnpm-workspace.yaml ./
-
-RUN pnpm install --frozen-lockfile --strict-peer-dependencies
-
-# pnpm install doesn't work with NODE_ENV=production somehow.
-ENV NODE_ENV=${BUILD_ENVIRONMENT}
-
-WORKDIR /frontend/app
-
-COPY ./frontend/app .
-
-RUN ./node_modules/.bin/vite build
+FROM ${FRONTEND_IMAGE} AS frontend-stage-for-copy
 
 FROM python-run-stage AS python-run-stage-prod
 ARG GIT_REVISION
 ENV SENTRY_RELEASE=${GIT_REVISION}
-COPY --from=frontend-build-stage /frontend/app/dist/static/ /app/backend/coordnet/static/
-COPY --from=frontend-build-stage /frontend/app/dist/*.png /app/backend/coordnet/static/
+
+COPY --from=frontend-stage-for-copy /app/dist/static/ /app/backend/coordnet/static/
