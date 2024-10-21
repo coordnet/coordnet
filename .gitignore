@@ -172,5 +172,10 @@ backend/coordnet/media/
 .envs/.production/
 .envs/.local/.secrets
 
-!frontend/app/src/lib/
+### JS
 .pnpm-store
+node_modules
+backend/coordnet/media/
+!frontend/src/lib/
+frontend/.env.sentry-build-plugin
+frontend/.vite

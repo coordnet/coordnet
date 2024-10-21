@@ -1,7 +1,0 @@
-services:
-  hocuspocus:
-    volumes:
-      - ./frontend/packages/coordnet-hocuspocus:/frontend/packages/coordnet-hocuspocus
-  frontend:
-    volumes:
-      - ./frontend/app:/frontend/app

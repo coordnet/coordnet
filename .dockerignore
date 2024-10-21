@@ -14,5 +14,4 @@ fly.toml
 fly.*.toml
 .git/
 *.sqlite3
-node_modules
-/**/node-modules/
+**/*/node_modules
