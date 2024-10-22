@@ -9,9 +9,6 @@ kill_signal = "SIGTERM"
 kill_timeout = 30
 swap_size_mb = 1024
 
-[build]
-  dockerfile = "compose/django/Dockerfile"
-
 [build.args]
   BUILD_ENVIRONMENT = "production"
   VITE_HOCUSPOCUS_URL = "wss://ws.coord.dev"
