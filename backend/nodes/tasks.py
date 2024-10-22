@@ -269,6 +269,7 @@ def document_versioning() -> None:
 
     now = timezone.now()
     threshold_time = now - timedelta(seconds=settings.NODE_VERSIONING_INTERVAL)
+    lower_threshold_time = threshold_time - timedelta(days=1)
 
     # Fetch document versions that were created outside the current interval. Doing the query this
     # way around means we have to do another one for documents without versions, but this is by
@@ -278,11 +279,17 @@ def document_versioning() -> None:
     # TODO: Consider using a different approach where we calculate the sha256 hash of the document
     #       and compare it to the hash stored in the database. This would be faster, but we would
     #       have to store the hash in the database and calculate it on every save.
+    # Note: We added a lower threshold time to the query to avoid fetching documents checking
+    #       documents that weren't update recently. This became necessary because the query was
+    #       taking too long to execute. However this will cause problems if the task is not run
+    #       for a long time.
     latest_versions = (
         models.DocumentVersion.available_objects.order_by("document_id", "-created_at")
         .distinct("document_id")
         .select_related("document")
-        .filter(document__updated_at__lt=threshold_time)
+        .filter(
+            document__updated_at__lt=threshold_time, document__updated_at__gt=lower_threshold_time
+        )
         .only("document__document_type", "document__data", "document__json", "json_hash")
     )
 

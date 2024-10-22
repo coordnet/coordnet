@@ -91,12 +91,12 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
 
         # Make this version and the document updated_at older.
         models.DocumentVersion.available_objects.update(
-            created_at=timezone.now() - timedelta(days=1),
-            updated_at=timezone.now() - timedelta(days=1),
+            created_at=timezone.now() - timedelta(hours=23),
+            updated_at=timezone.now() - timedelta(hours=23),
         )
         models.Document.objects.update(
-            created_at=timezone.now() - timedelta(days=1),
-            updated_at=timezone.now() - timedelta(days=1),
+            created_at=timezone.now() - timedelta(hours=23),
+            updated_at=timezone.now() - timedelta(hours=23),
         )
 
         # Run the task again
@@ -104,5 +104,20 @@ class DocumentVersioningTestCase(BaseTransactionTestCase):
         self.assertEqual(models.DocumentVersion.available_objects.count(), 2)
 
         # Run the task again, this shouldn't create a new version
+        tasks.document_versioning()
+        self.assertEqual(models.DocumentVersion.available_objects.count(), 2)
+
+        # However if we make objects even older, they will get skipped because we're limiting the
+        # query to only the last 24 hours for performance reasons.
+        models.DocumentVersion.available_objects.update(
+            created_at=timezone.now() - timedelta(hours=25),
+            updated_at=timezone.now() - timedelta(hours=25),
+        )
+        models.Document.objects.update(
+            created_at=timezone.now() - timedelta(hours=25),
+            updated_at=timezone.now() - timedelta(hours=25),
+        )
+
+        # Run the task again
         tasks.document_versioning()
         self.assertEqual(models.DocumentVersion.available_objects.count(), 2)
