@@ -25,9 +25,9 @@
     "@hocuspocus/extension-database": "^2.13.7",
     "@hocuspocus/server": "^2.13.7",
     "@hocuspocus/transformer": "^2.13.7",
-    "@sentry/node": "^8.34.0",
-    "@sentry/profiling-node": "^8.34.0",
-    "@tanstack/react-query-devtools": "^5.59.13",
+    "@sentry/node": "^8.35.0",
+    "@sentry/profiling-node": "^8.35.0",
+    "@tanstack/react-query-devtools": "^5.59.15",
     "@tiptap/core": "^2.8.0",
     "@tiptap/html": "^2.8.0",
     "@tiptap/starter-kit": "^2.8.0",
@@ -36,6 +36,7 @@
     "envalid": "^8.0.0",
     "express": "^4.21.1",
     "express-ws": "^5.0.2",
+    "globals": "^15.11.0",
     "knex": "^3.1.0",
     "pg": "^8.13.0",
     "showdown": "^2.1.0",
@@ -45,36 +46,21 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/eslint__js": "^8.42.3",
     "@types/express": "^4.17.21",
     "@types/express-ws": "^3.0.5",
-    "@types/node": "^22.7.5",
+    "@types/node": "^22.7.8",
     "@types/showdown": "^2.0.6",
-    "@typescript-eslint/eslint-plugin": "^8.8.1",
-    "@typescript-eslint/parser": "^8.8.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.13.0",
     "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.8.1"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "browser": false,
-      "es2020": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended"
-    ],
-    "ignorePatterns": [
-      "dist"
-    ],
-    "parser": "@typescript-eslint/parser"
+    "typescript-eslint": "^8.11.0"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@9.12.1"
+  "packageManager": "pnpm@9.12.2"
 }

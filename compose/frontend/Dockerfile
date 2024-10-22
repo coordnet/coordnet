@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:23-slim
 
 ARG VITE_CRDT_URL
 ARG VITE_BACKEND_URL

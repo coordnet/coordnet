@@ -98,4 +98,6 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
   },
 );
 
+EditableNode.displayName = "EditableNode";
+
 export default EditableNode;
