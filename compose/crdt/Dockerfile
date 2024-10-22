@@ -1,6 +1,12 @@
-FROM node:22-slim
+FROM node:23-slim
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
+# This is required to install @sentry/profiling-node
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  python3 build-essential \
+  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g pnpm
 

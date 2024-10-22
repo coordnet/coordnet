@@ -221,7 +221,7 @@ const LLM = ({ id }: { id: string }) => {
                 </div>
                 {buddy?.model == "o1-preview" && (
                   <div className="mt-2 text-sm italic text-gray-3">
-                    (o1 currently can't stream responses so it may take a moment to appear)
+                    (o1 currently can&apos;t stream responses so it may take a moment to appear)
                   </div>
                 )}
               </div>

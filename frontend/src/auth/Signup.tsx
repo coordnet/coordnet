@@ -167,6 +167,7 @@ function Signup() {
                   <a
                     href="https://app.coord.dev/spaces/7aa361ce-e6dc-44b9-9761-ba0e1ba4c4e7?nodePage=95836692-619e-438d-9fd5-7b6be89ff1f0"
                     target="_blank"
+                    rel="noreferrer"
                   >
                     testing community guidelines, terms and conditions
                   </a>

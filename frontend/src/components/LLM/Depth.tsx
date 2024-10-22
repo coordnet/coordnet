@@ -44,11 +44,11 @@ const Depth = ({
             min={0}
             max={5}
             onChange={(v) => setDepth(v)}
-            renderMark={(props) => {
+            renderMark={(props: React.HTMLProps<HTMLSpanElement>) => {
               const key = parseInt((props.key ?? 1).toString(), 10);
               return (
                 <div key={`slider-${key}`}>
-                  <div
+                  <span
                     {...props}
                     className={clsx("absolute size-3 rounded-full bg-violet-700", {
                       "!bg-white border border-violet-700": depth <= key - 1,
