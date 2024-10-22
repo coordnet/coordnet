@@ -11,7 +11,7 @@ swap_size_mb = 1024
 
 [build.args]
   BUILD_ENVIRONMENT = "production"
-  VITE_HOCUSPOCUS_URL = "wss://ws.coord.dev"
+  VITE_CRDT_URL = "wss://ws.coord.dev"
   VITE_BACKEND_WS_URL = "wss://app.coord.dev"
   VITE_BACKEND_URL = "https://app.coord.dev"
   SENTRY_AUTH_TOKEN = "REDACTED"
