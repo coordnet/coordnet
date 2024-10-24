@@ -28,11 +28,9 @@ type FormType = z.infer<typeof formSchema>;
 
 function Login() {
   const navigate = useNavigate();
-  const queryParameters = new URLSearchParams(window.location.search);
-  const redirect = queryParameters.get("redirect") ?? "";
 
   useEffect(() => {
-    title(`Login`);
+    title("Login");
 
     const getUser = async () => {
       try {
@@ -52,12 +50,31 @@ function Login() {
   const onSubmit = async (values: FormType) => {
     try {
       const response = await authApi.post(
-        `/api/auth/login/`,
+        "/api/auth/login/",
         {},
         { auth: { username: values.email, password: values.password } },
       );
       store("coordnet-auth", response.data.token);
-      window.location.href = redirect ? redirect : "/";
+
+      // Login successful so check if there is a redirect URL
+      const dest = new URL(window.location.origin);
+      const queryParameters = new URLSearchParams(window.location.search);
+      const redirect = queryParameters.get("redirect") ?? "";
+      if (redirect) {
+        try {
+          const redirectUrl = new URL(window.location.origin + redirect);
+          if (
+            redirectUrl.pathname.startsWith("/spaces/") ||
+            redirectUrl.pathname.startsWith("/auth/")
+          ) {
+            dest.pathname = redirectUrl.pathname;
+            dest.search = redirectUrl.search;
+          }
+        } catch {
+          // Ignore invalid redirect URLs
+        }
+      }
+      window.location.href = dest.toString();
     } catch (e) {
       handleApiError(e, values, form.setError);
     }
