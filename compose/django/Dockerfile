@@ -56,10 +56,12 @@ RUN groupadd --gid 1000 dev-user \
 RUN git config --global gpg.program = /usr/bin/gpg
 
 # Pre-load the tiktoken encodings we need
-ARG TIKTOKEN_URL="https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
+ENV TIKTOKEN_CL100K_URL="https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken"
+ENV TIKTOKEN_O200K_URL="https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken"
 ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache
 RUN mkdir /opt/tiktoken_cache \
-    && wget -O /opt/tiktoken_cache/$(echo -n $TIKTOKEN_URL | sha1sum | head -c 40) $TIKTOKEN_URL
+    && wget -O /opt/tiktoken_cache/$(echo -n $TIKTOKEN_CL100K_URL | sha1sum | head -c 40) $TIKTOKEN_CL100K_URL \
+    && wget -O /opt/tiktoken_cache/$(echo -n $TIKTOKEN_O200K_URL | sha1sum | head -c 40) $TIKTOKEN_O200K_URL
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
