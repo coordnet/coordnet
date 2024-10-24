@@ -74,3 +74,4 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append(  # noqa: F405
 # ------------------------------------------------------------------------------
 EMAIL_SUBJECT_PREFIX = "[coordnet.dev - DEV]"
 CORS_ORIGIN_ALLOW_ALL = True  # TODO: Fix this later
+CORS_ALLOW_HEADERS = ["*"]
