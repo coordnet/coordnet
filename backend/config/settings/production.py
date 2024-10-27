@@ -1,7 +1,6 @@
 import logging
 import warnings
 
-import django.db.models.signals
 import sentry_sdk
 from corsheaders.defaults import default_headers
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -168,12 +167,7 @@ sentry_logging = LoggingIntegration(
 )
 integrations = [
     sentry_logging,
-    DjangoIntegration(
-        signals_denylist=[
-            django.db.models.signals.pre_init,
-            django.db.models.signals.post_init,
-        ]
-    ),
+    DjangoIntegration(),
     CeleryIntegration(monitor_beat_tasks=True),
     RedisIntegration(),
 ]
