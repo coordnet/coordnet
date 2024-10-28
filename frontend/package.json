@@ -77,7 +77,7 @@
     "use-query-params": "^2.2.1",
     "use-session-storage-state": "^19.0.0",
     "usehooks-ts": "^3.1.0",
-    "uuid": "^10.0.0",
+    "uuid": "^11.0.1",
     "y-prosemirror": "^1.2.12",
     "y-websocket": "^2.0.4",
     "yjs": "^13.6.20",
@@ -100,7 +100,7 @@
     "eslint": "^9.13.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.13",
+    "eslint-plugin-react-refresh": "^0.4.14",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.14",
@@ -112,5 +112,5 @@
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@9.12.2"
+  "packageManager": "pnpm@9.12.3"
 }
