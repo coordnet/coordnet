@@ -1,9 +1,17 @@
 # Default code owners
-*	@betamax @JannKleen
+*	            @betamax @JannKleen
 
-# Frontend
-*.js	@betamax
-*.ts	@betamax
+# JavaScript
+*.js	        @betamax
+*.ts	        @betamax
 
-# Backend
-*.py	@JannKleen
+# Python
+*.py	        @JannKleen
+
+# Frontend and CRDT
+frontend/*	    @betamax
+crdt/*	        @betamax
+
+# Python Backend
+backend/*	    @JannKleen
+requirements/*	@JannKleen
