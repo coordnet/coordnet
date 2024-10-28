@@ -7,6 +7,7 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sys_exit import SysExitIntegration
 
 from .base import *  # noqa: F403
 from .base import env
@@ -170,6 +171,7 @@ integrations = [
     DjangoIntegration(),
     CeleryIntegration(monitor_beat_tasks=True),
     RedisIntegration(),
+    SysExitIntegration(),
 ]
 sentry_sdk.init(
     dsn=env("SENTRY_DSN"),
