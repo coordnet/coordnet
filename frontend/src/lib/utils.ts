@@ -3,6 +3,8 @@ import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import * as Y from "yjs";
 
+import { crdtUrl } from "@/constants";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -91,7 +93,7 @@ export const createConnectedYDoc = async (
   return new Promise((resolve, _reject) => {
     const doc = new Y.Doc();
     const provider = new HocuspocusProvider({
-      url: import.meta.env.VITE_CRDT_URL,
+      url: crdtUrl,
       name,
       document: doc,
       token,

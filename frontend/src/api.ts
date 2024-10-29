@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import store from "store2";
 
+import { apiUrl } from "./constants";
 import {
   ApiError,
   BackendNode,
@@ -31,8 +32,8 @@ export const isAxiosError = <ResponseType>(error: unknown): error is AxiosError<
   return axios.isAxiosError(error);
 };
 
-export const api = axios.create({ baseURL: import.meta.env.VITE_BACKEND_URL, headers });
-export const authApi = axios.create({ baseURL: import.meta.env.VITE_BACKEND_URL, headers });
+export const api = axios.create({ baseURL: apiUrl, headers });
+export const authApi = axios.create({ baseURL: apiUrl, headers });
 
 api.interceptors.response.use(
   function (response) {

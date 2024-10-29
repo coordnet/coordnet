@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import * as Y from "yjs";
 
 import { getNode } from "@/api";
+import { crdtUrl } from "@/constants";
 import { CustomError } from "@/lib/utils";
 import { GraphEdge, GraphNode } from "@/types";
 
@@ -42,7 +43,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
     setEditorSynced(false);
     if (!id || !editorYdoc) return;
     const newProvider = new HocuspocusProvider({
-      url: import.meta.env.VITE_CRDT_URL,
+      url: crdtUrl,
       name: `node-editor-${id}`,
       document: editorYdoc,
       token,
@@ -82,7 +83,7 @@ export function NodeProvider({ id, children }: { id: string; children: React.Rea
       return;
     }
     const newProvider = new HocuspocusProvider({
-      url: import.meta.env.VITE_CRDT_URL,
+      url: crdtUrl,
       name: `node-graph-${id}`,
       document: graphYdoc,
       token,

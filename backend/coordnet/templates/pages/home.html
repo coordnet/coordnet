@@ -9,6 +9,13 @@
           href="{% static "coordination-network-circle-small.png" %}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>coordination.network</title>
+    <script>
+      window.__COORDNET_CONFIG__ = {
+        apiUrl: "{{ api_url }}",
+        websocketUrl: "{{ websocket_url }}",
+        crdtUrl: "{{ crdt_url }}",
+      }
+    </script>
     <script type="module" crossorigin src="{% static "index.js" %}"></script>
     <link rel="stylesheet" crossorigin href="{% static "index.css" %}" />
   </head>
