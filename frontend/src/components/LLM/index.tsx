@@ -13,6 +13,7 @@ import useLocalStorageState from "use-local-storage-state";
 import { useDebounceValue } from "usehooks-ts";
 
 import { getLLMTokenCount } from "@/api";
+import { websocketUrl } from "@/constants";
 import { useFocus, useSpace } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
 import useUser from "@/hooks/useUser";
@@ -123,7 +124,7 @@ const LLM = ({ id }: { id: string }) => {
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
 
-    const socket = new WebSocket(`${import.meta.env.VITE_BACKEND_WS_URL}/buddies/${buddyId}/`);
+    const socket = new WebSocket(`${websocketUrl}/buddies/${buddyId}/`);
     socket.onopen = () => {
       const payload = JSON.stringify({
         message: promptInput,

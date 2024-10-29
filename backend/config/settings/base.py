@@ -410,3 +410,8 @@ O1_MODELS = {"o1-preview", "o1-mini"}
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.
 FRONTEND_URL: str | None = env("FRONTEND_URL", default=None)
+
+# URLs for the front-end
+API_URL = env("VITE_BACKEND_URL", default="https://app.coord.dev")
+WEBSOCKET_URL = env("VITE_BACKEND_WS_URL", default="wss://app.coord.dev")
+CRDT_URL = env("VITE_CRDT_URL", default="wss://ws.coord.dev")

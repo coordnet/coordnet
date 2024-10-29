@@ -7,6 +7,7 @@ import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
 import { getSpace, updateSpace } from "@/api";
+import { crdtUrl } from "@/constants";
 import { waitForNode } from "@/lib/nodes";
 import { CustomError } from "@/lib/utils";
 import { SpaceNode } from "@/types";
@@ -56,7 +57,7 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!spaceId || !ydoc) return;
     const newProvider = new HocuspocusProvider({
-      url: import.meta.env.VITE_CRDT_URL,
+      url: crdtUrl,
       name: `space-${spaceId}`,
       document: ydoc,
       token,

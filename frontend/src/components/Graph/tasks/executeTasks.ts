@@ -6,6 +6,7 @@ import * as Y from "yjs";
 import { z } from "zod";
 
 import { querySemanticScholar } from "@/api";
+import { apiUrl } from "@/constants";
 import { getCanvas } from "@/lib/canvases";
 import { getNodePageContent, waitForNode } from "@/lib/nodes";
 import { Buddy, GraphNode, NodeType, Space, SpaceNode } from "@/types";
@@ -31,7 +32,7 @@ import {
 } from "./utils";
 
 const oai = new OpenAI({
-  baseURL: import.meta.env.VITE_BACKEND_URL + "/api/llm/",
+  baseURL: apiUrl + "/api/llm/",
   apiKey: "",
   dangerouslyAllowBrowser: true,
   timeout: 10000,

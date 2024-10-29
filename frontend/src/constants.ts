@@ -21,3 +21,18 @@ export const buddyModels = {
 
 export const ALLOWED_TAGS = ["a", "b", "strong", "i", "em", "strike", "u"];
 export const FORBID_ATTR = ["style"];
+
+export const websocketUrl =
+  window.__COORDNET_CONFIG__ && window.__COORDNET_CONFIG__.websocketUrl
+    ? window.__COORDNET_CONFIG__.websocketUrl
+    : import.meta.env.VITE_BACKEND_WS_URL;
+
+export const apiUrl =
+  window.__COORDNET_CONFIG__ && window.__COORDNET_CONFIG__.apiUrl
+    ? window.__COORDNET_CONFIG__.apiUrl
+    : import.meta.env.VITE_BACKEND_URL;
+
+export const crdtUrl =
+  window.__COORDNET_CONFIG__ && window.__COORDNET_CONFIG__.crdtUrl
+    ? window.__COORDNET_CONFIG__.crdtUrl
+    : import.meta.env.VITE_CRDT_URL;
