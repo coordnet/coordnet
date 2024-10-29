@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crdt-config
+  namespace: coordnet
+data:
+  HOCUSPOCUS_PORT: "8010"
+  HOCUSPOCUS_TIMEOUT: "30000"
+  HOCUSPOCUS_DEBOUNCE: "2000"
+  HOCUSPOCUS_MAXDEBOUNCE: "10000"
+  HOCUSPOCUS_QUIET: "false"
+  BACKEND_URL: "http://django:5000"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+  namespace: coordnet
+data:
+  USE_DOCKER: "no"
+  REDIS_URL: "redis://redis:6379/0"
+  DJANGO_SETTINGS_MODULE: "config.settings.production"
+  DJANGO_ALLOWED_HOSTS: "localhost,django"
+  DJANGO_SECURE_SSL_REDIRECT: "False"
+  SENTRY_ENVIRONMENT: "production"
+  CONN_MAX_AGE: "0"
+
+  # If using Mailgun for email ensure to set this
+  MAILGUN_DOMAIN: ""
+
+  # Important: These must be set to the service endpoints
+  FRONTEND_URL: "http://localhost:30000"
+  VITE_BACKEND_WS_URL: "ws://localhost:30000"
+  VITE_CRDT_URL: "ws://localhost:30001"
+  VITE_BACKEND_URL: "http://localhost:30000"
+
+  # If you are using a custom OpenAI endpoint then set this
+  # OPENAI_API_BASE_URL: ""
+
+  # If you are using Azure OpenAI then set these
+  # AZURE_OPENAI_API_ENDPOINT: ""
+  # AZURE_OPENAI_API_VERSION: ""
