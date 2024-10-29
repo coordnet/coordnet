@@ -87,10 +87,6 @@ repos:
         types: [python]
         require_serial: true
         additional_dependencies: []
-        args:
-          - --show-error-codes
-          - --ignore-missing-imports
-          - --disallow-untyped-defs
       - id: eslint-crdt
         name: eslint (crdt)
         language: node
