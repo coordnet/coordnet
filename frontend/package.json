@@ -12,7 +12,7 @@
   "dependencies": {
     "@fontsource/roboto": "^5.1.0",
     "@hocuspocus/provider": "^2.13.7",
-    "@hookform/resolvers": "^3.9.0",
+    "@hookform/resolvers": "^3.9.1",
     "@instructor-ai/instructor": "^1.5.0",
     "@radix-ui/react-context-menu": "^2.2.2",
     "@radix-ui/react-dialog": "^1.1.2",
