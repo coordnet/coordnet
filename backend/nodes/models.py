@@ -466,7 +466,7 @@ class Space(permissions.models.MembershipBaseModel):
     title_slug = models.SlugField(max_length=255, unique=True)
     # Setting the type hint manually is required because of a bug in the Django stubs.
     # Reported here: https://github.com/typeddjango/django-stubs/issues/2011
-    nodes: models.ManyToManyField = models.ManyToManyField(Node, related_name="spaces")
+    nodes: models.ManyToManyField = models.ManyToManyField(Node, related_name="spaces", blank=True)
     deleted_nodes: models.ManyToManyField = models.ManyToManyField(
         Node, related_name="spaces_deleted", blank=True
     )
