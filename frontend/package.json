@@ -77,7 +77,7 @@
     "use-query-params": "^2.2.1",
     "use-session-storage-state": "^19.0.0",
     "usehooks-ts": "^3.1.0",
-    "uuid": "^11.0.1",
+    "uuid": "^11.0.2",
     "y-prosemirror": "^1.2.12",
     "y-websocket": "^2.0.4",
     "yjs": "^13.6.20",
