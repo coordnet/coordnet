@@ -18,7 +18,7 @@ import * as Y from "yjs";
 import config from "../knexfile";
 import { addToGraph } from "./addToGraph";
 import { addToNodePage } from "./addToNodePage";
-import { hocuspocusSettings } from "./settings";
+import { hocuspocusSettings, settings } from "./settings";
 import { authRequest, backendRequest, cleanDocumentName, getDocumentType } from "./utils";
 
 const transformer = TiptapTransformer.extensions([StarterKit]);
@@ -134,7 +134,7 @@ app.ws("/", (websocket, request) => {
   server.handleConnection(websocket, request, {});
 });
 
-Sentry.setupExpressErrorHandler(app);
+if (settings.SENTRY_DSN) Sentry.setupExpressErrorHandler(app);
 
 app.listen(hocuspocusSettings.port, () =>
   console.log(`Listening on http://127.0.0.1:${hocuspocusSettings.port}`),

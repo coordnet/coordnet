@@ -29,10 +29,12 @@ export default defineConfig({
   plugins: [
     tsconfigPaths(),
     react(),
-    sentryVitePlugin({
-      org: "lateral",
-      project: "coordination-network",
-      url: "https://sentry.lateral.io",
-    }),
+    process.env.SENTRY_AUTH_TOKEN
+      ? sentryVitePlugin({
+          org: "lateral",
+          project: "coordination-network",
+          url: "https://sentry.lateral.io",
+        })
+      : null,
   ],
 });
