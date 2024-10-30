@@ -1,4 +1,8 @@
-import ELK, { ElkExtendedEdge, ElkPort, ElkShape } from "elkjs/lib/elk.bundled.js";
+import ELK, {
+  ElkExtendedEdge,
+  ElkPort,
+  ElkShape,
+} from "https://cdn.jsdelivr.net/npm/elkjs@0.9.3/+esm";
 import { Edge } from "reactflow";
 
 import { GraphNode } from "@/types";
