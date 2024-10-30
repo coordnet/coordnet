@@ -68,7 +68,7 @@ jobs:
             # Set nightly tag for scheduled builds
             type=schedule,pattern=nightly
             # Use calver for tags
-            type=match,pattern=\d{2}.\d{2}.\d{1,2}
+            type=match,pattern=v(.*),group=1
             # Use latest tag for releases
             type=raw,value=latest,enable=${{startsWith(github.ref, 'refs/tags/releases/')}}
             # For testing
@@ -161,7 +161,7 @@ jobs:
             # Set nightly tag for scheduled builds
             type=schedule,pattern=nightly
             # Use calver for tags
-            type=match,pattern=\d{2}.\d{2}.\d{1,2}
+            type=match,pattern=v(.*),group=1
             # Use latest tag for releases
             type=raw,value=latest,enable=${{startsWith(github.ref, 'refs/tags/releases/')}}
             # For testing
@@ -236,13 +236,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.CRDT_IMAGE_NAME }}
           tags: |
-            # Set latest tag for main branch
-            type=raw,value=dev,enable={{is_default_branch}}
+            # Set nightly tag for scheduled builds
+            type=schedule,pattern=nightly
             # Use calver for tags
-            type=match,pattern=\d{2}.\d{2}.\d{1,2}
+            type=match,pattern=v(.*),group=1
             # Use latest tag for releases
             type=raw,value=latest,enable=${{startsWith(github.ref, 'refs/tags/releases/')}}
-            type=raw,value=test,enable=true
+            # For testing
+            # type=raw,value=test,enable=true
 
       - name: Build and push CRDT image
         id: build
@@ -303,13 +304,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.CRDT_IMAGE_NAME }}
           tags: |
-            # Set latest tag for main branch
-            type=raw,value=dev,enable={{is_default_branch}}
+            # Set nightly tag for scheduled builds
+            type=schedule,pattern=nightly
             # Use calver for tags
-            type=match,pattern=\d{2}.\d{2}.\d{1,2}
+            type=match,pattern=v(.*),group=1
             # Use latest tag for releases
             type=raw,value=latest,enable=${{startsWith(github.ref, 'refs/tags/releases/')}}
-            type=raw,value=test,enable=true
+            # For testing
+            # type=raw,value=test,enable=true
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
