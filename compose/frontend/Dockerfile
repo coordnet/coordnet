@@ -9,6 +9,12 @@ COPY ./frontend/package.json ./frontend/pnpm-lock.yaml .
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  ca-certificates \
+  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /var/lib/apt/lists/*
+
+
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY ./frontend .
