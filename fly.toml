@@ -11,9 +11,6 @@ swap_size_mb = 1024
 
 [build.args]
   BUILD_ENVIRONMENT = "production"
-  VITE_CRDT_URL = "wss://ws.coord.dev"
-  VITE_BACKEND_WS_URL = "wss://app.coord.dev"
-  VITE_BACKEND_URL = "https://app.coord.dev"
   SENTRY_AUTH_TOKEN = "REDACTED"
   SENTRY_DSN = "REDACTED"
 
@@ -30,6 +27,9 @@ swap_size_mb = 1024
   DJANGO_SECURE_SSL_REDIRECT="False"  # We're using Fly's SSL termination and this breaks internal connections.
   SENTRY_ENVIRONMENT="production"
   CONN_MAX_AGE=0  # Disable persistent connections, otherwise they accumulate when using async Django
+  VITE_CRDT_URL = "wss://ws.coord.dev"
+  VITE_BACKEND_WS_URL = "wss://app.coord.dev"
+  VITE_BACKEND_URL = "https://app.coord.dev"
 
 [http_service]
   internal_port = 5000
