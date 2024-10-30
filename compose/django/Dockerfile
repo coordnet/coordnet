@@ -30,7 +30,6 @@ ARG APP_HOME=/app
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
-ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
 
@@ -83,7 +82,6 @@ COPY ./compose/django/start-production /start-production
 RUN sed -i 's/\r$//g' /start-production
 RUN chmod +x /start-production
 
-
 COPY ./compose/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker \
   && chmod +x /start-celeryworker
@@ -120,6 +118,6 @@ FROM ${FRONTEND_IMAGE} AS frontend-stage-for-copy
 
 FROM python-run-stage AS python-run-stage-prod
 ARG GIT_REVISION
-ENV SENTRY_RELEASE=${GIT_REVISION}
+ENV SENTRY_RELEASE ${GIT_REVISION}
 
 COPY --from=frontend-stage-for-copy /app/dist/static/ /app/backend/coordnet/static/
