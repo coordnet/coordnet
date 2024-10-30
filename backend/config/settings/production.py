@@ -155,6 +155,21 @@ LOGGING = {
             "level": "INFO",  # Change this to "DEBUG" for even more detailed logs
             "propagate": True,
         },
+        "uvicorn": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "uvicorn.error": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        "uvicorn.access": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
     },
 }
 
