@@ -104,7 +104,6 @@ jobs:
           context: .
           file: ./compose/django/Dockerfile
           labels: ${{ steps.meta.outputs.labels }}
-          push: true
           cache-from: type=gha,scope=backend-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=backend-${{ matrix.platform }}
           platforms: ${{ matrix.platform }}
@@ -252,7 +251,6 @@ jobs:
           context: .
           file: ./compose/crdt/Dockerfile
           labels: ${{ steps.meta.outputs.labels }}
-          push: true
           cache-from: type=gha,scope=crdt-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=crdt-${{ matrix.platform }}
           platforms: ${{ matrix.platform }}
