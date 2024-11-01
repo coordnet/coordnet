@@ -116,7 +116,7 @@ THIRD_PARTY_APPS = [
     "adrf",
 ]
 
-LOCAL_APPS = ["users", "nodes", "buddies", "permissions"]
+LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "utils"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -401,11 +401,21 @@ NODE_VERSIONING_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=60 * 5)
 NODE_VERSIONING_TASK_INTERVAL = env.int("NODE_VERSIONING_INTERVAL", default=60)
 NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document_versioning")
 
-# LLMs / API settings
+# LLMs
 # ------------------------------------------------------------------------------
-OPENAI_API_KEY = env("OPENAI_API_KEY", default="fake-key")
-SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
+OPENAI_API_KEY = env("OPENAI_API_KEY", default=None)
+OPENAI_API_BASE_URL = env("OPENAI_API_BASE_URL", default=None)
+AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY", default=None)
+AZURE_OPENAI_API_ENDPOINT = env("AZURE_OPENAI_API_ENDPOINT", default=None)
+AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-preview")
+
+# Needed because the API is different for the these models.
 O1_MODELS = {"o1-preview", "o1-mini"}
+
+# API settings
+# ------------------------------------------------------------------------------
+
+SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
 
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.

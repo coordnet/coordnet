@@ -12,6 +12,7 @@ SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
     default="jax9phuPh9phocheeshoodahngoovei3Vipah5ego8ohRogheanaek3Aa7uotohv",
 )
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#test-runner
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
@@ -43,3 +44,8 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append(  # noqa: F405
 # Your stuff...
 # ------------------------------------------------------------------------------
 EMAIL_SUBJECT_PREFIX = "[coordnet.dev - TEST]"
+
+# OpenAI
+# ------------------------------------------------------------------------------
+# We don't want to actually call OpenAI in tests, but not setting it will trigger a check error.
+OPENAI_API_KEY = "sk-test-123"

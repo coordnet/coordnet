@@ -1,16 +1,15 @@
 import json
 import logging
 
-import openai
 import rest_framework.exceptions
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.conf import settings
 from knox.auth import TokenAuthentication
 from openai.types.chat import ChatCompletion
 
 import buddies.models
 import buddies.serializers
+import utils.llm
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +61,7 @@ class QueryConsumer(AsyncWebsocketConsumer):
             messages = await database_sync_to_async(buddy._get_messages)(level, nodes, message)
 
             try:
-                response = await openai.AsyncClient(
-                    api_key=settings.OPENAI_API_KEY
-                ).chat.completions.create(
+                response = await utils.llm.get_async_openai_client().chat.completions.create(
                     model=buddy.model,
                     messages=messages,
                     stream=not buddy.is_o1,
