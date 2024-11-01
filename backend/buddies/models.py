@@ -1,12 +1,12 @@
 import typing
 
-import openai
 from django.conf import settings
 from django.db import models
 from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 
+import utils.llm
+import utils.tokens
 from utils import models as utils_models
-from utils import tokens
 
 if typing.TYPE_CHECKING:
     from nodes import models as nodes_models
@@ -36,7 +36,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
     ) -> typing.Generator[str, None, None]:
         """Query the buddy."""
 
-        response = openai.Client(api_key=settings.OPENAI_API_KEY).chat.completions.create(
+        response = utils.llm.get_openai_client().chat.completions.create(
             model=self.model,
             messages=self._get_messages(level, nodes, query),
             stream=not self.is_o1,
@@ -72,7 +72,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
         token_counts: dict[int, int] = {}
         for depth in range(max_depth_achieved + 1):
-            token_counts[depth] = tokens.num_tokens_from_messages(
+            token_counts[depth] = utils.tokens.num_tokens_from_messages(
                 self._get_messages(depth, nodes, query, nodes_at_depth), self.model
             )
 
