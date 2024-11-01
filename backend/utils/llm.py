@@ -1,18 +1,20 @@
+import typing
+
 import openai
 from django.conf import settings
 from django.core.checks import Error, register
 
 
 @register("OpenAI")
-def check_openai_credentials(app_configs, **kwargs):
+def check_openai_credentials(app_configs: typing.Any, **kwargs: typing.Any) -> list[Error]:
     errors = []
     if settings.OPENAI_API_KEY is None and (
         settings.AZURE_OPENAI_API_KEY is None or settings.AZURE_OPENAI_ENDPOINT is None
     ):
         errors.append(
             Error(
-                "Either OPENAI_API_KEY or AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT need to "
-                "be provided.",
+                "Either OPENAI_API_KEY or AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT"
+                " need to be provided.",
                 id="OpenAI.E001",
             )
         )
@@ -32,7 +34,7 @@ def get_openai_client() -> openai.OpenAI | openai.AzureOpenAI:
             api_version=settings.AZURE_OPENAI_API_VERSION,
         )
 
-    return openai.OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_API_BASE_URL)
+    return openai.OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
 
 
 def get_async_openai_client() -> openai.AsyncOpenAI | openai.AsyncAzureOpenAI:
@@ -48,6 +50,4 @@ def get_async_openai_client() -> openai.AsyncOpenAI | openai.AsyncAzureOpenAI:
             api_version=settings.AZURE_OPENAI_API_VERSION,
         )
 
-    return openai.AsyncOpenAI(
-        api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_API_BASE_URL
-    )
+    return openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
