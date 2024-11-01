@@ -404,9 +404,9 @@ NODE_VERSIONING_TASK = env("NODE_VERSIONING_TASK", default="nodes.tasks.document
 # LLMs
 # ------------------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", default=None)
-OPENAI_API_BASE_URL = env("OPENAI_API_BASE_URL", default=None)
+OPENAI_BASE_URL = env("OPENAI_BASE_URL", default=None)
 AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY", default=None)
-AZURE_OPENAI_API_ENDPOINT = env("AZURE_OPENAI_API_ENDPOINT", default=None)
+AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT", default=None)
 AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-preview")
 
 # Needed because the API is different for the these models.
