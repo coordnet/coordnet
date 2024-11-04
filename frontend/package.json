@@ -65,7 +65,7 @@
     "reactflow": "^11.11.4",
     "serialize-error": "^11.0.3",
     "shade-blend-color": "^1.0.0",
-    "sonner": "^1.5.0",
+    "sonner": "^1.7.0",
     "store2": "^2.14.3",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
