@@ -41,7 +41,7 @@
     "blockies-ts": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "cmdk": "^1.0.0",
+    "cmdk": "^1.0.4",
     "colorthief": "^2.6.0",
     "date-fns": "^4.1.0",
     "dompurify": "^3.1.7",
