@@ -1,3 +1,4 @@
+import logging
 import typing
 
 from django.conf import settings
@@ -10,6 +11,8 @@ from utils import models as utils_models
 
 if typing.TYPE_CHECKING:
     from nodes import models as nodes_models
+
+logger = logging.getLogger(__name__)
 
 
 class Buddy(utils_models.SoftDeletableBaseModel):
@@ -45,13 +48,26 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
         try:
             if isinstance(response, ChatCompletion):
-                if response.choices and response.choices[0].message:
-                    if response.choices[0].message.content is not None:
-                        yield response.choices[0].message.content
+                try:
+                    yield response.choices[0].message.content
+                except (IndexError, AttributeError):
+                    logger.warning("No content in non-streaming response.")
+                    return
             else:
                 for chunk in response:
-                    if chunk.choices[0].delta.content is not None:
-                        yield chunk.choices[0].delta.content
+                    try:
+                        if (chunk_content := chunk.choices[0].delta.content) is not None:
+                            yield chunk_content
+                    except IndexError:
+                        # Chunk choices are empty, for example when an Azure endpoint returns
+                        # content moderation information instead.
+                        continue
+                    except AttributeError:
+                        logger.exception(
+                            "Unexpected format from OpenAI API, skipping chunk...",
+                            exc_info=True,
+                        )
+                        continue
 
         except Exception as exc:
             raise ValueError("Failed to query the model.") from exc

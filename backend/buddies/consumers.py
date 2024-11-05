@@ -90,9 +90,19 @@ class QueryConsumer(AsyncWebsocketConsumer):
             else:
                 try:
                     async for chunk in response:
-                        chunk_content = chunk.choices[0].delta.content
-                        if chunk_content is not None:
-                            await self.send(chunk_content)
+                        try:
+                            if (chunk_content := chunk.choices[0].delta.content) is not None:
+                                await self.send(chunk_content)
+                        except IndexError:
+                            # Chunk choices are empty, for example when an Azure endpoint returns
+                            # content moderation information instead.
+                            continue
+                        except KeyError:
+                            logger.exception(
+                                "Unexpected format from OpenAI API, skipping chunk...",
+                                exc_info=True,
+                            )
+                            continue
                 except Exception as e:
                     logger.info(
                         f"Error while getting response content as iterator: {e}",
@@ -101,9 +111,19 @@ class QueryConsumer(AsyncWebsocketConsumer):
                     try:
                         await response.response.aread()
                         async for chunk in response:
-                            chunk_content = chunk.choices[0].delta.content
-                            if chunk_content is not None:
-                                await self.send(chunk_content)
+                            try:
+                                if (chunk_content := chunk.choices[0].delta.content) is not None:
+                                    await self.send(chunk_content)
+                            except IndexError:
+                                # Chunk choices are empty, for example when an Azure endpoint
+                                # returns content moderation information instead.
+                                continue
+                            except AttributeError:
+                                logger.exception(
+                                    "Unexpected format from OpenAI API, skipping chunk...",
+                                    exc_info=True,
+                                )
+                                continue
                     except Exception as e:
                         logger.exception(
                             f"Error while getting response content: {e}", exc_info=True
