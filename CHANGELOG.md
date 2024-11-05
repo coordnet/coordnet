@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Allow Django's `X_FRAME_OPTIONS` settings to be set with the `DJANGO_X_FRAME_OPTIONS` env var.
+
+### Fixed
+
+- Allow OpenAI responses to contain empty chunks, which can happen on Azure endpoints. Also make
+  streaming responses error handling a bit more robust in general.
+
 ## [24.11.1] - 2024-11-01
 
 ### Fixed
