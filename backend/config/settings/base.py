@@ -238,7 +238,7 @@ SESSION_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-httponly
 CSRF_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
-X_FRAME_OPTIONS = "SAMEORIGIN"
+X_FRAME_OPTIONS = env("DJANGO_X_FRAME_OPTIONS", default="SAMEORIGIN")
 
 # EMAIL
 # ------------------------------------------------------------------------------
