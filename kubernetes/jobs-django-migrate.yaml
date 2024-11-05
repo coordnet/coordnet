@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrate
+  namespace: coordnet
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: ghcr.io/coordnet/coordnet_backend:latest
+          command: ["python", "manage.py", "migrate"]
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: coordnet-secrets
+      restartPolicy: OnFailure
