@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [24.11.2] - 2024-11-05
+
 ### Added
 
 - Allow Django's `X_FRAME_OPTIONS` settings to be set with the `DJANGO_X_FRAME_OPTIONS` env var.
@@ -37,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Initial release of the Coordination.network project as built docker image.
 
+[24.11.2]: https://github.com/coordnet/coordnet/compare/v24.11.1...v24.11.2
 [24.11.1]: https://github.com/coordnet/coordnet/compare/v24.11.0...v24.11.1
 [24.11.0]: https://github.com/coordnet/coordnet/compare/v24.10.0...v24.11.0
 [24.10.0]: https://github.com/coordnet/coordnet/releases/tag/v24.10.0
