@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded from Django 5.0.x to 5.1.3. This should mainly affect the minimum required Python and
+  PostgreSQL versions for us.
+- Replaces the hasher for unittests with a slightly slower one, because the previous one was removed
+  in Django 5.1.0.
+
 ## [24.11.2] - 2024-11-05
 
 ### Added
