@@ -6,11 +6,7 @@ import nodes.models
 from permissions import models as permissions_models
 from users.tests import factories as users_factories
 
-TEST_SETTINGS = {
-    "CELERY_TASK_ALWAYS_EAGER": True,
-    "CELERY_TASK_EAGER_PROPAGATES": True,
-    "PASSWORD_HASHERS": ("django.contrib.auth.hashers.UnsaltedMD5PasswordHasher",),
-}
+TEST_SETTINGS = {"CELERY_TASK_ALWAYS_EAGER": True, "CELERY_TASK_EAGER_PROPAGATES": True}
 
 
 class BaseSetupTestCase:
