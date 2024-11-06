@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   PostgreSQL versions for us.
 - Replaces the hasher for unittests with a slightly slower one, because the previous one was removed
   in Django 5.1.0.
+- Use the new `pglocks` feature to create advisory locks with a transaction scope instead of a
+  session scope. This should prevent some potential deadlocks when using pgbouncer.
 
 ## [24.11.2] - 2024-11-05
 
