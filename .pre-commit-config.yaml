@@ -42,11 +42,6 @@ repos:
     rev: v1.0.0
     hooks:
       - id: check-json5
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "v3.1.0"
-    hooks:
-      - id: prettier
-        exclude: pnpm-lock.yaml|.git
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
@@ -92,6 +87,12 @@ repos:
         language: node
         files: ^crdt/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh crdt pnpm eslint
+      - id: prettier-crdt
+        name: prettier (crdt)
+        language: node
+        files: ^crdt/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
+        exclude: ^(pnpm-lock\.yaml|\.git)
+        entry: bash .pre-commit-run.sh crdt pnpm prettier --write
       - id: tsc-crdt
         name: tsc (crdt)
         pass_filenames: false
@@ -103,13 +104,19 @@ repos:
         language: node
         files: ^frontend/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh frontend pnpm eslint
+      - id: prettier-frontend
+        name: prettier (frontend)
+        language: node
+        files: ^frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
+        exclude: ^(pnpm-lock\.yaml|\.git)
+        entry: bash .pre-commit-run.sh frontend pnpm prettier --write
       - id: tsc-frontend
         name: tsc (frontend)
         pass_filenames: false
         language: node
         files: ^frontend/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh frontend pnpm tsc --project tsconfig.json
-
+        
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:
   autoupdate_schedule: weekly
