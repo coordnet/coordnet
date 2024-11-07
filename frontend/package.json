@@ -52,7 +52,7 @@
     "numeral": "^2.0.6",
     "openai": "^4.71.0",
     "prosemirror-model": "1.23.0",
-    "prosemirror-view": "^1.35.0",
+    "prosemirror-view": "^1.36.0",
     "react": "^18.3.1",
     "react-contenteditable": "^3.3.7",
     "react-dom": "^18.3.1",
