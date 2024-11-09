@@ -31,7 +31,7 @@ django-filter==24.2  # https://github.com/carltongibson/django-filter
 # Secure DRF token authentication
 django-rest-knox==5.0.2  # https://github.com/jazzband/django-rest-knox
 # DRF Password Reset for password reset functionality
-django-rest-passwordreset==1.4.2  # https://github.com/anexia-it/django-rest-passwordreset
+django-rest-passwordreset==1.5.0  # https://github.com/anexia-it/django-rest-passwordreset
 # Django PG trigger for database triggers
 django-pgtrigger==4.13.0  # https://github.com/Opus10/django-pgtrigger
 # Django-Channels
