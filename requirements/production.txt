@@ -10,7 +10,7 @@ django-celery-results==2.5.1  #  https://github.com/celery/django-celery-results
 # Django
 # ------------------------------------------------------------------------------
 django-storages[google]==1.14.4  # https://github.com/jschneier/django-storages
-django-anymail[mailgun]==11.0.1  # https://github.com/anymail/django-anymail
+django-anymail[mailgun]==12.0  # https://github.com/anymail/django-anymail
 
 # Error tracking
 # ------------------------------------------------------------------------------
