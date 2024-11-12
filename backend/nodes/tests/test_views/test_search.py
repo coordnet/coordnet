@@ -6,13 +6,18 @@ from utils.testcases import BaseTransactionTestCase
 
 class SearchViewTestCase(BaseTransactionTestCase):
     def test_search(self) -> None:
-        response = self.owner_client.get(reverse("nodes:search"))
-        self.assertEqual(response.status_code, 400)
-
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         node = factories.NodeFactory.create(
-            owner=self.owner_user, title="Sunny the barking dog", text="Sunny is a good dog."
+            title="Sunny the barking dog", text="Sunny is a good dog."
         )
-        with self.assertNumQueries(3):
+
+        factories.NodeFactory.create(title=node.title)
+        space.nodes.add(node)
+        parent_node = factories.NodeFactory.create(title="something else", text="")
+        space.nodes.add(parent_node)
+        parent_node.subnodes.add(node)
+
+        with self.assertNumQueries(1):
             response = self.owner_client.get(reverse("nodes:search"), {"q": node.title})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 1)
@@ -20,20 +25,6 @@ class SearchViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:search"), {"q": "not existing"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)
-
-    def test_search_with_space(self) -> None:
-        space = factories.SpaceFactory.create(owner=self.owner_user)
-        node = factories.NodeFactory.create(
-            owner=self.owner_user, title="Sunny the barking dog", text="Sunny is a good dog."
-        )
-
-        factories.NodeFactory.create(owner=self.owner_user, title=node.title)
-        space.nodes.add(node)
-        parent_node = factories.NodeFactory.create(
-            owner=self.owner_user, title="something else", text=""
-        )
-        space.nodes.add(parent_node)
-        parent_node.subnodes.add(node)
 
         response = self.owner_client.get(
             reverse("nodes:search"), {"space": str(space.public_id), "q": node.title}

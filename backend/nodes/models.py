@@ -100,73 +100,37 @@ class Node(permissions.models.MembershipBaseModel):
         user = user or AnonymousUser()
 
         def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
-            queryset_filters = Q(
-                **{
-                    prefix_field("members__user", prefix): user,
-                    prefix_field("members__role__role__in", prefix): roles,
-                }
-            )
-            queryset_filters |= Q(
+            return Q(
                 **{
                     prefix_field("spaces__members__user", prefix): user,
                     prefix_field("spaces__members__role__role__in", prefix): roles,
                     prefix_field("spaces__is_removed", prefix): False,
                 }
             )
-            queryset_filters |= Q(
-                **{
-                    prefix_field("parents__members__user", prefix): user,
-                    prefix_field("parents__members__role__role__in", prefix): roles,
-                    prefix_field("parents__is_removed", prefix): False,
-                }
-            )
-            return queryset_filters
 
         if action == permissions.models.READ:
-            queryset_filters = (
-                Q(**{prefix_field("is_public", prefix): True})
-                | Q(
-                    **{
-                        prefix_field("spaces__is_public", prefix): True,
-                        prefix_field("spaces__is_removed", prefix): False,
-                    }
-                )
-                | Q(
-                    **{
-                        prefix_field("parents__is_public", prefix): True,
-                        prefix_field("parents__is_removed", prefix): False,
-                    }
-                )
+            queryset_filters = Q(
+                **{
+                    prefix_field("spaces__is_public", prefix): True,
+                    prefix_field("spaces__is_removed", prefix): False,
+                }
             )
             if user.is_authenticated:
                 queryset_filters |= permissions_for_role(permissions.models.READ_ROLES)
             return queryset_filters
+
         if action in (permissions.models.WRITE, permissions.models.DELETE):
-            queryset_filters = (
-                Q(
-                    **{
-                        prefix_field("is_public_writable", prefix): True,
-                        prefix_field("is_public", prefix): True,
-                    }
-                )
-                | Q(
-                    **{
-                        prefix_field("spaces__is_public_writable", prefix): True,
-                        prefix_field("spaces__is_public", prefix): True,
-                        prefix_field("spaces__is_removed", prefix): False,
-                    }
-                )
-                | Q(
-                    **{
-                        prefix_field("parents__is_public_writable", prefix): True,
-                        prefix_field("parents__is_public", prefix): True,
-                        prefix_field("parents__is_removed", prefix): False,
-                    }
-                )
+            queryset_filters = Q(
+                **{
+                    prefix_field("spaces__is_public_writable", prefix): True,
+                    prefix_field("spaces__is_public", prefix): True,
+                    prefix_field("spaces__is_removed", prefix): False,
+                }
             )
             if user.is_authenticated:
                 queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
             return queryset_filters
+
         if action == permissions.models.MANAGE:
             if user.is_authenticated:
                 return permissions_for_role(permissions.models.ADMIN_ROLES)
@@ -178,29 +142,17 @@ class Node(permissions.models.MembershipBaseModel):
     def get_role_annotation_query(user: "user_typing.AnyUserType") -> Coalesce | models.Case:
         public_subquery = models.Case(
             models.When(
-                (Q(is_public=True, is_public_writable=True, is_removed=False))
-                | (
-                    Q(
-                        spaces__is_public=True,
-                        spaces__is_public_writable=True,
-                        spaces__is_removed=False,
-                    )
-                )
-                | (
-                    Q(
-                        parents__is_public=True,
-                        parents__is_public_writable=True,
-                        parents__is_removed=False,
-                    )
+                Q(
+                    spaces__is_public=True,
+                    spaces__is_public_writable=True,
+                    spaces__is_removed=False,
                 ),
                 then=models.Value(
                     ["viewer", "writer"], output_field=ArrayField(models.CharField())
                 ),
             ),
             models.When(
-                Q(is_public=True, is_removed=False)
-                | Q(spaces__is_public=True, spaces__is_removed=False)
-                | Q(parents__is_public=True, parents__is_removed=False),
+                Q(spaces__is_public=True, spaces__is_removed=False),
                 then=models.Value(
                     ["viewer"],
                     output_field=ArrayField(models.CharField()),
@@ -212,17 +164,6 @@ class Node(permissions.models.MembershipBaseModel):
         if not user.is_authenticated:
             return public_subquery
 
-        node_public_subquery = Node.objects.filter(
-            Q(pk=models.OuterRef("object_id")) | Q(subnodes=models.OuterRef("object_id")),
-            is_removed=False,
-            is_public=True,
-        )
-        node_public_writable_subquery = Node.objects.filter(
-            Q(pk=models.OuterRef("object_id")) | Q(subnodes=models.OuterRef("object_id")),
-            is_removed=False,
-            is_public=True,
-            is_public_writable=True,
-        )
         space_public_subquery = Space.objects.filter(
             nodes=models.OuterRef("object_id"), is_removed=False, is_public=True
         )
@@ -233,7 +174,6 @@ class Node(permissions.models.MembershipBaseModel):
             is_public_writable=True,
         )
 
-        node_content_type = content_type_models.ContentType.objects.get_for_model(Node)
         space_content_type = content_type_models.ContentType.objects.get_for_model(Space)
 
         role_aggregation_stmt = ArrayAgg(
@@ -244,13 +184,8 @@ class Node(permissions.models.MembershipBaseModel):
 
         role_subquery = (
             permissions.models.ObjectMembership.objects.filter(
-                models.Q(content_type=node_content_type, object_id=models.OuterRef("pk"))
-                | models.Q(
-                    content_type=node_content_type, object_id__in=models.OuterRef("parents__pk")
-                )
-                | models.Q(
-                    content_type=space_content_type,
-                    object_id__in=models.OuterRef("spaces__pk"),
+                models.Q(
+                    content_type=space_content_type, object_id__in=models.OuterRef("spaces__pk")
                 ),
                 user=user,
             )
@@ -262,27 +197,15 @@ class Node(permissions.models.MembershipBaseModel):
                     role_aggregation_stmt,
                     models.Case(
                         models.When(
-                            (
-                                Q(content_type=space_content_type)
-                                & models.Exists(space_public_writable_subquery)
-                            )
-                            | (
-                                Q(content_type=node_content_type)
-                                & models.Exists(node_public_writable_subquery)
-                            ),
+                            Q(content_type=space_content_type)
+                            & models.Exists(space_public_writable_subquery),
                             then=models.Value(
                                 ["viewer", "writer"], output_field=ArrayField(models.CharField())
                             ),
                         ),
                         models.When(
-                            (
-                                Q(content_type=space_content_type)
-                                & models.Exists(space_public_subquery)
-                            )
-                            | (
-                                Q(content_type=node_content_type)
-                                & models.Exists(node_public_subquery)
-                            ),
+                            Q(content_type=space_content_type)
+                            & models.Exists(space_public_subquery),
                             then=models.Value(
                                 ["viewer"], output_field=ArrayField(models.CharField())
                             ),
@@ -552,10 +475,7 @@ class Space(permissions.models.MembershipBaseModel):
             ),
             models.When(
                 Q(is_public=True, is_removed=False),
-                then=models.Value(
-                    ["viewer"],
-                    output_field=ArrayField(models.CharField()),
-                ),
+                then=models.Value(["viewer"], output_field=ArrayField(models.CharField())),
             ),
             default=models.Value([], output_field=ArrayField(models.CharField())),
         )

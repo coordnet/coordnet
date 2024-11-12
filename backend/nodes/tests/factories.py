@@ -12,7 +12,7 @@ def content_for_text(text: str) -> list:
     return [{"type": "paragraph", "content": [{"text": text, "type": "text"}]}]
 
 
-class NodeFactory(BaseMembershipModelMixinFactory):
+class NodeFactory(DjangoModelFactory):
     """
     Factory for creating nodes.
     Note: The token counts are calculated by splitting the title and text fields by

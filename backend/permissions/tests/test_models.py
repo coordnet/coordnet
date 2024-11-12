@@ -627,53 +627,21 @@ class MembershipModelMixinTestCase(BaseTestCase):
             )
         )
 
-    def test_node_to_node_inheritance_with_added_permissions(self) -> None:
-        """Test that the permissions are inherited from the parent node to its children."""
-        parent_node = self.owner_space.nodes.first()
-        child_node = nodes_factories.NodeFactory(space=self.owner_space)
-        parent_node.subnodes.add(child_node)
-
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-        factories.ObjectMembershipFactory(
-            user=self.member_user, content_object=parent_node, role=self.member_role
-        )
-
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
 
 class ObjectMembershipTestCase(BaseTestCase):
     def test_cascade_deletion(self) -> None:
         self.assertEqual(0, permissions.models.ObjectMembership.objects.count())
 
-        nodes_factories.NodeFactory.create(owner=self.owner_user)
+        nodes_factories.SpaceFactory.create(owner=self.owner_user)
 
         self.assertEqual(1, permissions.models.ObjectMembership.objects.count())
 
         # Soft delete the node
-        nodes.models.Node.objects.all().delete()
+        nodes.models.Space.objects.all().delete()
 
         self.assertEqual(1, permissions.models.ObjectMembership.objects.count())
 
         # Hard delete the node
-        nodes.models.Node.all_objects.all().delete()
+        nodes.models.Space.all_objects.all().delete()
 
         self.assertEqual(0, permissions.models.ObjectMembership.objects.count())
