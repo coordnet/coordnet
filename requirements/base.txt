@@ -44,4 +44,4 @@ django-pglock==1.7.0  # https://github.com/Opus10/django-pglock
 # LLM
 # ------------------------------------------------------------------------------
 tiktoken==0.8.0  # https://github.com/openai/tiktoken
-openai==1.54.3  # https://github.com/openai/openai-python
+openai==1.54.4  # https://github.com/openai/openai-python
