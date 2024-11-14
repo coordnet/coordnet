@@ -4,15 +4,17 @@ import { useQueryParam } from "use-query-params";
 
 import { Editor, Header, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
 import ErrorPage from "@/components/ErrorPage";
-import { NodeProvider, useSpace } from "@/hooks";
+import { EditorProvider, NodeProvider, NodesContextProvider, useNodesContext } from "@/hooks";
 import { title } from "@/lib/utils";
 
-function App() {
-  const { pageId } = useParams();
-  const { space, spaceError, synced, connected, breadcrumbs, setBreadcrumbs, spaceLoading } =
-    useSpace();
+import { BackendEntityType } from "./types";
+
+const Space = () => {
+  const { pageId, spaceId } = useParams();
+  const { parent, synced, connected, breadcrumbs, setBreadcrumbs, error } = useNodesContext();
   const [nodePage] = useQueryParam<string>("nodePage");
 
+  const space = parent.type === BackendEntityType.SPACE ? parent?.data : undefined;
   const nodeId = pageId ?? space?.default_node ?? "";
 
   useEffect(() => {
@@ -42,35 +44,46 @@ function App() {
 
   return (
     <>
-      {(!synced || spaceLoading) && !spaceError ? (
+      {(!synced || parent.isLoading) && !error ? (
         <Loader message="Loading space..." className="z-60" />
-      ) : !connected && !spaceError ? (
+      ) : !connected && !error ? (
         <Loader message="Obtaining connection for space..." className="z-60" />
       ) : (
         <></>
       )}
       <div className="h-full relative flex flex-col">
         <Header id={nodeId} />
-        {!space && spaceError ? (
-          <ErrorPage error={spaceError} />
+        {!space && error ? (
+          <ErrorPage error={error} />
         ) : (
           <>
-            <NodeRepository />
-            <LLM id={nodeId} />
-            <Node key={nodeId} id={nodeId} className="flex-grow w-full" />
-            <NodeProvider id={nodePage}>
-              <Editor
-                id={nodePage}
-                key={nodePage}
-                className="absolute top-6 right-0 bottom-0 w-1/2 z-20 bg-white shadow-md"
-              />
+            <NodeProvider id={nodeId}>
+              <NodeRepository />
+              <LLM id={nodeId} />
+              <Node key={nodeId} id={nodeId} className="flex-grow w-full" />
+              <EditorProvider nodeId={nodePage} spaceId={spaceId}>
+                <Editor
+                  id={nodePage}
+                  key={nodePage}
+                  className="absolute top-6 right-0 bottom-0 w-1/2 z-20 bg-white shadow-md"
+                />
+              </EditorProvider>
+              <QuickView />
             </NodeProvider>
-            <QuickView />
           </>
         )}
       </div>
     </>
   );
-}
+};
 
-export default App;
+const SpaceOuter = () => {
+  const { spaceId } = useParams();
+  return (
+    <NodesContextProvider spaceId={spaceId}>
+      <Space />
+    </NodesContextProvider>
+  );
+};
+
+export default SpaceOuter;

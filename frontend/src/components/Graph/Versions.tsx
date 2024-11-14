@@ -9,7 +9,7 @@ import { format as formatTimeAgo } from "timeago.js";
 import * as Y from "yjs";
 
 import { api, getNodeVersions } from "@/api";
-import { useNode } from "@/hooks";
+import { useCanvas } from "@/hooks";
 import { GraphEdge, GraphNode, NodeVersion } from "@/types";
 
 import { Button } from "../ui/button";
@@ -22,7 +22,7 @@ const nodeTypes = {
 const LIMIT = 10;
 
 const Versions = ({ className }: { className?: string }) => {
-  const { id, nodesMap, edgesMap } = useNode();
+  const { parent, nodesMap, edgesMap } = useCanvas();
   const [currentPage, setCurrentPage] = useState(0);
   const [currentVersion, setCurrentVersion] = useState<NodeVersion>();
   const [currentVersionYdoc, setCurrentVersionYdoc] = useState<Y.Doc>();
@@ -37,9 +37,10 @@ const Versions = ({ className }: { className?: string }) => {
     isFetched,
     isFetching,
   } = useQuery({
-    queryKey: ["page-versions", id, "GRAPH", currentPage],
-    queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", currentPage * LIMIT, LIMIT),
-    enabled: Boolean(id),
+    queryKey: ["page-versions", parent.id, "GRAPH", currentPage],
+    queryFn: ({ signal }) =>
+      getNodeVersions(signal, parent.id, "GRAPH", currentPage * LIMIT, LIMIT),
+    enabled: Boolean(parent.id),
     initialData: { count: 0, next: "", previous: "", results: [] },
   });
 

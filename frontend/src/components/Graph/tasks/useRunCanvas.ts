@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-import { useNode, useSpace } from "@/hooks";
+import { useCanvas, useNodesContext } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
+import { BackendEntityType } from "@/types";
 
 import { createTasks } from "./createTasks";
 import { processTasks } from "./executeTasks";
@@ -10,10 +11,12 @@ import { ExecutionContext } from "./types";
 import { createGraph, setNodesState } from "./utils";
 
 export const useRunCanvas = () => {
-  const { nodes, edges, nodesMap } = useNode();
-  const { space, nodesMap: spaceNodesMap } = useSpace();
+  const { nodes, edges, nodesMap } = useCanvas();
+  const { parent, nodesMap: methodNodesMap, yDoc } = useNodesContext();
   const { buddy } = useBuddy();
-  const cancelRef = useRef(false); // Ref to track cancellation state
+  const cancelRef = useRef(false);
+
+  const method = parent.type === BackendEntityType.METHOD ? parent?.data : undefined;
 
   const resetCanvas = useCallback(() => {
     const nodeIds = nodes.map((nodes) => nodes.id);
@@ -42,7 +45,7 @@ export const useRunCanvas = () => {
         cancel: {
           label: "Stop",
           onClick: () => {
-            cancelRef.current = true; // Set cancellation flag
+            cancelRef.current = true;
             setNodesState(
               selectedNodes.map((node) => node.id),
               nodesMap,
@@ -52,19 +55,28 @@ export const useRunCanvas = () => {
           },
         },
       });
-      await processTasks(context, buddy, space, spaceNodesMap, nodesMap, cancelRef);
+      await processTasks(context, buddy, yDoc, method, methodNodesMap, nodesMap, cancelRef);
       cancelRef.current = false;
       toast.dismiss(toastId);
     },
-    [nodes, edges, buddy, space, spaceNodesMap, nodesMap, resetCanvas],
+    [nodes, edges, buddy, method, methodNodesMap, nodesMap, resetCanvas],
   );
 
   const prepareExecutionPlan = useCallback(async () => {
     const graph = createGraph(nodes, edges);
     const context: ExecutionContext = { taskList: [], responses: {} };
     createTasks(graph, context);
-    return await processTasks(context, buddy, space, spaceNodesMap, nodesMap, cancelRef, true);
-  }, [nodes, edges, buddy, space, spaceNodesMap, nodesMap]);
+    return await processTasks(
+      context,
+      buddy,
+      yDoc,
+      method,
+      methodNodesMap,
+      nodesMap,
+      cancelRef,
+      true,
+    );
+  }, [nodes, edges, buddy, method, methodNodesMap, nodesMap]);
 
   return { runCanvas, prepareExecutionPlan, resetCanvas };
 };

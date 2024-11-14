@@ -110,6 +110,9 @@ export const BackendNodeDetailSchema = BackendNodeSchema.extend({
 
 export type BackendNodeDetail = z.infer<typeof BackendNodeDetailSchema>;
 
+// TODO: Define types for methods
+export type BackendMethodDetail = Space;
+
 export const NodeSearchResultSchema = z.object({
   id: z.string(),
   spaces: z.array(z.string()),
@@ -189,3 +192,33 @@ export interface SemanticScholarPaper {
   abstract: string;
   isOpenAccess: boolean;
 }
+
+// Types for the canvas or editor parent which can be a node or a method
+export enum BackendEntityType {
+  METHOD = "method",
+  SPACE = "space",
+}
+
+// export type BackendParent = {
+//   id: string;
+//   type: BackendEntityType;
+//   data?: BackendNodeDetail | BackendMethodDetail | Space;
+//   error: Error | null;
+//   isLoading: boolean;
+// };
+
+export type BackendParent =
+  | {
+      id: string;
+      type: BackendEntityType.METHOD;
+      data?: BackendMethodDetail;
+      error: Error | null;
+      isLoading: boolean;
+    }
+  | {
+      id: string;
+      type: BackendEntityType.SPACE;
+      data?: Space;
+      error: Error | null;
+      isLoading: boolean;
+    };

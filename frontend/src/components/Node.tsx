@@ -3,12 +3,14 @@ import "./Editor/styles.css";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import { FileText } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { ReactFlowProvider } from "reactflow";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
-import { NodeProvider, useNode, useSpace } from "@/hooks";
+import { CanvasProvider, useCanvas, useNodesContext } from "@/hooks";
 import useUser from "@/hooks/useUser";
+import { BackendEntityType } from "@/types";
 
 import { Graph, Loader } from "./";
 import ErrorPage from "./ErrorPage";
@@ -17,18 +19,18 @@ import { Button } from "./ui/button";
 type NodeProps = { id: string; className?: string };
 
 const Node = ({ id, className }: NodeProps) => {
-  const { space } = useSpace();
+  const { parent: spaceParent } = useNodesContext();
   const { isGuest } = useUser();
-  const { graphError, graphConnected, graphSynced, isLoading } = useNode();
+  const { parent: canvasParent, error, connected, synced } = useCanvas();
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
 
-  if (graphError) return <ErrorPage error={graphError} />;
-  if (!graphSynced || isLoading) return <Loader message="Loading canvas..." />;
-  if (!graphConnected) return <Loader message="Obtaining connection to canvas..." />;
+  if (error) return <ErrorPage error={error} />;
+  if (!synced || canvasParent.isLoading) return <Loader message="Loading canvas..." />;
+  if (!connected) return <Loader message="Obtaining connection to canvas..." />;
 
-  const spaceIcon = blockies.create({ seed: space?.id }).toDataURL();
+  const spaceIcon = blockies.create({ seed: spaceParent?.id }).toDataURL();
 
   return (
     <div className={clsx("relative", className)}>
@@ -40,10 +42,10 @@ const Node = ({ id, className }: NodeProps) => {
       >
         <div className="border border-neutral-200 bg-white text-neutral-900 font-medium text-sm px-3 rounded flex items-center">
           {/* <EditableNode id={id} /> */}
-          {space && (
+          {spaceParent.type === BackendEntityType.SPACE && (
             <>
               <img src={spaceIcon} className="size-4 rounded-full mr-2" />
-              {space?.title}
+              {spaceParent.data?.title}
             </>
           )}
         </div>
@@ -78,12 +80,14 @@ const Node = ({ id, className }: NodeProps) => {
 };
 
 const NodeOuter = ({ id, ...props }: NodeProps) => {
+  const { spaceId } = useParams();
+
   return (
-    <NodeProvider id={id}>
+    <CanvasProvider nodeId={id} spaceId={spaceId}>
       <ReactFlowProvider>
         <Node id={id} {...props} />
       </ReactFlowProvider>
-    </NodeProvider>
+    </CanvasProvider>
   );
 };
 

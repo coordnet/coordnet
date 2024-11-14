@@ -16,7 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFocus, useQuickView, useSpace } from "@/hooks";
+import { useFocus, useNodesContext, useQuickView } from "@/hooks";
 import { GraphNode, NodeSearchResult } from "@/types";
 
 import { addNodeToGraph } from "./Graph/utils";
@@ -25,7 +25,7 @@ import { Button } from "./ui/button";
 type NodeProps = { className?: string };
 
 const NodeRepository = ({ className }: NodeProps) => {
-  const { space, nodesMap: spaceNodesMap } = useSpace();
+  const { parent, nodesMap: spaceNodesMap } = useNodesContext();
   const { isQuickViewOpen, showQuickView } = useQuickView();
   const navigate = useNavigate();
   const { data: spaces, isLoading: spacesLoading } = useQuery({
@@ -96,8 +96,8 @@ const NodeRepository = ({ className }: NodeProps) => {
   const [debouncedInputvalue] = useDebounceValue(inputValue, 300);
   const { data, isLoading } = useQuery({
     queryKey: ["searchNodes", debouncedInputvalue],
-    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, space?.id ?? ""),
-    enabled: Boolean(debouncedInputvalue && space),
+    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, parent.data?.id ?? ""),
+    enabled: Boolean(debouncedInputvalue && parent.data),
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,18 +214,18 @@ const NodeRepository = ({ className }: NodeProps) => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="z-70 w-[200px]" align="start">
                           <DropdownMenuLabel>Canvases</DropdownMenuLabel>
-                          {item?.parents.map((parent, i) => {
-                            if (!spaceNodesMap?.get(parent)?.title) return null;
+                          {item?.parents.map((parentId, i) => {
+                            if (!spaceNodesMap?.get(parentId)?.title) return null;
                             return (
                               <DropdownMenuItem
                                 key={`${item?.id}-${i}`}
                                 className="flex items-center cursor-pointer"
                                 onClick={() => {
-                                  navigate(`/spaces/${space?.id}/${parent}`);
+                                  navigate(`/spaces/${parent.data?.id}/${parentId}`);
                                   setVisible(false);
                                 }}
                               >
-                                {DOMPurify.sanitize(spaceNodesMap?.get(parent)?.title ?? "", {
+                                {DOMPurify.sanitize(spaceNodesMap?.get(parentId)?.title ?? "", {
                                   ALLOWED_TAGS: [],
                                 })}
 
@@ -234,7 +234,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                                   className="p-0 h-auto flex items-center ml-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    showQuickView(parent);
+                                    showQuickView(parentId);
                                   }}
                                 >
                                   <View className="size-4 text-neutral-600" />

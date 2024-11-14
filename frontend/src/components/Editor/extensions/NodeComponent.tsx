@@ -5,7 +5,8 @@ import { GripIcon } from "lucide-react";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { EditableNode } from "@/components";
-import Footer from "@/components/Graph/Footer";
+
+// import Footer from "@/components/Graph/Footer";
 
 const NodeComponent = ({
   node: pmNode,
@@ -35,7 +36,8 @@ const NodeComponent = ({
             <GripIcon className="size-3 text-gray-4" />
           </div>
           <EditableNode id={id} contentEditable={false} className="line-clamp-3" />
-          <Footer id={id} nodeStyle={{}} />
+          {/* TODO: Fix this */}
+          {/* <Footer id={id} nodeStyle={{}} /> */}
         </div>
       </div>
     </NodeViewWrapper>

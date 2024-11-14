@@ -14,7 +14,7 @@ import ReactFlow, {
   XYPosition,
 } from "reactflow";
 
-import { useFocus, useNode, useQuickView, useSpace } from "@/hooks";
+import { useCanvas, useFocus, useNodesContext, useQuickView } from "@/hooks";
 
 import Controls from "./Controls";
 import { getLayoutedNodes } from "./getLayoutedNodes";
@@ -37,8 +37,8 @@ const nodeTypes = {
 
 const Graph = ({ className }: { className?: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { nodes, edges, nodesMap, setNodesSelection } = useNode();
-  const { nodesMap: spaceMap, space } = useSpace();
+  const { parent, nodes, edges, nodesMap, setNodesSelection } = useCanvas();
+  const { nodesMap: spaceMap } = useNodesContext();
   const { isQuickViewOpen } = useQuickView();
   const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
   const reactFlowInstance = useReactFlow();
@@ -67,7 +67,7 @@ const Graph = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (!space?.allowed_actions.includes("write")) return;
+    if (!parent.data?.allowed_actions.includes("write")) return;
     if (!wrapperRef.current) return alert("Could not find Graph wrapperRef.");
     if (!nodesMap || !spaceMap) return alert("Space is not initialised");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
@@ -76,7 +76,7 @@ const Graph = ({ className }: { className?: string }) => {
       y: event.clientY - wrapperBounds.top - 20,
     });
 
-    handleGraphDrop(event.dataTransfer, takeSnapshot, space!, nodesMap, spaceMap, position);
+    handleGraphDrop(event.dataTransfer, takeSnapshot, parent, nodesMap, spaceMap, position);
   };
 
   const onNodeDragStart: NodeDragHandler = useCallback(() => {
@@ -161,12 +161,12 @@ const Graph = ({ className }: { className?: string }) => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
-          nodesConnectable={Boolean(space?.allowed_actions.includes("write"))}
+          nodesConnectable={Boolean(parent.data?.allowed_actions.includes("write"))}
           minZoom={0.1}
           maxZoom={2}
         >
           <Controls />
-          {space?.allowed_actions.includes("write") && (
+          {parent.data?.allowed_actions.includes("write") && (
             <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
           )}
           <Background gap={12} size={1} />

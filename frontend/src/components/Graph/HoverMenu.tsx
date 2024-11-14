@@ -12,7 +12,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
-import { useNode, useQuickView, useSpace } from "@/hooks";
+import { useCanvas, useQuickView } from "@/hooks";
 import { GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { Button } from "../ui/button";
@@ -28,14 +28,12 @@ const HoverMenu = ({
   onClickEdit: (e: React.MouseEvent) => void;
   className?: string;
 }) => {
-  const { nodesMap, node } = useNode();
+  const { nodesMap, parent, nodeFeatures } = useCanvas();
   const { showQuickView } = useQuickView();
-  const { space, scope } = useSpace();
   const navigate = useNavigate();
 
-  const backendNode = node?.subnodes.find((node) => node.id === id);
-  const hasGraph = backendNode?.has_subnodes;
-  const hasPage = Boolean(backendNode?.text_token_count);
+  const canWrite = parent.data?.allowed_actions.includes("write");
+  const { hasPage, hasGraph } = nodeFeatures(id);
   const GraphIcon = hasGraph ? Share2 : GitBranchPlus;
 
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
@@ -69,7 +67,7 @@ const HoverMenu = ({
         variant="ghost"
         onClick={onClickEdit}
         className="p-0 h-auto"
-        disabled={scope != "read-write"}
+        disabled={!canWrite}
         data-tooltip-id="node-edit"
       >
         <Edit className="cursor-pointer size-4" />
@@ -79,7 +77,7 @@ const HoverMenu = ({
       <Button
         variant="ghost"
         className="p-0 h-auto"
-        disabled={data?.syncing || (!hasPage && !space?.allowed_actions.includes("write"))}
+        disabled={data?.syncing || (!hasPage && !canWrite)}
         data-tooltip-id="node-page"
         onClick={() => setNodePage(nodePage == id ? "" : id)}
       >
@@ -91,8 +89,10 @@ const HoverMenu = ({
         variant="ghost"
         className="p-0 h-auto"
         data-tooltip-id="quick-view"
-        disabled={data?.syncing || (!hasGraph && !space?.allowed_actions.includes("write"))}
-        onClick={() => (hasGraph ? showQuickView(id) : navigate(`/spaces/${space?.id}/${id}`))}
+        disabled={data?.syncing || (!hasGraph && !canWrite)}
+        onClick={() =>
+          hasGraph ? showQuickView(id) : navigate(`/${parent?.type}s/${parent.data?.id}/${id}`)
+        }
       >
         <GraphIcon className={clsx("cursor-pointer size-4", hasGraph && "rotate-90")} />
       </Button>
@@ -105,7 +105,7 @@ const HoverMenu = ({
               variant="ghost"
               className="p-0 h-auto"
               data-tooltip-id="node-color"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!canWrite}
             >
               <div
                 className={clsx("cursor-pointer size-3 rounded-lg border-gray-1 border", {
@@ -137,7 +137,7 @@ const HoverMenu = ({
               variant="ghost"
               className="p-0 h-auto"
               data-tooltip-id="node-progress"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!canWrite}
             >
               <div className="cursor-pointer text-sm">{data?.progress}%</div>
             </Button>
@@ -160,7 +160,7 @@ const HoverMenu = ({
               variant="ghost"
               className="p-0 h-auto"
               data-tooltip-id="node-type"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!canWrite}
             >
               <Tag className="cursor-pointer size-4" />
             </Button>

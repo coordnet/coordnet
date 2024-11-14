@@ -13,8 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFocus, useSpace } from "@/hooks";
-import { GraphNode, SpaceNode } from "@/types";
+import { useCanvas, useFocus } from "@/hooks";
+import { BackendEntityType, GraphNode, SpaceNode } from "@/types";
 
 import { Button } from "../ui/button";
 import ExecutionPlanRenderer from "./ExecutionPlan";
@@ -39,13 +39,16 @@ const Sidebar = ({
   className?: string;
   onLayoutNodes: () => Promise<void>;
 }) => {
-  const { space } = useSpace();
+  const { parent } = useCanvas();
+
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
   const [planOpen, setPlanOpen] = useState(false);
   const { setNodeRepositoryVisible } = useFocus();
   const { runCanvas, resetCanvas } = useRunCanvas();
   const reactFlow = useReactFlow();
+
+  const isMethod = parent.type === BackendEntityType.METHOD;
 
   useOnViewportChange({
     onChange: () => {
@@ -89,7 +92,7 @@ const Sidebar = ({
           draggable
           data-tooltip-id="add-node"
           data-tooltip-place="right"
-          disabled={!space?.allowed_actions.includes("write")}
+          disabled={!parent.data?.allowed_actions.includes("write")}
         >
           <Plus strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>
@@ -100,7 +103,7 @@ const Sidebar = ({
           onClick={() => setNodeRepositoryVisible(true)}
           data-tooltip-id="node-repository"
           data-tooltip-place="right"
-          disabled={!space?.allowed_actions.includes("write")}
+          disabled={!parent.data?.allowed_actions.includes("write")}
         >
           <Search strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>
@@ -111,7 +114,7 @@ const Sidebar = ({
           onClick={() => onLayoutNodes()}
           data-tooltip-id="layout-nodes"
           data-tooltip-place="right"
-          disabled={!space?.allowed_actions.includes("write")}
+          disabled={!parent.data?.allowed_actions.includes("write")}
         >
           <LayoutDashboard strokeWidth={2.8} className="text-neutral-600 size-4" />
         </Button>
@@ -122,7 +125,7 @@ const Sidebar = ({
             <Button
               variant="outline"
               className="size-9 p-0 shadow focus-visible:!ring-0"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!parent.data?.allowed_actions.includes("write") || !isMethod}
             >
               <PlayCircle strokeWidth={2.8} className="text-neutral-600 size-4" />
             </Button>

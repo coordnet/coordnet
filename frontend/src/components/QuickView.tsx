@@ -3,11 +3,11 @@ import { useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { Link } from "react-router-dom";
 
-import { useSpace } from "@/hooks";
+import { useNodesContext } from "@/hooks";
 import useQuickView from "@/hooks/useQuickView";
 
 const QuickView = () => {
-  const { space } = useSpace();
+  const { parent } = useNodesContext();
   const { isQuickViewOpen, nodeId, closeQuickView } = useQuickView();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -44,7 +44,7 @@ const QuickView = () => {
           <iframe
             ref={iframeRef}
             className="size-full"
-            src={`/spaces/${space?.id}/${nodeId}`}
+            src={`/${parent.type}s/${parent.data?.id}/${nodeId}`}
           ></iframe>
         )}
 
@@ -56,7 +56,7 @@ const QuickView = () => {
             <X className="size-4" />
           </button>
           <Link
-            to={`/spaces/${space?.id}/${nodeId}`}
+            to={`/${parent.type}s/${parent.data?.id}/${nodeId}`}
             target="_top"
             className="size-7 overflow-hidden rounded-full bg-black hover:text-white text-white flex items-center justify-center"
           >

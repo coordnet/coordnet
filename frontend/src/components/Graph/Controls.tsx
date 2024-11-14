@@ -9,14 +9,14 @@ import useLocalStorageState from "use-local-storage-state";
 
 import { getNodeVersions } from "@/api";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useNode, useSpace } from "@/hooks";
+import { useCanvas } from "@/hooks";
+import { BackendEntityType } from "@/types";
 
 import { Button } from "../ui/button";
 import Versions from "./Versions";
 
 const Controls = () => {
-  const { space } = useSpace();
-  const { id } = useNode();
+  const { id, parent } = useCanvas();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
     defaultValue: true,
@@ -24,8 +24,10 @@ const Controls = () => {
 
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", "latest"],
-    queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", 0, 1),
-    enabled: Boolean(space?.allowed_actions.includes("write")),
+    queryFn: ({ signal }) => getNodeVersions(signal, parent.id, "GRAPH", 0, 1),
+    enabled: Boolean(
+      parent?.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write"),
+    ),
     initialData: { count: 0, next: "", previous: "", results: [] },
     refetchInterval: 1000 * 60,
     retry: false,
@@ -51,7 +53,7 @@ const Controls = () => {
           <Map className="size-5" />
         </Button>
       </Panel>
-      {space?.allowed_actions.includes("write") && (
+      {parent.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write") && (
         <Panel position="bottom-left" className="flex gap-1 !bottom-2 !left-2 !m-0">
           <Dialog>
             <DialogTrigger asChild>

@@ -5,5 +5,6 @@ export { default as Header } from "./Header";
 export { default as LLM } from "./LLM";
 export { default as Loader } from "./Loader";
 export { default as Node } from "./Node";
+export { default as Method } from "./Method";
 export { default as NodeRepository } from "./NodeRepository";
 export { default as QuickView } from "./QuickView";

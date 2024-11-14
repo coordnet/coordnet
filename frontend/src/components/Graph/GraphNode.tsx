@@ -14,9 +14,9 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { useNode, useQuickView, useSpace } from "@/hooks";
+import { useCanvas, useNodesContext, useQuickView } from "@/hooks";
 import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
-import { GraphNode, NodeType, nodeTypeMap } from "@/types";
+import { BackendEntityType, GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { EditableNode } from "../";
 import Footer from "./Footer";
@@ -36,8 +36,8 @@ interface GraphNodeComponentProps {
 }
 
 const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => {
-  const { nodesMap: spaceMap } = useSpace();
-  const { nodesMap, node } = useNode();
+  const { nodesMap: spaceMap } = useNodesContext();
+  const { nodesMap, nodeFeatures, parent } = useCanvas();
   const { showQuickView } = useQuickView();
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
@@ -48,9 +48,9 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [lineClamp, setLineClamp] = useState<number>(3);
 
-  const backendNode = node?.subnodes.find((node) => node.id === id);
-  const hasGraph = backendNode?.has_subnodes;
-  const hasPage = Boolean(backendNode?.text_token_count);
+  const { hasPage, hasGraph } = nodeFeatures(id);
+
+  const isMethod = parent.type === BackendEntityType.METHOD;
 
   useEffect(() => {
     if (!nodeRef.current) return;
@@ -135,7 +135,7 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
       <Handle id="target-top" type="target" position={Position.Top} style={handleStyle} />
       <Handle id="target-left" type="target" position={Position.Left} style={handleStyle} />
       <ContextMenu>
-        <ContextMenuTrigger>
+        <ContextMenuTrigger disabled={isMethod}>
           <div
             className={clsx(
               "GraphNode border border-gray-1 rounded-lg p-3 bg-white",
@@ -211,7 +211,8 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={() => onExportNode(false)}>Export Node</ContextMenuItem>
-          {backendNode?.has_subnodes && (
+          {/* TODO: Fix this */}
+          {hasGraph && (
             <ContextMenuItem onClick={() => onExportNode(true)}>
               Export Node & Canvas Nodes
             </ContextMenuItem>

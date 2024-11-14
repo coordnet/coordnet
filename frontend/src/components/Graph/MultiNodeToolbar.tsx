@@ -23,7 +23,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
-import { useNode } from "@/hooks";
+import { useCanvas } from "@/hooks";
 
 import { Button } from "../ui/button";
 
@@ -94,7 +94,7 @@ function NodeToolbar({
   ...rest
 }: NodeToolbarProps) {
   const { x, y, zoom } = useViewport();
-  const { nodes, nodesMap } = useNode();
+  const { nodes, nodesMap } = useCanvas();
   const selectedNodesCount = useStore(selectedNodesSelector);
 
   if (selectedNodesCount < 2) {
