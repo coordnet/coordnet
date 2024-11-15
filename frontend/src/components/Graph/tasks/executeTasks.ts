@@ -35,7 +35,6 @@ const oai = new OpenAI({
   baseURL: apiUrl + "/api/llm/",
   apiKey: "",
   dangerouslyAllowBrowser: true,
-  timeout: 10000,
 });
 
 export const client = Instructor({ client: oai, mode: "TOOLS" });

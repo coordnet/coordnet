@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [24.11.3] - 2024-11-15
+
+### Removed
+
+- Removed the timeout in the OpenAI client for running canvases, resetting it to the default value.
+
 ### Changed
 
 - Upgraded from Django 5.0.x to 5.1.3. This should mainly affect the minimum required Python and
@@ -48,6 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Initial release of the Coordination.network project as built docker image.
 
+[24.11.3]: https://github.com/coordnet/coordnet/compare/v24.11.2...v24.11.3
 [24.11.2]: https://github.com/coordnet/coordnet/compare/v24.11.1...v24.11.2
 [24.11.1]: https://github.com/coordnet/coordnet/compare/v24.11.0...v24.11.1
 [24.11.0]: https://github.com/coordnet/coordnet/compare/v24.10.0...v24.11.0
