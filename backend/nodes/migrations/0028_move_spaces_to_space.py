@@ -27,7 +27,7 @@ def move_space_membership_to_spaces(apps, schema_editor):
         if node.space_id is None:
             continue
 
-        # This might be a bit slow. Let's hope
+        # This might be a bit slow. Let's hope we don't have to migrate back.
         try:
             Space.objects.get(id=node.space_id).nodes.add(node)
         except Space.DoesNotExist:

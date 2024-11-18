@@ -35,13 +35,6 @@ class NodeDetailSerializer(NodeListSerializer):
     class Meta(NodeListSerializer.Meta):
         fields = NodeListSerializer.Meta.fields + ["subnodes"]
 
-    # def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-    #     super().__init__(*args, **kwargs)
-    #     if self.context.get("request") and self.context["request"].query_params.get(
-    #         "show_permissions"
-    #     ):
-    #         self.Meta.fields += ["allowed_actions"]
-
     def get_fields(self):
         fields = super().get_fields()
         if self.context.get("request") and self.context["request"].query_params.get(
@@ -55,7 +48,7 @@ class NodeDetailSerializer(NodeListSerializer):
 
 
 class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
-    space = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
+    space = utils.serializers.PublicIdRelatedField(read_only=True)
     parents = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
