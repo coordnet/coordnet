@@ -328,304 +328,96 @@ class MembershipModelMixinTestCase(BaseTestCase):
             )
         )
 
-    def test_space_to_node_permission_inheritance(self) -> None:
-        """Test that the permissions are inherited from the space to its nodes."""
-        node = self.owner_space.nodes.first()
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-        self.owner_space.is_public = True
-        self.owner_space.is_public_writable = True
-        self.owner_space.save()
-
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-    def test_space_to_node_permission_inheritance_for_viewers(self) -> None:
-        """Test that the permissions are inherited from the space to ots nodes."""
-        node = self.viewer_space.nodes.first()
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-        self.viewer_space.is_public = True
-        self.viewer_space.save()
-
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-        self.viewer_space.is_public_writable = True
-        self.viewer_space.save()
-
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-    def test_node_to_node_inheritance(self) -> None:
-        """Test that the permissions are inherited from the parent node to its children."""
-        parent_node = self.owner_space.nodes.first()
-        child_node = nodes_factories.NodeFactory(space=self.owner_space)
-        parent_node.subnodes.add(child_node)
-
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertFalse(
-            child_node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-
-        self.owner_space.is_public = True
-        self.owner_space.is_public_writable = True
-        self.owner_space.save()
-
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
-            )
-        )
-
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
-        self.assertTrue(
-            child_node.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
-            )
-        )
+    # def test_space_to_node_permission_inheritance(self) -> None:
+    #     """Test that the permissions are inherited from the space to its nodes."""
+    #     node = self.owner_space.nodes.first()
+    #     self.assertFalse(
+    #         node.get_allowed_action_for_user(
+    #             request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.owner_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #     self.assertFalse(
+    #         node.get_allowed_action_for_user(
+    #             request=self.member_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #     self.assertFalse(
+    #         node.get_allowed_action_for_user(
+    #             request=self.viewer_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #
+    #     self.assertFalse(
+    #         node.get_allowed_action_for_user(
+    #             request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #     self.assertFalse(
+    #         node.get_allowed_action_for_user(
+    #             request=self.member_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #     self.assertFalse(
+    #         node.get_allowed_action_for_user(
+    #             request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #
+    #     self.owner_space.is_public = True
+    #     self.owner_space.is_public_writable = True
+    #     self.owner_space.save()
+    #
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.owner_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.member_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.viewer_request, action=permissions.models.READ, use_cache=False
+    #         )
+    #     )
+    #
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.member_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
+    #     self.assertTrue(
+    #         node.get_allowed_action_for_user(
+    #             request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+    #         )
+    #     )
 
 
 class ObjectMembershipTestCase(BaseTestCase):

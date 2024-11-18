@@ -56,7 +56,7 @@ class DocumentEvent(models.Model):
         return f"{self.public_id} - {self.action.title()}"
 
 
-class Node(permissions.models.MembershipBaseModel):
+class Node(utils.models.SoftDeletableBaseModel):
     """
     A node in the graph.
 
@@ -74,6 +74,9 @@ class Node(permissions.models.MembershipBaseModel):
     text = models.TextField(null=True, default=None)
     text_token_count = models.PositiveIntegerField(null=True)
     subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
+    space = models.ForeignKey(
+        "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="nodes"
+    )
     editor_document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_editor"
     )
@@ -102,17 +105,17 @@ class Node(permissions.models.MembershipBaseModel):
         def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
             return Q(
                 **{
-                    prefix_field("spaces__members__user", prefix): user,
-                    prefix_field("spaces__members__role__role__in", prefix): roles,
-                    prefix_field("spaces__is_removed", prefix): False,
+                    prefix_field("space__members__user", prefix): user,
+                    prefix_field("space__members__role__role__in", prefix): roles,
+                    prefix_field("space__is_removed", prefix): False,
                 }
             )
 
         if action == permissions.models.READ:
             queryset_filters = Q(
                 **{
-                    prefix_field("spaces__is_public", prefix): True,
-                    prefix_field("spaces__is_removed", prefix): False,
+                    prefix_field("space__is_public", prefix): True,
+                    prefix_field("space__is_removed", prefix): False,
                 }
             )
             if user.is_authenticated:
@@ -122,9 +125,9 @@ class Node(permissions.models.MembershipBaseModel):
         if action in (permissions.models.WRITE, permissions.models.DELETE):
             queryset_filters = Q(
                 **{
-                    prefix_field("spaces__is_public_writable", prefix): True,
-                    prefix_field("spaces__is_public", prefix): True,
-                    prefix_field("spaces__is_removed", prefix): False,
+                    prefix_field("space__is_public_writable", prefix): True,
+                    prefix_field("space__is_public", prefix): True,
+                    prefix_field("space__is_removed", prefix): False,
                 }
             )
             if user.is_authenticated:
@@ -143,16 +146,16 @@ class Node(permissions.models.MembershipBaseModel):
         public_subquery = models.Case(
             models.When(
                 Q(
-                    spaces__is_public=True,
-                    spaces__is_public_writable=True,
-                    spaces__is_removed=False,
+                    space__is_public=True,
+                    space__is_public_writable=True,
+                    space__is_removed=False,
                 ),
                 then=models.Value(
                     ["viewer", "writer"], output_field=ArrayField(models.CharField())
                 ),
             ),
             models.When(
-                Q(spaces__is_public=True, spaces__is_removed=False),
+                Q(space__is_public=True, space__is_removed=False),
                 then=models.Value(
                     ["viewer"],
                     output_field=ArrayField(models.CharField()),
@@ -184,9 +187,7 @@ class Node(permissions.models.MembershipBaseModel):
 
         role_subquery = (
             permissions.models.ObjectMembership.objects.filter(
-                models.Q(
-                    content_type=space_content_type, object_id__in=models.OuterRef("spaces__pk")
-                ),
+                models.Q(content_type=space_content_type, object_id=models.OuterRef("space__pk")),
                 user=user,
             )
             # This is to group the roles by the related object, so we can aggregate them afterward.
@@ -323,6 +324,45 @@ class Node(permissions.models.MembershipBaseModel):
 
         return "".join(context_nodes.values())
 
+    @staticmethod
+    def has_read_permission(request: "http.HttpRequest") -> bool:
+        """
+        Read permission on a global level.
+        The actual permissions are handled on the object level.
+        """
+        return True
+
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user has read permissions for this object."""
+
+        # TODO: Space shouldn't be None, make it required.
+        try:
+            if self.space is not None:
+                return self.space.has_object_read_permission(request)
+        except Space.DoesNotExist:
+            pass
+
+        # This shouldn't happen consistently, it's a completely detached document. It might
+        # happen before the corresponding object is created.
+        # No permissions apply.
+        return False
+
+    @staticmethod
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        However, this allows any authenticated user to create a new object.
+        """
+        return True
+
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user has write permissions for this object."""
+        if self.space is not None:
+            return self.space.has_object_write_permission(request)
+
+        return False
+
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
 
@@ -389,16 +429,13 @@ class Space(permissions.models.MembershipBaseModel):
     title_slug = models.SlugField(max_length=255, unique=True)
     # Setting the type hint manually is required because of a bug in the Django stubs.
     # Reported here: https://github.com/typeddjango/django-stubs/issues/2011
-    nodes: models.ManyToManyField = models.ManyToManyField(Node, related_name="spaces", blank=True)
-    deleted_nodes: models.ManyToManyField = models.ManyToManyField(
-        Node, related_name="spaces_deleted", blank=True
-    )
     default_node = models.ForeignKey(
         "Node",
         help_text="The node that gets displayed when a space is opened.",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name="+",
     )
     document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="space"
@@ -608,13 +645,13 @@ class Document(models.Model):
             pass
         try:
             if self.node_graph is not None:
-                return self.node_graph.has_object_read_permission(request)
+                return self.node_graph.space.has_object_read_permission(request)
         except Node.DoesNotExist:
             pass
 
         try:
             if self.node_editor is not None:
-                return self.node_editor.has_object_read_permission(request)
+                return self.node_editor.space.has_object_read_permission(request)
         except Node.DoesNotExist:
             pass
 
@@ -637,9 +674,9 @@ class Document(models.Model):
         if self.space is not None:
             return self.space.has_object_write_permission(request)
         elif self.node_graph is not None:
-            return self.node_graph.has_object_write_permission(request)
+            return self.node_graph.space.has_object_write_permission(request)
         elif self.node_editor is not None:
-            return self.node_editor.has_object_write_permission(request)
+            return self.node_editor.space.has_object_write_permission(request)
 
         # This shouldn't happen consistently, it's a completely detached document. It might
         # happen before the corresponding object is created.

@@ -64,3 +64,8 @@ class SoftDeletableUnfilteredManager(SoftDeletableManager[T_co], typing.Generic[
     """
 
     _queryset_class: type[SoftDeletableQuerySet[T_co]] = SoftDeletableQuerySet
+
+    def get_queryset(self) -> SoftDeletableQuerySet[T_co]:
+        return self._queryset_class(
+            model=self.model, using=self._db, hints=getattr(self, "_hints", None)
+        )

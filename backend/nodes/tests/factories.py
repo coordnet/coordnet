@@ -28,6 +28,7 @@ class NodeFactory(DjangoModelFactory):
         lambda obj: len(obj.text.split()) if obj.title is not None else None
     )
     content = None
+    space = factory.SubFactory("nodes.tests.factories.SpaceFactory")
 
     class Meta:
         model = "nodes.Node"
@@ -37,16 +38,6 @@ class NodeFactory(DjangoModelFactory):
         super().__init__(*args, **kwargs)
         if self.content is None:
             self.content = content_for_text(str(self.text))
-
-    @factory.post_generation
-    def space(self, create: bool, extracted: "models.Space", **kwargs: typing.Any) -> None:
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A space was passed in, use it
-            extracted.nodes.add(self)
 
 
 class DocumentFactory(DjangoModelFactory):

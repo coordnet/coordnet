@@ -43,25 +43,12 @@ class NodePermissionFilterBackend(DRYPermissionFiltersBase):
         self, request: request.Request, queryset: QuerySet, view: views.APIView
     ) -> "QuerySet[models.Node]":
         """Only return nodes that the user has access to."""
-        queryset_filters = (
-            Q(is_public=True)
-            | Q(spaces__is_public=True, spaces__is_removed=False)
-            | Q(parents__is_public=True, parents__is_removed=False)
-        )
+        queryset_filters = Q(space__is_public=True, space__is_removed=False)
         if request.user and request.user.is_authenticated:
             queryset_filters |= Q(
-                members__user=request.user,
-                members__role__role__in=READ_ROLES,
-            )
-            queryset_filters |= Q(
-                spaces__members__user=request.user,
-                spaces__members__role__role__in=READ_ROLES,
-                spaces__is_removed=False,
-            )
-            queryset_filters |= Q(
-                parents__members__user=request.user,
-                parents__members__role__role__in=READ_ROLES,
-                parents__is_removed=False,
+                space__members__user=request.user,
+                space__members__role__role__in=READ_ROLES,
+                space__is_removed=False,
             )
         return queryset.filter(queryset_filters).distinct()
 

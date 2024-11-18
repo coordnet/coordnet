@@ -19,12 +19,15 @@ class NodesViewTestCase(BaseTransactionTestCase):
         space = factories.SpaceFactory.create(owner=self.owner_user)
         node = factories.NodeFactory.create(space=space)
         node_2 = factories.NodeFactory.create(space=space)
+        node_3 = factories.NodeFactory.create(space=space)
         node.subnodes.add(node_2)
+        node_2.subnodes.add(node_3)
 
         response = self.owner_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], str(node.public_id))
         self.assertEqual(len(response.data["subnodes"]), 1)
+        self.assertTrue(response.data["subnodes"][0]["has_subnodes"])
 
         node_2.delete()
         self.assertEqual(node.subnodes.count(), 1)
@@ -57,18 +60,17 @@ class NodesViewTestCase(BaseTransactionTestCase):
     def test_filter_by_space(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)
         another_space = factories.SpaceFactory.create(owner=self.owner_user)
-        node = factories.NodeFactory.create()
-        space.nodes.add(node)
+        node = factories.NodeFactory.create(space=space)
 
         response = self.owner_client.get(
-            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+            reverse("nodes:nodes-list"), {"space": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["id"], str(node.public_id))
 
         response = self.owner_client.get(
-            reverse("nodes:nodes-list"), {"spaces": str(another_space.public_id)}
+            reverse("nodes:nodes-list"), {"space": str(another_space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
@@ -99,7 +101,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
         space.nodes.add(node)
 
         response = self.viewer_client.get(
-            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+            reverse("nodes:nodes-list"), {"space": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
@@ -115,7 +117,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
         space.nodes.add(subnode)
 
         response = self.viewer_client.get(
-            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+            reverse("nodes:nodes-list"), {"space": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 2)
@@ -127,7 +129,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
         # Check that we can't see the node once it has been soft-deleted
         node.delete()
         response = self.viewer_client.get(
-            reverse("nodes:nodes-list"), {"spaces": str(space.public_id)}
+            reverse("nodes:nodes-list"), {"space": str(space.public_id)}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)

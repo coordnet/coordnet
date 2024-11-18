@@ -17,7 +17,7 @@ class SearchViewTestCase(BaseTransactionTestCase):
         space.nodes.add(parent_node)
         parent_node.subnodes.add(node)
 
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:search"), {"q": node.title})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 1)

@@ -123,10 +123,10 @@ class NodeEventTestCase(BaseTransactionTestCase):
         self.assertEqual(models.Node.available_objects.count(), 0)
 
         space_public_id = str(uuid.uuid4())
-        factories.SpaceFactory.create(public_id=space_public_id)
+        space = factories.SpaceFactory.create(public_id=space_public_id)
 
         for key in fixtures.SPACE["nodes"]:
-            factories.NodeFactory.create(public_id=key, title=None)
+            factories.NodeFactory.create(public_id=key, title=None, space=space)
 
         # All token counts should be None
         self.assertFalse(
@@ -170,9 +170,8 @@ class NodeEventTestCase(BaseTransactionTestCase):
         self.assertEqual(models.Node.all_objects.count(), 0)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
 
-        node = factories.NodeFactory.create()
         space = factories.SpaceFactory.create()
-        space.nodes.add(node)
+        node = factories.NodeFactory.create(space=space)
 
         # TODO: Improve the way that the document event is created and task is triggered.
         factories.DocumentEventFactory.create(
@@ -191,4 +190,3 @@ class NodeEventTestCase(BaseTransactionTestCase):
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
         space.refresh_from_db()
         self.assertListEqual(list(space.nodes.all()), [])
-        self.assertListEqual(list(space.deleted_nodes.all()), [node])

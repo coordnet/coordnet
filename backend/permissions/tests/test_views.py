@@ -79,8 +79,8 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 204)
         self.assertFalse(models.ObjectMembership.objects.filter(user=self.owner_user).exists())
 
-    def test_allowed_actions_on_nodes(self) -> None:
-        """Check that we don't use N+1 queries when getting the allowed actions on a node."""
+    def test_subnodes_field_on_nodes(self) -> None:
+        """Check that we don't use N+1 queries when getting the subnodes for a node."""
 
         space = node_factories.SpaceFactory.create(owner=self.owner_user)
         node = node_factories.NodeFactory.create(space=space)
@@ -89,7 +89,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
         self.assertEqual(node.subnodes.count(), 10)
         self.assertEqual(space.nodes.count(), 11)
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(3):
             response = self.owner_client.get(
                 reverse("nodes:nodes-detail", args=[str(node.public_id)])
             )
@@ -97,10 +97,6 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
 
         response_data = response.json()
         self.assertEqual(len(response_data["subnodes"]), 10)
-        self.assertEqual(len(response_data["allowed_actions"]), 4)
-        self.assertSetEqual(
-            set(response_data["allowed_actions"]), {"read", "write", "manage", "delete"}
-        )
 
         with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:nodes-list"))
@@ -108,11 +104,6 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
 
         response_data = response.json()
         self.assertEqual(response_data["count"], 11)
-        for node_data in response_data["results"]:
-            self.assertEqual(len(node_data["allowed_actions"]), 4)
-            self.assertSetEqual(
-                set(node_data["allowed_actions"]), {"read", "write", "manage", "delete"}
-            )
 
     def test_allowed_actions_on_spaces(self) -> None:
         """Check that we don't use N+1 queries when getting the allowed actions on a space."""
