@@ -16,6 +16,7 @@ import {
   OnNodesChange,
 } from "reactflow";
 
+import { useSpace } from "@/hooks";
 import useNode from "@/hooks/useNode";
 import { GraphEdge } from "@/types";
 
@@ -30,6 +31,7 @@ const isEdgeRemoveChange = (change: EdgeChange): change is EdgeRemoveChange =>
   change.type === "remove";
 
 function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
+  const { space } = useSpace();
   const {
     node: graphNode,
     nodesMap,
@@ -63,10 +65,10 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
           } else if (
             node &&
             change.type !== "remove" &&
-            graphNode?.allowed_actions?.includes("write")
+            space?.allowed_actions?.includes("write")
           ) {
             nodesMap.set(change.id, node);
-          } else if (change.type === "remove" && graphNode?.allowed_actions?.includes("delete")) {
+          } else if (change.type === "remove" && space?.allowed_actions?.includes("write")) {
             const deletedNode = nodesMap.get(change.id);
             nodesMap.delete(change.id);
             // when a node is removed, we also need to remove the connected edges
@@ -78,12 +80,12 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       });
       setNodesSelection(newSelection);
     },
-    [edgesMap, nodesMap, nodesSelection, graphNode],
+    [edgesMap, nodesMap, nodesSelection, graphNode, space?.allowed_actions],
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
-      if (!graphNode?.allowed_actions?.includes("write")) return;
+      if (!space?.allowed_actions?.includes("write")) return;
       if (!edgesMap) return console.error("Edges map is not initialized");
       const currentEdges = Array.from(edgesMap.values()).filter((e) => e);
       const nextEdges = applyEdgeChanges(changes, currentEdges);
@@ -106,7 +108,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       });
       setEdgesSelection(newSelection);
     },
-    [edgesMap, edgesSelection, graphNode],
+    [edgesMap, edgesSelection, graphNode, space?.allowed_actions],
   );
 
   const onConnect = useCallback(

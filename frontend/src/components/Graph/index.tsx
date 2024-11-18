@@ -37,7 +37,7 @@ const nodeTypes = {
 
 const Graph = ({ className }: { className?: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { nodes, edges, nodesMap, setNodesSelection, node } = useNode();
+  const { nodes, edges, nodesMap, setNodesSelection } = useNode();
   const { nodesMap: spaceMap, space } = useSpace();
   const { isQuickViewOpen } = useQuickView();
   const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
@@ -67,7 +67,7 @@ const Graph = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (!node?.allowed_actions.includes("write")) return;
+    if (!space?.allowed_actions.includes("write")) return;
     if (!wrapperRef.current) return alert("Could not find Graph wrapperRef.");
     if (!nodesMap || !spaceMap) return alert("Space is not initialised");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
@@ -161,12 +161,12 @@ const Graph = ({ className }: { className?: string }) => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
-          nodesConnectable={Boolean(node?.allowed_actions.includes("write"))}
+          nodesConnectable={Boolean(space?.allowed_actions.includes("write"))}
           minZoom={0.1}
           maxZoom={2}
         >
           <Controls />
-          {node?.allowed_actions.includes("write") && (
+          {space?.allowed_actions.includes("write") && (
             <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
           )}
           <Background gap={12} size={1} />

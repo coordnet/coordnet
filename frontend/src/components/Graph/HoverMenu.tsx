@@ -34,7 +34,7 @@ const HoverMenu = ({
   const navigate = useNavigate();
 
   const backendNode = node?.subnodes.find((node) => node.id === id);
-  const hasGraph = Boolean(backendNode?.subnode_count ?? 0 > 0);
+  const hasGraph = backendNode?.has_subnodes;
   const hasPage = Boolean(backendNode?.text_token_count);
   const GraphIcon = hasGraph ? Share2 : GitBranchPlus;
 
@@ -79,7 +79,7 @@ const HoverMenu = ({
       <Button
         variant="ghost"
         className="p-0 h-auto"
-        disabled={data?.syncing || (!hasPage && !backendNode?.allowed_actions.includes("write"))}
+        disabled={data?.syncing || (!hasPage && !space?.allowed_actions.includes("write"))}
         data-tooltip-id="node-page"
         onClick={() => setNodePage(nodePage == id ? "" : id)}
       >
@@ -91,7 +91,7 @@ const HoverMenu = ({
         variant="ghost"
         className="p-0 h-auto"
         data-tooltip-id="quick-view"
-        disabled={data?.syncing || (!hasGraph && !backendNode?.allowed_actions.includes("write"))}
+        disabled={data?.syncing || (!hasGraph && !space?.allowed_actions.includes("write"))}
         onClick={() => (hasGraph ? showQuickView(id) : navigate(`/spaces/${space?.id}/${id}`))}
       >
         <GraphIcon className={clsx("cursor-pointer size-4", hasGraph && "rotate-90")} />
@@ -105,7 +105,7 @@ const HoverMenu = ({
               variant="ghost"
               className="p-0 h-auto"
               data-tooltip-id="node-color"
-              disabled={!backendNode?.allowed_actions.includes("write")}
+              disabled={!space?.allowed_actions.includes("write")}
             >
               <div
                 className={clsx("cursor-pointer size-3 rounded-lg border-gray-1 border", {
@@ -137,7 +137,7 @@ const HoverMenu = ({
               variant="ghost"
               className="p-0 h-auto"
               data-tooltip-id="node-progress"
-              disabled={!backendNode?.allowed_actions.includes("write")}
+              disabled={!space?.allowed_actions.includes("write")}
             >
               <div className="cursor-pointer text-sm">{data?.progress}%</div>
             </Button>
@@ -160,7 +160,7 @@ const HoverMenu = ({
               variant="ghost"
               className="p-0 h-auto"
               data-tooltip-id="node-type"
-              disabled={!backendNode?.allowed_actions.includes("write")}
+              disabled={!space?.allowed_actions.includes("write")}
             >
               <Tag className="cursor-pointer size-4" />
             </Button>

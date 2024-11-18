@@ -12,7 +12,7 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useFocus } from "@/hooks";
+import { useFocus, useSpace } from "@/hooks";
 import useNode from "@/hooks/useNode";
 import useUser from "@/hooks/useUser";
 import { rgbToHex } from "@/lib/utils";
@@ -28,7 +28,8 @@ const colorThief = new ColorThief();
 type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
-  const { editorError, editorSynced, editorYdoc, editorProvider, node } = useNode();
+  const { space } = useSpace();
+  const { editorError, editorSynced, editorYdoc, editorProvider } = useNode();
   const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
 
@@ -51,9 +52,9 @@ const Editor = ({ id, className }: EditorProps) => {
       extensions: loadExtensions(editorProvider, editorYdoc),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: Boolean(node?.allowed_actions.includes("write")),
+      editable: Boolean(space?.allowed_actions.includes("write")),
     },
-    [id, node?.allowed_actions, editorSynced],
+    [id, space?.allowed_actions, editorSynced],
   );
 
   useEffect(() => {

@@ -42,7 +42,7 @@ const server = Server.configure({
     if (document_type === "SPACE" || document_type === "GRAPH" || document_type === "EDITOR") {
       const model = document_type === "SPACE" ? "spaces" : "nodes";
       const request = await backendRequest(
-        `api/nodes/${model}/${public_id}/`,
+        `api/nodes/${model}/${public_id}/?show_permissions=true`,
         token == "public" ? undefined : token,
       );
       if (request.status !== 200) {
