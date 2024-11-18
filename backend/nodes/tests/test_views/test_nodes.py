@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+import permissions.models
 from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
 
@@ -138,3 +139,30 @@ class NodesViewTestCase(BaseTransactionTestCase):
 
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 404)
+
+    def test_requesting_node_permissions(self):
+        space = factories.SpaceFactory.create(owner=self.owner_user, viewer=self.viewer_user)
+        node = factories.NodeFactory.create(space=space)
+
+        response = self.owner_client.get(
+            reverse("nodes:nodes-detail", args=[node.public_id]), {"show_permissions": "true"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertSetEqual(
+            set(response.data["allowed_actions"]),
+            {
+                permissions.models.READ,
+                permissions.models.WRITE,
+                permissions.models.MANAGE,
+                permissions.models.DELETE,
+            },
+        )
+
+        response = self.viewer_client.get(
+            reverse("nodes:nodes-detail", args=[node.public_id]), {"show_permissions": "true"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertSetEqual(
+            set(response.data["allowed_actions"]),
+            {permissions.models.READ},
+        )

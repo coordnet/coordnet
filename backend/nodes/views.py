@@ -15,6 +15,7 @@ import permissions.utils
 import permissions.views
 import utils.managers
 import utils.pagination
+import utils.parsers
 from nodes import filters, models, serializers
 from utils import filters as base_filters
 from utils import views
