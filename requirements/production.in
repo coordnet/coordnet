@@ -1,0 +1,17 @@
+# PRECAUTION: avoid production dependencies that aren't in development
+
+-r base.in
+
+gunicorn==23.0.0  # https://github.com/benoitc/gunicorn
+psycopg[c]==3.2.3  # https://github.com/psycopg/psycopg
+celery[librabbitmq]==5.4.0  # https://github.com/celery/celery
+django-celery-results==2.5.1  #  https://github.com/celery/django-celery-results
+
+# Django
+# ------------------------------------------------------------------------------
+django-storages[google]==1.14.4  # https://github.com/jschneier/django-storages
+django-anymail[mailgun]==12.0  # https://github.com/anymail/django-anymail
+
+# Error tracking
+# ------------------------------------------------------------------------------
+sentry-sdk[openai,django,celery]==2.18.0  # https://github.com/getsentry/sentry-python

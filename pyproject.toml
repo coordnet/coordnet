@@ -76,6 +76,10 @@ ignore_errors = true
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
 
+# ==== pip-compile ====
+
+[tool.pip-tools]
+generate-hashes = true
 
 # ==== djLint ====
 [tool.djlint]
