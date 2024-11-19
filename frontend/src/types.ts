@@ -56,6 +56,7 @@ export const SpaceSchema = z.object({
   title: z.string(),
   default_node: z.string().nullable(),
   allowed_actions: z.array(AllowedActionsSchema),
+  node_count: z.number(),
   is_public: z.boolean(),
   is_public_writable: z.boolean(),
 });
@@ -98,8 +99,7 @@ export const BackendNodeSchema = z.object({
   id: z.string(),
   title_token_count: z.number(),
   text_token_count: z.number().nullable(),
-  allowed_actions: z.array(z.string()),
-  subnode_count: z.number(),
+  has_subnodes: z.boolean(),
 });
 
 export type BackendNode = z.infer<typeof BackendNodeSchema>;

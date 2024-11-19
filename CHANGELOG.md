@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Removed
+
+- Removed ability of Nodes to be in multiple Spaces at once.
+- Removed object-level permissions for Nodes.
+
 ## [24.11.3] - 2024-11-15
 
 ### Removed

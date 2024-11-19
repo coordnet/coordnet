@@ -54,7 +54,7 @@ const Footer = ({
               <Tooltip id="footer-node-page">Node Page</Tooltip>
             </>
           )}
-          {Boolean(backendNode?.subnode_count > 0) && (
+          {backendNode?.has_subnodes && (
             <>
               <div
                 className={clsx(

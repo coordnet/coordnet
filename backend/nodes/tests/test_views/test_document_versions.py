@@ -11,16 +11,18 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
 
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         document = factories.DocumentFactory.create()
-        factories.NodeFactory.create(owner=self.owner_user, editor_document=document)
+        factories.NodeFactory.create(space=space, editor_document=document)
         factories.DocumentVersionFactory.create(document=document)
         response = self.owner_client.get(reverse("nodes:document-versions-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
 
     def test_retrieve(self) -> None:
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         document = factories.DocumentFactory.create()
-        factories.NodeFactory.create(owner=self.owner_user, editor_document=document)
+        factories.NodeFactory.create(space=space, editor_document=document)
         document_version = factories.DocumentVersionFactory.create(document=document)
 
         response = self.owner_client.get(
@@ -49,6 +51,7 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_filter_by_document_and_type(self) -> None:
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         nodes.models.DocumentVersion.objects.all().delete()
 
         document = factories.DocumentFactory.create(document_type="type")
@@ -57,18 +60,16 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         )
         factories.NodeFactory.create(
             public_id=document.public_id,
-            owner=self.owner_user,
             editor_document=document,
             graph_document=document_with_different_type,
+            space=space,
         )
 
-        another_document = factories.DocumentFactory.create(
-            document_type="type",
-        )
+        another_document = factories.DocumentFactory.create(document_type="type")
         factories.NodeFactory.create(
-            owner=self.owner_user,
             public_id=another_document.public_id,
             editor_document=another_document,
+            space=space,
         )
         document_version = factories.DocumentVersionFactory.create(
             document=document, document_type="GRAPH"
@@ -129,8 +130,9 @@ class DocumentVersionViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.data["count"], 1)
 
     def test_ordering(self) -> None:
+        space = factories.SpaceFactory.create(owner=self.owner_user)
         document = factories.DocumentFactory.create()
-        factories.NodeFactory.create(owner=self.owner_user, editor_document=document)
+        factories.NodeFactory.create(space=space, editor_document=document)
         document_version_1 = factories.DocumentVersionFactory.create(
             document=document, created_at="2021-01-01T00:00:00Z"
         )

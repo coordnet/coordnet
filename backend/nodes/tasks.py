@@ -125,24 +125,7 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             )
                             space.nodes.set(space_nodes)
 
-                            deleted_nodes = (
-                                models.Node.all_objects.select_for_update(no_key=True)
-                                .filter(
-                                    public_id__in=document_event.new_data.get("deletedNodes", [])
-                                )
-                                .defer("content", "text")
-                                .order_by("-created_at")
-                            )
-                            space.deleted_nodes.set(deleted_nodes)
-
-                            # 2. Set the deleted nodes (and undelete if necessary)
-                            for deleted_node in deleted_nodes:
-                                # Doing this manually for now because I want to keep any signals
-                                # that might be triggered.
-                                if not deleted_node.is_removed:
-                                    deleted_node.delete()
-
-                            # 3. Update the node titles and token counts of existing nodes
+                            # 2. Update the node titles and token counts of existing nodes
                             nodes_in_space = set(node_titles.keys())
                             nodes_existing = set(
                                 map(str, space_nodes.values_list("public_id", flat=True))
@@ -153,11 +136,12 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                     node.title = node_titles[str(node.public_id)]
                                     node.save(update_fields=["title"])
 
-                            # 4. Create new nodes that didn't get their content synced yet
+                            # 3. Create new nodes that didn't get their content synced yet
                             for node_id in nodes_in_space - nodes_existing:
                                 node = models.Node.objects.create(
                                     public_id=node_id,
                                     title=node_titles[node_id],
+                                    space=space,
                                 )
 
                                 # This is in case the node was synced meanwhile.
@@ -177,8 +161,8 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 except models.Document.DoesNotExist:
                                     pass
 
+                                # TODO: This should be conditional on the documents being added.
                                 node.save()
-                                space.nodes.add(node)
 
                         elif document_event.action == models.DocumentEvent.EventType.DELETE:
                             logger.warning(

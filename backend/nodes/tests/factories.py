@@ -12,7 +12,7 @@ def content_for_text(text: str) -> list:
     return [{"type": "paragraph", "content": [{"text": text, "type": "text"}]}]
 
 
-class NodeFactory(BaseMembershipModelMixinFactory):
+class NodeFactory(DjangoModelFactory):
     """
     Factory for creating nodes.
     Note: The token counts are calculated by splitting the title and text fields by
@@ -28,6 +28,7 @@ class NodeFactory(BaseMembershipModelMixinFactory):
         lambda obj: len(obj.text.split()) if obj.title is not None else None
     )
     content = None
+    space = factory.SubFactory("nodes.tests.factories.SpaceFactory")
 
     class Meta:
         model = "nodes.Node"
@@ -37,16 +38,6 @@ class NodeFactory(BaseMembershipModelMixinFactory):
         super().__init__(*args, **kwargs)
         if self.content is None:
             self.content = content_for_text(str(self.text))
-
-    @factory.post_generation
-    def space(self, create: bool, extracted: "models.Space", **kwargs: typing.Any) -> None:
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A space was passed in, use it
-            extracted.nodes.add(self)
 
 
 class DocumentFactory(DjangoModelFactory):

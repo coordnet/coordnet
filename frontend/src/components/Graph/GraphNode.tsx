@@ -49,7 +49,7 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   const [lineClamp, setLineClamp] = useState<number>(3);
 
   const backendNode = node?.subnodes.find((node) => node.id === id);
-  const hasGraph = Boolean(backendNode?.subnode_count ?? 0 > 0);
+  const hasGraph = backendNode?.has_subnodes;
   const hasPage = Boolean(backendNode?.text_token_count);
 
   useEffect(() => {
@@ -211,7 +211,7 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={() => onExportNode(false)}>Export Node</ContextMenuItem>
-          {Boolean(backendNode?.subnode_count) && (
+          {backendNode?.has_subnodes && (
             <ContextMenuItem onClick={() => onExportNode(true)}>
               Export Node & Canvas Nodes
             </ContextMenuItem>

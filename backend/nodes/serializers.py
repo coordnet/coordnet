@@ -21,16 +21,12 @@ else:
 
 
 class NodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
-    allowed_actions = serializers.SerializerMethodField()
-    subnode_count = serializers.IntegerField(read_only=True)
-
-    def get_allowed_actions(self, obj: models.Node) -> list[permissions.models.Action]:
-        return obj.get_allowed_actions_for_user(self.context["request"])
+    has_subnodes = serializers.BooleanField(read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Node
         exclude = None  # To override the `exclude` from the base class
-        fields = ["id", "title_token_count", "text_token_count", "allowed_actions", "subnode_count"]
+        fields = ["id", "title_token_count", "text_token_count", "has_subnodes"]
 
 
 class NodeDetailSerializer(NodeListSerializer):
@@ -39,9 +35,20 @@ class NodeDetailSerializer(NodeListSerializer):
     class Meta(NodeListSerializer.Meta):
         fields = NodeListSerializer.Meta.fields + ["subnodes"]
 
+    def get_fields(self):
+        fields = super().get_fields()
+        if self.context.get("request") and self.context["request"].query_params.get(
+            "show_permissions"
+        ):
+            fields["allowed_actions"] = serializers.SerializerMethodField()
+        return fields
+
+    def get_allowed_actions(self, obj: AnnotatedNode) -> list[permissions.models.Action]:
+        return obj.space.get_allowed_actions_for_user(self.context["request"])
+
 
 class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
-    spaces = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
+    space = utils.serializers.PublicIdRelatedField(read_only=True)
     parents = utils.serializers.PublicIdRelatedField(many=True, read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
@@ -52,8 +59,6 @@ class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[m
             "graph_document",
             "editor_document",
             "subnodes",
-            "is_public",
-            "is_public_writable",
         ]
 
 
@@ -97,11 +102,7 @@ class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space
         read_only_fields = ["default_node"]
-        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
-            "nodes",
-            "deleted_nodes",
-            "document",
-        ]
+        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + ["document"]
 
 
 class DocumentVersionSerializer(

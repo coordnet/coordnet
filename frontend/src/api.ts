@@ -151,7 +151,7 @@ export const getSpaceNodes = async (
   spaceId?: string,
 ): Promise<PaginatedApiResponse<BackendNode>> => {
   const response = await api.get("api/nodes/nodes/", {
-    params: { spaces: spaceId, limit: 10000 },
+    params: { space: spaceId, limit: 10000 },
     signal,
   });
   return response.data;

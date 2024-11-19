@@ -13,7 +13,9 @@ import permissions.managers
 import permissions.models
 import permissions.utils
 import permissions.views
+import utils.managers
 import utils.pagination
+import utils.parsers
 from nodes import filters, models, serializers
 from utils import filters as base_filters
 from utils import views
@@ -49,30 +51,33 @@ class NodeModelViewSet(
     """API endpoint that allows nodes to be viewed."""
 
     serializer_class = serializers.NodeListSerializer
-    filterset_fields = ("spaces",)
+    filterset_fields = ("space",)
     filter_backends = (filters.NodePermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(
         self,
-    ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.Node]":
+    ) -> "utils.managers.SoftDeletableQuerySet[models.Node]":
         queryset = models.Node.available_objects.only(
-            "id", "public_id", "title_token_count", "text_token_count"
-        )
-
-        assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
-        queryset = queryset.annotate_user_permissions(request=self.request).annotate(
-            subnode_count=django_models.Count(
-                "subnodes", filter=~django_models.Q(subnodes__is_removed=True)
-            )
-        )
+            "id", "public_id", "title_token_count", "text_token_count", "space"
+        ).select_related("space")
 
         if self.action == "retrieve":
             queryset = queryset.prefetch_related(
-                django_models.Prefetch("subnodes", to_attr="available_subnodes", queryset=queryset)
+                django_models.Prefetch(
+                    "subnodes",
+                    to_attr="available_subnodes",
+                    queryset=queryset.annotate(
+                        has_subnodes=django_models.Exists(
+                            models.Node.available_objects.filter(
+                                parents=django_models.OuterRef("pk"),
+                            )
+                        )
+                    ),
+                )
             )
 
-        assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
+        assert isinstance(queryset, utils.managers.SoftDeletableQuerySet)
         return queryset
 
     def get_serializer_class(self) -> type[serializers.NodeListSerializer]:
@@ -179,10 +184,8 @@ class SearchView(generics.ListAPIView):
             models.Node.available_objects.filter(
                 models.Node.get_user_has_permission_filter(permissions.models.READ, request.user)
             )
+            .select_related("space")
             .prefetch_related(
-                django_models.Prefetch(
-                    "spaces", queryset=models.Space.available_objects.only("id", "public_id")
-                ),
                 django_models.Prefetch(
                     "parents", queryset=models.Node.available_objects.only("id", "public_id")
                 ),
@@ -201,7 +204,7 @@ class SearchView(generics.ListAPIView):
         )
 
         if "space" in search_query_serializer.validated_data:
-            nodes = nodes.filter(spaces=search_query_serializer.validated_data["space"])
+            nodes = nodes.filter(space=search_query_serializer.validated_data["space"])
 
         page = self.paginate_queryset(nodes)
         if page is not None:
