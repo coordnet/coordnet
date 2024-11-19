@@ -65,6 +65,17 @@ repos:
         exclude: ^frontend/
       - id: djlint-django
         exclude: ^frontend/
+  - repo: https://github.com/jazzband/pip-tools
+    rev: 7.4.1
+    hooks:
+      - id: pip-compile
+        name: pip-compile local.in
+        args: [ requirements/local.in ]
+        files: ^requirements/(base|local)\.(in|txt)$
+      - id: pip-compile
+        name: pip-compile production.in
+        args: [ requirements/production.in ]
+        files: ^requirements/(base|production)\.(in|txt)$
   - repo: local
     hooks:
       - id: ruff
@@ -116,7 +127,7 @@ repos:
         language: node
         files: ^frontend/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh frontend pnpm tsc --project tsconfig.json
-        
+
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:
   autoupdate_schedule: weekly
