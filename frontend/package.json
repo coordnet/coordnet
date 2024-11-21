@@ -48,7 +48,7 @@
     "downshift": "^9.0.8",
     "file-saver": "^2.0.5",
     "lucide-react": "^0.460.0",
-    "marked": "^15.0.1",
+    "marked": "^15.0.2",
     "numeral": "^2.0.6",
     "openai": "^4.72.0",
     "prosemirror-model": "1.23.0",
