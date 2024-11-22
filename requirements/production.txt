@@ -1269,9 +1269,9 @@ rsa==4.9 \
     --hash=sha256:90260d9058e514786967344d0ef75fa8727eed8a7d2e43ce9f4bcf1b536174f7 \
     --hash=sha256:e38464a49c6c85d7f1351b0126661487a7e0a14a50f1675ec50eb34d4f20ef21
     # via google-auth
-sentry-sdk[celery,django,openai]==2.18.0 \
-    --hash=sha256:0dc21febd1ab35c648391c664df96f5f79fb0d92d7d4225cd9832e53a617cafd \
-    --hash=sha256:ee70e27d1bbe4cd52a38e1bd28a5fadb9b17bc29d91b5f2b97ae29c0a7610442
+sentry-sdk[celery,django,openai]==2.19.0 \
+    --hash=sha256:7b0b3b709dee051337244a09a30dbf6e95afe0d34a1f8b430d45e0982a7c125b \
+    --hash=sha256:ee4a4d2ae8bfe3cac012dcf3e4607975904c137e1738116549fc3dbbb6ff0e36
     # via -r requirements/production.in
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
@@ -1370,9 +1370,9 @@ urllib3==2.2.3 \
     #   django-anymail
     #   requests
     #   sentry-sdk
-uvicorn[standard]==0.32.0 \
-    --hash=sha256:60b8f3a5ac027dcd31448f411ced12b5ef452c646f76f02f8cc3f25d8d26fd82 \
-    --hash=sha256:f78b36b143c16f54ccdb8190d0a26b5f1901fe5a3c777e1ab29f26391af8551e
+uvicorn[standard]==0.32.1 \
+    --hash=sha256:82ad92fd58da0d12af7482ecdb5f2470a04c9c9a53ced65b9bbb4a205377602e \
+    --hash=sha256:ee9519c246a72b1c084cea8d3b44ed6026e78a4a309cbedae9c37e4cb9fbb175
     # via
     #   -r requirements/base.in
     #   uvicorn-worker
