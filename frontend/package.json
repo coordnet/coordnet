@@ -32,7 +32,7 @@
     "@tiptap/extension-link": "^2.10.0",
     "@tiptap/extension-table": "^2.10.0",
     "@tiptap/extension-table-cell": "^2.10.0",
-    "@tiptap/extension-table-header": "^2.10.0",
+    "@tiptap/extension-table-header": "^2.10.2",
     "@tiptap/extension-table-row": "^2.10.0",
     "@tiptap/pm": "^2.10.0",
     "@tiptap/react": "^2.10.0",
