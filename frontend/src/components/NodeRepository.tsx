@@ -189,9 +189,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                 <div className="flex gap-1 text-xs text-neutral-400 font-medium">
                   {!spacesLoading && (
                     <>
-                      <span>
-                        {spaces?.results.find((space) => space.id == item.spaces[0])?.title}
-                      </span>
+                      <span>{spaces?.results.find((space) => space.id == item.space)?.title}</span>
                       <span>·</span>
                     </>
                   )}

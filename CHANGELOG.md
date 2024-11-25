@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug in node repository search accessing old spaces list.
+
 ### Removed
 
 - Removed ability of Nodes to be in multiple Spaces at once.
