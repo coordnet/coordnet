@@ -44,10 +44,7 @@ if typing.TYPE_CHECKING:
     ),
     retrieve=extend_schema(description="Retrieve a single node.", summary="Retrieve a node"),
 )
-class NodeModelViewSet(
-    permissions.views.PermissionViewSetMixin[models.Node],
-    views.BaseReadOnlyModelViewSet[models.Node],
-):
+class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
     """API endpoint that allows nodes to be viewed."""
 
     serializer_class = serializers.NodeListSerializer

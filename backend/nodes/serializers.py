@@ -86,7 +86,6 @@ class SpaceDefaultNodeField(utils.serializers.PublicIdRelatedField):
 
 class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space]):
     # TODO: don't let the API client pick their own id for the project, it should be auto-generated.
-    title_slug = serializers.SlugField(read_only=True)
     default_node = SpaceDefaultNodeField(
         allow_null=True,
         read_only=False,

@@ -12,7 +12,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Coalesce
-from django.utils.text import slugify
 
 import nodes.utils
 import permissions.models
@@ -426,7 +425,6 @@ class DocumentVersion(utils.models.SoftDeletableBaseModel):
 
 class Space(permissions.models.MembershipBaseModel):
     title = models.CharField(max_length=255)
-    title_slug = models.SlugField(max_length=255, unique=True)
     # Setting the type hint manually is required because of a bug in the Django stubs.
     # Reported here: https://github.com/typeddjango/django-stubs/issues/2011
     default_node = models.ForeignKey(
@@ -443,16 +441,6 @@ class Space(permissions.models.MembershipBaseModel):
 
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
-
-    def save(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        if not self.id:
-            # Only set the slug when the object is created.
-            title_slug = slugify(self.title)
-            self.title_slug = title_slug
-            while Space.available_objects.filter(title_slug=self.title_slug).exists():
-                self.title_slug = f"{title_slug}-{nodes.utils.random_string(4)}"
-
-        super().save(*args, **kwargs)
 
     @staticmethod
     def get_user_has_permission_filter(

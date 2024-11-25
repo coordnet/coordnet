@@ -46,7 +46,6 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.post(reverse("nodes:spaces-list"), {"title": "new space"})
         self.assertEqual(response.status_code, 201, response.data)
         self.assertEqual(response.data["title"], "new space")
-        self.assertEqual(response.data["title_slug"], "new-space")
         self.assertTrue(
             models.Space.objects.get(public_id=response.data["id"])
             .members.filter(user=self.owner_user, role__role=permissions.models.OWNER)
@@ -60,9 +59,6 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["title"], "new name")
-
-        # The title slug shouldn't get updated when the title is updated
-        self.assertEqual(response.data["title_slug"], space.title_slug)
 
     def test_delete(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)

@@ -34,12 +34,6 @@ class NodeModelTestCase(BaseTestCase):
         # even if they are part of the filter query.
         self.assertEqual(models.Node.available_objects.filter(parents=node_1).count(), 0)
 
-    def test_spaces_with_same_titles(self) -> None:
-        space_1 = models.Space.objects.create(title="test")
-        space_2 = models.Space.objects.create(title="test")
-
-        self.assertNotEqual(space_1.title_slug, space_2.title_slug)
-
     def test_node_token_calculation(self) -> None:
         node = factories.NodeFactory.create(title="test", text="test")
         node.refresh_from_db()

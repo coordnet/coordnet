@@ -12,7 +12,6 @@ class SpaceAdmin(admin.ModelAdmin):
     """
 
     inlines = [ObjectMembershipInline]
-    prepopulated_fields = {"title_slug": ("title",)}
 
 
 admin.site.register(models.Document)

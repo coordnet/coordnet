@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Removed ability of Nodes to be in multiple Spaces at once.
 - Removed object-level permissions for Nodes.
+- Removed unused `title_slug` from the Space model.
 
 ## [24.11.3] - 2024-11-15
 
