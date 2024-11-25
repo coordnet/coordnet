@@ -114,6 +114,8 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "pgtrigger",
     "adrf",
+    "storages",
+    "imagekit",
 ]
 
 LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "utils"]
@@ -302,6 +304,30 @@ LOGGING = {
 # this will be disabled in the production settings.
 warnings.simplefilter("always", DeprecationWarning)
 
+# STORAGES
+# ------------------------------------------------------------------------------
+# https://django-storages.readthedocs.io/en/latest/#installation
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            # Fly.io Tigris
+            # The strange environment variable names are based on what Fly.io provides when setting
+            # up Tigris.
+            "endpoint_url": env.str("AWS_ENDPOINT_URL_S3", None),
+            "region_name": env.str("AWS_REGION"),
+            "bucket_name": env.str("BUCKET_NAME"),
+            "default_acl": "private",
+            "querystring_auth": env.bool("AWS_QUERYSTRING_AUTH", True),
+            "querystring_expire": env.int("AWS_QUERYSTRING_EXPIRE", 3600 * 12),
+            "location": env.str("AWS_LOCATION", ""),
+            "custom_domain": env.str("AWS_S3_CUSTOM_DOMAIN", None),
+        },
+    },
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
 # Celery
 # ------------------------------------------------------------------------------
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
@@ -388,6 +414,14 @@ SPECTACULAR_SETTINGS: dict[str, typing.Any] = {
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
 }
+
+# Django Image Kit
+# ------------------------------------------------------------------------------
+# https://django-imagekit.readthedocs.io/en/latest/#configuration
+# import imagekit.cachefiles.namers.source_name_as_path
+
+IMAGEKIT_DEFAULT_CACHEFILE_BACKEND = "imagekit.cachefiles.backends.Simple"
+IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = "imagekit.cachefiles.strategies.Optimistic"
 
 # CRDT Settings
 # ------------------------------------------------------------------------------

@@ -59,22 +59,15 @@ SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
 # https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
 SECURE_CONTENT_TYPE_NOSNIFF = env.bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True)
 
-# # STORAGES
-# # ------------------------------------------------------------------------------
-# # https://django-storages.readthedocs.io/en/latest/#installation
-# INSTALLED_APPS += ["storages"]
-# GS_BUCKET_NAME = env("DJANGO_GCP_STORAGE_BUCKET_NAME")
-# GS_DEFAULT_ACL = "publicRead"
-# # STATIC
-# # ------------------------
-STORAGES = {
-    # "default": {
-    #     "BACKEND": "coordnet.utils.storages.MediaGoogleCloudStorage",
-    # },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
+# STORAGES
+# ------------------------------------------------------------------------------
+# https://django-storages.readthedocs.io/en/latest/#installation
+# Also see the white-noise documentation.
+
+STORAGES["staticfiles"] = {  # noqa: F405
+    "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
 }
+
 # # MEDIA
 # # ------------------------------------------------------------------------------
 # MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"

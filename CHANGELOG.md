@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Support for object storage (MinIO and S3) for storing uploads.
+
 ### Fixed
 
 - Bug in node repository search accessing old spaces list.
