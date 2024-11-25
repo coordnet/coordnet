@@ -70,6 +70,16 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append(  # noqa: F405
     "rest_framework.authentication.SessionAuthentication"
 )
 
+# Custom Storage configuration to reuse minio values
+# ------------------------------------------------------------------------------
+STORAGES["default"]["OPTIONS"]["access_key"] = env.str("MINIO_ROOT_USER")  # noqa: F405
+STORAGES["default"]["OPTIONS"]["secret_key"] = env.str("MINIO_ROOT_PASSWORD")  # noqa: F405
+STORAGES["default"]["OPTIONS"]["default_acl"] = "download"  # noqa: F405
+STORAGES["default"]["OPTIONS"]["custom_domain"] = env.str(  # noqa: F405
+    "MINIO_CUSTOM_DOMAIN", default=f"localhost:9000/{env.str('BUCKET_NAME')}"
+)
+STORAGES["default"]["OPTIONS"]["url_protocol"] = "http:"  # noqa: F405
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 EMAIL_SUBJECT_PREFIX = "[coordnet.dev - DEV]"

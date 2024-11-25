@@ -1,6 +1,7 @@
 volumes:
   coordnet_local_postgres_data: {}
   coordnet_local_postgres_data_backups: {}
+  coordnet_local_minio_data: {}
 
 services:
   django: &django
@@ -16,11 +17,13 @@ services:
       - postgres
       - redis
       - mailpit
+      - minio
     volumes:
       - .:/app:z
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
+      - ./.envs/.local/.minio
       - ./.envs/.local/.secrets
     ports:
       - "8000:8000"
@@ -131,3 +134,15 @@ services:
             - ./frontend/node_modules
         - action: rebuild
           path: ./frontend/pnpm-lock.yaml
+
+  minio:
+    image: bitnami/minio:latest
+    container_name: coordnet_local_minio
+    env_file:
+      - ./.envs/.local/.minio
+    volumes:
+      - coordnet_local_minio_data:/bitnami/minio/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+#    command: server /data --console-address ":9001"
