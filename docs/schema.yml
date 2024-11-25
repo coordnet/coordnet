@@ -564,6 +564,10 @@ paths:
         schema:
           type: integer
       - in: query
+        name: space
+        schema:
+          type: integer
+      - in: query
         name: spaces
         schema:
           type: array
@@ -607,110 +611,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/NodeDetail'
           description: ''
-  /api/nodes/nodes/{public_id}/permissions/:
-    get:
-      operationId: nodes_nodes_permissions_list
-      description: List all object permissions
-      summary: List object permissions
-      parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      - name: offset
-        required: false
-        in: query
-        description: The initial index from which to return the results.
-        schema:
-          type: integer
-      - in: path
-        name: public_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - Nodes
-      security:
-      - knoxApiToken: []
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedObjectPermissionModelList'
-          description: ''
-        '404':
-          description: No response body
-    post:
-      operationId: nodes_nodes_permissions_create
-      description: Create a new object permission
-      summary: Create object permission
-      parameters:
-      - in: path
-        name: public_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - Nodes
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ObjectPermissionModel'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ObjectPermissionModel'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ObjectPermissionModel'
-        required: true
-      security:
-      - knoxApiToken: []
-      - cookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ObjectPermissionModel'
-          description: ''
-        '404':
-          description: No response body
-  /api/nodes/nodes/{public_id}/permissions/{permission_uuid}/:
-    delete:
-      operationId: nodes_nodes_permissions_destroy
-      description: Delete an object permission
-      summary: Delete object permission
-      parameters:
-      - in: path
-        name: permission_uuid
-        schema:
-          type: string
-          format: uuid
-        description: UUID of the permission to delete
-        required: true
-      - in: path
-        name: public_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - Nodes
-      security:
-      - knoxApiToken: []
-      - cookieAuth: []
-      responses:
-        '204':
-          description: No response body
-        '404':
-          description: No response body
   /api/nodes/search/:
     get:
       operationId: nodes_search_list
@@ -1560,13 +1460,8 @@ components:
           maximum: 2147483647
           minimum: 0
           nullable: true
-        allowed_actions:
-          type: array
-          items:
-            $ref: '#/components/schemas/AllowedActionsEnum'
-          readOnly: true
-        subnode_count:
-          type: integer
+        has_subnodes:
+          type: boolean
           readOnly: true
         subnodes:
           type: array
@@ -1574,9 +1469,8 @@ components:
             $ref: '#/components/schemas/NodeList'
           readOnly: true
       required:
-      - allowed_actions
+      - has_subnodes
       - id
-      - subnode_count
       - subnodes
     NodeList:
       type: object
@@ -1598,18 +1492,12 @@ components:
           maximum: 2147483647
           minimum: 0
           nullable: true
-        allowed_actions:
-          type: array
-          items:
-            $ref: '#/components/schemas/AllowedActionsEnum'
-          readOnly: true
-        subnode_count:
-          type: integer
+        has_subnodes:
+          type: boolean
           readOnly: true
       required:
-      - allowed_actions
+      - has_subnodes
       - id
-      - subnode_count
     NodeSearchResult:
       type: object
       description: |-
@@ -1620,11 +1508,9 @@ components:
           type: string
           format: uuid
           readOnly: true
-        spaces:
-          type: array
-          items:
-            type: string
-            format: uuid
+        space:
+          type: string
+          format: uuid
           readOnly: true
         parents:
           type: array
@@ -1662,7 +1548,7 @@ components:
       - id
       - parents
       - search_vector
-      - spaces
+      - space
       - updated_at
     ObjectPermissionModel:
       type: object
@@ -1936,10 +1822,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        title_slug:
-          type: string
-          readOnly: true
-          pattern: ^[-a-zA-Z0-9_]+$
         default_node:
           type: string
           format: uuid
@@ -2037,10 +1919,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        title_slug:
-          type: string
-          readOnly: true
-          pattern: ^[-a-zA-Z0-9_]+$
         default_node:
           type: string
           format: uuid
@@ -2077,7 +1955,6 @@ components:
       - id
       - node_count
       - title
-      - title_slug
       - updated_at
     User:
       type: object
