@@ -72,6 +72,10 @@ STORAGES["staticfiles"] = {  # noqa: F405
 # # ------------------------------------------------------------------------------
 # MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
 
+# SESSIONS
+# ------------------------------------------------------------------------------
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
