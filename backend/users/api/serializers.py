@@ -20,13 +20,11 @@ User = get_user_model()
 
 
 class UserSerializer(utils.serializers.BaseSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="auth:user-detail", lookup_field="public_id"
-    )
+    profile = utils.serializers.PublicIdRelatedField(read_only=True)
 
     class Meta:
         model = User
-        fields = ["name", "email", "id", "url"]
+        fields = ["name", "email", "id", "profile"]
 
 
 class RegisterSerializer(serializers.ModelSerializer):
