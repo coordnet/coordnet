@@ -94,6 +94,7 @@ class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space
     )
     node_count = serializers.IntegerField(read_only=True)
     allowed_actions = serializers.SerializerMethodField()
+    profile = utils.serializers.PublicIdRelatedField(read_only=True)
 
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(self.context["request"])

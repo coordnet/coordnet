@@ -110,7 +110,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
 
         space = node_factories.SpaceFactory.create_batch(10, owner=self.owner_user)
 
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(
                 reverse("nodes:spaces-detail", args=[str(space[0].public_id)])
             )

@@ -21,10 +21,6 @@ class TestUserViewSet(BaseTransactionTestCase):
 
     def test_me(self) -> None:
         response = self.client.get(reverse("auth:user-me"))
-        request = APIRequestFactory().get("/")
-        absolute_url = request.build_absolute_uri(
-            reverse("auth:user-detail", kwargs={"public_id": self.user.public_id})
-        )
 
         self.assertDictEqual(
             response.data,
@@ -32,6 +28,6 @@ class TestUserViewSet(BaseTransactionTestCase):
                 "name": self.user.name,
                 "email": self.user.email,
                 "id": str(self.user.public_id),
-                "url": absolute_url,
+                "profile": str(self.user.profile.public_id),
             },
         )

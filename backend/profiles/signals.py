@@ -11,7 +11,7 @@ from .models import Profile
 def create_user_profile(sender, instance, **kwargs):
     if instance.profile_id is None:
         instance.profile = Profile.objects.create(
-            user=instance, profile_slug=instance.name if instance.name else "user"
+            profile_slug=instance.name if instance.name else "user", title=instance.name or "User"
         )
 
 
@@ -19,5 +19,6 @@ def create_user_profile(sender, instance, **kwargs):
 def create_space_profile(sender, instance, **kwargs):
     if instance.profile_id is None:
         instance.profile = Profile.objects.create(
-            space=instance, profile_slug=instance.title if instance.title else "space"
+            profile_slug=instance.title if instance.title else "space",
+            title=instance.title or "Space",
         )
