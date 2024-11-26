@@ -1,16 +1,64 @@
+import typing
+import uuid
+
+import django.contrib.auth
+from django.db.models import Q
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+import nodes.models
+import permissions.models
 import profiles.models
 import utils.serializers
 
+if typing.TYPE_CHECKING:
+    from django.db import models as django_models
+
+
+@extend_schema_field(uuid.UUID)
+class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[nodes.models.Space]":
+        user = self.context["request"].user
+        return nodes.models.Space.available_objects.filter(
+            nodes.models.Space.get_user_has_permission_filter(
+                action=permissions.models.READ, user=user
+            )
+        )
+
+
+@extend_schema_field(uuid.UUID)
+class AvailableProfileField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
+        user = self.context["request"].user
+        return profiles.models.Profile.objects.filter(
+            Q(
+                nodes.models.Space.get_user_has_permission_filter(
+                    action=permissions.models.MANAGE, user=user, prefix="space"
+                )
+            )
+            | Q(user=user)
+        )
+
+
+@extend_schema_field(uuid.UUID)
+class AvailableUserField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[django_models.User]":
+        user = self.context["request"].user
+        filter_expression = Q(profile__draft=False)
+        if user.is_authenticated:
+            filter_expression |= Q(pk=user.pk)
+        return django.contrib.auth.get_user_model().objects.filter(filter_expression)
+
 
 class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.ProfileCard]):
-    profile = utils.serializers.PublicIdRelatedField(queryset=profiles.models.Profile.objects.all())
-
     image = serializers.ImageField(read_only=True)
     image_2x = serializers.ImageField(read_only=True)
     image_thumbnail = serializers.ImageField(read_only=True)
     image_thumbnail_2x = serializers.ImageField(read_only=True)
+
+    space = AvailableSpaceField()
+    profile = AvailableProfileField()
+    author = AvailableUserField()
 
     class Meta(utils.serializers.BaseSerializer.Meta):
         model = profiles.models.ProfileCard

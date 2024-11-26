@@ -128,13 +128,13 @@ class Profile(utils.models.BaseModel):
     def visible_cards(self, user: User = None) -> "models.QuerySet[ProfileCard]":
         if not user or user == AnonymousUser():
             return self.cards.filter(draft=False)
-        if self.user == user or (self.space and self.space.has_object_manage_permission(user)):
+        if self.user == user or (self.space and self.space.has_object_manage_permission(user=user)):
             return self.cards.all()
 
     def visible_members(self, user: User = None) -> "models.QuerySet[Profile]":
         if not user or user == AnonymousUser():
             return self.members.filter(draft=False)
-        if self.space and self.space.has_object_manage_permission(user):
+        if self.space and self.space.has_object_manage_permission(user=user):
             return self.members.all()
 
     def clean(self):
@@ -175,7 +175,7 @@ class Profile(utils.models.BaseModel):
         return (
             not self.draft
             or self.user == request.user
-            or (self.space and self.space.has_object_manage_permission(request.user))
+            or (self.space and self.space.has_object_manage_permission(request=request))
         )
 
     @staticmethod
@@ -184,7 +184,7 @@ class Profile(utils.models.BaseModel):
 
     def has_object_write_permission(self, request: "request.Request") -> bool:
         return self.user == request.user or (
-            self.space and self.space.has_object_manage_permission(request)
+            self.space and self.space.has_object_manage_permission(request=request)
         )
 
 
@@ -248,6 +248,7 @@ class ProfileCard(utils.models.BaseModel):
         ],
     )
     video_url = models.URLField(null=True, blank=True)
+    space = models.ForeignKey("nodes.Space", on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.profile}: {self.title}"

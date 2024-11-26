@@ -164,7 +164,7 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     @staticmethod
     def __get_user(
-        request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
+        *, request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
     ) -> "users.typing.AnyUserType":
         if user:
             return user
@@ -246,7 +246,9 @@ class MembershipModelMixin(utils.typing.ModelBase):
         self, request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
     ) -> bool:
         """Return True if the user has manage permissions for this object."""
-        return self.get_allowed_action_for_user(user=self.__get_user(request, user), action=MANAGE)
+        return self.get_allowed_action_for_user(
+            user=self.__get_user(request=request, user=user), action=MANAGE
+        )
 
     @staticmethod
     @dry_rest_permissions.generics.authenticated_users

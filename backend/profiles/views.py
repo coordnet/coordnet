@@ -1,6 +1,7 @@
 import typing
 
 import dry_rest_permissions.generics as dry_permissions
+import rest_framework.filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 import profiles.filters
@@ -22,13 +23,15 @@ if typing.TYPE_CHECKING:
 )
 class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile]):
     serializer_class = serializers.ProfileSerializer
-    filterset_fields = ("space", "user")
+    filterset_class = profiles.filters.ProfileFilterSet
     filter_backends = (
         profiles.filters.ProfilePermissionFilterBackend,
         utils.filters.BaseFilterBackend,
+        rest_framework.filters.OrderingFilter,
     )
     permission_classes = (dry_permissions.DRYObjectPermissions,)
     allowed_methods = ("GET", "PATCH", "HEAD", "OPTIONS")
+    ordering_fields = ("created",)
 
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
         queryset = (
@@ -50,12 +53,14 @@ class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile])
 )
 class ProfileCardModelViewSet(utils.views.BaseModelViewSet[profiles.models.ProfileCard]):
     serializer_class = serializers.ProfileCardSerializer
-    filterset_fields = ("profile",)
+    filterset_class = profiles.filters.ProfileCardFilterSet
     filter_backends = (
         profiles.filters.ProfileCardPermissionFilterBackend,
         utils.filters.BaseFilterBackend,
+        rest_framework.filters.OrderingFilter,
     )
     permission_classes = (dry_permissions.DRYObjectPermissions,)
+    ordering_fields = ("created",)
 
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.ProfileCard]":
         return profiles.models.ProfileCard.objects.defer("image_original").select_related(

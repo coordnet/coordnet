@@ -4,7 +4,7 @@ from django_filters import rest_framework as filters
 from dry_rest_permissions.generics import DRYPermissionFiltersBase
 from rest_framework import request, views
 
-import utils.filters as coord_filters
+import utils.filters
 from nodes import models
 from permissions.models import READ_ROLES
 
@@ -28,7 +28,7 @@ def get_document_queryset(request: request.Request) -> QuerySet:
 
 
 class DocumentVersionFilterSet(filters.FilterSet):
-    document = coord_filters.UUIDModelMultipleChoiceFilter(
+    document = utils.filters.UUIDModelMultipleChoiceFilter(
         queryset=get_document_queryset, field_name="document__public_id"
     )
     document_type = filters.ChoiceFilter(lookup_expr="iexact", choices=models.DocumentType.choices)
