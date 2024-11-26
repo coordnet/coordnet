@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("nodes", "0032_fill_profiles"),
         ("profiles", "0001_initial"),

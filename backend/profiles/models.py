@@ -1,10 +1,12 @@
 import typing
 import uuid
 
+import django.contrib.auth
 import django.core.validators
 import imagekit.models
 import imagekit.processors
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 
@@ -12,7 +14,9 @@ import profiles.utils
 import utils.models
 
 if typing.TYPE_CHECKING:
-    import users.models
+    from rest_framework import request
+
+User = django.contrib.auth.get_user_model()
 
 
 # We have to explicitly create every function because Django migrations can't handle dynamic
@@ -45,10 +49,17 @@ def unique_profile_card_image_filename(instance: utils.models.BaseModel, filenam
 
 
 class Profile(utils.models.BaseModel):
+    """
+    A profile can be for a user or a space, but not both.
+    """
+
+    user = models.OneToOneField("users.User", on_delete=models.CASCADE, null=True, blank=True)
+    space = models.OneToOneField("nodes.Space", on_delete=models.CASCADE, null=True, blank=True)
+
     profile_slug = models.SlugField(max_length=255, unique=True)
     title = models.CharField(max_length=512)
     description = models.TextField()
-    is_public = models.BooleanField(default=False)
+    draft = models.BooleanField(default=True)
 
     profile_image_original = models.ImageField(
         upload_to=unique_profile_image_filename,
@@ -114,22 +125,24 @@ class Profile(utils.models.BaseModel):
         if self.space:
             return self.space
 
+    def visible_cards(self, user: User = None) -> "models.QuerySet[ProfileCard]":
+        if not user or user == AnonymousUser():
+            return self.cards.filter(draft=False)
+        if self.user == user or (self.space and self.space.has_object_manage_permission(user)):
+            return self.cards.all()
+
+    def visible_members(self, user: User = None) -> "models.QuerySet[Profile]":
+        if not user or user == AnonymousUser():
+            return self.members.filter(draft=False)
+        if self.space and self.space.has_object_manage_permission(user):
+            return self.members.all()
+
     def clean(self):
-        try:
-            user = self.user
-        except ObjectDoesNotExist:
-            user = None
-
-        try:
-            space = self.space
-        except ObjectDoesNotExist:
-            space = None
-
-        if user and space:
+        if self.user and self.space:
             raise ValidationError("Profile must be either for a user or a space, not both.")
-        if not user and not space:
+        if not self.user and not self.space:
             raise ValidationError("Profile must be either for a user or a space.")
-        if user and self.members.exists():
+        if self.user and self.members.exists():
             raise ValidationError("User profiles cannot have members.")
 
     def save(self, *args, **kwargs):
@@ -148,18 +161,35 @@ class Profile(utils.models.BaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        try:
+        if self.user:
             return f"{self.user.email} Profile"
-        except ObjectDoesNotExist:
-            pass
-        try:
+        if self.space:
             return f"{self.space.title} Profile"
-        except ObjectDoesNotExist:
-            return str(self.public_id)
+        return str(self.public_id)
+
+    @staticmethod
+    def has_read_permission(request: "request.Request") -> bool:
+        return True
+
+    def has_object_read_permission(self, request: "request.Request") -> bool:
+        return (
+            not self.draft
+            or self.user == request.user
+            or (self.space and self.space.has_object_manage_permission(request.user))
+        )
+
+    @staticmethod
+    def has_write_permission(request: "request.Request") -> bool:
+        return True
+
+    def has_object_write_permission(self, request: "request.Request") -> bool:
+        return self.user == request.user or (
+            self.space and self.space.has_object_manage_permission(request)
+        )
 
 
-def validate_user_profile_public(value: "users.models.User") -> None:
-    if not value.profile or (value.profile and not value.profile.is_public):
+def validate_user_profile_public(value: User) -> None:
+    if not value.profile or (value.profile and not value.profile.draft):
         raise ValidationError("User profile is not public.")
 
 
@@ -167,6 +197,9 @@ class ProfileCard(utils.models.BaseModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="cards")
     title = models.CharField(max_length=512)
     description = models.TextField()
+    created_by = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="+")
+    draft = models.BooleanField(default=True)
+
     author = models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
@@ -218,3 +251,9 @@ class ProfileCard(utils.models.BaseModel):
 
     def __str__(self) -> str:
         return f"{self.profile}: {self.title}"
+
+    def has_object_read_permission(self, request: "request.Request") -> bool:
+        return not self.profile.draft or request.user in (self.author, self.created_by)
+
+    def has_object_write_permission(self, request: "request.Request") -> bool:
+        return request.user in (self.author, self.created_by)

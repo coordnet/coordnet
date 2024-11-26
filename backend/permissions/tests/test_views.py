@@ -89,7 +89,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
         self.assertEqual(node.subnodes.count(), 10)
         self.assertEqual(space.nodes.count(), 11)
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(3):
             response = self.owner_client.get(
                 reverse("nodes:nodes-detail", args=[str(node.public_id)])
             )
@@ -110,7 +110,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
 
         space = node_factories.SpaceFactory.create_batch(10, owner=self.owner_user)
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(1):
             response = self.owner_client.get(
                 reverse("nodes:spaces-detail", args=[str(space[0].public_id)])
             )

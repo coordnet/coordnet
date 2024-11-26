@@ -439,10 +439,6 @@ class Space(permissions.models.MembershipBaseModel):
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="space"
     )
 
-    profile = models.OneToOneField(
-        "profiles.Profile", on_delete=models.CASCADE, related_name="space"
-    )
-
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
 
