@@ -4,7 +4,7 @@ import uuid
 import django.core.validators
 import imagekit.models
 import imagekit.processors
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils.text import slugify
 
@@ -62,6 +62,12 @@ class Profile(utils.models.BaseModel):
         options={"quality": 90, "optimize": True},
         processors=[imagekit.processors.ResizeToFill(200, 200)],
     )
+    profile_image_2x = imagekit.models.ImageSpecField(
+        source="profile_image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(400, 400)],
+    )
     banner_image_original = models.ImageField(
         upload_to=unique_banner_image_filename,
         null=True,
@@ -73,6 +79,12 @@ class Profile(utils.models.BaseModel):
         format="JPEG",
         options={"quality": 90, "optimize": True},
         processors=[imagekit.processors.ResizeToFill(1200, 320)],
+    )
+    banner_image_2x = imagekit.models.ImageSpecField(
+        source="banner_image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(2400, 640)],
     )
 
     website = models.URLField(null=True, blank=True)
@@ -103,11 +115,21 @@ class Profile(utils.models.BaseModel):
             return self.space
 
     def clean(self):
-        if self.user and self.space:
+        try:
+            user = self.user
+        except ObjectDoesNotExist:
+            user = None
+
+        try:
+            space = self.space
+        except ObjectDoesNotExist:
+            space = None
+
+        if user and space:
             raise ValidationError("Profile must be either for a user or a space, not both.")
-        if not self.user and not self.space:
+        if not user and not space:
             raise ValidationError("Profile must be either for a user or a space.")
-        if self.user and self.members.exists():
+        if user and self.members.exists():
             raise ValidationError("User profiles cannot have members.")
 
     def save(self, *args, **kwargs):
@@ -126,11 +148,14 @@ class Profile(utils.models.BaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        if self.user:
+        try:
             return f"{self.user.email} Profile"
-        if self.space:
+        except ObjectDoesNotExist:
+            pass
+        try:
             return f"{self.space.title} Profile"
-        return str(self.public_id)
+        except ObjectDoesNotExist:
+            return str(self.public_id)
 
 
 def validate_user_profile_public(value: "users.models.User") -> None:
@@ -161,11 +186,23 @@ class ProfileCard(utils.models.BaseModel):
         options={"quality": 90, "optimize": True},
         processors=[imagekit.processors.ResizeToFill(800, 320)],
     )
+    image_2x = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(1600, 640)],
+    )
     image_thumbnail = imagekit.models.ImageSpecField(
         source="image_original",
         format="JPEG",
         options={"quality": 90, "optimize": True},
         processors=[imagekit.processors.ResizeToFill(200, 80)],
+    )
+    image_thumbnail_2x = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(400, 160)],
     )
     url = models.CharField(
         null=True,
