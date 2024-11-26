@@ -11,7 +11,7 @@ def fill_profiles(apps, schema_editor):
     Profile = apps.get_model("profiles", "Profile")
 
     for user in User.objects.filter(profile__isnull=True):
-        profile_slug_base = slugify(user.name)
+        profile_slug_base = slugify(user.name.strip() or "user")
         profile_slug = profile_slug_base
 
         while Profile.objects.filter(profile_slug=profile_slug).exists():

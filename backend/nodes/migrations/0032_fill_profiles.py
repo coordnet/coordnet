@@ -11,7 +11,7 @@ def fill_profiles(apps, schema_editor):
     Profile = apps.get_model("profiles", "Profile")
 
     for space in Space.objects.filter(profile__isnull=True):
-        profile_slug_base = slugify(space.title)
+        profile_slug_base = slugify(space.title.strip() or "space")
         profile_slug = profile_slug_base
 
         while Profile.objects.filter(profile_slug=profile_slug).exists():
