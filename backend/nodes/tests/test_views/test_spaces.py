@@ -12,7 +12,7 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
         space = factories.SpaceFactory.create(owner=self.owner_user)
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)

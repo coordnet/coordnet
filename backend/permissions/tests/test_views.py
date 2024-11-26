@@ -89,7 +89,7 @@ class PermissionViewSetMixinTestCase(BaseTransactionTestCase):
         self.assertEqual(node.subnodes.count(), 10)
         self.assertEqual(space.nodes.count(), 11)
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(2):
             response = self.owner_client.get(
                 reverse("nodes:nodes-detail", args=[str(node.public_id)])
             )

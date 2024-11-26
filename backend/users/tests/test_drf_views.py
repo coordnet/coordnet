@@ -28,6 +28,6 @@ class TestUserViewSet(BaseTransactionTestCase):
                 "name": self.user.name,
                 "email": self.user.email,
                 "id": str(self.user.public_id),
-                "profile": str(self.user.profile.public_id),
+                "profile": self.user.profile.public_id,
             },
         )

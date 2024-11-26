@@ -94,7 +94,6 @@ class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space
     )
     node_count = serializers.IntegerField(read_only=True)
     allowed_actions = serializers.SerializerMethodField()
-    profile = utils.serializers.PublicIdRelatedField(read_only=True)
 
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(self.context["request"])
@@ -102,7 +101,10 @@ class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space
         read_only_fields = ["default_node"]
-        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + ["document"]
+        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
+            "document",
+            "profile",
+        ]
 
 
 class DocumentVersionSerializer(
