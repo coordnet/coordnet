@@ -24,6 +24,10 @@ class User(AbstractUser):
     username = None  # type: ignore[assignment]
     public_id = models.UUIDField(_("public id"), unique=True, default=uuid.uuid4, editable=False)
 
+    profile = models.OneToOneField(
+        "profiles.Profile", on_delete=models.CASCADE, related_name="user"
+    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

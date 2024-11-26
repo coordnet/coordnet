@@ -1,4 +1,3 @@
-import random
 import typing
 
 
@@ -15,8 +14,3 @@ def extract_text_from_node(node: dict[str, typing.Any] | list) -> list[str]:
         for item in node:
             texts.extend(extract_text_from_node(item))
     return texts
-
-
-def random_string(length: int = 32) -> str:
-    """Generate a random string."""
-    return "".join(random.choice("abcdefghijklmnopqrstuvwxyz0123456789") for i in range(length))

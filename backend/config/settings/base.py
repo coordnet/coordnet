@@ -118,7 +118,7 @@ THIRD_PARTY_APPS = [
     "imagekit",
 ]
 
-LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "utils"]
+LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "profiles", "utils"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

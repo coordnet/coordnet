@@ -1852,6 +1852,9 @@ components:
         title:
           type: string
           maxLength: 255
+        profile:
+          type: string
+          format: uuid
     PatchedUser:
       type: object
       description: |-
@@ -1949,11 +1952,15 @@ components:
         title:
           type: string
           maxLength: 255
+        profile:
+          type: string
+          format: uuid
       required:
       - allowed_actions
       - created_at
       - id
       - node_count
+      - profile
       - title
       - updated_at
     User:
