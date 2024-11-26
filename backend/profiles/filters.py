@@ -2,7 +2,6 @@ import typing
 
 import django.contrib.auth
 from django.db.models import Q
-from django_filters import rest_framework as filters
 from dry_rest_permissions.generics import DRYPermissionFiltersBase
 
 import nodes.models
@@ -54,10 +53,12 @@ def get_profile_queryset(request: "request.Request") -> "QuerySet[profiles.model
     return profiles.models.Profile.objects.filter(queryset_filters).distinct()
 
 
-class ProfileCardFilterSet(filters.FilterSet):
-    profile = utils.filters.UUIDModelChoiceFilter(
-        field_name="profile__public_id", queryset=get_profile_queryset
-    )
+class ProfileCardFilterSet(utils.filters.BaseFilterSet):
+    profile = utils.filters.UUIDModelChoiceFilter(queryset=get_profile_queryset)
+
+    class Meta:
+        model = profiles.models.ProfileCard
+        fields = ["profile"]
 
 
 def get_space_queryset(request: "request.Request") -> "QuerySet[nodes.models.Space]":
@@ -78,10 +79,10 @@ def get_user_queryset(request: "request.Request") -> "QuerySet[django.contrib.ob
     return django.contrib.auth.get_user_model().objects.filter(queryset_filters).distinct()
 
 
-class ProfileFilterSet(filters.FilterSet):
-    space = utils.filters.UUIDModelChoiceFilter(
-        field_name="space__public_id", queryset=get_space_queryset
-    )
-    user = utils.filters.UUIDModelChoiceFilter(
-        field_name="user__public_id", queryset=get_user_queryset
-    )
+class ProfileFilterSet(utils.filters.BaseFilterSet):
+    space = utils.filters.UUIDModelChoiceFilter(queryset=get_space_queryset)
+    user = utils.filters.UUIDModelChoiceFilter(queryset=get_user_queryset)
+
+    class Meta:
+        model = profiles.models.Profile
+        fields = ["space", "user"]
