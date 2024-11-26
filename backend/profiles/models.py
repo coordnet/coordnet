@@ -119,11 +119,11 @@ class Profile(utils.models.BaseModel):
     )
 
     @property
-    def related_object(self):
+    def related_object_creation_date(self):
         if self.user:
-            return self.user
+            return self.user.date_joined
         if self.space:
-            return self.space
+            return self.space.created_at
 
     def visible_cards(self, user: User = None) -> "models.QuerySet[ProfileCard]":
         if not user or user == AnonymousUser():

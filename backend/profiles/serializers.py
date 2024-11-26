@@ -78,7 +78,9 @@ class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile
     space = utils.serializers.PublicIdRelatedField(read_only=True)
     user = utils.serializers.PublicIdRelatedField(read_only=True)
 
-    object_created = serializers.DateTimeField(read_only=True, source="related_object.created")
+    object_created = serializers.DateTimeField(
+        read_only=True, source="related_object_creation_date"
+    )
 
     profile_image = serializers.ImageField(read_only=True)
     profile_image_2x = serializers.ImageField(read_only=True)
