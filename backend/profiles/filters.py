@@ -77,13 +77,8 @@ def get_user_queryset(request: "request.Request") -> "QuerySet[django.contrib.ob
     return django.contrib.auth.get_user_model().objects.filter(queryset_filters).distinct()
 
 
-def filter_username(queryset, name, value):
-    return queryset.filter(profile_slug__iexact=value, user__isnull=False)
-
-
-username = filters.CharFilter(
-    field_name="profile_slug", lookup_expr="iexact", method=filter_username
-)
+def filter_profile_slug(queryset, name, value):
+    return queryset.filter(profile_slug__iexact=value)
 
 
 def filter_profile_type(queryset, name, value):
@@ -104,8 +99,8 @@ class ProfileFilterSet(utils.filters.BaseFilterSet):
     space = utils.filters.UUIDModelChoiceFilter(queryset=get_space_queryset)
     user = utils.filters.UUIDModelChoiceFilter(queryset=get_user_queryset)
     draft = filters.BooleanFilter()
-    username = filters.CharFilter(
-        field_name="profile_slug", lookup_expr="iexact", method=filter_username, label="Username"
+    slug = filters.CharFilter(
+        field_name="profile_slug", lookup_expr="iexact", method=filter_profile_slug, label="Slug"
     )
     profile_type = filters.ChoiceFilter(
         method=filter_profile_type, label="Profile Type", choices=PROFILE_TYPE_CHOICES
@@ -117,6 +112,6 @@ class ProfileFilterSet(utils.filters.BaseFilterSet):
             "space",
             "user",
             "draft",
-            "username",
+            "slug",
             "profile_type",
         ]
