@@ -47,6 +47,8 @@ READ_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.VIEWER]
 WRITE_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER]
 ADMIN_ROLES = [RoleOptions.OWNER]
 
+# TODO: Add writer here for public_writable objects.
+#       (see: https://github.com/coordnet/coordnet/issues/310)
 ACTION_TO_ROLES: dict[Action, list[RoleOptions]] = {
     "read": READ_ROLES,
     "write": WRITE_ROLES,
