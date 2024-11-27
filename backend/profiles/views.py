@@ -96,8 +96,8 @@ class ProfileCardModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profi
     ordering_fields = ("created",)
 
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.ProfileCard]":
-        return profiles.models.ProfileCard.objects.defer("image_original").select_related(
-            "profile", "profile__space", "profile__user"
+        return profiles.models.ProfileCard.objects.defer("image_original").prefetch_related(
+            "profiles"
         )
 
     @action(

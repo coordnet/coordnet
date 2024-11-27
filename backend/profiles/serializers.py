@@ -57,7 +57,6 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
     image_thumbnail_2x = serializers.ImageField(read_only=True)
 
     space = AvailableSpaceField(required=False)
-    profile = AvailableProfileField()
     author = AvailableUserField()
 
     class Meta(utils.serializers.BaseSerializer.Meta):
@@ -112,13 +111,8 @@ class CardsField(serializers.ListField):
         return cards
 
 
-class ReducedProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile]):
-    class Meta(utils.serializers.BaseSerializer.Meta):
-        model = profiles.models.Profile
-
-
 class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile]):
-    space = ReducedProfileSerializer(read_only=True)
+    space = utils.serializers.PublicIdRelatedField(read_only=True)
     user = utils.serializers.PublicIdRelatedField(read_only=True)
 
     object_created = serializers.DateTimeField(
@@ -142,7 +136,8 @@ class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile
         read_only_fields = ["profile_image", "profile_image_2x", "banner_image", "banner_image_2x"]
 
     def update(self, instance, validated_data):
-        members = validated_data.pop("members", None)
-        if members is not None:
+        if (members := validated_data.pop("members", None)) is not None:
             instance.members.set(members)
+        if (cards := validated_data.pop("cards", None)) is not None:
+            instance.cards.set(cards)
         return super().update(instance, validated_data)

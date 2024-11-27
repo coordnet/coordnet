@@ -33,13 +33,9 @@ class ProfileCardPermissionFilterBackend(DRYPermissionFiltersBase):
         self, request: "request.Request", queryset: "QuerySet", view: "views.APIView"
     ) -> "QuerySet[profiles.models.ProfileCard]":
         """Only return profile cards that the user has access to."""
-        queryset_filters = Q(profile__draft=False) & (
-            Q(profile__space__is_removed=False) | Q(profile__space__isnull=True)
-        )
+        queryset_filters = Q(draft=False)
         if request.user and request.user.is_authenticated:
-            nodes.models.Space.get_user_has_permission_filter(
-                action=MANAGE, user=request.user, prefix="space"
-            ) | Q(profile__user=request.user)
+            queryset_filters |= Q(created_by=request.user) | Q(author=request.user)
         return queryset.filter(queryset_filters).distinct()
 
 
@@ -54,11 +50,11 @@ def get_profile_queryset(request: "request.Request") -> "QuerySet[profiles.model
 
 
 class ProfileCardFilterSet(utils.filters.BaseFilterSet):
-    profile = utils.filters.UUIDModelChoiceFilter(queryset=get_profile_queryset)
+    profiles = utils.filters.UUIDModelChoiceFilter(queryset=get_profile_queryset)
 
     class Meta:
         model = profiles.models.ProfileCard
-        fields = ["profile"]
+        fields = ["profiles"]
 
 
 def get_space_queryset(request: "request.Request") -> "QuerySet[nodes.models.Space]":

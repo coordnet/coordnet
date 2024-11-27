@@ -58,6 +58,8 @@ class Profile(utils.models.BaseModel):
     user = models.OneToOneField("users.User", on_delete=models.CASCADE, null=True, blank=True)
     space = models.OneToOneField("nodes.Space", on_delete=models.CASCADE, null=True, blank=True)
 
+    cards = models.ManyToManyField("profiles.ProfileCard", related_name="profiles", blank=True)
+
     profile_slug = models.SlugField(max_length=255, unique=True)
     title = models.CharField(max_length=512)
     description = models.TextField()
@@ -133,10 +135,10 @@ class Profile(utils.models.BaseModel):
             return models.Q(draft=False)
         return (
             models.Q(draft=False)
-            | models.Q(profile__user=user)
+            | models.Q(profiles__user=user)
             | models.Q(
                 nodes.models.Space.get_user_has_permission_filter(
-                    action=MANAGE, user=user, prefix="profile__space"
+                    action=MANAGE, user=user, prefix="profiles__space"
                 )
             )
         )
@@ -181,9 +183,9 @@ class Profile(utils.models.BaseModel):
 
     def __str__(self) -> str:
         if self.user:
-            return f"{self.user.email} Profile"
+            return f"{self.user.email}"
         if self.space:
-            return f"{self.space.title} Profile"
+            return f"{self.space.title}"
         return str(self.public_id)
 
     @staticmethod
@@ -207,13 +209,13 @@ class Profile(utils.models.BaseModel):
         )
 
 
-def validate_user_profile_public(value: User) -> None:
-    if not value.profile or (value.profile and not value.profile.draft):
+def validate_user_profile_public(value: int) -> None:
+    user = User.objects.get(pk=value)
+    if not user.profile or (user.profile and not user.profile.draft):
         raise ValidationError("User profile is not public.")
 
 
 class ProfileCard(utils.models.BaseModel):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="cards")
     title = models.CharField(max_length=512)
     description = models.TextField()
     created_by = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="+")
@@ -270,10 +272,13 @@ class ProfileCard(utils.models.BaseModel):
     space = models.ForeignKey("nodes.Space", on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"{self.profile}: {self.title}"
+        profile_list = list(map(str, self.profiles.all()))
+        if not profile_list:
+            return f"Not in any profile: {self.title}"
+        return f"{', '.join(profile_list)}: {self.title}"
 
     def has_object_read_permission(self, request: "request.Request") -> bool:
-        return not self.profile.draft or request.user in (self.author, self.created_by)
+        return not self.draft or request.user in (self.author, self.created_by)
 
     def has_object_write_permission(self, request: "request.Request") -> bool:
         return request.user in (self.author, self.created_by)
