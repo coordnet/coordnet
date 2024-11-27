@@ -21,7 +21,7 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
         user = self.context["request"].user
         return profiles.models.Profile.objects.filter(
             nodes.models.Space.get_user_has_permission_filter(
-                action=permissions.models.MANAGE, user=user, prefix="space"
+                action=permissions.models.READ, user=user, prefix="space"
             )
             & Q(space__is_removed=False, space__isnull=False)
         )
