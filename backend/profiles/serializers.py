@@ -58,12 +58,12 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
 
     space = AvailableSpaceField(required=False)
     author = AvailableUserField()
+    created_by = utils.serializers.PublicIdRelatedField(read_only=True)
 
     class Meta(utils.serializers.BaseSerializer.Meta):
         model = profiles.models.ProfileCard
         exclude = (utils.serializers.BaseSerializer.Meta.exclude or []) + [
             "image_original",
-            "created_by",
         ]
         read_only_fields = ["image", "image_2x", "image_thumbnail", "image_thumbnail_2x"]
 
