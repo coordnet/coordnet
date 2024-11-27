@@ -6,6 +6,8 @@ from django.db.models import Q
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+import nodes.models
+import permissions.models
 import profiles.models
 import utils.serializers
 
@@ -16,8 +18,12 @@ if typing.TYPE_CHECKING:
 @extend_schema_field(uuid.UUID)
 class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
+        user = self.context["request"].user
         return profiles.models.Profile.objects.filter(
-            draft=False, space__is_removed=False, space__isnull=False
+            nodes.models.Space.get_user_has_permission_filter(
+                action=permissions.models.MANAGE, user=user, prefix="space"
+            )
+            & Q(space__is_removed=False, space__isnull=False)
         )
 
     def get_choices(self, cutoff=None):
@@ -36,6 +42,8 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
         return ReducedProfileSerializer(value).data
 
     def to_internal_value(self, data):
+        user = self.context["request"].user
+
         try:
             space_profile_id = uuid.UUID(data)
         except ValueError as exc:
@@ -43,7 +51,12 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
 
         try:
             return profiles.models.Profile.objects.get(
-                public_id=space_profile_id, draft=False, space__isnull=False
+                nodes.models.Space.get_user_has_permission_filter(
+                    action=permissions.models.MANAGE, user=user, prefix="space"
+                ),
+                public_id=space_profile_id,
+                space__isnull=False,
+                space__is_removed=False,
             )
         except profiles.models.Profile.DoesNotExist as exc:
             raise serializers.ValidationError("Space profile not found") from exc
