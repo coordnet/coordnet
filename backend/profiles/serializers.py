@@ -56,7 +56,7 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
     image_thumbnail = serializers.ImageField(read_only=True)
     image_thumbnail_2x = serializers.ImageField(read_only=True)
 
-    space = AvailableSpaceField()
+    space = AvailableSpaceField(required=False)
     profile = AvailableProfileField()
     author = AvailableUserField()
 
@@ -74,8 +74,51 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
         return super().create(validated_data)
 
 
+class MembersField(serializers.ListField):
+    def to_representation(self, value):
+        return ProfileSerializer(value, many=True, read_only=True).data
+
+    def to_internal_value(self, data):
+        if not isinstance(data, list):
+            raise serializers.ValidationError("Expected a list of UUIDs")
+        try:
+            user_ids = {uuid.UUID(user_id) for user_id in data}
+        except ValueError as exc:
+            raise serializers.ValidationError("Invalid UUID format") from exc
+
+        users = profiles.models.Profile.objects.filter(
+            public_id__in=user_ids, draft=False, user__isnull=False
+        )
+        if len(users) != len(user_ids):
+            raise serializers.ValidationError("Some users not found")
+        return users
+
+
+class CardsField(serializers.ListField):
+    def to_representation(self, value):
+        return ProfileCardSerializer(value, many=True, read_only=True).data
+
+    def to_internal_value(self, data):
+        if not isinstance(data, list):
+            raise serializers.ValidationError("Expected a list of UUIDs")
+        try:
+            card_ids = {uuid.UUID(user_id) for user_id in data}
+        except ValueError as exc:
+            raise serializers.ValidationError("Invalid UUID format") from exc
+
+        cards = profiles.models.ProfileCard.objects.filter(public_id__in=card_ids, draft=False)
+        if len(cards) != len(card_ids):
+            raise serializers.ValidationError("Some users not found")
+        return cards
+
+
+class ReducedProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile]):
+    class Meta(utils.serializers.BaseSerializer.Meta):
+        model = profiles.models.Profile
+
+
 class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile]):
-    space = utils.serializers.PublicIdRelatedField(read_only=True)
+    space = ReducedProfileSerializer(read_only=True)
     user = utils.serializers.PublicIdRelatedField(read_only=True)
 
     object_created = serializers.DateTimeField(
@@ -87,8 +130,8 @@ class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile
     banner_image = serializers.ImageField(read_only=True)
     banner_image_2x = serializers.ImageField(read_only=True)
 
-    cards = serializers.SerializerMethodField()
-    members = serializers.SerializerMethodField()
+    cards = CardsField(required=False)
+    members = MembersField(required=False)
 
     class Meta(utils.serializers.BaseSerializer.Meta):
         model = profiles.models.Profile
@@ -98,12 +141,8 @@ class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile
         ]
         read_only_fields = ["profile_image", "profile_image_2x", "banner_image", "banner_image_2x"]
 
-    def get_members(self, obj):
-        request = self.context.get("request")
-        return ProfileSerializer(obj.visible_members(request.user), many=True, read_only=True).data
-
-    def get_cards(self, obj):
-        request = self.context.get("request")
-        return ProfileCardSerializer(
-            obj.visible_cards(request.user), many=True, read_only=True
-        ).data
+    def update(self, instance, validated_data):
+        members = validated_data.pop("members", None)
+        if members is not None:
+            instance.members.set(members)
+        return super().update(instance, validated_data)

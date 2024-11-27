@@ -10,8 +10,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 
+import nodes.models
 import profiles.utils
 import utils.models
+from permissions.models import MANAGE
 
 if typing.TYPE_CHECKING:
     from rest_framework import request
@@ -125,17 +127,34 @@ class Profile(utils.models.BaseModel):
         if self.space:
             return self.space.created_at
 
+    @staticmethod
+    def get_visible_cards_filter_expression(user: User) -> models.Q:
+        if not user or user == AnonymousUser():
+            return models.Q(draft=False)
+        return (
+            models.Q(draft=False)
+            | models.Q(profile__user=user)
+            | models.Q(
+                nodes.models.Space.get_user_has_permission_filter(
+                    action=MANAGE, user=user, prefix="profile__space"
+                )
+            )
+        )
+
+    @staticmethod
+    def get_visible_members_filter_expression() -> models.Q:
+        return models.Q(draft=False)
+
     def visible_cards(self, user: User = None) -> "models.QuerySet[ProfileCard]":
         if not user or user == AnonymousUser():
             return self.cards.filter(draft=False)
         if self.user == user or (self.space and self.space.has_object_manage_permission(user=user)):
             return self.cards.all()
+        return self.cards.filter(draft=False)
 
     def visible_members(self, user: User = None) -> "models.QuerySet[Profile]":
         if not user or user == AnonymousUser():
-            return self.members.filter(draft=False)
-        if self.space and self.space.has_object_manage_permission(user=user):
-            return self.members.all()
+            return self.members.filter(profile__draft=False)
 
     def clean(self):
         if self.user and self.space:

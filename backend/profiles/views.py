@@ -2,6 +2,7 @@ import typing
 
 import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
+from django.db import models
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
@@ -40,7 +41,22 @@ class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile])
         queryset = (
             profiles.models.Profile.objects.defer("profile_image_original", "banner_image_original")
             .select_related("user", "space")
-            .prefetch_related("members")
+            .prefetch_related(
+                models.Prefetch(
+                    "cards",
+                    queryset=profiles.models.ProfileCard.objects.filter(
+                        profiles.models.Profile.get_visible_cards_filter_expression(
+                            user=self.request.user
+                        )
+                    ),
+                ),
+                models.Prefetch(
+                    "members",
+                    queryset=profiles.models.Profile.objects.filter(
+                        profiles.models.Profile.get_visible_members_filter_expression()
+                    ),
+                ),
+            )
         )
         return queryset
 
