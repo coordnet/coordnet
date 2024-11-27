@@ -16,28 +16,78 @@ if typing.TYPE_CHECKING:
 
 
 @extend_schema_field(uuid.UUID)
-class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
-    def get_queryset(self) -> "django_models.QuerySet[nodes.models.Space]":
-        user = self.context["request"].user
-        return nodes.models.Space.available_objects.filter(
-            nodes.models.Space.get_user_has_permission_filter(
-                action=permissions.models.READ, user=user
-            )
-        )
-
-
-@extend_schema_field(uuid.UUID)
-class AvailableProfileField(utils.serializers.PublicIdRelatedField):
+class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
         user = self.context["request"].user
         return profiles.models.Profile.objects.filter(
-            Q(
-                nodes.models.Space.get_user_has_permission_filter(
-                    action=permissions.models.MANAGE, user=user, prefix="space"
-                )
+            nodes.models.Space.get_user_has_permission_filter(
+                action=permissions.models.MANAGE, user=user, prefix="space"
             )
-            | Q(user=user)
+            & Q(space__is_removed=False)
         )
+
+    def get_choices(self, cutoff=None):
+        queryset = self.get_queryset()
+        if queryset is None:
+            # Ensure that field.choices returns something sensible
+            # even when accessed with a read-only field.
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return {str(item.public_id): self.display_value(item) for item in queryset}
+
+    def to_representation(self, value):
+        return ReducedProfileSerializer(value).data
+
+    def to_internal_value(self, data):
+        try:
+            space_profile_id = uuid.UUID(data)
+        except ValueError as exc:
+            raise serializers.ValidationError("Invalid UUID format") from exc
+
+        try:
+            return profiles.models.Profile.objects.get(
+                public_id=space_profile_id, draft=False, space__isnull=False
+            )
+        except profiles.models.Profile.DoesNotExist as exc:
+            raise serializers.ValidationError("Space profile not found") from exc
+
+
+@extend_schema_field(uuid.UUID)
+class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
+        return profiles.models.Profile.objects.filter(draft=False, user__isnull=False)
+
+    def get_choices(self, cutoff=None):
+        queryset = self.get_queryset()
+        if queryset is None:
+            # Ensure that field.choices returns something sensible
+            # even when accessed with a read-only field.
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return {str(item.public_id): self.display_value(item) for item in queryset}
+
+    def to_representation(self, value):
+        return ReducedProfileSerializer(value).data
+
+    def to_internal_value(self, data):
+        print(data)
+        try:
+            user_profile_id = uuid.UUID(data)
+        except ValueError as exc:
+            raise serializers.ValidationError("Invalid UUID format") from exc
+
+        try:
+            return profiles.models.Profile.objects.get(
+                public_id=user_profile_id, draft=False, user__isnull=False
+            )
+        except profiles.models.Profile.DoesNotExist as exc:
+            raise serializers.ValidationError("User profile not found") from exc
 
 
 @extend_schema_field(uuid.UUID)
@@ -56,9 +106,9 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
     image_thumbnail = serializers.ImageField(read_only=True)
     image_thumbnail_2x = serializers.ImageField(read_only=True)
 
-    space_profile = AvailableSpaceField(required=False)
-    author_profile = AvailableUserField(required=False)
-    created_by = utils.serializers.PublicIdRelatedField(read_only=True)
+    space_profile = AvailableSpaceProfileField(required=False, allow_null=True)
+    author_profile = AvailableUserProfileField(required=False, allow_null=True)
+    created_by = AvailableUserField(read_only=True)
 
     class Meta(utils.serializers.BaseSerializer.Meta):
         model = profiles.models.ProfileCard
@@ -71,9 +121,31 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
         return super().create(validated_data)
 
 
+class ReducedProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile]):
+    profile_image = serializers.ImageField(read_only=True)
+    profile_image_2x = serializers.ImageField(read_only=True)
+
+    class Meta(utils.serializers.BaseSerializer.Meta):
+        model = profiles.models.Profile
+        exclude = (utils.serializers.BaseSerializer.Meta.exclude or []) + [
+            "profile_image_original",
+            "banner_image_original",
+            "description",
+            "draft",
+            "website",
+            "telegram_url",
+            "twitter_url",
+            "bluesky_url",
+            "eth_address",
+            "cards",
+            "members",
+        ]
+        read_only_fields = ["profile_image", "profile_image_2x"]
+
+
 class MembersField(serializers.ListField):
     def to_representation(self, value):
-        return ProfileSerializer(value, many=True, read_only=True).data
+        return ReducedProfileSerializer(value, many=True, read_only=True).data
 
     def to_internal_value(self, data):
         if not isinstance(data, list):
