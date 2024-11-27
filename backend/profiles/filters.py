@@ -1,6 +1,7 @@
 import typing
 
 import django.contrib.auth
+import django_filters.rest_framework as filters
 from django.db.models import Q
 from dry_rest_permissions.generics import DRYPermissionFiltersBase
 
@@ -51,10 +52,11 @@ def get_profile_queryset(request: "request.Request") -> "QuerySet[profiles.model
 
 class ProfileCardFilterSet(utils.filters.BaseFilterSet):
     profiles = utils.filters.UUIDModelChoiceFilter(queryset=get_profile_queryset)
+    draft = filters.BooleanFilter()
 
     class Meta:
         model = profiles.models.ProfileCard
-        fields = ["profiles"]
+        fields = ["profiles", "draft"]
 
 
 def get_space_queryset(request: "request.Request") -> "QuerySet[nodes.models.Space]":
@@ -78,7 +80,8 @@ def get_user_queryset(request: "request.Request") -> "QuerySet[django.contrib.ob
 class ProfileFilterSet(utils.filters.BaseFilterSet):
     space = utils.filters.UUIDModelChoiceFilter(queryset=get_space_queryset)
     user = utils.filters.UUIDModelChoiceFilter(queryset=get_user_queryset)
+    draft = filters.BooleanFilter()
 
     class Meta:
         model = profiles.models.Profile
-        fields = ["space", "user"]
+        fields = ["space", "user", "draft"]
