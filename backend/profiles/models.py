@@ -292,7 +292,7 @@ class ProfileCard(utils.models.BaseModel):
         return f"{', '.join(profile_list)}: {self.title}"
 
     def has_object_read_permission(self, request: "request.Request") -> bool:
-        return not self.draft or request.user in (self.author, self.created_by)
+        return not self.draft or request.user in (self.author_profile.user, self.created_by)
 
     def has_object_write_permission(self, request: "request.Request") -> bool:
-        return request.user in (self.author, self.created_by)
+        return request.user in (self.author_profile.user, self.created_by)
