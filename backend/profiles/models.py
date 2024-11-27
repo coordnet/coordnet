@@ -224,6 +224,7 @@ def validate_space_profile_public(value: int) -> None:
 class ProfileCard(utils.models.BaseModel):
     title = models.CharField(max_length=512)
     description = models.TextField()
+    status_message = models.TextField(blank=True)
     created_by = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="+")
     draft = models.BooleanField(default=True)
 
