@@ -56,15 +56,13 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
     image_thumbnail = serializers.ImageField(read_only=True)
     image_thumbnail_2x = serializers.ImageField(read_only=True)
 
-    space = AvailableSpaceField(required=False)
-    author = AvailableUserField()
+    space_profile = AvailableSpaceField(required=False)
+    author_profile = AvailableUserField(required=False)
     created_by = utils.serializers.PublicIdRelatedField(read_only=True)
 
     class Meta(utils.serializers.BaseSerializer.Meta):
         model = profiles.models.ProfileCard
-        exclude = (utils.serializers.BaseSerializer.Meta.exclude or []) + [
-            "image_original",
-        ]
+        exclude = (utils.serializers.BaseSerializer.Meta.exclude or []) + ["image_original"]
         read_only_fields = ["image", "image_2x", "image_thumbnail", "image_thumbnail_2x"]
 
     def create(self, validated_data):

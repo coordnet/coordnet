@@ -210,9 +210,15 @@ class Profile(utils.models.BaseModel):
 
 
 def validate_user_profile_public(value: int) -> None:
-    user = User.objects.get(pk=value)
-    if not user.profile or (user.profile and not user.profile.draft):
+    user_profile = Profile.objects.get(pk=value, user__isnull=False)
+    if user_profile.draft:
         raise ValidationError("User profile is not public.")
+
+
+def validate_space_profile_public(value: int) -> None:
+    space_profile = Profile.objects.get(pk=value, space__isnull=False)
+    if space_profile.draft:
+        raise ValidationError("Space profile is not public.")
 
 
 class ProfileCard(utils.models.BaseModel):
@@ -221,13 +227,22 @@ class ProfileCard(utils.models.BaseModel):
     created_by = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="+")
     draft = models.BooleanField(default=True)
 
-    author = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        related_name="cards",
+    author_profile = models.ForeignKey(
+        "Profile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="author_cards",
         validators=[validate_user_profile_public],
     )
-
+    space_profile = models.ForeignKey(
+        "Profile",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        null=True,
+        blank=True,
+        validators=[validate_space_profile_public],
+    )
     image_original = models.ImageField(
         upload_to=unique_profile_card_image_filename,
         null=True,
@@ -269,7 +284,6 @@ class ProfileCard(utils.models.BaseModel):
         ],
     )
     video_url = models.URLField(null=True, blank=True)
-    space = models.ForeignKey("nodes.Space", on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
         profile_list = list(map(str, self.profiles.all()))

@@ -35,7 +35,7 @@ class ProfileCardPermissionFilterBackend(DRYPermissionFiltersBase):
         """Only return profile cards that the user has access to."""
         queryset_filters = Q(draft=False)
         if request.user and request.user.is_authenticated:
-            queryset_filters |= Q(created_by=request.user) | Q(author=request.user)
+            queryset_filters |= Q(created_by=request.user) | Q(author_profile__user=request.user)
         return queryset.filter(queryset_filters).distinct()
 
 
