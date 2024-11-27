@@ -6,8 +6,6 @@ from django.db.models import Q
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-import nodes.models
-import permissions.models
 import profiles.models
 import utils.serializers
 
@@ -18,12 +16,8 @@ if typing.TYPE_CHECKING:
 @extend_schema_field(uuid.UUID)
 class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
-        user = self.context["request"].user
         return profiles.models.Profile.objects.filter(
-            nodes.models.Space.get_user_has_permission_filter(
-                action=permissions.models.MANAGE, user=user, prefix="space"
-            )
-            & Q(space__is_removed=False)
+            draft=False, space__is_removed=False, space__isnull=False
         )
 
     def get_choices(self, cutoff=None):
