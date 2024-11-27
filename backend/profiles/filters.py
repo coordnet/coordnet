@@ -86,12 +86,29 @@ username = filters.CharFilter(
 )
 
 
+def filter_profile_type(queryset, name, value):
+    if value == "space":
+        return queryset.filter(space__isnull=False)
+    elif value == "user":
+        return queryset.filter(user__isnull=False)
+    return queryset
+
+
+PROFILE_TYPE_CHOICES = (
+    ("space", "Space"),
+    ("user", "User"),
+)
+
+
 class ProfileFilterSet(utils.filters.BaseFilterSet):
     space = utils.filters.UUIDModelChoiceFilter(queryset=get_space_queryset)
     user = utils.filters.UUIDModelChoiceFilter(queryset=get_user_queryset)
     draft = filters.BooleanFilter()
     username = filters.CharFilter(
         field_name="profile_slug", lookup_expr="iexact", method=filter_username, label="Username"
+    )
+    profile_type = filters.ChoiceFilter(
+        method=filter_profile_type, label="Profile Type", choices=PROFILE_TYPE_CHOICES
     )
 
     class Meta:
@@ -100,4 +117,6 @@ class ProfileFilterSet(utils.filters.BaseFilterSet):
             "space",
             "user",
             "draft",
+            "username",
+            "profile_type",
         ]
