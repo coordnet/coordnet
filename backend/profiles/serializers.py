@@ -52,7 +52,7 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
         try:
             return profiles.models.Profile.objects.get(
                 nodes.models.Space.get_user_has_permission_filter(
-                    action=permissions.models.MANAGE, user=user, prefix="space"
+                    action=permissions.models.READ, user=user, prefix="space"
                 ),
                 public_id=space_profile_id,
                 space__isnull=False,
