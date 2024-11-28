@@ -184,7 +184,7 @@ class CardsField(serializers.ListField):
 
         cards = profiles.models.ProfileCard.objects.filter(public_id__in=card_ids, draft=False)
         if len(cards) != len(card_ids):
-            raise serializers.ValidationError("Some users not found")
+            raise serializers.ValidationError("Some cards not found")
         return cards
 
 

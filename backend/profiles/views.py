@@ -48,7 +48,7 @@ class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile])
                         profiles.models.Profile.get_visible_cards_filter_expression(
                             user=self.request.user
                         )
-                    ),
+                    ).distinct(),
                 ),
                 models.Prefetch(
                     "members",
