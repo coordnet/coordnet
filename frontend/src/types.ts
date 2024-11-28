@@ -2,6 +2,7 @@ import { JSONContent } from "@tiptap/core";
 import { Edge, Node as ReactFlowNode } from "reactflow";
 import { z } from "zod";
 
+import { Profile } from "./components";
 import { buddyModels } from "./constants";
 
 // https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
@@ -16,6 +17,7 @@ export interface Me {
   id: string;
   name: string;
   email: string;
+  profile: string;
 }
 
 export const PermissionSchema = z.object({
@@ -189,3 +191,110 @@ export interface SemanticScholarPaper {
   abstract: string;
   isOpenAccess: boolean;
 }
+
+const ProfileCardSubProfileSchema = z.object({
+  id: z.string().uuid(),
+  profile_image: z.union([z.null(), z.string().url()]),
+  profile_image_2x: z.union([z.null(), z.string().url()]),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  profile_slug: z
+    .string()
+    .min(1, "Username is required")
+    .max(255, "Username must be less than 255 characters")
+    .regex(/^[a-z0-9]+$/, "Username must be alphanumeric"),
+  title: z.string().min(1, "Name is required"),
+  space: z.union([z.string().uuid(), z.null()]),
+  user: z.union([z.string().uuid(), z.null()]),
+});
+
+export type ProfileCardSubProfile = z.infer<typeof ProfileCardSubProfileSchema>;
+
+export const ProfileCardSchema = z.object({
+  id: z.string().uuid(),
+  space_profile: ProfileCardSubProfileSchema.nullable(),
+  author_profile: ProfileCardSubProfileSchema.nullable(),
+  created_by: z.string().uuid(),
+  image: z.union([z.null(), z.string().url()]),
+  image_2x: z.union([z.null(), z.string().url()]),
+  image_thumbnail: z.union([z.null(), z.string().url()]),
+  image_thumbnail_2x: z.union([z.null(), z.string().url()]),
+  title: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  status_message: z.string(),
+  draft: z.boolean(),
+  url: z.union([
+    z.literal(""),
+    z.string().regex(/^\/.*$/, {
+      message: "URL must be a relative Coordination Network URL starting with /",
+    }),
+  ]),
+  video_url: z.union([z.literal(""), z.string().url("Video must be a valid URL")]),
+});
+
+export type ProfileCard = z.infer<typeof ProfileCardSchema>;
+
+export const ProfileCardFormSchema = ProfileCardSchema.pick({
+  title: true,
+  description: true,
+  status_message: true,
+  draft: true,
+  url: true,
+  video_url: true,
+}).merge(
+  z.object({
+    author_profile: z.string().uuid({ message: "Author is required" }),
+    space_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
+  }),
+);
+export type ProfileCardForm = z.infer<typeof ProfileCardFormSchema>;
+
+const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+export const ProfileSchema = z.object({
+  id: z.string().uuid(),
+  space: z.union([z.string().uuid(), z.null()]),
+  user: z.union([z.string().uuid(), z.null()]),
+  cards: z.array(ProfileCardSchema),
+  profile_image: z.union([z.null(), z.string().url()]),
+  profile_image_2x: z.union([z.null(), z.string().url()]),
+  banner_image: z.union([z.null(), z.string().url()]),
+  banner_image_2x: z.union([z.null(), z.string().url()]),
+  members: z.array(ProfileCardSubProfileSchema),
+  object_created: z.coerce.date(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  profile_slug: z
+    .string()
+    .min(1, "Username is required")
+    .max(255, "Username must be less than 255 characters")
+    .regex(/^[a-z0-9-]+$/, "Username must be alphanumeric"),
+  title: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  draft: z.boolean(),
+  website: z.union([z.null(), z.literal(""), z.string().url("Website must be a valid URL")]),
+  telegram_url: z.union([z.null(), z.literal(""), z.string().url("Telegram must be a valid URL")]),
+  bluesky_url: z.union([z.null(), z.literal(""), z.string().url("Bluesky must be a valid URL")]),
+  twitter_url: z.union([z.null(), z.literal(""), z.string().url("X must be a valid URL")]),
+  eth_address: z
+    .string()
+    .regex(ethAddressRegex, {
+      message: "Invalid Ethereum address format",
+    })
+    .nullable(),
+});
+export type Profile = z.infer<typeof ProfileSchema>;
+
+export const ProfileFormSchema = ProfileSchema.pick({
+  title: true,
+  profile_slug: true,
+  description: true,
+  draft: true,
+  website: true,
+  telegram_url: true,
+  bluesky_url: true,
+  twitter_url: true,
+  eth_address: true,
+}).extend({
+  members: z.array(z.string().uuid()),
+});
+export type ProfileForm = z.infer<typeof ProfileFormSchema>;

@@ -14,9 +14,9 @@ const useUser = () => {
     if (!isLoading && data) {
       setUser(data);
     } else if (!isLoading && error) {
-      setUser({ id: "public", name: "public", email: "public" });
+      setUser({ id: "public", name: "public", email: "public", profile: "public" });
     }
-  }, [data, isLoading, error, user]);
+  }, [data, isLoading, error]);
 
   const logout = () => {
     store.remove("coordnet-auth");

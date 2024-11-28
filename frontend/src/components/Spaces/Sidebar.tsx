@@ -3,12 +3,11 @@ import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import { ChevronsLeft, Loader2, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { getSpaces } from "@/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SheetClose } from "@/components/ui/sheet";
-import { useSpace } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { metaKey } from "@/lib/utils";
 
@@ -19,7 +18,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   const navigate = useNavigate();
   const [manageSpaceOpen, setManageSpaceOpen] = useState<boolean>(false);
   const [manageSpaceId, setManageSpaceId] = useState<string | null>(null);
-  const { space: currentSpace } = useSpace();
+  const { spaceId } = useParams();
   const { user, isLoading: userLoading } = useUser();
   const { data: spaces, isLoading } = useQuery({
     queryKey: ["spaces"],
@@ -31,7 +30,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
     (space) => !(space.is_public && !space.allowed_actions.includes("manage")),
   );
 
-  const icon = blockies.create({ seed: user?.email }).toDataURL();
+  const icon = blockies.create({ seed: user?.profile }).toDataURL();
 
   useEffect(() => {
     const validKeys = filteredSpaces?.map((_, i) => i + 1);
@@ -84,7 +83,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
                   key={`spaces-${space?.id}`}
                   className={clsx(
                     "text-sm font-medium rounded p-2 hover:bg-neutral-100 cursor-pointer group",
-                    { "bg-violet-100": space?.id == currentSpace?.id },
+                    { "bg-violet-100": space?.id == spaceId },
                   )}
                 >
                   <Link

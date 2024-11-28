@@ -23,7 +23,7 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
   const { space: currentSpace, nodes, breadcrumbs } = useSpace();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  const userIcon = blockies.create({ seed: user?.email }).toDataURL();
+  const userIcon = blockies.create({ seed: user?.profile }).toDataURL();
 
   return (
     <>
@@ -91,6 +91,14 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
+                {/* <DropdownMenuItem className="cursor-pointer">
+                  <Link
+                    to={`/profiles/${user?.id}`}
+                    className="text-black w-full font-normal hover:text-black"
+                  >
+                    Your Profile
+                  </Link>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem className="cursor-pointer" onClick={logout}>
                   Log out
                 </DropdownMenuItem>

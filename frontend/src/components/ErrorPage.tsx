@@ -40,6 +40,11 @@ export default function ErrorPage({
       subTitle: "You do not have permission to access this resource",
       message: `${parsedError.name}: ${parsedError.message}`,
     },
+    ERR_NOT_FOUND: {
+      title: "404 - Not Found",
+      subTitle: "The resource you are looking for could not be found",
+      message: `${parsedError.name}: ${parsedError.message}`,
+    },
     NO_SPACES: {
       title: "No spaces",
       subTitle: "It looks like you haven't been added to any spaces yet",

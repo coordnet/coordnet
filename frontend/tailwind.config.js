@@ -78,6 +78,11 @@ export default {
           },
         },
       },
+      backgroundImage: {
+        "profile-gradient": "linear-gradient(180deg, #F5F3FF 0%, #EFF6FF 100%)",
+        "profile-modal-gradient": "linear-gradient(90deg, #F5F3FF 0%, #EFF6FF 100%)",
+        "profile-tag": "linear-gradient(90deg, #E7E2FF 0%, #D6E8FF 100%)",
+      },
     },
     // Add line clamps 1-20 for dynamic use in the graph to truncate node labels
     lineClamp: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [i + 1, i + 1])),
