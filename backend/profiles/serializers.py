@@ -50,14 +50,18 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
             raise serializers.ValidationError("Invalid UUID format") from exc
 
         try:
-            return profiles.models.Profile.objects.get(
-                nodes.models.Space.get_user_has_permission_filter(
-                    action=permissions.models.READ, user=user, prefix="space"
-                ),
-                public_id=space_profile_id,
-                space__isnull=False,
-                space__is_removed=False,
-            ).distinct()
+            return (
+                profiles.models.Profile.objects.filter(
+                    nodes.models.Space.get_user_has_permission_filter(
+                        action=permissions.models.READ, user=user, prefix="space"
+                    ),
+                    public_id=space_profile_id,
+                    space__isnull=False,
+                    space__is_removed=False,
+                )
+                .distinct()
+                .first()
+            )
         except profiles.models.Profile.DoesNotExist as exc:
             raise serializers.ValidationError("Space profile not found") from exc
 
