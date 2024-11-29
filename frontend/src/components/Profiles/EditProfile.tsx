@@ -290,7 +290,11 @@ const EditProfile = ({
                 name="draft"
                 control={control}
                 render={({ field }) => (
-                  <Switch id="public" checked={!field.value} onCheckedChange={field.onChange} />
+                  <Switch
+                    id="public"
+                    checked={!field.value}
+                    onCheckedChange={(checked) => field.onChange(!checked)}
+                  />
                 )}
               />
               <label
