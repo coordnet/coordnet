@@ -24,7 +24,7 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
                 action=permissions.models.READ, user=user, prefix="space"
             )
             & Q(space__is_removed=False, space__isnull=False)
-        )
+        ).distinct()
 
     def get_choices(self, cutoff=None):
         queryset = self.get_queryset()
@@ -57,7 +57,7 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
                 public_id=space_profile_id,
                 space__isnull=False,
                 space__is_removed=False,
-            )
+            ).distinct()
         except profiles.models.Profile.DoesNotExist as exc:
             raise serializers.ValidationError("Space profile not found") from exc
 

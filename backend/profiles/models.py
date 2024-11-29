@@ -13,7 +13,7 @@ from django.utils.text import slugify
 import nodes.models
 import profiles.utils
 import utils.models
-from permissions.models import MANAGE
+from permissions.models import READ
 
 if typing.TYPE_CHECKING:
     from rest_framework import request
@@ -138,7 +138,7 @@ class Profile(utils.models.BaseModel):
             | models.Q(profiles__user=user)
             | models.Q(
                 nodes.models.Space.get_user_has_permission_filter(
-                    action=MANAGE, user=user, prefix="profiles__space"
+                    action=READ, user=user, prefix="profiles__space"
                 )
             )
         )
