@@ -18,7 +18,7 @@ import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import bannerPlaceholder from "./assets/banner-placeholder.svg";
+import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import ProfileCardManage from "./ProfileCardManage";
 import { getProfileImage } from "./utils";
 
@@ -72,7 +72,7 @@ const ProfileCardExpanded = ({
     >
       <div
         className={clsx("w-full h-[200px] bg-cover bg-center flex flex-col items-end rounded-t-lg")}
-        style={{ backgroundImage: `url(${banner})` }}
+        style={{ backgroundImage: `url("${banner}")` }}
       >
         {canEdit && (
           <div className="flex gap-2 mr-4 mt-4">
@@ -145,7 +145,7 @@ const ProfileCardExpanded = ({
           >
             <div
               className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center "
-              style={{ backgroundImage: `url(${getProfileImage(card.author_profile)})` }}
+              style={{ backgroundImage: `url("${getProfileImage(card.author_profile)}")` }}
             ></div>
             <span className="max-w-full text-ellipsis overflow-hidden">
               @{card.author_profile?.profile_slug}
@@ -160,7 +160,7 @@ const ProfileCardExpanded = ({
               >
                 <div
                   className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center "
-                  style={{ backgroundImage: `url(${getProfileImage(card.space_profile)})` }}
+                  style={{ backgroundImage: `url("${getProfileImage(card.space_profile)}")` }}
                 ></div>
                 <span className="max-w-full text-ellipsis overflow-hidden">
                   @{card.space_profile?.profile_slug}

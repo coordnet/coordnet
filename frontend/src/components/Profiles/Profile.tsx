@@ -21,7 +21,7 @@ import SpaceSidebar from "../Spaces/Sidebar";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import badge from "./assets/badge.webp";
-import bannerPlaceholder from "./assets/banner-placeholder.svg";
+import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import shadowsBg from "./assets/shadows.svg";
 import { profilesIconMap } from "./constants";
 import EditProfile from "./EditProfile";
@@ -122,11 +122,11 @@ const Profile = ({ className }: { className?: string }) => {
           <div className="pt-10 max-w-[1200px] w-[90%] m-auto z-20 relative">
             <div
               className="h-[200px] md:h-[320px] rounded-2xl flex items-end justify-center bg-cover bg-center"
-              style={{ backgroundImage: `url(${banner})` }}
+              style={{ backgroundImage: `url("${banner}")` }}
             >
               <div
                 className="bg-red-300 size-40 md:size-48 rounded-full -mb-5 md:-mb-8 bg-cover bg-center"
-                style={{ backgroundImage: `url(${getProfileImage(profile, true)})` }}
+                style={{ backgroundImage: `url("${getProfileImage(profile, true)}")` }}
               ></div>
               {isOwner && profile && (
                 <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
@@ -149,7 +149,7 @@ const Profile = ({ className }: { className?: string }) => {
               {profile?.title}
               <div
                 className="size-10 ml-3 rounded-full bg-cover bg-center"
-                style={{ backgroundImage: `url(${badge})` }}
+                style={{ backgroundImage: `url("${badge}")` }}
                 data-tooltip-id="profile-badge"
                 data-tooltip-content="Epoch 1 Badge"
                 data-tooltip-place="bottom"
@@ -223,7 +223,7 @@ const Profile = ({ className }: { className?: string }) => {
                       <Link to={`/profiles/${user.profile_slug}`} key={`members-${user.id}-${i}`}>
                         <div
                           className="size-14 rounded-full bg-cover bg-center"
-                          style={{ backgroundImage: `url(${getProfileImage(user, true)})` }}
+                          style={{ backgroundImage: `url("${getProfileImage(user, true)}")` }}
                           data-tooltip-id={`members-${user.id}`}
                           data-tooltip-content={user.title}
                           data-tooltip-place="bottom"

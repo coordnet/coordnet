@@ -72,7 +72,7 @@ const ImageUpload: React.FC<ImageUploaderProps> = ({
           isDragActive && "outline outline-2 outline-blue-500",
           className,
         )}
-        style={{ backgroundImage: `url(${image})` }}
+        style={{ backgroundImage: `url("${image}")` }}
       >
         {isDragging && (
           <div

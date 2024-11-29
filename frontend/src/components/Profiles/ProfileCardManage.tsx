@@ -20,7 +20,7 @@ import { Profile, ProfileCard, ProfileCardForm, ProfileCardFormSchema } from "@/
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
-import bannerPlaceholder from "./assets/banner-placeholder.svg";
+import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import { profileCardLinksMap } from "./constants";
 import ImageUpload from "./ImageUpload";
 import ProfileField from "./ProfileField";

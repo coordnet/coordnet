@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { ProfileCard as ProfileCardType } from "@/types";
 
-import bannerPlaceholder from "./assets/banner-placeholder.svg";
+import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import { getProfileImage } from "./utils";
 
 const ProfileCard = ({ card, className }: { card: ProfileCardType; className?: string }) => {
@@ -18,7 +18,7 @@ const ProfileCard = ({ card, className }: { card: ProfileCardType; className?: s
     >
       <div
         className={clsx("w-full h-20 bg-cover bg-center")}
-        style={{ backgroundImage: `url(${thumbnail})` }}
+        style={{ backgroundImage: `url("${thumbnail}")` }}
       ></div>
       <div className="p-2 z-10 relative flex flex-col gap-1 flex-1">
         <div className="text-neutral-500 text-[11px] font-medium bg-blue-50 leading-none py-1 px-2 rounded-[4px] inline-block w-fit">
@@ -35,7 +35,7 @@ const ProfileCard = ({ card, className }: { card: ProfileCardType; className?: s
           <div
             className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center"
             style={{
-              backgroundImage: `url(${getProfileImage(card.author_profile)})`,
+              backgroundImage: `url("${getProfileImage(card.author_profile)}")`,
             }}
           ></div>
           <span className="max-w-full text-ellipsis overflow-hidden whitespace-nowrap">

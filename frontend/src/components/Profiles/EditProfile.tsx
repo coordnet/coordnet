@@ -13,7 +13,7 @@ import { Profile, ProfileForm, ProfileFormSchema } from "@/types";
 
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import bannerPlaceholder from "./assets/banner-placeholder.svg";
+import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import { profilesIconMap } from "./constants";
 import ImageUpload from "./ImageUpload";
 import ProfileField from "./ProfileField";

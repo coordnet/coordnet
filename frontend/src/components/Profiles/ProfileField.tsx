@@ -100,7 +100,7 @@ const ProfileField: React.FC<{
                     <div
                       className="w-4 h-4 rounded-full bg-cover bg-center"
                       style={{
-                        backgroundImage: `url(${getProfileImage(value)})`,
+                        backgroundImage: `url("${getProfileImage(value)}")`,
                       }}
                     />
                     <div className="text-neutral-900 text-sm font-normal flex-shrink-0 leading-normal">
@@ -166,7 +166,7 @@ const ProfileField: React.FC<{
                         <div
                           className="w-4 h-4 rounded-full bg-cover bg-center"
                           style={{
-                            backgroundImage: `url(${getProfileImage(item)})`,
+                            backgroundImage: `url("${getProfileImage(item)}")`,
                           }}
                         />
                         <div className="text-neutral-900 text-sm font-normal flex-shrink-0 leading-normal">
