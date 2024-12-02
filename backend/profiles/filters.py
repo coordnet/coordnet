@@ -8,7 +8,7 @@ from dry_rest_permissions.generics import DRYPermissionFiltersBase
 import nodes.models
 import profiles.models
 import utils.filters
-from permissions.models import MANAGE
+from permissions.models import MANAGE, READ
 
 if typing.TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -23,7 +23,7 @@ class ProfilePermissionFilterBackend(DRYPermissionFiltersBase):
         queryset_filters = Q(draft=False) & (Q(space__is_removed=False) | Q(space__isnull=True))
         if request.user and request.user.is_authenticated:
             queryset_filters |= nodes.models.Space.get_user_has_permission_filter(
-                action=MANAGE, user=request.user, prefix="space"
+                action=READ, user=request.user, prefix="space"
             ) | Q(user=request.user)
 
         return queryset.filter(queryset_filters).distinct()
@@ -64,7 +64,7 @@ def get_space_queryset(request: "request.Request") -> "QuerySet[nodes.models.Spa
     queryset_filters = Q(profile__draft=False)
     if request.user and request.user.is_authenticated:
         queryset_filters |= nodes.models.Space.get_user_has_permission_filter(
-            action=MANAGE, user=request.user
+            action=READ, user=request.user
         )
     return nodes.models.Space.available_objects.filter(queryset_filters).distinct()
 
