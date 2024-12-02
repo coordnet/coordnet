@@ -25,16 +25,14 @@ def move_relation_to_profile(apps, schema_editor):
         try:
             profile.new_user = User.objects.get(profile_id=profile.id)
             profile.save()
-            print(f"Found user for profile {profile.id}")
             continue
         except ObjectDoesNotExist:
-            print(f"No user found for profile {profile.id}")
+            pass
         try:
             profile.new_space = Space.objects.get(profile_id=profile.id)
             profile.save()
-            print(f"Found space for profile {profile.id}")
         except ObjectDoesNotExist:
-            print(f"No space found for profile {profile.id}")
+            pass
 
 
 class Migration(migrations.Migration):
