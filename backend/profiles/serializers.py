@@ -182,11 +182,19 @@ class CardsField(serializers.ListField):
         if not isinstance(data, list):
             raise serializers.ValidationError("Expected a list of UUIDs")
         try:
-            card_ids = {uuid.UUID(user_id) for user_id in data}
+            card_ids = {uuid.UUID(card_id) for card_id in data}
         except ValueError as exc:
             raise serializers.ValidationError("Invalid UUID format") from exc
 
-        cards = profiles.models.ProfileCard.objects.filter(public_id__in=card_ids, draft=False)
+        filter_expression = Q(draft=False)
+        if user := self.context.get("request").user:
+            filter_expression |= Q(created_by=user) | Q(author_profile__user=user)
+
+        cards = (
+            profiles.models.ProfileCard.objects.filter(public_id__in=card_ids)
+            .filter(filter_expression)
+            .distinct()
+        )
         if len(cards) != len(card_ids):
             raise serializers.ValidationError("Some cards not found")
         return cards
