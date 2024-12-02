@@ -23,7 +23,8 @@ urlpatterns = [
     # User management
     path("users/", include("users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    re_path(r"^(?:spaces|space|auth)/.*$", home),
+    # Frontend paths
+    re_path(r"^(?:spaces|space|auth|profiles)/.*$", home),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # API URLS
