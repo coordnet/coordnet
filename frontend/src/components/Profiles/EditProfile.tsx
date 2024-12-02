@@ -13,11 +13,10 @@ import { Profile, ProfileForm, ProfileFormSchema } from "@/types";
 
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import { profilesIconMap } from "./constants";
 import ImageUpload from "./ImageUpload";
 import ProfileField from "./ProfileField";
-import { getProfileImage } from "./utils";
+import { getProfileBannerImage, getProfileImage } from "./utils";
 
 const EditProfile = ({
   profile,
@@ -32,8 +31,8 @@ const EditProfile = ({
   const navigate = useNavigate();
 
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ["profiles", "users"],
-    queryFn: ({ signal }) => getProfiles(signal, "user"),
+    queryKey: ["profiles", "users", profile.space],
+    queryFn: ({ signal }) => getProfiles(signal, "user", profile.space),
     refetchInterval: false,
     retry: false,
     throwOnError: true,
@@ -73,12 +72,7 @@ const EditProfile = ({
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
   const avatar = croppedAvatar ? croppedAvatar : getProfileImage(profile, true);
-
-  const banner = croppedBanner
-    ? croppedBanner
-    : profile?.banner_image_2x
-      ? profile?.banner_image_2x
-      : bannerPlaceholder;
+  const banner = croppedBanner ? croppedBanner : getProfileBannerImage(profile, true);
 
   const onSubmit = async (data: ProfileForm) => {
     try {

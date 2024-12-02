@@ -18,9 +18,8 @@ import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import ProfileCardManage from "./ProfileCardManage";
-import { getProfileImage } from "./utils";
+import { getProfileCardImage, getProfileImage } from "./utils";
 
 const ProfileCardExpanded = ({
   profile,
@@ -36,7 +35,7 @@ const ProfileCardExpanded = ({
   const queryClient = useQueryClient();
   const [editIsOpen, setEditIsOpen] = useState(false);
 
-  const banner = card?.image_2x ? card?.image_2x : bannerPlaceholder;
+  const banner = getProfileCardImage(card, true);
   const canEdit = card?.author_profile?.user === user?.id || card?.created_by === user?.id;
 
   const onRemoveCard = async (id: string) => {
@@ -128,7 +127,7 @@ const ProfileCardExpanded = ({
                 </Button>
               </a>
             )}
-            {card.url && (
+            {Boolean(card.url && canEdit) && (
               <a href={card.url}>
                 <Button className="bg-violet-700 h-9 hover:bg-violet-800">
                   <Play className="size-4 mr-1.5" /> Run
@@ -139,21 +138,23 @@ const ProfileCardExpanded = ({
         </div>
         <h3 className="text-black text-3xl font-semibold leading-9">{card.title}</h3>
         <div className="flex items-center gap-2 text-neutral-500 font-normal text-base">
-          <Link
-            to={`/profiles/${card.author_profile?.profile_slug}`}
-            className="flex items-center gap-1 text-neutral-500 font-normal text-base hover:text-neutral-600 whitespace-nowrap text-ellipsis overflow-hidden"
-          >
-            <div
-              className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center "
-              style={{ backgroundImage: `url("${getProfileImage(card.author_profile)}")` }}
-            ></div>
-            <span className="max-w-full text-ellipsis overflow-hidden">
-              @{card.author_profile?.profile_slug}
-            </span>
-          </Link>
+          {Boolean(card.author_profile) && (
+            <Link
+              to={`/profiles/${card.author_profile?.profile_slug}`}
+              className="flex items-center gap-1 text-neutral-500 font-normal text-base hover:text-neutral-600 whitespace-nowrap text-ellipsis overflow-hidden"
+            >
+              <div
+                className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center "
+                style={{ backgroundImage: `url("${getProfileImage(card.author_profile)}")` }}
+              ></div>
+              <span className="max-w-full text-ellipsis overflow-hidden">
+                @{card.author_profile?.profile_slug}
+              </span>
+            </Link>
+          )}
           {Boolean(card.space_profile) && (
             <>
-              <span>&middot;</span>
+              {Boolean(card.space_profile && card.author_profile) && <span>&middot;</span>}
               <Link
                 to={`/profiles/${card.space_profile?.profile_slug}`}
                 className="flex items-center gap-1 text-neutral-500 font-normal text-base hover:text-neutral-600 whitespace-nowrap text-ellipsis overflow-hidden"

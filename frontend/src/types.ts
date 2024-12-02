@@ -243,7 +243,7 @@ export const ProfileCardFormSchema = ProfileCardSchema.pick({
   video_url: true,
 }).merge(
   z.object({
-    author_profile: z.string().uuid({ message: "Author is required" }),
+    author_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
     space_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
   }),
 );
@@ -275,12 +275,13 @@ export const ProfileSchema = z.object({
   telegram_url: z.union([z.null(), z.literal(""), z.string().url("Telegram must be a valid URL")]),
   bluesky_url: z.union([z.null(), z.literal(""), z.string().url("Bluesky must be a valid URL")]),
   twitter_url: z.union([z.null(), z.literal(""), z.string().url("X must be a valid URL")]),
-  eth_address: z
-    .string()
-    .regex(ethAddressRegex, {
+  eth_address: z.union([
+    z.null(),
+    z.literal(""),
+    z.string().regex(ethAddressRegex, {
       message: "Invalid Ethereum address format",
-    })
-    .nullable(),
+    }),
+  ]),
 });
 export type Profile = z.infer<typeof ProfileSchema>;
 

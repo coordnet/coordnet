@@ -21,7 +21,6 @@ import SpaceSidebar from "../Spaces/Sidebar";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import badge from "./assets/badge.webp";
-import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import shadowsBg from "./assets/shadows.svg";
 import { profilesIconMap } from "./constants";
 import EditProfile from "./EditProfile";
@@ -30,7 +29,7 @@ import ProfileCardExpanded from "./ProfileCardExpanded";
 import ProfileCardFind from "./ProfileCardFind";
 import ProfileCardManage from "./ProfileCardManage";
 import ProfileLink from "./ProfileLink";
-import { getProfileImage } from "./utils";
+import { getProfileBannerImage, getProfileImage } from "./utils";
 
 const Profile = ({ className }: { className?: string }) => {
   const { username } = useParams();
@@ -77,7 +76,7 @@ const Profile = ({ className }: { className?: string }) => {
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  const banner = profile?.banner_image_2x ? profile?.banner_image_2x : bannerPlaceholder;
+  const banner = getProfileBannerImage(profile, true);
 
   return (
     <div className={clsx("bg-profile-gradient h-full overflow-auto w-full", className)}>
@@ -125,7 +124,7 @@ const Profile = ({ className }: { className?: string }) => {
               style={{ backgroundImage: `url("${banner}")` }}
             >
               <div
-                className="bg-red-300 size-40 md:size-48 rounded-full -mb-5 md:-mb-8 bg-cover bg-center"
+                className="size-40 md:size-48 rounded-full -mb-5 md:-mb-8 bg-cover bg-center border-4 border-[#e7ebfe]"
                 style={{ backgroundImage: `url("${getProfileImage(profile, true)}")` }}
               ></div>
               {isOwner && profile && (
@@ -148,7 +147,7 @@ const Profile = ({ className }: { className?: string }) => {
             <h1 className="text-black text-3xl font-semibold flex items-center justify-center">
               {profile?.title}
               <div
-                className="size-10 ml-3 rounded-full bg-cover bg-center"
+                className="size-10 ml-3 rounded-full bg-cover bg-center hidden"
                 style={{ backgroundImage: `url("${badge}")` }}
                 data-tooltip-id="profile-badge"
                 data-tooltip-content="Epoch 1 Badge"
@@ -156,7 +155,7 @@ const Profile = ({ className }: { className?: string }) => {
               ></div>
             </h1>
             <Tooltip id="profile-badge" />
-            <div className="text-neutral-500 text-base font-normal flex gap-1 justify-center mt-4">
+            <div className="text-neutral-500 text-base font-normal flex gap-1 justify-center mt-4 flex-wrap">
               <span>@{profile?.profile_slug}</span>
               {profile?.object_created ? (
                 <>
@@ -169,7 +168,9 @@ const Profile = ({ className }: { className?: string }) => {
               {Boolean(profile?.cards.length ?? 0 > 0) && (
                 <>
                   <span>&middot;</span>
-                  <span>{profile?.cards.length} methods</span>
+                  <span>
+                    {profile?.cards.length} method{(profile?.cards.length ?? 0 > 1) ? "s" : ""}
+                  </span>
                 </>
               )}
               {Boolean(profile?.eth_address) && (
@@ -207,7 +208,7 @@ const Profile = ({ className }: { className?: string }) => {
               <div className="p-4 mt-4 text-sm text-center font-normal">{profile?.description}</div>
             )}
 
-            {isSpace && profile?.members.length && (
+            {Boolean(isSpace && profile?.members.length) && (
               <div className="mt-6 mx-1">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center text-neutral-600 text-sm font-bold leading-tight">

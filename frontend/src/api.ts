@@ -289,10 +289,14 @@ export const querySemanticScholar = async (
 export const getProfiles = async (
   signal: AbortSignal | undefined,
   filter?: "user" | "space",
+  memberOf?: string | null,
 ): Promise<Profile[]> => {
   let params = {};
   if (filter) {
     params = { profile_type: filter };
+  }
+  if (memberOf) {
+    params = { ...params, member_of: memberOf };
   }
   const response = await api.get(`api/profiles/profiles/`, { signal, params });
   return response.data.results;

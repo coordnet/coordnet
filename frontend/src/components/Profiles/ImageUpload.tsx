@@ -3,11 +3,13 @@ import { Upload, X } from "lucide-react";
 import React, { useCallback, useRef, useState } from "react";
 import AvatarEditor from "react-avatar-editor";
 import { useDropzone } from "react-dropzone";
+import { Tooltip } from "react-tooltip";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
+import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 
 interface ImageUploaderProps {
   image: string;
@@ -85,10 +87,8 @@ const ImageUpload: React.FC<ImageUploaderProps> = ({
             <Upload className="ml-2 size-3" />
           </div>
         )}
-        {type == "banner" && !image && (
-          <div className="text-neutral-800 text-sm font-medium font-['Roboto'] leading-tight">
-            Banner Image
-          </div>
+        {Boolean(type == "banner" && image == bannerPlaceholder) && (
+          <div className="text-neutral-800 text-sm font-medium leading-tight">Banner Image</div>
         )}
         <input {...getInputProps()} />
         <div
@@ -109,9 +109,14 @@ const ImageUpload: React.FC<ImageUploaderProps> = ({
                 fileInputRef.current.click();
               }
             }}
+            data-tooltip-place="bottom"
+            data-tooltip-id="upload-button"
+            data-tooltip-class-name="text-xs"
+            data-tooltip-content={`Recommended: ${editorOptions.width}x${editorOptions.height}`}
           >
             <Upload className="size-4" />
           </button>
+          <Tooltip id="upload-button" />
           <button
             className={clsx(
               "w-8 h-8 bg-violet-700 rounded-full flex justify-center items-center text-white ",

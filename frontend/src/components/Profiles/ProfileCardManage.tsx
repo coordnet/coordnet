@@ -20,10 +20,10 @@ import { Profile, ProfileCard, ProfileCardForm, ProfileCardFormSchema } from "@/
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
-import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 import { profileCardLinksMap } from "./constants";
 import ImageUpload from "./ImageUpload";
 import ProfileField from "./ProfileField";
+import { getProfileCardImage } from "./utils";
 
 const ProfileCardManage = ({
   profile,
@@ -84,19 +84,14 @@ const ProfileCardManage = ({
           author_profile: card?.author_profile?.id,
           space_profile: card?.space_profile?.id ?? "",
         }
-      : { draft: false, author_profile: profile.id, space_profile: null },
+      : { draft: true, author_profile: !profile.draft ? profile.id : null, space_profile: null },
   });
 
   const [croppedBanner, setCroppedBanner] = useState<string | null>(null);
   const isDragging = useWindowDrag();
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
-
-  const banner = croppedBanner
-    ? croppedBanner
-    : card?.image_2x
-      ? card?.image_2x
-      : bannerPlaceholder;
+  const banner = croppedBanner ? croppedBanner : getProfileCardImage(card, true);
 
   const onSubmit = async (data: ProfileCardForm) => {
     try {
@@ -210,12 +205,11 @@ const ProfileCardManage = ({
             <Controller
               control={control}
               name="author_profile"
-              rules={{ required: "Author is required" }}
               render={({ field: { onChange, value }, fieldState: { error } }) => (
                 <ProfileField
                   limit={1}
                   data={profiles}
-                  initialValue={[value]}
+                  initialValue={value ? [value] : []}
                   onSelectionItemsChange={(selectedItems) => {
                     if (selectedItems.length) {
                       onChange(selectedItems[0].id);
@@ -265,34 +259,39 @@ const ProfileCardManage = ({
           <div>
             <div className="text-neutral-800 text-sm font-medium mb-1">Links</div>
             <div className="flex flex-col gap-1.5">
-              {Object.entries(profileCardLinksMap).map(([key, { component: Icon, title }]) => {
-                const field = key as keyof typeof profileCardLinksMap;
-                const error = errors && errors[field];
+              {Object.entries(profileCardLinksMap).map(
+                ([key, { component: Icon, title, note }]) => {
+                  const field = key as keyof typeof profileCardLinksMap;
+                  const error = errors && errors[field];
 
-                return (
-                  <div key={key}>
-                    <div
-                      className={clsx(
-                        "flex items-center h-10 w-full rounded-md border bg-white px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2",
-                        error && "border-red-500",
+                  return (
+                    <div key={key}>
+                      <div
+                        className={clsx(
+                          "flex items-center h-10 w-full rounded-md border bg-white px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2",
+                          error && "border-red-500",
+                        )}
+                      >
+                        <Icon className="size-4 mr-3" color="#A3A3A3" />
+                        <input
+                          placeholder={title}
+                          className="w-full h-full py-4 focus:outline-none"
+                          {...register(field, { required: false })}
+                          aria-invalid={error ? "true" : "false"}
+                        />
+                      </div>
+                      {note && (
+                        <p className="text-[11px] text-neutral-500 -mt-0.5 italic">{note}</p>
                       )}
-                    >
-                      <Icon className="size-4 mr-3" color="#A3A3A3" />
-                      <input
-                        placeholder={title}
-                        className="w-full h-full py-4 focus:outline-none"
-                        {...register(field, { required: false })}
-                        aria-invalid={error ? "true" : "false"}
-                      />
+                      {error && (
+                        <p key={key} className="mt-1 text-xs text-red-600" role="alert">
+                          {error.message}
+                        </p>
+                      )}
                     </div>
-                    {error && (
-                      <p key={key} className="mt-1 text-xs text-red-600" role="alert">
-                        {error.message}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                },
+              )}
             </div>
           </div>
 
@@ -302,14 +301,18 @@ const ProfileCardManage = ({
                 name="draft"
                 control={control}
                 render={({ field }) => (
-                  <Switch id="public" checked={field.value} onCheckedChange={field.onChange} />
+                  <Switch
+                    id="public"
+                    checked={!field.value}
+                    onCheckedChange={(checked) => field.onChange(!checked)}
+                  />
                 )}
               />
               <label
                 htmlFor="public"
                 className="ml-2 text-neutral-800 text-sm font-medium cursor-pointer"
               >
-                Draft
+                Public
               </label>
             </div>
             {errors.draft && (

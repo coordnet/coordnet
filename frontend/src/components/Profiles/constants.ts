@@ -12,6 +12,10 @@ export const profilesIconMap = {
 } as const;
 
 export const profileCardLinksMap = {
-  url: { component: Play, title: "Coordination Network URL" },
-  video_url: { component: PlayCircle, title: "Video URL" },
+  video_url: { component: PlayCircle, title: "Video URL", note: "" },
+  url: {
+    component: Play,
+    title: "Coordination Network URL",
+    note: "Currently only visible to creator/author",
+  },
 } as const;
