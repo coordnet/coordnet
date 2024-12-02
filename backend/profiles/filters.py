@@ -89,6 +89,16 @@ def filter_profile_type(queryset, name, value):
     return queryset
 
 
+def filter_space_membership(
+    queryset, name, value: "nodes.models.Space"
+) -> "QuerySet[profiles.models.Profile]":
+    """Return UserProfiles that are members of the given space."""
+    print(name, value)
+    return queryset.filter(
+        user__memberships__content_type__model="space", user__memberships__object_id=value.pk
+    ).distinct()
+
+
 PROFILE_TYPE_CHOICES = (
     ("space", "Space"),
     ("user", "User"),
@@ -105,6 +115,9 @@ class ProfileFilterSet(utils.filters.BaseFilterSet):
     profile_type = filters.ChoiceFilter(
         method=filter_profile_type, label="Profile Type", choices=PROFILE_TYPE_CHOICES
     )
+    member_of = utils.filters.UUIDModelChoiceFilter(
+        queryset=get_space_queryset, method=filter_space_membership, label="Member of Space"
+    )
 
     class Meta:
         model = profiles.models.Profile
@@ -114,4 +127,5 @@ class ProfileFilterSet(utils.filters.BaseFilterSet):
             "draft",
             "slug",
             "profile_type",
+            "member_of",
         ]
