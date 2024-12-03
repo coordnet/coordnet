@@ -169,7 +169,7 @@ const Profile = ({ className }: { className?: string }) => {
                 <>
                   <span>&middot;</span>
                   <span>
-                    {profile?.cards.length} method{(profile?.cards.length ?? 0 > 1) ? "s" : ""}
+                    {profile?.cards.length} method{(profile?.cards.length ?? 0) > 1 ? "s" : ""}
                   </span>
                 </>
               )}

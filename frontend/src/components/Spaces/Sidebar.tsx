@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import { ChevronsLeft, Loader2, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Tooltip } from "react-tooltip";
 
 import { getSpaces } from "@/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { SheetClose } from "@/components/ui/sheet";
 import useUser from "@/hooks/useUser";
 import { metaKey } from "@/lib/utils";
 
+import { getProfileImage } from "../Profiles/utils";
 import { Button } from "../ui/button";
 import Manage from "./Manage";
 
@@ -19,7 +20,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   const [manageSpaceOpen, setManageSpaceOpen] = useState<boolean>(false);
   const [manageSpaceId, setManageSpaceId] = useState<string | null>(null);
   const { spaceId } = useParams();
-  const { user, isLoading: userLoading } = useUser();
+  const { user, profile } = useUser();
   const { data: spaces, isLoading } = useQuery({
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
@@ -29,8 +30,6 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   const filteredSpaces = spaces?.results.filter(
     (space) => !(space.is_public && !space.allowed_actions.includes("manage")),
   );
-
-  const icon = blockies.create({ seed: user?.profile }).toDataURL();
 
   useEffect(() => {
     const validKeys = filteredSpaces?.map((_, i) => i + 1);
@@ -57,11 +56,21 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   return (
     <div className="h-full flex flex-col p-2">
       <div className="flex items-center gap-2 text-sm font-medium px-1 pb-2">
-        {!userLoading && <img src={icon} className="rounded-full size-5" />}
-        {user?.name || user?.email}
-        {/* <Button variant="ghost" className="p-1 h-auto">
+        <Link
+          to={`/profiles/${profile?.profile_slug}`}
+          className="text-black flex items-center gap-2 hover:text-black"
+          data-tooltip-id="sidebar-user-profile"
+          data-tooltip-place="bottom"
+          data-tooltip-content="Your Profile"
+          data-tooltip-class-name="text-xs py-1"
+        >
+          {profile && <img src={getProfileImage(profile)} className="rounded-full size-5" />}
+          {user?.name || user?.email}
+          {/* <Button variant="ghost" className="p-1 h-auto">
           <Settings2 className="size-4" />
         </Button> */}
+        </Link>
+        <Tooltip id="sidebar-user-profile" />
         <SheetClose asChild>
           <Button variant="ghost" className="p-1 h-auto ml-auto">
             <ChevronsLeft className="size-4" />

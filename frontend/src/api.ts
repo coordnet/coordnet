@@ -327,6 +327,30 @@ export const getProfileFromUsername = async (
 };
 
 /**
+ * Fetches the profile of a space by its ID.
+ *
+ * @param signal - An optional AbortSignal to cancel the request.
+ * @param spaceId - The ID of the space to fetch the profile for.
+ * @returns A promise that resolves to the profile of the space.
+ * @throws CustomError if the space profile is not found.
+ */
+export const getSpaceProfile = async (
+  signal: AbortSignal | undefined,
+  spaceId: string,
+): Promise<Profile> => {
+  try {
+    const response = await api.get("api/profiles/profiles/", {
+      params: { space: spaceId },
+      signal,
+    });
+    if (response.data.count === 0) throw new Error();
+    return response.data.results[0];
+  } catch {
+    throw new CustomError({ code: "ERR_NOT_FOUND", name: "Space ID", message: spaceId });
+  }
+};
+
+/**
  * Fetches the profile data for a given profile ID.
  *
  * @param signal - An optional AbortSignal to cancel the request.

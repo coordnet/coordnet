@@ -81,7 +81,7 @@ const ProfileCardManage = ({
     defaultValues: card
       ? {
           ...card,
-          author_profile: card?.author_profile?.id,
+          author_profile: card?.author_profile?.id ?? "",
           space_profile: card?.space_profile?.id ?? "",
         }
       : { draft: true, author_profile: !profile.draft ? profile.id : null, space_profile: null },
