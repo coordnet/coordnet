@@ -297,6 +297,12 @@ const Profile = ({ className }: { className?: string }) => {
               </div>
             )}
           </div>
+
+          <div className="max-w-[1200px] w-[90%] m-auto relative py-10 ">
+            <a href="https://www.coordination.network/welcome" target="_blank" rel="noreferrer">
+              <img src="/static/coordination-network-logo-bw.png" className="h-9 m-auto" />
+            </a>
+          </div>
         </>
       )}
       <Dialog open={profileCardManageOpen} onOpenChange={setProfileCardManageOpen}>

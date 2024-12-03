@@ -1,4 +1,3 @@
-import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import { ChevronsRight, Loader } from "lucide-react";
 import { useState } from "react";
@@ -23,8 +22,6 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
   const { logout, user, profile, isGuest, isLoading: userLoading } = useUser();
   const { space: currentSpace, nodes, breadcrumbs } = useSpace();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-
-  const userIcon = blockies.create({ seed: user?.profile }).toDataURL();
 
   return (
     <>
@@ -84,10 +81,10 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="size-9 p-0">
-                  {userLoading ? (
+                  {userLoading || !profile ? (
                     <Loader className="animate-spin size-4 text-neutral-500" />
                   ) : (
-                    <img src={userIcon} className="rounded-full size-4" />
+                    <img src={getProfileImage(profile)} className="rounded-full size-4" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
