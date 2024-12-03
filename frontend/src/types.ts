@@ -269,7 +269,7 @@ export const ProfileSchema = z.object({
     .max(255, "Username must be less than 255 characters")
     .regex(/^[a-z0-9-]+$/, "Username must be alphanumeric"),
   title: z.string().min(1, "Name is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.union([z.null(), z.string(), z.literal("")]),
   draft: z.boolean(),
   website: z.union([z.null(), z.literal(""), z.string().url("Website must be a valid URL")]),
   telegram_url: z.union([z.null(), z.literal(""), z.string().url("Telegram must be a valid URL")]),

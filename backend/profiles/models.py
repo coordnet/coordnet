@@ -62,7 +62,7 @@ class Profile(utils.models.BaseModel):
 
     profile_slug = models.SlugField(max_length=255, unique=True)
     title = models.CharField(max_length=512)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     draft = models.BooleanField(default=True)  # TODO: This is now supposed to be is_public instead.
 
     profile_image_original = models.ImageField(
