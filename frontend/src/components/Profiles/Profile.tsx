@@ -298,7 +298,7 @@ const Profile = ({ className }: { className?: string }) => {
             )}
           </div>
 
-          <div className="max-w-[1200px] w-[90%] m-auto relative py-10 ">
+          <div className="max-w-[1200px] w-[90%] m-auto relative py-10 z-20">
             <a
               href="https://www.coordination.network/welcome"
               target="_blank"
