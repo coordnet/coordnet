@@ -73,7 +73,7 @@ const ProfileCardExpanded = ({
         className={clsx("w-full h-[200px] bg-cover bg-center flex flex-col items-end rounded-t-lg")}
         style={{ backgroundImage: `url("${banner}")` }}
       >
-        {canEdit && (
+        {canEdit ? (
           <div className="flex gap-2 mr-4 mt-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -112,6 +112,15 @@ const ProfileCardExpanded = ({
               )}
             </Dialog>
           </div>
+        ) : (
+          Boolean(profile.id === user?.profile) && (
+            <Button
+              className="bg-red-500 h-9 hover:bg-red-600 !ring-offset-0 !ring-0 mr-4 mt-4"
+              onClick={() => onRemoveCard(card.id)}
+            >
+              Remove
+            </Button>
+          )
         )}
       </div>
       <div className="p-5 flex flex-col gap-3">
