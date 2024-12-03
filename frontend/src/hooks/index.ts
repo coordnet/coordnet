@@ -2,6 +2,7 @@ export { default as useFocus } from "./useFocus";
 export { default as useNode } from "./useNode";
 export { default as useQuickView } from "./useQuickView";
 export { default as useSpace } from "./useSpace";
+export { default as useWindowDrag } from "./useWindowDrag";
 
 export { FocusProvider } from "./useFocus/provider";
 export { NodeProvider } from "./useNode/provider";

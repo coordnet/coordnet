@@ -65,7 +65,8 @@ function Login() {
           const redirectUrl = new URL(window.location.origin + redirect);
           if (
             redirectUrl.pathname.startsWith("/spaces/") ||
-            redirectUrl.pathname.startsWith("/auth/")
+            redirectUrl.pathname.startsWith("/auth/") ||
+            redirectUrl.pathname.startsWith("/profiles/")
           ) {
             dest.pathname = redirectUrl.pathname;
             dest.search = redirectUrl.search;

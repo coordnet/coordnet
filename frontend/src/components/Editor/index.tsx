@@ -65,7 +65,7 @@ const Editor = ({ id, className }: EditorProps) => {
 
   useEffect(() => {
     if (user && editor && editor.commands.updateUser) {
-      const image = blockies.create({ seed: user?.email }).toDataURL();
+      const image = blockies.create({ seed: user?.profile }).toDataURL();
       const img = document.createElement("img");
       img.src = image;
       img.addEventListener("load", function () {

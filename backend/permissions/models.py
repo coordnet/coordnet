@@ -11,7 +11,6 @@ from permissions import managers
 
 T = typing.TypeVar("T", bound="MembershipModelMixin")
 
-
 try:
     from django_stubs_ext.db.models import TypedModelMeta
 except ImportError:
@@ -48,6 +47,8 @@ READ_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.VIEWER]
 WRITE_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER]
 ADMIN_ROLES = [RoleOptions.OWNER]
 
+# TODO: Add writer here for public_writable objects.
+#       (see: https://github.com/coordnet/coordnet/issues/310)
 ACTION_TO_ROLES: dict[Action, list[RoleOptions]] = {
     "read": READ_ROLES,
     "write": WRITE_ROLES,
@@ -163,30 +164,40 @@ class MembershipModelMixin(utils.typing.ModelBase):
         self.__user_roles_cache = value
         self.__fill_user_permissions_cache()
 
+    @staticmethod
+    def __get_user(
+        *, request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
+    ) -> "users.typing.AnyUserType":
+        if user:
+            return user
+        if request:
+            return request.user
+        raise ValueError("Either request or user must be provided.")
+
     def __fill_user_permissions_cache(self) -> None:
         if (user_roles := getattr(self, "user_roles", None)) is not None:
             for action, roles in ACTION_TO_ROLES.items():
                 self.__user_permissions_cache[action] = any(role in user_roles for role in roles)
 
     def get_allowed_actions_for_user(
-        self, request: "http.HttpRequest", use_cache: bool = True
+        self, *, user: "users.typing.AnyUserType", use_cache: bool = True
     ) -> list[Action]:
         """Return the roles that the user has for this object."""
         # If the user can see the object, they can read it.
         allowed_actions: list[Action] = ["read"]
 
-        if self.get_allowed_action_for_user(request, WRITE, use_cache=use_cache):
+        if self.get_allowed_action_for_user(user=user, action=WRITE, use_cache=use_cache):
             allowed_actions.extend(["write", "delete"])
-        if self.get_allowed_action_for_user(request, MANAGE, use_cache=use_cache):
+        if self.get_allowed_action_for_user(user=user, action=MANAGE, use_cache=use_cache):
             allowed_actions.append("manage")
         return allowed_actions
 
     def get_allowed_action_for_user(
-        self, request: "http.HttpRequest", action: Action, use_cache: bool = True
+        self, *, user: "users.typing.AnyUserType", action: Action, use_cache: bool = True
     ) -> bool:
         """Return whether the user is allowed to do that action."""
         permission_query = self.__permission_manager.filter(pk=self.pk).filter(
-            self.get_user_has_permission_filter(action, request.user)
+            self.get_user_has_permission_filter(action, user)
         )
         if not use_cache:
             return permission_query.exists()
@@ -218,7 +229,7 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user has read permissions for this object."""
-        return self.get_allowed_action_for_user(request, READ)
+        return self.get_allowed_action_for_user(user=request.user, action=READ)
 
     @staticmethod
     def has_write_permission(request: "http.HttpRequest") -> bool:
@@ -231,7 +242,15 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user has write permissions for this object."""
-        return self.get_allowed_action_for_user(request, WRITE)
+        return self.get_allowed_action_for_user(user=request.user, action=WRITE)
+
+    def has_object_manage_permission(
+        self, request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
+    ) -> bool:
+        """Return True if the user has manage permissions for this object."""
+        return self.get_allowed_action_for_user(
+            user=self.__get_user(request=request, user=user), action=MANAGE
+        )
 
     @staticmethod
     @dry_rest_permissions.generics.authenticated_users

@@ -72,22 +72,22 @@ class MembershipModelMixinTestCase(BaseTestCase):
         """Test that the object read permission is True for every user if the object is public."""
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
+                user=self.owner_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
+                user=self.member_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.READ, use_cache=False
             )
         )
 
@@ -96,22 +96,22 @@ class MembershipModelMixinTestCase(BaseTestCase):
 
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
+                user=self.owner_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
+                user=self.member_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.READ, use_cache=False
             )
         )
 
@@ -129,22 +129,22 @@ class MembershipModelMixinTestCase(BaseTestCase):
         """
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+                user=self.owner_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
+                user=self.member_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
 
@@ -153,22 +153,22 @@ class MembershipModelMixinTestCase(BaseTestCase):
 
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+                user=self.owner_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
+                user=self.member_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
 
@@ -177,22 +177,22 @@ class MembershipModelMixinTestCase(BaseTestCase):
 
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+                user=self.owner_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
+                user=self.member_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertTrue(
             self.anonymous_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
 
@@ -200,43 +200,43 @@ class MembershipModelMixinTestCase(BaseTestCase):
         """Test that the object read and write permissions are True for the owner."""
         self.assertFalse(
             self.owner_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertTrue(
             self.owner_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
+                user=self.owner_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.owner_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
+                user=self.member_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.owner_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.READ, use_cache=False
             )
         )
 
         self.assertFalse(
             self.owner_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertTrue(
             self.owner_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+                user=self.owner_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.owner_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
+                user=self.member_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.owner_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
 
@@ -244,43 +244,43 @@ class MembershipModelMixinTestCase(BaseTestCase):
         """Test that the object read and write permissions are True for the member."""
         self.assertFalse(
             self.member_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.member_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
+                user=self.owner_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertTrue(
             self.member_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
+                user=self.member_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.member_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.READ, use_cache=False
             )
         )
 
         self.assertFalse(
             self.member_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.member_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+                user=self.owner_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertTrue(
             self.member_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
+                user=self.member_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.member_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
 
@@ -288,43 +288,43 @@ class MembershipModelMixinTestCase(BaseTestCase):
         """Test that the object read permission is True for the viewer."""
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.READ, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.READ, use_cache=False
+                user=self.owner_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.READ, use_cache=False
+                user=self.member_request.user, action=permissions.models.READ, use_cache=False
             )
         )
         self.assertTrue(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.READ, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.READ, use_cache=False
             )
         )
 
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.anonymous_request, action=permissions.models.WRITE, use_cache=False
+                user=self.anonymous_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.owner_request, action=permissions.models.WRITE, use_cache=False
+                user=self.owner_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.member_request, action=permissions.models.WRITE, use_cache=False
+                user=self.member_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
         self.assertFalse(
             self.viewer_space.get_allowed_action_for_user(
-                request=self.viewer_request, action=permissions.models.WRITE, use_cache=False
+                user=self.viewer_request.user, action=permissions.models.WRITE, use_cache=False
             )
         )
 

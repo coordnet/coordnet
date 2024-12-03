@@ -44,7 +44,7 @@ class NodeDetailSerializer(NodeListSerializer):
         return fields
 
     def get_allowed_actions(self, obj: AnnotatedNode) -> list[permissions.models.Action]:
-        return obj.space.get_allowed_actions_for_user(self.context["request"])
+        return obj.space.get_allowed_actions_for_user(user=self.context["request"].user)
 
 
 class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
@@ -96,7 +96,7 @@ class SpaceSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Space
     allowed_actions = serializers.SerializerMethodField()
 
     def get_allowed_actions(self, obj: models.Space) -> list[permissions.models.Action]:
-        return obj.get_allowed_actions_for_user(self.context["request"])
+        return obj.get_allowed_actions_for_user(user=self.context["request"].user)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.Space

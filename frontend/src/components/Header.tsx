@@ -15,15 +15,16 @@ import { useSpace } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { cleanNodeTitle } from "@/lib/nodes";
 
+import { getProfileImage } from "./Profiles/utils";
 import SpaceSidebar from "./Spaces/Sidebar";
 import { Button } from "./ui/button";
 
 const Header = ({ id, className }: { id: string; className?: string }) => {
-  const { logout, user, isGuest, isLoading: userLoading } = useUser();
+  const { logout, user, profile, isGuest, isLoading: userLoading } = useUser();
   const { space: currentSpace, nodes, breadcrumbs } = useSpace();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  const userIcon = blockies.create({ seed: user?.email }).toDataURL();
+  const userIcon = blockies.create({ seed: user?.profile }).toDataURL();
 
   return (
     <>
@@ -91,6 +92,17 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
+                {profile && (
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Link
+                      to={`/profiles/${profile?.profile_slug}`}
+                      className="text-black w-full font-normal hover:text-black flex items-center"
+                    >
+                      <img src={getProfileImage(profile)} className="rounded-full size-4 mr-2" />
+                      Your Profile
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="cursor-pointer" onClick={logout}>
                   Log out
                 </DropdownMenuItem>

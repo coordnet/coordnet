@@ -18,6 +18,7 @@ import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import Signup from "./auth/Signup";
 import VerifyEmail from "./auth/VerifyEmail";
+import { Profile } from "./components";
 import ErrorPage from "./components/ErrorPage";
 import Dashboard from "./Dashboard";
 
@@ -54,6 +55,11 @@ export const router = createBrowserRouter([
   {
     path: "/space/:spaceId/:pageId?",
     element: <SpaceRedirect />,
+  },
+  {
+    path: "/profiles/:username",
+    element: <Profile />,
+    errorElement: <ErrorPage />,
   },
   {
     path: "/auth/login",

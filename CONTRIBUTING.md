@@ -34,3 +34,4 @@ Scopes should be used to add further detail to area of the project that is being
 - **ui**
 - **web3**
 - **crdt**
+- **profiles**
