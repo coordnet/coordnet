@@ -167,9 +167,9 @@ cffi==1.17.1 \
     --hash=sha256:f7f5baafcc48261359e14bcd6d9bff6d4b28d9103847c9e136694cb0501aef87 \
     --hash=sha256:fc48c783f9c87e60831201f2cce7f3b2e4846bf4d8728eabe54d60700b318a0b
     # via argon2-cffi-bindings
-channels==4.1.0 \
-    --hash=sha256:a3c4419307f582c3f71d67bfb6eff748ae819c2f360b9b141694d84f242baa48 \
-    --hash=sha256:e0ed375719f5c1851861f05ed4ce78b0166f9245ca0ecd836cb77d4bb531489d
+channels==4.2.0 \
+    --hash=sha256:6b75bc8d6888fb7236e7e7bf1948520b72d296ad08216a242fc56b1db0ffde1a \
+    --hash=sha256:d9e707487431ba5dbce9af982970dab3b0efd786580fadb99e45dca5e39fdd59
     # via -r requirements/base.in
 charset-normalizer==3.4.0 \
     --hash=sha256:0099d79bdfcf5c1f0c2c72f91516702ebf8b0b8ddd8905f97a8aecf49712c621 \
