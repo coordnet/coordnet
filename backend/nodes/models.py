@@ -33,6 +33,12 @@ class DocumentType(models.TextChoices):
     EDITOR = "EDITOR", "Editor"
     SPACE = "SPACE", "Space"
     GRAPH = "GRAPH", "Graph"
+    METHOD_GRAPH = "METHOD_GRAPH", "Method Graph"
+
+
+class NodeType(models.TextChoices):
+    METHOD = "METHOD", "Method"
+    DEFAULT = "DEFAULT", "Default"
 
 
 def prefix_field(field: str, prefix: str | None = None) -> str:
@@ -70,19 +76,33 @@ class Node(utils.models.SoftDeletableBaseModel):
 
     title = models.TextField(null=True, default=None)
     title_token_count = models.PositiveIntegerField(null=True)
+
+    description = models.TextField(null=True, default=None)
+    description_token_count = models.PositiveIntegerField(null=True)
+
     content = models.JSONField(null=True)
+
     text = models.TextField(null=True, default=None)
     text_token_count = models.PositiveIntegerField(null=True)
+
+    node_type = models.CharField(max_length=255, choices=NodeType.choices, default=NodeType.DEFAULT)
+
     subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
+
+    creator = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, blank=True)
+    authors = models.ManyToManyField("users.User", related_name="nodes", blank=True)
+
     space = models.ForeignKey(
         "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="nodes"
     )
+
     editor_document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_editor"
     )
     graph_document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_graph"
     )
+
     search_vector = pg_search.SearchVectorField(editable=False, null=True)
 
     tracker = model_utils.FieldTracker()
@@ -251,6 +271,11 @@ class Node(utils.models.SoftDeletableBaseModel):
         if self.tracker.has_changed("title") and self.__is_updated(update_fields, "title"):
             self.title_token_count = tokens.token_count(self.title)
             add_to_update_fields.append("title_token_count")
+        if self.tracker.has_changed("description") and self.__is_updated(
+            update_fields, "description"
+        ):
+            self.description_token_count = tokens.token_count(self.description)
+            add_to_update_fields.append("description_token_count")
 
         update_fields = self.__add_to_update_fields(update_fields, *add_to_update_fields)
 
@@ -260,9 +285,15 @@ class Node(utils.models.SoftDeletableBaseModel):
         """Return a string representation of the node."""
         single_line_title = self.title.replace("\n", " ").replace("\r", " ") if self.title else ""
         single_line_text = self.text.replace("\n", " ").replace("\r", " ") if self.text else ""
+        single_line_description = (
+            self.description.replace("\n", " ").replace("\r", " ") if self.description else ""
+        )
         node_str = f"({str(self.public_id)})\n - Title: {single_line_title}"
         if include_content:
-            node_str += f"\n - Content: {single_line_text}"
+            if single_line_text:
+                node_str += f"\n - Content: {single_line_text}"
+            if single_line_description:
+                node_str += f"\n - Description: {single_line_description}"
         if include_connections:
             if subnode_ids := self.subnodes.values_list("public_id", flat=True):
                 node_str += f"\n - Connects to: {', '.join(map(str, subnode_ids))}"

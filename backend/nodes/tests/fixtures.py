@@ -9,6 +9,7 @@ EDITOR_WITHOUT_NODES = {
         ],
     }
 }
+
 EDITOR_WITH_NODES = {
     "default": {
         "type": "doc",
@@ -28,6 +29,7 @@ EDITOR_WITH_NODES = {
         ],
     }
 }
+
 SPACE = {
     "nodes": {
         "e5750bb8-15ca-4029-8ad5-5a19af3291c1": {
@@ -49,6 +51,7 @@ SPACE = {
     },
     "deletedNodes": [],
 }
+
 GRAPH: dict[str, dict] = {
     "edges": {},
     "nodes": {
