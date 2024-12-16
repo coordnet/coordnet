@@ -711,9 +711,9 @@ kombu==5.4.2 \
     --hash=sha256:14212f5ccf022fc0a70453bb025a1dcc32782a588c49ea866884047d66e14763 \
     --hash=sha256:eef572dd2fd9fc614b37580e3caeafdd5af46c1eff31e7fba89138cdb406f2cf
     # via celery
-openai==1.57.2 \
-    --hash=sha256:5f49fd0f38e9f2131cda7deb45dafdd1aee4f52a637e190ce0ecf40147ce8cee \
-    --hash=sha256:f7326283c156fdee875746e7e54d36959fb198eadc683952ee05e3302fbd638d
+openai==1.57.4 \
+    --hash=sha256:7def1ab2d52f196357ce31b9cfcf4181529ce00838286426bb35be81c035dafb \
+    --hash=sha256:a8f071a3e9198e2818f63aade68e759417b9f62c0971bdb83de82504b70b77f7
     # via
     #   -r requirements/base.in
     #   sentry-sdk
