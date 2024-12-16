@@ -32,7 +32,7 @@ django-rest-knox==5.0.2  # https://github.com/jazzband/django-rest-knox
 # DRF Password Reset for password reset functionality
 django-rest-passwordreset==1.5.0  # https://github.com/anexia-it/django-rest-passwordreset
 # Django PG trigger for database triggers
-django-pgtrigger==4.13.2  # https://github.com/Opus10/django-pgtrigger
+django-pgtrigger==4.13.3  # https://github.com/Opus10/django-pgtrigger
 # Django-Channels
 channels==4.1.0  # https://github.com/django/channels
 # Async DRF endpoints
