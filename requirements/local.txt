@@ -1056,9 +1056,9 @@ nodeenv==1.9.1 \
     --hash=sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f \
     --hash=sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9
     # via pre-commit
-openai==1.57.4 \
-    --hash=sha256:7def1ab2d52f196357ce31b9cfcf4181529ce00838286426bb35be81c035dafb \
-    --hash=sha256:a8f071a3e9198e2818f63aade68e759417b9f62c0971bdb83de82504b70b77f7
+openai==1.58.1 \
+    --hash=sha256:e2910b1170a6b7f88ef491ac3a42c387f08bd3db533411f7ee391d166571d63c \
+    --hash=sha256:f5a035fd01e141fc743f4b0e02c41ca49be8fab0866d3b67f5f29b4f4d3c0973
     # via -r requirements/base.in
 packaging==24.2 \
     --hash=sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759 \
@@ -1795,9 +1795,9 @@ urllib3==2.2.3 \
     #   botocore
     #   requests
     #   types-requests
-uvicorn[standard]==0.32.1 \
-    --hash=sha256:82ad92fd58da0d12af7482ecdb5f2470a04c9c9a53ced65b9bbb4a205377602e \
-    --hash=sha256:ee9519c246a72b1c084cea8d3b44ed6026e78a4a309cbedae9c37e4cb9fbb175
+uvicorn[standard]==0.34.0 \
+    --hash=sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4 \
+    --hash=sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9
     # via
     #   -r requirements/base.in
     #   sphinx-autobuild
