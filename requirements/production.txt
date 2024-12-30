@@ -4,9 +4,9 @@
 #
 #    pip-compile --generate-hashes requirements/production.in
 #
-adrf==0.1.8 \
-    --hash=sha256:18844630dd9272c38cc3f761fce6bfb50f91c4f84dadf99846f86d4527f19c7f \
-    --hash=sha256:3032b987085d75cfd59eb3d4dcd7138fc20085de1782b065603559ccec69531f
+adrf==0.1.9 \
+    --hash=sha256:e2f59fd84960a564b0385d9201c55531a30c6118eb40c86c5356c077f279af23 \
+    --hash=sha256:fd6c45df908e042c91571fdcff1ea54180c871ec18659b639cf3217d67ce97d5
     # via -r requirements/base.in
 amqp==5.3.1 \
     --hash=sha256:43b3319e1b4e7d1251833a93d672b4af1e40f3d632d479b98661a95f117880a2 \
