@@ -108,6 +108,9 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
+    "prettier-plugin-classnames": "^0.7.5",
+    "prettier-plugin-merge": "^0.7.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0",
@@ -118,9 +121,6 @@
     "overrides": {
       "cross-spawn": "7.0.5"
     }
-  },
-  "prettier": {
-    "printWidth": 100
   },
   "packageManager": "pnpm@9.15.3"
 }

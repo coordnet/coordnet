@@ -35,14 +35,14 @@ export default function ErrorPage({
       subTitle: "There was an error in a request to the Coordination Network API",
       message: `${parsedError.name}: ${parsedError.message}`,
     },
+    ERR_NOT_FOUND: {
+      title: "404: Not Found",
+      subTitle: "The requested resource could not be found",
+      message: `${parsedError.data}`,
+    },
     ERR_PERMISSION_DENIED: {
       title: "Permissions Error",
       subTitle: "You do not have permission to access this resource",
-      message: `${parsedError.name}: ${parsedError.message}`,
-    },
-    ERR_NOT_FOUND: {
-      title: "404 - Not Found",
-      subTitle: "The resource you are looking for could not be found",
       message: `${parsedError.name}: ${parsedError.message}`,
     },
     NO_SPACES: {
@@ -72,7 +72,10 @@ export default function ErrorPage({
     },
   };
 
-  const errorCode = parsedError.code ?? "default";
+  let errorCode = parsedError.code ?? "default";
+  if (errorCode === "default" && parsedError.status && parsedError.status === 404) {
+    errorCode = "ERR_NOT_FOUND";
+  }
   const { title, subTitle, message } = errorCodes[errorCode] || errorCodes.default;
 
   return (

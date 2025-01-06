@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor as useEditorTipTap } from "@tiptap/react";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import ColorThief from "colorthief";
@@ -12,10 +12,9 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useFocus, useSpace } from "@/hooks";
-import useNode from "@/hooks/useNode";
-import useUser from "@/hooks/useUser";
+import { useEditor, useFocus, useUser } from "@/hooks";
 import { rgbToHex } from "@/lib/utils";
+import { BackendEntityType } from "@/types";
 
 import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
@@ -28,8 +27,7 @@ const colorThief = new ColorThief();
 type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
-  const { space } = useSpace();
-  const { editorError, editorSynced, editorYdoc, editorProvider } = useNode();
+  const { parent, error, synced, yDoc, provider } = useEditor();
   const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
 
@@ -46,22 +44,24 @@ const Editor = ({ id, className }: EditorProps) => {
     retry: false,
   });
 
-  const editor = useEditor(
+  const field = parent.type === BackendEntityType.SPACE ? "default" : `${id}-document`;
+
+  const editor = useEditorTipTap(
     {
       immediatelyRender: false,
-      extensions: loadExtensions(editorProvider, editorYdoc),
+      extensions: loadExtensions(provider, yDoc, field),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: Boolean(space?.allowed_actions.includes("write")),
+      editable: Boolean(parent.data?.allowed_actions.includes("write")),
     },
-    [id, space?.allowed_actions, editorSynced],
+    [id, parent.data?.allowed_actions, synced],
   );
 
   useEffect(() => {
-    if (!editor || !editorSynced || !editorYdoc) return;
+    if (!editor || !synced || !yDoc) return;
     // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
     setEditor(editor);
-  }, [editor, editorSynced, editorYdoc, setEditor]);
+  }, [editor, synced, yDoc, setEditor]);
 
   useEffect(() => {
     if (user && editor && editor.commands.updateUser) {
@@ -83,8 +83,8 @@ const Editor = ({ id, className }: EditorProps) => {
 
   return (
     <div className={clsx("border-gray-300 border-l overflow-hidden flex flex-col", className)}>
-      {editorError && <ErrorPage error={editorError} className="absolute z-40 bg-white" />}
-      {!editorSynced && <Loader message="Loading editor..." className="absolute z-30" />}
+      {error && <ErrorPage error={error} className="absolute z-40 bg-white" />}
+      {!synced && <Loader message="Loading editor..." className="absolute z-30" />}
       <div className="p-3 font-medium text-lg mr-24">
         <EditableNode id={id} className="w-full" />
       </div>

@@ -7,7 +7,7 @@ import { buddyModels } from "./constants";
 
 // https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
 export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>,
+  obj: Record<K, unknown>
 ): z.ZodEnum<[K, ...K[]]> => {
   const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
   return z.enum([firstKey, ...otherKeys]);
@@ -112,6 +112,9 @@ export const BackendNodeDetailSchema = BackendNodeSchema.extend({
 
 export type BackendNodeDetail = z.infer<typeof BackendNodeDetailSchema>;
 
+// TODO: Define types for methods
+export type BackendMethodDetail = Space;
+
 export const NodeSearchResultSchema = z.object({
   id: z.string(),
   space: z.string(),
@@ -160,6 +163,7 @@ export interface NodeVersion {
 export enum NodeType {
   Default = "default",
   Loop = "loop",
+  Input = "input",
   Output = "output",
   Prompt = "prompt",
   ResponseCombined = "response_combined",
@@ -172,6 +176,7 @@ export enum NodeType {
 export const nodeTypeMap = {
   [NodeType.Default]: "Default",
   [NodeType.Loop]: "Loop",
+  [NodeType.Input]: "Input",
   [NodeType.Output]: "Output",
   [NodeType.Prompt]: "Prompt",
   [NodeType.ResponseCombined]: "Response (combined)",
@@ -245,7 +250,7 @@ export const ProfileCardFormSchema = ProfileCardSchema.pick({
   z.object({
     author_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
     space_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
-  }),
+  })
 );
 export type ProfileCardForm = z.infer<typeof ProfileCardFormSchema>;
 
@@ -299,3 +304,33 @@ export const ProfileFormSchema = ProfileSchema.pick({
   members: z.array(z.string().uuid()),
 });
 export type ProfileForm = z.infer<typeof ProfileFormSchema>;
+
+// Types for the canvas or editor parent which can be a node or a method
+export enum BackendEntityType {
+  METHOD = "method",
+  SPACE = "space",
+}
+
+// export type BackendParent = {
+//   id: string;
+//   type: BackendEntityType;
+//   data?: BackendNodeDetail | BackendMethodDetail | Space;
+//   error: Error | null;
+//   isLoading: boolean;
+// };
+
+export type BackendParent =
+  | {
+      id: string;
+      type: BackendEntityType.METHOD;
+      data?: BackendMethodDetail;
+      error: Error | null;
+      isLoading: boolean;
+    }
+  | {
+      id: string;
+      type: BackendEntityType.SPACE;
+      data?: Space;
+      error: Error | null;
+      isLoading: boolean;
+    };

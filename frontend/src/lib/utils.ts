@@ -87,7 +87,7 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
 
 export const createConnectedYDoc = async (
   name: string,
-  token: string,
+  token: string
 ): Promise<[Y.Doc, HocuspocusProvider]> => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return new Promise((resolve, _reject) => {
@@ -150,4 +150,36 @@ export const dataURItoBlob = (dataURI: string): Blob => {
 
   // Write the ArrayBuffer to a Blob and return it
   return new Blob([ab], { type: mimeString });
+};
+
+export const getHocuspocusYdoc = async (
+  name: string,
+  document: Y.Doc,
+  token: string
+): Promise<Y.Doc> => {
+  return new Promise((resolve, reject) => {
+    const provider = new HocuspocusProvider({
+      url: crdtUrl,
+      name,
+      document,
+      token,
+      preserveConnection: false,
+      onAuthenticationFailed(data) {
+        reject(
+          new CustomError({
+            code: "ERR_PERMISSION_DENIED",
+            name: "Space Websocket Authentication Failed",
+            message: data.reason,
+          })
+        );
+      },
+      onSynced() {
+        if (provider.isSynced) {
+          // Close the connection once the document is synced
+          provider.disconnect();
+          resolve(document);
+        }
+      },
+    });
+  });
 };

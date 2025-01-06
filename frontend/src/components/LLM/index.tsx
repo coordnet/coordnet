@@ -4,7 +4,7 @@ import clsx from "clsx";
 import DOMPurify from "dompurify";
 import { Bot, GripIcon, Plus, SendHorizonal, Settings2, StopCircle, X } from "lucide-react";
 import { marked } from "marked";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { Tooltip } from "react-tooltip";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import { useDebounceValue } from "usehooks-ts";
 
 import { getLLMTokenCount } from "@/api";
 import { websocketUrl } from "@/constants";
-import { useFocus, useSpace } from "@/hooks";
+import { useFocus, useNodesContext } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
 import useUser from "@/hooks/useUser";
 import { readOnlyEditor } from "@/lib/readOnlyEditor";
@@ -44,7 +44,7 @@ const getTokenCountForDepth = (tokenCount: LLMTokenCount, depth: string | number
 };
 
 const LLM = ({ id }: { id: string }) => {
-  const { nodesMap: spaceNodesMap } = useSpace();
+  const { nodesMap: spaceNodesMap } = useNodesContext();
   const { buddy, buddyId } = useBuddy();
   const { isGuest } = useUser();
   const { position, dragItem, handleDragStart } = usePosition(WIDTH);
@@ -110,7 +110,8 @@ const LLM = ({ id }: { id: string }) => {
 
   const { data: tokenCount, isLoading: isTokenCountLoading } = useQuery({
     queryKey: ["token_count", buddyId, debouncedInput, queryNodes, depth],
-    queryFn: ({ signal }) => getLLMTokenCount(buddyId, debouncedInput, queryNodes, depth, signal),
+    queryFn: ({ signal }: { signal: AbortSignal }) =>
+      getLLMTokenCount(buddyId, debouncedInput, queryNodes, depth, signal),
     enabled: Boolean(buddyId && id),
     initialData: {},
   });
@@ -254,8 +255,8 @@ const LLM = ({ id }: { id: string }) => {
             <div className="rounded border border-gray-6 bg-white p-1 flex items-center shadow-md">
               <TextareaAutosize
                 autoFocus
-                onChange={(e) => setInput(e.target?.value)}
-                onKeyDown={(e) => {
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInput(e.target?.value)}
+                onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
                   if (e.key == "Enter" && e.shiftKey == false) {
                     e.preventDefault();
                     onSubmit();

@@ -6,6 +6,7 @@ import { apiUrl } from "./constants";
 import { CustomError, dataURItoBlob } from "./lib/utils";
 import {
   ApiError,
+  BackendMethodDetail,
   BackendNode,
   BackendNodeDetail,
   Buddy,
@@ -166,6 +167,18 @@ export const deletePermission = async (
     return response.data;
   }
   return [];
+};
+
+export const getMethod = async (
+  signal: AbortSignal | undefined,
+  id?: string,
+): Promise<BackendMethodDetail> => {
+  // TEMP: Hardcoded ID for testing
+  id = "736d889b-a8ed-44f8-bfc9-3fa25bdc2106";
+  const response = await api.get(`api/nodes/spaces/${id}/`, { signal });
+  response.data.id = "ce23aab9-005f-4f88-b4e7-49ad1c45f089";
+  response.data.title = "Test Method";
+  return response.data;
 };
 
 export const getNode = async (

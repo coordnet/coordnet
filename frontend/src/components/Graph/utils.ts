@@ -15,7 +15,14 @@ import {
 import { readPdf } from "@/lib/pdfjs";
 import { extensions } from "@/lib/readOnlyEditor";
 import { createConnectedYDoc } from "@/lib/utils";
-import { ExportNode, GraphEdge, GraphNode, Space, SpaceNode } from "@/types";
+import {
+  BackendEntityType,
+  BackendParent,
+  ExportNode,
+  GraphEdge,
+  GraphNode,
+  SpaceNode,
+} from "@/types";
 
 import { SingleNode } from "./tasks/types";
 
@@ -40,7 +47,7 @@ export const createConnectedGraph = async (spaceId: string, graphId: string) => 
 export const handleGraphDrop = async (
   dataTransfer: React.DragEvent<Element>["dataTransfer"],
   takeSnapshot: () => void,
-  space: Space,
+  parent: BackendParent,
   nodesMap: Y.Map<GraphNode>,
   spaceMap: Y.Map<SpaceNode>,
   position: XYPosition,
@@ -59,7 +66,8 @@ export const handleGraphDrop = async (
         const { title, content, data, nodes } = importNode;
         takeSnapshot();
         const id = await addNodeToGraph(nodesMap, spaceMap, title, position, content, data);
-        if (nodes.length) await importNodeCanvas(space?.id, id, importNode);
+        if (nodes.length && parent.type === BackendEntityType.SPACE && parent.data)
+          await importNodeCanvas(parent.data.id, id, importNode);
       } catch (e) {
         console.log("Error importing node", e);
         toast.error("Error importing node");

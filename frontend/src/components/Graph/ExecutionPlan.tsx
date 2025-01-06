@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useSpace } from "@/hooks";
+import { useNodesContext } from "@/hooks";
 
 import { ExecutionPlan } from "./tasks/types";
 import { useRunCanvas } from "./tasks/useRunCanvas";
@@ -10,7 +10,7 @@ import { useRunCanvas } from "./tasks/useRunCanvas";
 const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
   const { prepareExecutionPlan } = useRunCanvas();
   const [executionPlan, setExecutionPlan] = useState<ExecutionPlan | null>(null);
-  const { nodesMap } = useSpace();
+  const { nodesMap } = useNodesContext();
 
   useEffect(() => {
     const fetchExecutionPlan = async () => {

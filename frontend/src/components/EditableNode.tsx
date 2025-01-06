@@ -4,7 +4,7 @@ import { FocusEventHandler, forwardRef, useCallback, useEffect, useRef, useState
 import { mergeRefs } from "react-merge-refs";
 
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
-import useSpace from "@/hooks/useSpace";
+import { useNodesContext } from "@/hooks";
 
 interface EditableNodeProps {
   id: string;
@@ -16,7 +16,7 @@ interface EditableNodeProps {
 
 const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
   ({ id, contentEditable = true, className = "", onFocus, onBlur, ...props }, ref) => {
-    const { nodes, nodesMap, scope } = useSpace();
+    const { nodes, nodesMap, scope } = useNodesContext();
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const inputRef = useRef<HTMLDivElement>(null);
