@@ -216,12 +216,14 @@ const dataRowToTableRow = (rowData: Record<string, string>, columnKeys: string[]
       content: [
         {
           type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: cellText,
-            },
-          ],
+          content: cellText
+            ? [
+                {
+                  type: "text",
+                  text: cellText,
+                },
+              ]
+            : [],
         },
       ],
     };

@@ -21,7 +21,7 @@ interface ImageUploaderProps {
     borderRadius: number;
   };
   isDragging: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   className?: string;
 }
 
