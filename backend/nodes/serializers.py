@@ -126,6 +126,13 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNode
         read_only_fields = ["node_type"]
+        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
+            "content",
+            "text",
+            "graph_document",
+            "editor_document",
+            "forked_from",
+        ]
 
     def create(self, validated_data):
         user = self.context["request"].user

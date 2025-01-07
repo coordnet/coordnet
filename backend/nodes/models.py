@@ -75,18 +75,7 @@ class DocumentEvent(models.Model):
         return f"{self.public_id} - {self.action.title()}"
 
 
-class Node(utils.models.SoftDeletableBaseModel):
-    """
-    A node in the graph.
-
-    Note:
-        The fields `title_token_count` and `text_token_count` are updated automatically when the
-        `title` and `text` fields are changed.
-        The field `text` is updated automatically when the `content` field is changed.
-        These fields are considered read-only / automatically managed and should not be updated
-        directly. The `save` method is overridden to handle these updates.
-    """
-
+class BaseNode(utils.models.SoftDeletableBaseModel):
     title = models.TextField(null=True, default=None)
     title_token_count = models.PositiveIntegerField(null=True)
 
@@ -100,10 +89,14 @@ class Node(utils.models.SoftDeletableBaseModel):
 
     node_type = models.CharField(max_length=255, choices=NodeType.choices, default=NodeType.DEFAULT)
 
-    subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
-
-    creator = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, blank=True)
-    authors = models.ManyToManyField("users.User", related_name="nodes", blank=True)
+    creator = models.ForeignKey(
+        "users.User",
+        related_name="creator_%(class)ss",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    authors = models.ManyToManyField("users.User", related_name="author_%(class)ss", blank=True)
 
     image_original = models.ImageField(
         upload_to=unique_node_image_filename,
@@ -137,17 +130,39 @@ class Node(utils.models.SoftDeletableBaseModel):
     )
 
     space = models.ForeignKey(
-        "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="nodes"
+        "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="%(class)ss"
     )
 
     editor_document = models.OneToOneField(
-        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_editor"
+        "Document",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_editor",
     )
     graph_document = models.OneToOneField(
-        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_graph"
+        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="%(class)s_graph"
     )
 
     search_vector = pg_search.SearchVectorField(editable=False, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class Node(BaseNode):
+    """
+    A node in the graph.
+
+    Note:
+        The fields `title_token_count` and `text_token_count` are updated automatically when the
+        `title` and `text` fields are changed.
+        The field `text` is updated automatically when the `content` field is changed.
+        These fields are considered read-only / automatically managed and should not be updated
+        directly. The `save` method is overridden to handle these updates.
+    """
+
+    subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
 
     tracker = model_utils.FieldTracker()
 
@@ -463,6 +478,10 @@ class Node(utils.models.SoftDeletableBaseModel):
 
 
 class MethodNode(permissions.models.MembershipModelMixin, Node):
+    forked_from = models.ForeignKey(
+        "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True
+    )
+
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init__(*args, **kwargs)
 
@@ -902,3 +921,19 @@ class Document(models.Model):
         # happen before the corresponding object is created.
         # No permissions apply.
         return False
+
+
+class MethodNodeVersion(BaseNode):
+    method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="versions")
+    version = models.PositiveSmallIntegerField()
+    document_version = models.ForeignKey(
+        "DocumentVersion", on_delete=models.CASCADE, related_name="method_versions"
+    )
+
+    def __str__(self) -> str:
+        return f"{self.method.public_id} - {self.created_at}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["method", "version"], name="unique_method_version")
+        ]
