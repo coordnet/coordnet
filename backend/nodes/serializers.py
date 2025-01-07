@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 import permissions.models
+import permissions.utils
 import utils.serializers
 from nodes import models
 
@@ -118,3 +119,34 @@ class DocumentVersionSerializer(
             "data",
             "json_hash",
         ]
+
+
+class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
+    class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
+        model = models.MethodNode
+        read_only_fields = ["node_type"]
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        validated_data["creator"] = user
+        validated_data["authors"] = [user]
+
+        obj = super().create(validated_data)
+
+        # Create corresponding permissions for the creator.
+        obj.members.create(user=user, role=permissions.utils.get_owner_role())
+
+        return obj
+
+
+class MethodNodeDetailSerializer(MethodNodeListSerializer):
+    def get_fields(self):
+        fields = super().get_fields()
+        if self.context.get("request") and self.context["request"].query_params.get(
+            "show_permissions"
+        ):
+            fields["allowed_actions"] = serializers.SerializerMethodField()
+        return fields
+
+    def get_allowed_actions(self, obj: models.MethodNode) -> list[permissions.models.Action]:
+        return obj.get_allowed_actions_for_user(user=self.context["request"].user)

@@ -14,7 +14,9 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 import nodes.utils
+import permissions.managers
 import permissions.models
+import permissions.utils
 import utils.models
 from utils import tokens
 
@@ -416,6 +418,160 @@ class Node(utils.models.SoftDeletableBaseModel):
                 ),
             )
         ]
+
+
+class MethodNode(permissions.models.MembershipModelMixin, Node):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        super().__init__(*args, **kwargs)
+
+    def save(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        self.node_type = NodeType.METHOD
+        super().save(*args, **kwargs)
+
+    class Meta(Node.Meta):
+        indexes = []
+
+    # These are normally part of MembershipBaseModel, but that clashed with the non-abstract
+    # inheritance from the Node model.
+    objects: "permissions.managers.SoftDeletableMembershipModelUnfilteredManager[permissions.models.MembershipBaseModel]" = (  # noqa: E501
+        permissions.managers.SoftDeletableMembershipModelUnfilteredManager()
+    )
+    available_objects: "permissions.managers.SoftDeletableMembershipModelManager[permissions.models.MembershipBaseModel]" = (  # noqa: E501
+        permissions.managers.SoftDeletableMembershipModelManager()
+    )
+    all_objects: (
+        "permissions.managers.MembershipModelQueryManager[permissions.models.MembershipBaseModel]"
+    ) = permissions.managers.MembershipModelQueryManager()
+
+    @property
+    def __permission_manager(self) -> models.Manager:
+        return self.__class__.available_objects
+
+    @staticmethod
+    def get_user_has_permission_filter(
+        action: permissions.models.Action,
+        user: "user_typing.AnyUserType | None" = None,
+        prefix: str | None = None,
+    ) -> Q:
+        """
+        Return a Q object that filters whether the user has permission to do <action> on this
+        object.
+        Note: We're not filtering out whether the object itself is deleted, this should be done
+              before calling this method, but we're checking whether memberships are deleted.
+              Roles are not soft-deletable, so those aren't checked either.
+        """
+        user = user or AnonymousUser()
+
+        def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
+            return Q(
+                **{
+                    prefix_field("members__user", prefix): user,
+                    prefix_field("members__role__role__in", prefix): roles,
+                }
+            )
+
+        if action == permissions.models.READ:
+            queryset_filters = Q(**{prefix_field("is_public", prefix): True})
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions.models.READ_ROLES)
+            return queryset_filters
+        if action in (permissions.models.WRITE, permissions.models.DELETE):
+            queryset_filters = Q(
+                **{
+                    prefix_field("is_public", prefix): True,
+                    prefix_field("is_public_writable", prefix): True,
+                }
+            )
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
+            return queryset_filters
+        if action == permissions.models.MANAGE:
+            if user.is_authenticated:
+                return permissions_for_role(permissions.models.ADMIN_ROLES)
+            return Q(pk=None)  # That is a false statement, so it will return False.
+
+        raise ValueError("Invalid action type.")
+
+    @staticmethod
+    def get_role_annotation_query(user: "user_typing.AnyUserType") -> Coalesce | models.Case:
+        # TODO: This can probably be simplified more, since the roles for methods are much simpler,
+        #       and there are no parents to consider.
+        public_subquery = models.Case(
+            models.When(
+                Q(is_public=True, is_public_writable=True, is_removed=False),
+                then=models.Value(
+                    ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                ),
+            ),
+            models.When(
+                Q(is_public=True, is_removed=False),
+                then=models.Value(["viewer"], output_field=ArrayField(models.CharField())),
+            ),
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+        if not user.is_authenticated:
+            return public_subquery
+
+        method_public_subquery = MethodNode.objects.filter(
+            pk=models.OuterRef("object_id"), is_removed=False, is_public=True
+        )
+        method_public_writable_subquery = MethodNode.objects.filter(
+            pk=models.OuterRef("object_id"),
+            is_removed=False,
+            is_public=True,
+            is_public_writable=True,
+        )
+        method_content_type = content_type_models.ContentType.objects.get_for_model(MethodNode)
+
+        role_aggregation_stmt = ArrayAgg(
+            "role__role",
+            distinct=True,
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+
+        role_subquery = (
+            permissions.models.ObjectMembership.objects.filter(
+                content_type=method_content_type,
+                object_id=models.OuterRef("pk"),
+                user=user,
+            )
+            # This is to group the roles by the related object, so we can aggregate them later, we
+            # shouldn't need it for spaces, but it's here for consistency and future-proofing.
+            .annotate(related_object=models.OuterRef("pk"))
+            .values("related_object")
+            .annotate(
+                roles=models.Func(
+                    role_aggregation_stmt,
+                    models.Case(
+                        models.When(
+                            Q(content_type=method_content_type)
+                            & models.Exists(method_public_writable_subquery),
+                            then=models.Value(
+                                ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                            ),
+                        ),
+                        models.When(
+                            Q(content_type=method_content_type)
+                            & models.Exists(method_public_subquery),
+                            then=models.Value(
+                                ["viewer"],
+                                output_field=ArrayField(models.CharField()),
+                            ),
+                        ),
+                        default=models.Value([], output_field=ArrayField(models.CharField())),
+                    ),
+                    function="array_cat",
+                    output_field=ArrayField(models.CharField()),
+                    default=role_aggregation_stmt,
+                ),
+            )
+        )
+
+        return Coalesce(
+            role_subquery.values("roles"),
+            public_subquery,
+            output_field=ArrayField(models.CharField()),
+        )
 
 
 class DocumentVersion(utils.models.SoftDeletableBaseModel):

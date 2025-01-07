@@ -29,9 +29,35 @@ class NodeFactory(DjangoModelFactory):
     )
     content = None
     space = factory.SubFactory("nodes.tests.factories.SpaceFactory")
+    node_type = models.NodeType.DEFAULT
 
     class Meta:
         model = "nodes.Node"
+        skip_postgeneration_save = True
+
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
+        super().__init__(*args, **kwargs)
+        if self.content is None:
+            self.content = content_for_text(str(self.text))
+
+
+class MethodNodeFactory(BaseMembershipModelMixinFactory):
+    """Factory for creating method nodes."""
+
+    title = factory.Faker("sentence", nb_words=6)
+    text = factory.Faker("text")
+    title_token_count = factory.LazyAttribute(
+        lambda obj: len(obj.title.split()) if obj.title is not None else None
+    )
+    text_token_count = factory.LazyAttribute(
+        lambda obj: len(obj.text.split()) if obj.title is not None else None
+    )
+    content = None
+    space = factory.SubFactory("nodes.tests.factories.SpaceFactory")
+    node_type = models.NodeType.METHOD
+
+    class Meta:
+        model = "nodes.MethodNode"
         skip_postgeneration_save = True
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):

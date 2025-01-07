@@ -55,9 +55,11 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
     def get_queryset(
         self,
     ) -> "utils.managers.SoftDeletableQuerySet[models.Node]":
-        queryset = models.Node.available_objects.only(
-            "id", "public_id", "title_token_count", "text_token_count", "space"
-        ).select_related("space")
+        queryset = (
+            models.Node.available_objects.filter(node_type=models.NodeType.DEFAULT)
+            .only("id", "public_id", "title_token_count", "text_token_count", "space")
+            .select_related("space")
+        )
 
         if self.action == "retrieve":
             queryset = queryset.prefetch_related(
@@ -80,6 +82,33 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
     def get_serializer_class(self) -> type[serializers.NodeListSerializer]:
         if self.action == "retrieve":
             return serializers.NodeDetailSerializer
+        return self.serializer_class
+
+
+class MethodNodeModelViewSet(
+    permissions.views.PermissionViewSetMixin[models.MethodNode],
+    views.BaseModelViewSet[models.MethodNode],
+):
+    """API endpoint that allows methods to be viewed or edited."""
+
+    queryset = models.MethodNode.available_objects.all()
+    serializer_class = serializers.MethodNodeListSerializer
+    filter_backends = (filters.MethodNodePermissionFilterBackend, base_filters.BaseFilterBackend)
+    permission_classes = (dry_permissions.DRYPermissions,)
+    allowed_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+
+    def get_queryset(
+        self,
+    ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.MethodNode]":
+        queryset = models.MethodNode.available_objects.annotate_user_permissions(
+            request=self.request
+        )
+        assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
+        return queryset
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeListSerializer]:
+        if self.action == "retrieve":
+            return serializers.MethodNodeDetailSerializer
         return self.serializer_class
 
 

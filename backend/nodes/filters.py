@@ -101,3 +101,59 @@ class DocumentVersionPermissionFilterBackend(DRYPermissionFiltersBase):
         )
 
         return queryset.filter(queryset_filters).distinct()
+
+
+class MethodNodePermissionFilterBackend(DRYPermissionFiltersBase):
+    def filter_list_queryset(
+        self, request: request.Request, queryset: QuerySet, view: views.APIView
+    ) -> "QuerySet[models.MethodNode]":
+        """Only return nodes that the user has access to."""
+        return queryset.filter(
+            models.MethodNode.get_user_has_permission_filter(action="read", user=request.user)
+        ).distinct()
+
+
+class MethodNodeFilterSet(filters.FilterSet):
+    public = filters.BooleanFilter()
+    shared = filters.BooleanFilter()
+    creator = filters.BooleanFilter(field_name="creator")
+    author = filters.BooleanFilter(field_name="authors")
+
+    class Meta:
+        model = models.Node
+        fields = ["public", "shared", "creator", "author"]
+
+    def filter_creator(self, queryset, name, value):
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        if value:
+            return queryset.filter(creator=user)
+        else:
+            return queryset.exclude(creator=user)
+
+    def filter_public(self, queryset, name, value):
+        if value:
+            return queryset.filter(is_public=True)
+        else:
+            return queryset.exclude(is_public=False)
+
+    def filter_shared(self, queryset, name, value):
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+
+        # TODO: Check if this makes sense in the UI.
+        if value:
+            return queryset.exclude(creator=user)
+        else:
+            return queryset
+
+    def filter_author(self, queryset, name, value):
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+        if value:
+            return queryset.filter(authors=user)
+        else:
+            return queryset.exclude(authors=user)

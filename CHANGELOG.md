@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Support for object storage (MinIO and S3) for storing uploads.
 - Use cached session storage in production deployments.
 - Add User and Space profile pages.
+- Add method node type to backend and API.
 
 ### Fixed
 
