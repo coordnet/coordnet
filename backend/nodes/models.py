@@ -1,6 +1,10 @@
 import typing
+import uuid
 from collections import OrderedDict
 
+import django.core.validators
+import imagekit.models
+import imagekit.processors
 import model_utils
 import pgtrigger
 from django.contrib.auth.models import AnonymousUser
@@ -21,8 +25,6 @@ import utils.models
 from utils import tokens
 
 if typing.TYPE_CHECKING:
-    import uuid
-
     from django import http
     from django.db.models.fields.related_descriptors import RelatedManager
 
@@ -45,6 +47,15 @@ class NodeType(models.TextChoices):
 
 def prefix_field(field: str, prefix: str | None = None) -> str:
     return f"{prefix}__{field}" if prefix else field
+
+
+def unique_node_image_filename(instance: utils.models.BaseModel, filename: str) -> str:
+    file_components = filename.split(".")
+
+    path = f"nodes/node_images/{instance.public_id}/{uuid.uuid4()}"
+    if len(file_components) > 1:
+        path += f".{file_components[-1]}"
+    return path
 
 
 class DocumentEvent(models.Model):
@@ -93,6 +104,37 @@ class Node(utils.models.SoftDeletableBaseModel):
 
     creator = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, blank=True)
     authors = models.ManyToManyField("users.User", related_name="nodes", blank=True)
+
+    image_original = models.ImageField(
+        upload_to=unique_node_image_filename,
+        null=True,
+        blank=True,
+        validators=[django.core.validators.validate_image_file_extension],
+    )
+    image = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(800, 320)],
+    )
+    image_2x = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(1600, 640)],
+    )
+    image_thumbnail = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(200, 80)],
+    )
+    image_thumbnail_2x = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(400, 160)],
+    )
 
     space = models.ForeignKey(
         "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="nodes"

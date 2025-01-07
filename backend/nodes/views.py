@@ -7,7 +7,8 @@ import rest_framework.filters
 from django import http
 from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import decorators, generics, response
+from rest_framework import decorators, generics, parsers, response
+from rest_framework.decorators import action
 
 import permissions.managers
 import permissions.models
@@ -84,6 +85,21 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
             return serializers.NodeDetailSerializer
         return self.serializer_class
 
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="upload-images",
+        parser_classes=(parsers.MultiPartParser,),
+    )
+    def upload_images(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        node = self.get_object()
+        if "image" in request.FILES:
+            node.image_original = request.FILES["image"]
+            node.save()
+        return response.Response({"status": "success"})
+
 
 class MethodNodeModelViewSet(
     permissions.views.PermissionViewSetMixin[models.MethodNode],
@@ -110,6 +126,21 @@ class MethodNodeModelViewSet(
         if self.action == "retrieve":
             return serializers.MethodNodeDetailSerializer
         return self.serializer_class
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="upload-images",
+        parser_classes=(parsers.MultiPartParser,),
+    )
+    def upload_images(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        node = self.get_object()
+        if "image" in request.FILES:
+            node.image_original = request.FILES["image"]
+            node.save()
+        return response.Response({"status": "success"})
 
 
 @extend_schema(
