@@ -208,7 +208,17 @@ class SearchView(generics.ListAPIView):
 
         nodes = (
             models.Node.available_objects.filter(
-                models.Node.get_user_has_permission_filter(permissions.models.READ, request.user)
+                django_models.Q(
+                    models.Node.get_user_has_permission_filter(
+                        permissions.models.READ, request.user
+                    ),
+                    node_type=models.NodeType.DEFAULT,
+                )
+                | django_models.Q(
+                    models.MethodNode.get_user_has_permission_filter(
+                        permissions.models.READ, request.user, prefix="methodnode"
+                    ),
+                ),
             )
             .select_related("space")
             .prefetch_related(
@@ -231,6 +241,9 @@ class SearchView(generics.ListAPIView):
 
         if "space" in search_query_serializer.validated_data:
             nodes = nodes.filter(space=search_query_serializer.validated_data["space"])
+
+        if "node_type" in search_query_serializer.validated_data:
+            nodes = nodes.filter(node_type=search_query_serializer.validated_data["node_type"])
 
         page = self.paginate_queryset(nodes)
         if page is not None:

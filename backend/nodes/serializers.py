@@ -80,6 +80,7 @@ class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
 class NodeSearchQuerySerializer(serializers.Serializer):
     q = serializers.CharField(required=True)
     space = AvailableSpaceField(required=False)
+    node_type = serializers.ChoiceField(required=False, choices=models.NodeType.choices)
 
 
 class SpaceDefaultNodeField(utils.serializers.PublicIdRelatedField):

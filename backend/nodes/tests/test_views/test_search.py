@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+import nodes.models
 from nodes.tests import factories
 from utils.testcases import BaseTransactionTestCase
 
@@ -17,7 +18,7 @@ class SearchViewTestCase(BaseTransactionTestCase):
         space.nodes.add(parent_node)
         parent_node.subnodes.add(node)
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             response = self.owner_client.get(reverse("nodes:search"), {"q": node.title})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 1)
@@ -56,3 +57,33 @@ class SearchViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:search"), {"q": "not existing"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)
+
+    def test_node_type_filter(self) -> None:
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        method_node = factories.MethodNodeFactory.create(
+            title="Sheila the cat", text="Sheila is a good cat.", owner=self.owner_user
+        )
+        default_node = factories.NodeFactory.create(
+            title="Sunny the barking dog", text="Sunny is a good dog.", space=space
+        )
+
+        response = self.owner_client.get(reverse("nodes:search"), {"q": "good"})
+        self.assertEqual(response.status_code, 200)
+        print(response.data)
+        self.assertEqual(len(response.data["results"]), 2)
+
+        response = self.owner_client.get(
+            reverse("nodes:search"),
+            {"q": "good", "node_type": nodes.models.NodeType.METHOD},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], str(method_node.public_id))
+
+        response = self.owner_client.get(
+            reverse("nodes:search"),
+            {"q": "good", "node_type": nodes.models.NodeType.DEFAULT},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], str(default_node.public_id))
