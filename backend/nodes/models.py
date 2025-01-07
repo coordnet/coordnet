@@ -37,7 +37,7 @@ class DocumentType(models.TextChoices):
     EDITOR = "EDITOR", "Editor"
     SPACE = "SPACE", "Space"
     GRAPH = "GRAPH", "Graph"
-    METHOD_GRAPH = "METHOD_GRAPH", "Method Graph"
+    METHOD_GRAPH = "METHOD", "Method Graph"
 
 
 class NodeType(models.TextChoices):
