@@ -58,7 +58,14 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
     ) -> "utils.managers.SoftDeletableQuerySet[models.Node]":
         queryset = (
             models.Node.available_objects.filter(node_type=models.NodeType.DEFAULT)
-            .only("id", "public_id", "title_token_count", "text_token_count", "space")
+            .only(
+                "id",
+                "public_id",
+                "title_token_count",
+                "text_token_count",
+                "space",
+                "image_original",
+            )
             .select_related("space")
         )
 
@@ -294,7 +301,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
 
     allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]
     queryset = models.MethodNodeRun.available_objects.all()
-    serializer_class = serializers.MethodNodeRunSerializer
+    serializer_class = serializers.MethodNodeRunListSerializer
     filterset_class = filters.MethodNodeRunFilterSet
     filter_backends = (filters.MethodNodeRunPermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYObjectPermissions,)
@@ -303,3 +310,16 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         if self.action == "retrieve":
             return serializers.MethodNodeRunDetailSerializer
         return self.serializer_class
+
+
+class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVersion]):
+    """API endpoint that allows method node versions to be viewed or edited."""
+
+    queryset = models.MethodNodeVersion.available_objects.all()
+    serializer_class = serializers.MethodNodeVersionListSerializer
+    filterset_class = filters.MethodNodeVersionFilterSet
+    filter_backends = (
+        filters.MethodNodeVersionPermissionFilterBackend,
+        base_filters.BaseFilterBackend,
+    )
+    permission_classes = (dry_permissions.DRYObjectPermissions,)

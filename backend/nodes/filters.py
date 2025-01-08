@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
 
 def get_document_queryset(request: request.Request) -> QuerySet:
     user = request.user or AnonymousUser()
-    return models.Document.objects.filter(
+    return models.Document.available_objects.filter(
         (
             Q(space__isnull=False)
             & (models.Space.get_user_has_permission_filter("read", user, prefix="space"))
@@ -34,8 +34,15 @@ def get_document_queryset(request: request.Request) -> QuerySet:
 
 def get_space_queryset(request: request.Request) -> QuerySet:
     user = request.user or AnonymousUser()
-    return models.Space.objects.filter(
+    return models.Space.available_objects.filter(
         Q(is_public=True) | Q(members__user=user, members__role__role__in=READ_ROLES)
+    ).distinct()
+
+
+def get_method_queryset(request: request.Request) -> QuerySet:
+    user = request.user or AnonymousUser()
+    return models.MethodNode.available_objects.filter(
+        models.MethodNode.get_user_has_permission_filter(action="read", user=user)
     ).distinct()
 
 
@@ -200,7 +207,28 @@ class MethodNodeRunPermissionFilterBackend(DRYPermissionFiltersBase):
 
 class MethodNodeRunFilterSet(filters.FilterSet):
     space = utils.filters.UUIDModelChoiceFilter(queryset=get_space_queryset)
+    method = utils.filters.UUIDModelChoiceFilter(queryset=get_method_queryset)
 
     class Meta:
         model = models.MethodNodeRun
-        fields = ["space"]
+        fields = ["space", "method"]
+
+
+class MethodNodeVersionPermissionFilterBackend(DRYPermissionFiltersBase):
+    def filter_list_queryset(
+        self, request: request.Request, queryset: QuerySet, view: views.APIView
+    ) -> "QuerySet[models.MethodNodeVersion]":
+        """Only return nodes that the user has access to."""
+        return queryset.filter(
+            models.MethodNode.get_user_has_permission_filter(
+                action="read", user=request.user, prefix="method"
+            )
+        ).distinct()
+
+
+class MethodNodeVersionFilterSet(filters.FilterSet):
+    method = utils.filters.UUIDModelChoiceFilter(queryset=get_method_queryset)
+
+    class Meta:
+        model = models.MethodNodeVersion
+        fields = ["method"]

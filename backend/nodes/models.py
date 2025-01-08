@@ -926,6 +926,24 @@ class MethodNodeVersion(BaseNode):
             models.UniqueConstraint(fields=["method", "version"], name="unique_method_version")
         ]
 
+    @staticmethod
+    @dry_rest_permissions.generics.authenticated_users
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        """
+        return True
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.method.has_object_write_permission(request)
+
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.method.has_object_read_permission(request)
+
 
 class MethodNodeRun(utils.models.SoftDeletableBaseModel):
     method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="runs")
@@ -955,12 +973,12 @@ class MethodNodeRun(utils.models.SoftDeletableBaseModel):
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_create_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
+        """Return True for any user that is logged in."""
         return True
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
+        """Return False since there is no reason to edit these after creating them."""
         return False
 
     @dry_rest_permissions.generics.authenticated_users
