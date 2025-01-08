@@ -3,6 +3,7 @@ import uuid
 from collections import OrderedDict
 
 import django.core.validators
+import dry_rest_permissions.generics
 import imagekit.models
 import imagekit.processors
 import model_utils
@@ -477,7 +478,7 @@ class Node(BaseNode):
         ]
 
 
-class MethodNode(permissions.models.MembershipModelMixin, Node):
+class MethodNode(Node, permissions.models.MembershipModelMixin):  # type: ignore[misc]
     forked_from = models.ForeignKey(
         "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -491,18 +492,7 @@ class MethodNode(permissions.models.MembershipModelMixin, Node):
 
     class Meta(Node.Meta):
         indexes = []
-
-    # These are normally part of MembershipBaseModel, but that clashed with the non-abstract
-    # inheritance from the Node model.
-    objects: "permissions.managers.SoftDeletableMembershipModelUnfilteredManager[permissions.models.MembershipBaseModel]" = (  # noqa: E501
-        permissions.managers.SoftDeletableMembershipModelUnfilteredManager()
-    )
-    available_objects: "permissions.managers.SoftDeletableMembershipModelManager[permissions.models.MembershipBaseModel]" = (  # noqa: E501
-        permissions.managers.SoftDeletableMembershipModelManager()
-    )
-    all_objects: (
-        "permissions.managers.MembershipModelQueryManager[permissions.models.MembershipBaseModel]"
-    ) = permissions.managers.MembershipModelQueryManager()
+        triggers = []
 
     @property
     def __permission_manager(self) -> models.Manager:
@@ -926,9 +916,7 @@ class Document(models.Model):
 class MethodNodeVersion(BaseNode):
     method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="versions")
     version = models.PositiveSmallIntegerField()
-    document_version = models.ForeignKey(
-        "DocumentVersion", on_delete=models.CASCADE, related_name="method_versions"
-    )
+    method_data = models.JSONField()
 
     def __str__(self) -> str:
         return f"{self.method.public_id} - {self.created_at}"
@@ -937,3 +925,50 @@ class MethodNodeVersion(BaseNode):
         constraints = [
             models.UniqueConstraint(fields=["method", "version"], name="unique_method_version")
         ]
+
+
+class MethodNodeRun(utils.models.SoftDeletableBaseModel):
+    method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="runs")
+    method_version = models.ForeignKey(
+        "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True, related_name="runs"
+    )
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    space = models.ForeignKey(
+        "Space", on_delete=models.SET_NULL, related_name="runs", null=True, blank=True
+    )
+
+    method_data = models.JSONField()
+    is_dev_run = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"{self.method.public_id} - {self.created_at}"
+
+    @staticmethod
+    @dry_rest_permissions.generics.authenticated_users
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        However, this allows any authenticated user to create a new object.
+        """
+        return False
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_create_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return True
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return False
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_delete_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.user == request.user
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.user == request.user

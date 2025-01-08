@@ -1,6 +1,10 @@
 import typing
+import uuid
 from copy import copy
 
+import django.contrib
+from django.db.models import Q
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from utils import models
@@ -9,6 +13,9 @@ if typing.TYPE_CHECKING:
     from typing import Any
 
     from django import http
+    from django.db import models as django_models
+
+    import users.models
 
 
 T = typing.TypeVar("T", bound="models.BaseModel")
@@ -60,3 +67,13 @@ class BaseSoftDeletableSerializer(BaseSerializer[T], typing.Generic[T]):
 
     class Meta(BaseSerializer.Meta):
         exclude: list[str] | None = (BaseSerializer.Meta.exclude or []) + ["is_removed"]
+
+
+@extend_schema_field(uuid.UUID)
+class AvailableUserField(PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[users.models.User]":
+        user = self.context["request"].user
+        filter_expression = Q(profile__draft=False)
+        if user.is_authenticated:
+            filter_expression |= Q(pk=user.pk)
+        return django.contrib.auth.get_user_model().objects.filter(filter_expression)

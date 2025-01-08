@@ -2,7 +2,6 @@ import logging
 import typing
 import uuid
 
-import django.contrib.auth
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -11,11 +10,10 @@ import nodes.models
 import permissions.models
 import profiles.models
 import utils.serializers
+from utils.serializers import AvailableUserField
 
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
-
-    import users.models
 
 
 logger = logging.getLogger(__name__)
@@ -108,16 +106,6 @@ class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
             )
         except profiles.models.Profile.DoesNotExist as exc:
             raise serializers.ValidationError("User profile not found") from exc
-
-
-@extend_schema_field(uuid.UUID)
-class AvailableUserField(utils.serializers.PublicIdRelatedField):
-    def get_queryset(self) -> "django_models.QuerySet[users.models.User]":
-        user = self.context["request"].user
-        filter_expression = Q(profile__draft=False)
-        if user.is_authenticated:
-            filter_expression |= Q(pk=user.pk)
-        return django.contrib.auth.get_user_model().objects.filter(filter_expression)
 
 
 class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.ProfileCard]):

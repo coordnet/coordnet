@@ -77,6 +77,28 @@ class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
         )
 
 
+@extend_schema_field(uuid.UUID)
+class AvailableMethodField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNode]":
+        user = self.context["request"].user
+        return models.MethodNode.available_objects.filter(
+            models.MethodNode.get_user_has_permission_filter(
+                action=permissions.models.READ, user=user
+            )
+        )
+
+
+@extend_schema_field(uuid.UUID)
+class AvailableMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeVersion]":
+        user = self.context["request"].user
+        return models.MethodNodeVersion.available_objects.filter(
+            models.MethodNode.get_user_has_permission_filter(
+                action=permissions.models.READ, user=user, prefix="method"
+            )
+        )
+
+
 class NodeSearchQuerySerializer(serializers.Serializer):
     q = serializers.CharField(required=True)
     space = AvailableSpaceField(required=False)
@@ -122,10 +144,20 @@ class DocumentVersionSerializer(
         ]
 
 
-class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):
+class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[models.MethodNode]):
+    authors = utils.serializers.AvailableUserField(many=True, required=False, allow_null=True)
+
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNode
-        read_only_fields = ["node_type"]
+        read_only_fields = [
+            "node_type",
+            "title_token_count",
+            "text_token_count",
+            "description_token_count",
+            "has_subnodes",
+            "creator",
+        ]
+
         exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
             "content",
             "text",
@@ -134,10 +166,10 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
             "forked_from",
         ]
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNode:
         user = self.context["request"].user
         validated_data["creator"] = user
-        validated_data["authors"] = [user]
+        validated_data["authors"] = list(set(validated_data.get("authors", [user])))
 
         obj = super().create(validated_data)
 
@@ -148,7 +180,7 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
 
 
 class MethodNodeDetailSerializer(MethodNodeListSerializer):
-    def get_fields(self):
+    def get_fields(self) -> dict[str, serializers.Field]:
         fields = super().get_fields()
         if self.context.get("request") and self.context["request"].query_params.get(
             "show_permissions"
@@ -158,3 +190,27 @@ class MethodNodeDetailSerializer(MethodNodeListSerializer):
 
     def get_allowed_actions(self, obj: models.MethodNode) -> list[permissions.models.Action]:
         return obj.get_allowed_actions_for_user(user=self.context["request"].user)
+
+
+class MethodNodeRunSerializer(utils.serializers.BaseSoftDeletableSerializer):
+    space = AvailableSpaceField(required=False, allow_null=True)
+    method = AvailableMethodField(required=True)
+    method_version = AvailableMethodNodeVersionField(required=False, allow_null=True)
+
+    class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
+        model = models.MethodNodeRun
+        create_only_fields = ["method", "method_version", "space", "method_data", "is_dev_run"]
+        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
+            "user",
+        ]
+
+    def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNodeRun:
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
+
+
+class MethodNodeRunDetailSerializer(MethodNodeRunSerializer):
+    class Meta(MethodNodeRunSerializer.Meta):
+        # Note: This doesn't inherit from MethodNodeRunSerializer.Meta.exclude because we need the
+        #       `method_data` field in the detail view.
+        exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + ["user"]

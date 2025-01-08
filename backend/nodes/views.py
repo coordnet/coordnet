@@ -49,7 +49,7 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
     """API endpoint that allows nodes to be viewed."""
 
     serializer_class = serializers.NodeListSerializer
-    filterset_fields = ("space",)
+    filterset_class = filters.NodeFilterSet
     filter_backends = (filters.NodePermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
@@ -102,8 +102,8 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
 
 
 class MethodNodeModelViewSet(
-    permissions.views.PermissionViewSetMixin[models.MethodNode],
     views.BaseModelViewSet[models.MethodNode],
+    permissions.views.PermissionViewSetMixin[models.MethodNode],
 ):
     """API endpoint that allows methods to be viewed or edited."""
 
@@ -116,7 +116,7 @@ class MethodNodeModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.MethodNode]":
-        queryset = models.MethodNode.available_objects.annotate_user_permissions(
+        queryset = models.MethodNode.available_objects.annotate_user_permissions(  # type: ignore[attr-defined]
             request=self.request
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
@@ -287,3 +287,19 @@ class SearchView(generics.ListAPIView):
             nodes, many=True, context={"request": request}
         )
         return response.Response(serializer.data)
+
+
+class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
+    """API endpoint that allows method node runs to be viewed or edited."""
+
+    allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]
+    queryset = models.MethodNodeRun.available_objects.all()
+    serializer_class = serializers.MethodNodeRunSerializer
+    filterset_class = filters.MethodNodeRunFilterSet
+    filter_backends = (filters.MethodNodeRunPermissionFilterBackend, base_filters.BaseFilterBackend)
+    permission_classes = (dry_permissions.DRYObjectPermissions,)
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeRunSerializer]:
+        if self.action == "retrieve":
+            return serializers.MethodNodeRunDetailSerializer
+        return self.serializer_class
