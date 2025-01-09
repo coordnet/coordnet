@@ -271,7 +271,7 @@ class MethodNodeVersionListSerializer(
             "version",
         ]
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNodeVersion:
         # Copy contents of the Method over to the MethodNodeVersion object to be created.
         method = validated_data["method"]
 

@@ -123,9 +123,9 @@ class MethodNodeModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.MethodNode]":
-        queryset = models.MethodNode.available_objects.annotate_user_permissions(  # type: ignore[attr-defined]
+        queryset = self.queryset.annotate_user_permissions(  # type: ignore[attr-defined]
             request=self.request
-        )
+        ).defer("content", "text", "graph_document", "editor_document", "search_vector")
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset
 
@@ -300,13 +300,22 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
     """API endpoint that allows method node runs to be viewed or edited."""
 
     allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]
-    queryset = models.MethodNodeRun.available_objects.all()
+    queryset = models.MethodNodeRun.available_objects.select_related(
+        "method_version",
+        "method",
+        "space",
+    )
     serializer_class = serializers.MethodNodeRunListSerializer
     filterset_class = filters.MethodNodeRunFilterSet
     filter_backends = (filters.MethodNodeRunPermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
-    def get_serializer_class(self) -> type[serializers.MethodNodeRunSerializer]:
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeRun]":
+        if self.action == "retrieve":
+            return self.queryset.defer("method_data")
+        return self.queryset
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeRunListSerializer]:
         if self.action == "retrieve":
             return serializers.MethodNodeRunDetailSerializer
         return self.serializer_class
@@ -315,7 +324,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
 class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVersion]):
     """API endpoint that allows method node versions to be viewed or edited."""
 
-    queryset = models.MethodNodeVersion.available_objects.all()
+    queryset = models.MethodNodeVersion.available_objects.select_related("method")
     serializer_class = serializers.MethodNodeVersionListSerializer
     filterset_class = filters.MethodNodeVersionFilterSet
     filter_backends = (
@@ -323,3 +332,13 @@ class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVers
         base_filters.BaseFilterBackend,
     )
     permission_classes = (dry_permissions.DRYObjectPermissions,)
+
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeVersion]":
+        if self.action == "retrieve":
+            return self.queryset.defer("method_data")
+        return self.queryset
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeVersionListSerializer]:
+        if self.action == "retrieve":
+            return serializers.MethodNodeVersionDetailSerializer
+        return self.serializer_class
