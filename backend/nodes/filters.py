@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
 
 def get_document_queryset(request: request.Request) -> QuerySet:
     user = request.user or AnonymousUser()
-    return models.Document.available_objects.filter(
+    return models.Document.objects.filter(
         (
             Q(space__isnull=False)
             & (models.Space.get_user_has_permission_filter("read", user, prefix="space"))
@@ -35,7 +35,7 @@ def get_document_queryset(request: request.Request) -> QuerySet:
 def get_space_queryset(request: request.Request) -> QuerySet:
     user = request.user or AnonymousUser()
     return models.Space.available_objects.filter(
-        Q(is_public=True) | Q(members__user=user, members__role__role__in=READ_ROLES)
+        models.Space.get_user_has_permission_filter(action="read", user=user)
     ).distinct()
 
 
