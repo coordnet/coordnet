@@ -92,7 +92,7 @@ class AvailableSpaceField(utils.serializers.PublicIdRelatedField):
         user = self.context["request"].user
         return models.Space.available_objects.filter(
             models.Space.get_user_has_permission_filter(action=permissions.models.READ, user=user)
-        )
+        ).distinct()
 
 
 @extend_schema_field(uuid.UUID)
@@ -103,7 +103,7 @@ class AvailableMethodField(utils.serializers.PublicIdRelatedField):
             models.MethodNode.get_user_has_permission_filter(
                 action=permissions.models.READ, user=user
             )
-        )
+        ).distinct()
 
 
 @extend_schema_field(uuid.UUID)
@@ -114,7 +114,7 @@ class AvailableMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
             models.MethodNode.get_user_has_permission_filter(
                 action=permissions.models.READ, user=user, prefix="method"
             )
-        )
+        ).distinct()
 
 
 class NodeSearchQuerySerializer(serializers.Serializer):
