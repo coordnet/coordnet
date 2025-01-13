@@ -134,17 +134,6 @@ class BaseNode(utils.models.SoftDeletableBaseModel):
         "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="%(class)ss"
     )
 
-    editor_document = models.OneToOneField(
-        "Document",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="%(class)s_editor",
-    )
-    graph_document = models.OneToOneField(
-        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="%(class)s_graph"
-    )
-
     search_vector = pg_search.SearchVectorField(editable=False, null=True)
 
     class Meta:
@@ -164,6 +153,17 @@ class Node(BaseNode):
     """
 
     subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
+
+    editor_document = models.OneToOneField(
+        "Document",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_editor",
+    )
+    graph_document = models.OneToOneField(
+        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="%(class)s_graph"
+    )
 
     tracker = model_utils.FieldTracker()
 
@@ -919,7 +919,7 @@ class MethodNodeVersion(BaseNode):
     method_data = models.JSONField()
 
     def __str__(self) -> str:
-        return f"{self.method.public_id} - {self.created_at}"
+        return f"{self.method.public_id} - {self.version}"
 
     class Meta:
         constraints = [
