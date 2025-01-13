@@ -247,8 +247,6 @@ class MethodNodeVersionListSerializer(
         model = models.MethodNodeVersion
         exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
             "node_type",
-            "editor_document",
-            "graph_document",
             "search_vector",
             "image_original",
         ]
@@ -264,8 +262,6 @@ class MethodNodeVersionListSerializer(
             "creator",
             "authors",
             "space",
-            "editor_document",
-            "graph_document",
             "image_original",
             "search_vector",
             "version",
