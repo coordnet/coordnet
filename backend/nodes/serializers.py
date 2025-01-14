@@ -288,8 +288,6 @@ class MethodNodeVersionListSerializer(
         validated_data["creator"] = method.creator
         validated_data["authors"] = method.authors.all()
         validated_data["space"] = method.space
-        validated_data["editor_document"] = method.editor_document
-        validated_data["graph_document"] = method.graph_document
         validated_data["image_original"] = method.image_original
         validated_data["search_vector"] = method.search_vector
         return super().create(validated_data)
