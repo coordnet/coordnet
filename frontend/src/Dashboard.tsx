@@ -99,8 +99,8 @@ function Dashboard() {
         <div className="mb-3 mt-14 flex items-center justify-between">
           <div className="text-xl font-medium leading-7 text-black">Spaces</div>
         </div>
-        {methods?.count === 0 ? (
-          <div className="py-5 pb-20 text-center">No methods yet</div>
+        {spaces?.count === 0 ? (
+          <div className="py-5 pb-20 text-center">No spaces yet</div>
         ) : (
           <div
             className="grid grid-cols-1 gap-4 pb-20 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3"

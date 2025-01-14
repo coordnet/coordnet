@@ -5,6 +5,7 @@ import clsx from "clsx";
 import ColorThief from "colorthief";
 import { History, Search, Table, X } from "lucide-react";
 import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { format as formatTimeAgo } from "timeago.js";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
@@ -27,6 +28,7 @@ const colorThief = new ColorThief();
 type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
+  const { runId } = useParams();
   const { parent, error, synced, yDoc, provider } = useEditor();
   const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
@@ -52,9 +54,7 @@ const Editor = ({ id, className }: EditorProps) => {
       extensions: loadExtensions(provider, yDoc, field, parent.type == BackendEntityType.METHOD),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: Boolean(
-        parent.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write")
-      ),
+      editable: Boolean(!runId && parent.data?.allowed_actions.includes("write")),
     },
     [id, parent.data?.allowed_actions, synced]
   );
