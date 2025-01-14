@@ -9,7 +9,7 @@ import { format as formatTimeAgo } from "timeago.js";
 import * as Y from "yjs";
 
 import { api, getNodeVersions } from "@/api";
-import { useNode } from "@/hooks";
+import { useCanvas } from "@/hooks";
 import { GraphEdge, GraphNode, NodeVersion } from "@/types";
 
 import { Button } from "../ui/button";
@@ -22,7 +22,7 @@ const nodeTypes = {
 const LIMIT = 10;
 
 const Versions = ({ className }: { className?: string }) => {
-  const { id, nodesMap, edgesMap } = useNode();
+  const { parent, nodesMap, edgesMap } = useCanvas();
   const [currentPage, setCurrentPage] = useState(0);
   const [currentVersion, setCurrentVersion] = useState<NodeVersion>();
   const [currentVersionYdoc, setCurrentVersionYdoc] = useState<Y.Doc>();
@@ -37,9 +37,10 @@ const Versions = ({ className }: { className?: string }) => {
     isFetched,
     isFetching,
   } = useQuery({
-    queryKey: ["page-versions", id, "GRAPH", currentPage],
-    queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", currentPage * LIMIT, LIMIT),
-    enabled: Boolean(id),
+    queryKey: ["page-versions", parent.id, "GRAPH", currentPage],
+    queryFn: ({ signal }) =>
+      getNodeVersions(signal, parent.id, "GRAPH", currentPage * LIMIT, LIMIT),
+    enabled: Boolean(parent.id),
     initialData: { count: 0, next: "", previous: "", results: [] },
   });
 
@@ -97,27 +98,27 @@ const Versions = ({ className }: { className?: string }) => {
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        Loading... <Loader2Icon className="animate-spin size-4 ml-3" />
+      <div className="flex h-full w-full items-center justify-center">
+        Loading... <Loader2Icon className="ml-3 size-4 animate-spin" />
       </div>
     );
   }
   if (isFetched && versions?.count == 0) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center">
         No versions saved yet, they are saved every 5 minutes...
       </div>
     );
   }
 
   return (
-    <div className={clsx("h-full overflow-auto flex", className)}>
+    <div className={clsx("flex h-full overflow-auto", className)}>
       {detailLoading ? (
-        <div className="flex-grow flex items-center justify-center">
-          Loading... <Loader2Icon className="animate-spin size-4 ml-3" />
+        <div className="flex flex-grow items-center justify-center">
+          Loading... <Loader2Icon className="ml-3 size-4 animate-spin" />
         </div>
       ) : (
-        <div className="flex-grow Versions flex flex-col">
+        <div className="Versions flex flex-grow flex-col">
           <div className="flex-grow">
             <ReactFlow
               nodes={nodes}
@@ -140,19 +141,21 @@ const Versions = ({ className }: { className?: string }) => {
           </div>
         </div>
       )}
-      <div className="flex flex-col relative" key={`versions-graph-${currentPage}`}>
+      <div className="relative flex flex-col" key={`versions-graph-${currentPage}`}>
         {(isFetching || isLoading) && (
-          <div className="w-[200px] absolute bg-white/50 h-full flex items-center justify-center z-10">
-            Loading <Loader2Icon className="animate-spin size-4 ml-3" />
+          <div
+            className="absolute z-10 flex h-full w-[200px] items-center justify-center bg-white/50"
+          >
+            Loading <Loader2Icon className="ml-3 size-4 animate-spin" />
           </div>
         )}
         {versions?.results && (
           <>
-            <div className="w-[200px] overflow-auto flex-grow">
+            <div className="w-[200px] flex-grow overflow-auto">
               {versions.results.map((v) => (
                 <div
                   key={v.id}
-                  className={clsx("border-b p-4 cursor-pointer hover:bg-slate-50", {
+                  className={clsx("cursor-pointer border-b p-4 hover:bg-slate-50", {
                     "bg-neutral-100": currentVersion?.id === v.id,
                   })}
                   onClick={() => setCurrentVersion(v)}
@@ -162,7 +165,7 @@ const Versions = ({ className }: { className?: string }) => {
                 </div>
               ))}
             </div>
-            <div className="flex ml-auto select-none">
+            <div className="ml-auto flex select-none">
               <Button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}

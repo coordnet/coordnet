@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { createPermission, deletePermission, getSpacePermissions, handleApiError } from "@/api";
+import { createPermission, deletePermission, getPermissions, handleApiError } from "@/api";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useUser from "@/hooks/useUser";
-import { PermissionModel, PermissionSchema, Space } from "@/types";
+import { Method, PermissionModel, PermissionSchema, Space } from "@/types";
 
 import { Button } from "../ui/button";
 import { DialogClose } from "../ui/dialog";
@@ -30,11 +30,13 @@ type FormType = z.infer<typeof formSchema>;
 
 const Member = ({
   space,
+  method,
   permissionId,
   setOpen,
   className,
 }: {
-  space: Space;
+  space?: Space;
+  method?: Method;
   permissionId?: string;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   className?: string;
@@ -42,10 +44,13 @@ const Member = ({
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
 
+  const model = space ? PermissionModel.Space : PermissionModel.Method;
+  const data = space ? space : method;
+
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
-    queryKey: ["spaces", space.id, "permissions"],
-    queryFn: ({ signal }) => getSpacePermissions(signal, space.id),
-    enabled: Boolean(space?.id),
+    queryKey: [model + "s", data?.id, "permissions"],
+    queryFn: ({ signal }) => getPermissions(signal, model, data?.id),
+    enabled: Boolean(data?.id),
   });
 
   const permission = permissions?.find((p) => p.id == permissionId);
@@ -53,26 +58,27 @@ const Member = ({
 
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
-    defaultValues: { role: "member", user: "" },
+    defaultValues: permission
+      ? { role: permission.role, user: permission.user }
+      : { role: "member", user: "" },
   });
 
   useEffect(() => {
     if (permission) {
-      form.setValue("user", permission.user, { shouldTouch: true });
-      form.setValue("role", permission.role, { shouldTouch: true });
+      form.reset({ user: permission.user, role: permission.role });
     }
   }, [permission, form]);
 
   const onSubmit = async (values: FormType) => {
     try {
       if (permission) {
-        await deletePermission(PermissionModel.Space, space.id, permission.id);
-        await createPermission(PermissionModel.Space, space.id, values);
+        await deletePermission(model, data?.id ?? "", permission.id);
+        await createPermission(model, data?.id ?? "", values);
       } else {
-        await createPermission(PermissionModel.Space, space.id, values);
+        await createPermission(model, data?.id ?? "", values);
       }
       if (setOpen) setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["spaces", space.id] });
+      queryClient.invalidateQueries({ queryKey: [model + "s", data?.id] });
     } catch (e) {
       handleApiError(e, values, form.setError);
     }
@@ -81,8 +87,8 @@ const Member = ({
   const onPermissionsDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (permission?.id) {
-      await deletePermission(PermissionModel.Space, space.id, permission.id);
-      queryClient.invalidateQueries({ queryKey: ["spaces"] });
+      await deletePermission(model, data?.id ?? "", permission.id);
+      queryClient.invalidateQueries({ queryKey: [model + "s"] });
       if (setOpen) setOpen(false);
     }
   };
@@ -90,7 +96,7 @@ const Member = ({
   if (permissionsLoading || userLoading)
     return (
       <div className="flex items-center justify-center p-8">
-        Loading <Loader2 className="size-4 text-neutral-500 animate-spin ml-3" />
+        Loading <Loader2 className="ml-3 size-4 animate-spin text-neutral-500" />
       </div>
     );
 
@@ -103,15 +109,15 @@ const Member = ({
       >
         <div className="flex">
           {permission && (
-            <div className="p-1 border border-neutral-200 rounded-sm mr-4 self-start">
+            <div className="mr-4 self-start rounded-sm border border-neutral-200 p-1">
               <img src={icon} className="size-12 rounded-full" />
             </div>
           )}
           <div>
-            <div className="text-lg font-semibold mb-2">
-              {permission ? "Manage Member" : "Invite to Space"}
+            <div className="mb-2 text-lg font-semibold">
+              {permission ? "Manage Member" : "Invite to " + model}
             </div>
-            <div className="text-sm text-neutral-500">{space.title}</div>
+            <div className="text-sm text-neutral-500">{data?.title}</div>
           </div>
         </div>
         <div className="flex flex-col gap-4">
@@ -120,12 +126,12 @@ const Member = ({
             name="user"
             render={({ field }) => (
               <FormItem className="flex items-center">
-                <FormLabel className="text-sm font-semibold w-20">Email</FormLabel>
+                <FormLabel className="w-20 text-sm font-semibold">Email</FormLabel>
                 <div className="flex-grow">
                   <FormControl>
                     <Input placeholder="Email address" disabled={Boolean(permission)} {...field} />
                   </FormControl>
-                  <FormMessage className="mt-1 ml-1" />
+                  <FormMessage className="ml-1 mt-1" />
                 </div>
               </FormItem>
             )}
@@ -135,7 +141,7 @@ const Member = ({
             name="role"
             render={({ field }) => (
               <FormItem className="flex items-center">
-                <FormLabel className="text-sm font-semibold w-20">Role</FormLabel>
+                <FormLabel className="w-20 text-sm font-semibold">Role</FormLabel>
                 <div className="flex-grow">
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -149,7 +155,7 @@ const Member = ({
                       </SelectContent>
                     </Select>
                   </FormControl>
-                  <FormMessage className="mt-1 ml-1" />
+                  <FormMessage className="ml-1 mt-1" />
                 </div>
               </FormItem>
             )}
@@ -169,8 +175,8 @@ const Member = ({
                   if (
                     permission?.user == user?.email &&
                     confirm(
-                      "If you remove yourself from the space you will no longer " +
-                        "have access to it. Are you sure you want to continue?",
+                      `If you remove yourself from the ${model} you will no longer ` +
+                        "have access to it. Are you sure you want to continue?"
                     )
                   ) {
                     onPermissionsDelete(e);

@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useSpace } from "@/hooks";
+import { useNodesContext } from "@/hooks";
 
 import { ExecutionPlan } from "./tasks/types";
 import { useRunCanvas } from "./tasks/useRunCanvas";
@@ -10,7 +10,7 @@ import { useRunCanvas } from "./tasks/useRunCanvas";
 const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
   const { prepareExecutionPlan } = useRunCanvas();
   const [executionPlan, setExecutionPlan] = useState<ExecutionPlan | null>(null);
-  const { nodesMap } = useSpace();
+  const { nodesMap } = useNodesContext();
 
   useEffect(() => {
     const fetchExecutionPlan = async () => {
@@ -29,18 +29,18 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
 
   if (!executionPlan) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        Loading... <Loader2Icon className="animate-spin size-4 ml-3" />
+      <div className="flex h-full w-full items-center justify-center">
+        Loading... <Loader2Icon className="ml-3 size-4 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className={clsx("h-full overflow-auto ", className)}>
-      <h1 className="text-2xl font-bold mb-4">Execution Plan</h1>
+    <div className={clsx("h-full overflow-auto", className)}>
+      <h1 className="mb-4 text-2xl font-bold">Execution Plan</h1>
       {executionPlan.tasks.map((taskItem, index) => (
-        <div key={index} className="mb-6 p-4 border rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-2">
+        <div key={index} className="mb-6 rounded-lg border p-4 shadow-sm">
+          <h2 className="mb-2 text-xl font-semibold">
             Task {index + 1} ({taskItem.type.toLowerCase()})
           </h2>
           <div className="mb-2">
@@ -49,7 +49,7 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
           </div>
           <div className="mb-2">
             <strong>Input Nodes:</strong>
-            <ul className="list-disc list-inside ml-4">
+            <ul className="ml-4 list-inside list-disc">
               {taskItem.task.inputNodes.map((node) => (
                 <li key={node.id}>
                   {getTitle(node.id)} (ID: {node.id})
@@ -66,8 +66,8 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
           <div className="mt-4">
             {taskItem.type == "PROMPT" && (
               <>
-                <h3 className="text-lg font-semibold mb-2">Messages for LLM:</h3>
-                <div className="max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
+                <h3 className="mb-2 text-lg font-semibold">Messages for LLM:</h3>
+                <div className="max-h-40 overflow-y-auto rounded bg-gray-100 p-2">
                   {taskItem?.messages?.map((message, i) => (
                     <div key={i} className="mb-2">
                       <strong>{message.role}:</strong> {message.content as string}
@@ -78,8 +78,8 @@ const ExecutionPlanRenderer = ({ className }: { className?: string }) => {
             )}
             {taskItem.type == "PAPERS" && (
               <>
-                <h3 className="text-lg font-semibold mb-2">Query for papers:</h3>
-                <div className="max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
+                <h3 className="mb-2 text-lg font-semibold">Query for papers:</h3>
+                <div className="max-h-40 overflow-y-auto rounded bg-gray-100 p-2">
                   {taskItem.query ?? ""}
                 </div>
               </>

@@ -1,6 +1,3 @@
-import "reactflow/dist/style.css";
-import "./react-flow.css";
-
 import { useQuery } from "@tanstack/react-query";
 import { History, Map, Maximize, ZoomIn, ZoomOut } from "lucide-react";
 import { MiniMap, Panel, ReactFlowProvider, useReactFlow } from "reactflow";
@@ -9,23 +6,27 @@ import useLocalStorageState from "use-local-storage-state";
 
 import { getNodeVersions } from "@/api";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useNode, useSpace } from "@/hooks";
+import { useCanvas } from "@/hooks";
+import { BackendEntityType } from "@/types";
 
 import { Button } from "../ui/button";
 import Versions from "./Versions";
 
 const Controls = () => {
-  const { space } = useSpace();
-  const { id } = useNode();
+  const { id, parent } = useCanvas();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
     defaultValue: true,
   });
 
+  const isMethod = parent.type === BackendEntityType.METHOD;
+
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", "latest"],
-    queryFn: ({ signal }) => getNodeVersions(signal, id, "GRAPH", 0, 1),
-    enabled: Boolean(space?.allowed_actions.includes("write")),
+    queryFn: ({ signal }) => getNodeVersions(signal, parent.id, "GRAPH", 0, 1),
+    enabled: Boolean(
+      parent?.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write")
+    ),
     initialData: { count: 0, next: "", previous: "", results: [] },
     refetchInterval: 1000 * 60,
     retry: false,
@@ -33,7 +34,7 @@ const Controls = () => {
 
   return (
     <>
-      <Panel position="bottom-right" className="flex gap-1 !bottom-2 !right-2 !m-0">
+      <Panel position="bottom-right" className="!bottom-2 !right-2 !m-0 flex gap-1">
         <Button className="size-9 p-0" variant="outline" onClick={() => zoomIn()}>
           <ZoomIn className="size-5" />
         </Button>
@@ -51,28 +52,30 @@ const Controls = () => {
           <Map className="size-5" />
         </Button>
       </Panel>
-      {space?.allowed_actions.includes("write") && (
-        <Panel position="bottom-left" className="flex gap-1 !bottom-2 !left-2 !m-0">
+      {parent.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write") && (
+        <Panel position="bottom-left" className="!bottom-2 !left-2 !m-0 flex gap-1">
           <Dialog>
             <DialogTrigger asChild>
               <Button className="size-9 p-0" variant="outline">
                 <History className="size-5" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
+            <DialogContent className="max-w-4/5 max-h-4/5 h-4/5 w-4/5 overflow-hidden">
               <ReactFlowProvider>
                 <Versions />
               </ReactFlowProvider>
             </DialogContent>
           </Dialog>
           {Boolean(versions?.results?.length) && (
-            <div className="text-xs text-gray-700 self-end ml-2">
+            <div className="ml-2 self-end text-xs text-gray-700">
               Saved {formatTimeAgo(versions.results[0].created_at)}
             </div>
           )}
         </Panel>
       )}
-      {miniMapVisible && <MiniMap pannable={true} className="!bottom-12 !right-2 !m-0 !mb-1" />}
+      {miniMapVisible && !isMethod && (
+        <MiniMap pannable={true} className="!bottom-12 !right-2 !m-0 !mb-1" />
+      )}
     </>
   );
 };

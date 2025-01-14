@@ -7,6 +7,10 @@ import { serializeError } from "serialize-error";
 import { toast } from "sonner";
 
 import { deleteProfileCard, updateProfileCards } from "@/api";
+import ProfileCardManage from "@/components/Profiles/ProfileCardManage";
+import { getProfileCardImage, getProfileImage } from "@/components/Profiles/utils";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,12 +20,7 @@ import {
 import useUser from "@/hooks/useUser";
 import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-import ProfileCardManage from "./ProfileCardManage";
-import { getProfileCardImage, getProfileImage } from "./utils";
-
-const ProfileCardExpanded = ({
+const MethodCardExpanded = ({
   profile,
   card,
   className,
@@ -64,20 +63,21 @@ const ProfileCardExpanded = ({
   return (
     <DialogContent
       className={clsx(
-        "bg-white !rounded-lg w-[500px] max-w-[90%] max-h-[90%] overflow-auto p-0 outline-none border-none block",
-        className,
+        `block max-h-[90%] w-[500px] max-w-[90%] overflow-auto !rounded-lg border-none bg-white p-0
+        outline-none`,
+        className
       )}
       showCloseButton={false}
     >
       <div
-        className={clsx("w-full h-[200px] bg-cover bg-center flex flex-col items-end rounded-t-lg")}
+        className={clsx("flex h-[200px] w-full flex-col items-end rounded-t-lg bg-cover bg-center")}
         style={{ backgroundImage: `url("${banner}")` }}
       >
         {canEdit ? (
-          <div className="flex gap-2 mr-4 mt-4">
+          <div className="mr-4 mt-4 flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bg-red-500 h-9 hover:bg-red-600 !ring-offset-0 !ring-0">
+                <Button className="h-9 bg-red-500 !ring-0 !ring-offset-0 hover:bg-red-600">
                   Delete
                 </Button>
               </DropdownMenuTrigger>
@@ -90,7 +90,7 @@ const ProfileCardExpanded = ({
                   onClick={() => {
                     if (
                       window.confirm(
-                        "Are you sure? This action cannot be undone. This will remove the card from all profiles that are using it.",
+                        "Are you sure? This action cannot be undone. This will remove the card from all profiles that are using it."
                       )
                     ) {
                       onDeleteCard(card.id);
@@ -103,7 +103,7 @@ const ProfileCardExpanded = ({
             </DropdownMenu>
             <Dialog open={editIsOpen} onOpenChange={setEditIsOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-violet-700 h-9 hover:bg-violet-800 !ring-offset-0 !ring-0">
+                <Button className="h-9 bg-violet-700 !ring-0 !ring-offset-0 hover:bg-violet-800">
                   Edit
                 </Button>
               </DialogTrigger>
@@ -115,7 +115,7 @@ const ProfileCardExpanded = ({
         ) : (
           Boolean(profile.id === user?.profile) && (
             <Button
-              className="bg-red-500 h-9 hover:bg-red-600 !ring-offset-0 !ring-0 mr-4 mt-4"
+              className="mr-4 mt-4 h-9 bg-red-500 !ring-0 !ring-offset-0 hover:bg-red-600"
               onClick={() => onRemoveCard(card.id)}
             >
               Remove
@@ -123,40 +123,46 @@ const ProfileCardExpanded = ({
           )
         )}
       </div>
-      <div className="p-5 flex flex-col gap-3">
-        <div className="flex justify-between items-center">
-          <div className="h-9 px-3 items-center bg-blue-50 rounded inline-flex text-neutral-600 text-sm font-medium leading-tight">
+      <div className="flex flex-col gap-3 p-5">
+        <div className="flex items-center justify-between">
+          <div
+            className="inline-flex h-9 items-center rounded bg-blue-50 px-3 text-sm font-medium
+              leading-tight text-neutral-600"
+          >
             Method
           </div>
           <div className="flex gap-2">
             {card.video_url && (
               <a href={card.video_url} target="_blank" rel="noreferrer">
-                <Button className="bg-white border border-neutral-200 h-9 text-black hover:bg-gray-200">
-                  <PlayCircle className="size-4 mr-1.5" /> Video
+                <Button
+                  className="h-9 border border-neutral-200 bg-white text-black hover:bg-gray-200"
+                >
+                  <PlayCircle className="mr-1.5 size-4" /> Video
                 </Button>
               </a>
             )}
             {Boolean(card.url && canEdit) && (
               <a href={card.url}>
-                <Button className="bg-violet-700 h-9 hover:bg-violet-800">
-                  <Play className="size-4 mr-1.5" /> Run
+                <Button className="h-9 bg-violet-700 hover:bg-violet-800">
+                  <Play className="mr-1.5 size-4" /> Run
                 </Button>
               </a>
             )}
           </div>
         </div>
-        <h3 className="text-black text-3xl font-semibold leading-9">{card.title}</h3>
-        <div className="flex items-center gap-2 text-neutral-500 font-normal text-base">
+        <h3 className="text-3xl font-semibold leading-9 text-black">{card.title}</h3>
+        <div className="flex items-center gap-2 text-base font-normal text-neutral-500">
           {Boolean(card.author_profile) && (
             <Link
               to={`/profiles/${card.author_profile?.profile_slug}`}
-              className="flex items-center gap-1 text-neutral-500 font-normal text-base hover:text-neutral-600 whitespace-nowrap text-ellipsis overflow-hidden"
+              className="flex items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap
+                text-base font-normal text-neutral-500 hover:text-neutral-600"
             >
               <div
-                className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center "
+                className="mr-0.5 size-4 flex-shrink-0 rounded-full bg-gray-400 bg-cover bg-center"
                 style={{ backgroundImage: `url("${getProfileImage(card.author_profile)}")` }}
               ></div>
-              <span className="max-w-full text-ellipsis overflow-hidden">
+              <span className="max-w-full overflow-hidden text-ellipsis">
                 @{card.author_profile?.profile_slug}
               </span>
             </Link>
@@ -166,13 +172,15 @@ const ProfileCardExpanded = ({
               {Boolean(card.space_profile && card.author_profile) && <span>&middot;</span>}
               <Link
                 to={`/profiles/${card.space_profile?.profile_slug}`}
-                className="flex items-center gap-1 text-neutral-500 font-normal text-base hover:text-neutral-600 whitespace-nowrap text-ellipsis overflow-hidden"
+                className="flex items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap
+                  text-base font-normal text-neutral-500 hover:text-neutral-600"
               >
                 <div
-                  className="size-4 bg-gray-400 rounded-full mr-0.5 flex-shrink-0 bg-cover bg-center "
+                  className="mr-0.5 size-4 flex-shrink-0 rounded-full bg-gray-400 bg-cover
+                    bg-center"
                   style={{ backgroundImage: `url("${getProfileImage(card.space_profile)}")` }}
                 ></div>
-                <span className="max-w-full text-ellipsis overflow-hidden">
+                <span className="max-w-full overflow-hidden text-ellipsis">
                   @{card.space_profile?.profile_slug}
                 </span>
               </Link>
@@ -190,7 +198,7 @@ const ProfileCardExpanded = ({
           <div className="font-normal text-neutral-700">{card.description}</div>
           {card.status_message && (
             <>
-              <h4 className="font-bold text-neutral-600 mt-3">Status</h4>
+              <h4 className="mt-3 font-bold text-neutral-600">Status</h4>
               <div className="font-normal text-neutral-700">{card.status_message}</div>
             </>
           )}
@@ -200,4 +208,4 @@ const ProfileCardExpanded = ({
   );
 };
 
-export default ProfileCardExpanded;
+export default MethodCardExpanded;

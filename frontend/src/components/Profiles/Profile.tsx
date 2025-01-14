@@ -24,11 +24,11 @@ import badge from "./assets/badge.webp";
 import shadowsBg from "./assets/shadows.svg";
 import { profilesIconMap } from "./constants";
 import EditProfile from "./EditProfile";
-import ProfileCard from "./ProfileCard";
-import ProfileCardExpanded from "./ProfileCardExpanded";
 import ProfileCardFind from "./ProfileCardFind";
 import ProfileCardManage from "./ProfileCardManage";
 import ProfileLink from "./ProfileLink";
+import ProfileMethodCard from "./ProfileMethodCard";
+import ProfileMethodCardExpanded from "./ProfileMethodCardExpanded";
 import { getProfileBannerImage, getProfileImage } from "./utils";
 
 const Profile = ({ className }: { className?: string }) => {
@@ -79,11 +79,14 @@ const Profile = ({ className }: { className?: string }) => {
   const banner = getProfileBannerImage(profile, true);
 
   return (
-    <div className={clsx("bg-profile-gradient h-full overflow-auto w-full", className)}>
-      <div className="absolute w-[60%] left-1/2 transform -translate-x-1/2 top-[211px] select-none z-10">
+    <div className={clsx("h-full w-full overflow-auto bg-profile-gradient", className)}>
+      <div
+        className="absolute left-1/2 top-[211px] z-10 w-[60%] -translate-x-1/2 transform
+          select-none"
+      >
         <img src={shadowsBg} className="select-none" draggable="false" />
       </div>
-      <div className="absolute top-3 left-3 z-30">
+      <div className="absolute left-3 top-3 z-30">
         {isGuest ? (
           <>
             <Button
@@ -118,13 +121,15 @@ const Profile = ({ className }: { className?: string }) => {
         <Loader message="Loading profile..." />
       ) : (
         <>
-          <div className="pt-10 max-w-[1200px] w-[90%] m-auto z-20 relative">
+          <div className="relative z-20 m-auto w-[90%] max-w-[1200px] pt-10">
             <div
-              className="h-[200px] md:h-[320px] rounded-2xl flex items-end justify-center bg-cover bg-center"
+              className="flex h-[200px] items-end justify-center rounded-2xl bg-cover bg-center
+                md:h-[320px]"
               style={{ backgroundImage: `url("${banner}")` }}
             >
               <div
-                className="size-40 md:size-48 rounded-full -mb-5 md:-mb-8 bg-cover bg-center border-4 border-[#e7ebfe]"
+                className="-mb-5 size-40 rounded-full border-4 border-[#e7ebfe] bg-cover bg-center
+                  md:-mb-8 md:size-48"
                 style={{ backgroundImage: `url("${getProfileImage(profile, true)}")` }}
               ></div>
               {isOwner && profile && (
@@ -132,9 +137,10 @@ const Profile = ({ className }: { className?: string }) => {
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="p-0 shadow-node-repo text-black text-sm font-medium h-8 px-2 absolute -right-3 md:right-0 top-3 md:top-auto md:-bottom-12"
+                      className="absolute -right-3 top-3 h-8 p-0 px-2 text-sm font-medium text-black
+                        shadow-node-repo md:-bottom-12 md:right-0 md:top-auto"
                     >
-                      <Edit strokeWidth={2.8} className="size-4 text-neutral-500 mr-2" /> Edit
+                      <Edit strokeWidth={2.8} className="mr-2 size-4 text-neutral-500" /> Edit
                       profile
                     </Button>
                   </DialogTrigger>
@@ -143,11 +149,11 @@ const Profile = ({ className }: { className?: string }) => {
               )}
             </div>
           </div>
-          <div className="z-20 relative max-w-[640px] w-[90%] m-auto mt-9 md:mt-14 mb-20">
-            <h1 className="text-black text-3xl font-semibold flex items-center justify-center">
+          <div className="relative z-20 m-auto mb-20 mt-9 w-[90%] max-w-[640px] md:mt-14">
+            <h1 className="flex items-center justify-center text-3xl font-semibold text-black">
               {profile?.title}
               <div
-                className="size-10 ml-3 rounded-full bg-cover bg-center hidden"
+                className="ml-3 hidden size-10 rounded-full bg-cover bg-center"
                 style={{ backgroundImage: `url("${badge}")` }}
                 data-tooltip-id="profile-badge"
                 data-tooltip-content="Epoch 1 Badge"
@@ -155,7 +161,10 @@ const Profile = ({ className }: { className?: string }) => {
               ></div>
             </h1>
             <Tooltip id="profile-badge" />
-            <div className="text-neutral-500 text-base font-normal flex gap-1 justify-center mt-4 flex-wrap">
+            <div
+              className="mt-4 flex flex-wrap justify-center gap-1 text-base font-normal
+                text-neutral-500"
+            >
               <span>@{profile?.profile_slug}</span>
               {profile?.object_created ? (
                 <>
@@ -205,19 +214,21 @@ const Profile = ({ className }: { className?: string }) => {
               })}
             </div>
             {Boolean(profile?.description) && (
-              <div className="p-4 mt-4 text-sm text-center font-normal">{profile?.description}</div>
+              <div className="mt-4 p-4 text-center text-sm font-normal">{profile?.description}</div>
             )}
 
             {Boolean(isSpace && profile?.members.length) && (
-              <div className="mt-6 mx-1">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center text-neutral-600 text-sm font-bold leading-tight">
-                    <Users className="size-4 text-neutral-500 m-2 mr-4" />
+              <div className="mx-1 mt-6">
+                <div className="mb-2 flex items-center justify-between">
+                  <div
+                    className="flex items-center text-sm font-bold leading-tight text-neutral-600"
+                  >
+                    <Users className="m-2 mr-4 size-4 text-neutral-500" />
                     Members
                   </div>
                 </div>
 
-                <div className="flex gap-2 flex-wrap py-2">
+                <div className="flex flex-wrap gap-2 py-2">
                   {profile?.members
                     .sort((a, b) => a.title.localeCompare(b.title))
                     .map((user, i) => (
@@ -237,17 +248,19 @@ const Profile = ({ className }: { className?: string }) => {
             )}
 
             {(Boolean(profile?.cards.length) || isOwner) && (
-              <div className="mt-6 mx-1">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center text-neutral-600 text-sm font-bold leading-tight">
-                    <Orbit className="size-4 text-neutral-500 m-2 mr-4" />
+              <div className="mx-1 mt-6">
+                <div className="mb-2 flex items-center justify-between">
+                  <div
+                    className="flex items-center text-sm font-bold leading-tight text-neutral-600"
+                  >
+                    <Orbit className="m-2 mr-4 size-4 text-neutral-500" />
                     Methods
                   </div>
                   {isOwner && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button className="bg-violet-700 h-6 px-2 text-xs hover:bg-violet-800">
-                          <Plus className="size-3 mr-1 -ml-0.5" /> Add
+                        <Button className="h-6 bg-violet-700 px-2 text-xs hover:bg-violet-800">
+                          <Plus className="-ml-0.5 mr-1 size-3" /> Add
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="z-90">
@@ -268,29 +281,32 @@ const Profile = ({ className }: { className?: string }) => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-4 min-[640px]:grid-cols-3">
+                <div
+                  className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3"
+                >
                   {profile?.cards
                     .sort((a, b) => a.title.localeCompare(b.title))
                     .map((card, i) => (
                       <Dialog key={`profile-card-${card.id}-${i}`}>
                         <DialogTrigger className="text-left">
-                          <ProfileCard className="cursor-pointer" card={card} />
+                          <ProfileMethodCard className="cursor-pointer" card={card} />
                         </DialogTrigger>
-                        {profile && <ProfileCardExpanded profile={profile} card={card} />}
+                        {profile && <ProfileMethodCardExpanded profile={profile} card={card} />}
                       </Dialog>
                     ))}
                   {Boolean(isOwner && profile?.cards.length === 0) && (
                     <>
                       <div
-                        className="h-48 cursor-pointer rounded-lg flex items-center justify-center border border-violet-600 border-dashed"
+                        className="flex h-48 cursor-pointer items-center justify-center rounded-lg
+                          border border-dashed border-violet-600"
                         onClick={() => setProfileCardManageOpen(true)}
                       >
-                        <Button className="bg-violet-700 w-fit hover:bg-violet-800">
-                          <Plus className="size-4 mr-1" /> Create Method
+                        <Button className="w-fit bg-violet-700 hover:bg-violet-800">
+                          <Plus className="mr-1 size-4" /> Create Method
                         </Button>
                       </div>
-                      <div className="h-48 rounded-lg border border-neutral-300 border-dashed"></div>
-                      <div className="h-48 rounded-lg border border-neutral-300 border-dashed"></div>
+                      <div className="h-48 rounded-lg border border-dashed border-neutral-300"></div>
+                      <div className="h-48 rounded-lg border border-dashed border-neutral-300"></div>
                     </>
                   )}
                 </div>
@@ -298,14 +314,14 @@ const Profile = ({ className }: { className?: string }) => {
             )}
           </div>
 
-          <div className="max-w-[1200px] w-[90%] m-auto relative py-10 z-20">
+          <div className="relative z-20 m-auto w-[90%] max-w-[1200px] py-10">
             <a
               href="https://www.coordination.network/welcome"
               target="_blank"
               rel="noreferrer"
-              className="w-fit block m-auto"
+              className="m-auto block w-fit"
             >
-              <img src="/static/coordination-network-logo-bw.png" className="h-9 m-auto" />
+              <img src="/static/coordination-network-logo-bw.png" className="m-auto h-9" />
             </a>
           </div>
         </>

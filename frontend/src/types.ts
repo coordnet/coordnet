@@ -7,7 +7,7 @@ import { buddyModels } from "./constants";
 
 // https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
 export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>,
+  obj: Record<K, unknown>
 ): z.ZodEnum<[K, ...K[]]> => {
   const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
   return z.enum([firstKey, ...otherKeys]);
@@ -31,8 +31,8 @@ export const PermissionSchema = z.object({
 export type Permission = z.infer<typeof PermissionSchema>;
 
 export enum PermissionModel {
-  Node = "node",
   Space = "space",
+  Method = "method",
 }
 
 export interface ApiError {
@@ -160,6 +160,7 @@ export interface NodeVersion {
 export enum NodeType {
   Default = "default",
   Loop = "loop",
+  Input = "input",
   Output = "output",
   Prompt = "prompt",
   ResponseCombined = "response_combined",
@@ -172,6 +173,7 @@ export enum NodeType {
 export const nodeTypeMap = {
   [NodeType.Default]: "Default",
   [NodeType.Loop]: "Loop",
+  [NodeType.Input]: "Input",
   [NodeType.Output]: "Output",
   [NodeType.Prompt]: "Prompt",
   [NodeType.ResponseCombined]: "Response (combined)",
@@ -245,7 +247,7 @@ export const ProfileCardFormSchema = ProfileCardSchema.pick({
   z.object({
     author_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
     space_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
-  }),
+  })
 );
 export type ProfileCardForm = z.infer<typeof ProfileCardFormSchema>;
 
@@ -299,3 +301,105 @@ export const ProfileFormSchema = ProfileSchema.pick({
   members: z.array(z.string().uuid()),
 });
 export type ProfileForm = z.infer<typeof ProfileFormSchema>;
+
+// Types for the canvas or editor parent which can be a node or a method
+export enum BackendEntityType {
+  METHOD = "method",
+  SPACE = "space",
+}
+
+// export type BackendParent = {
+//   id: string;
+//   type: BackendEntityType;
+//   data?: BackendNodeDetail | Method | Space;
+//   error: Error | null;
+//   isLoading: boolean;
+// };
+
+export type BackendParent =
+  | {
+      id: string;
+      type: BackendEntityType.METHOD;
+      data?: Method;
+      error: Error | null;
+      isLoading: boolean;
+    }
+  | {
+      id: string;
+      type: BackendEntityType.SPACE;
+      data?: Space;
+      error: Error | null;
+      isLoading: boolean;
+    };
+
+export const MethodSchema = z.object({
+  id: z.string(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  title: z.string().min(1, "Method name is required"),
+  title_token_count: z.null(),
+  description: z
+    .string()
+    .min(1, "Short description is required")
+    .max(255, "Short description must be less than 100 characters"),
+  description_token_count: z.null(),
+  content: z.null(),
+  text: z.string().nullish(),
+  text_token_count: z.null(),
+  image: z.union([z.null(), z.string().url()]),
+  image_2x: z.union([z.null(), z.string().url()]),
+  image_thumbnail: z.union([z.null(), z.string().url()]),
+  image_thumbnail_2x: z.union([z.null(), z.string().url()]),
+  node_type: z.string(),
+  search_vector: z.null(),
+  is_public: z.boolean(),
+  is_public_writable: z.boolean(),
+  creator: z.string(),
+  space: z.null(),
+  editor_document: z.null(),
+  graph_document: z.null(),
+  subnodes: z.array(z.any()),
+  authors: z.array(z.string()),
+  allowed_actions: z.array(AllowedActionsSchema),
+});
+export type Method = z.infer<typeof MethodSchema>;
+
+export const MethodUpdateFormSchema = MethodSchema.pick({
+  title: true,
+  description: true,
+  text: true,
+  is_public: true,
+});
+export type MethodUpdateForm = z.infer<typeof MethodUpdateFormSchema>;
+
+export const MethodRunSchema = z.object({
+  id: z.string(),
+  space: z.null(),
+  method: z.string(),
+  method_version: z.null(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  method_data: z.record(z.string(), z.unknown()),
+  is_dev_run: z.boolean(),
+});
+export type MethodRun = z.infer<typeof MethodRunSchema>;
+
+export const MethodVersionSchema = MethodSchema.pick({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  title: true,
+  title_token_count: true,
+  description: true,
+  description_token_count: true,
+  content: true,
+  text: true,
+  text_token_count: true,
+  creator: true,
+  space: true,
+  authors: true,
+}).extend({
+  method: z.string(),
+  version: z.number(),
+});
+export type MethodVersion = z.infer<typeof MethodVersionSchema>;

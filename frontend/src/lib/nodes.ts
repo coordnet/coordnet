@@ -18,15 +18,19 @@ import { createConnectedYDoc } from "./utils";
 
 type FormatReturnType<T extends "plain" | "json"> = T extends "json" ? JSONContent : string;
 
-export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
-  id: string,
-  format: T = "plain" as T,
-): Promise<FormatReturnType<T> | undefined> => {
-  const token = store("coordnet-auth");
-  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+/**
+ * Retrieves the content of a given XML fragment in the specified format.
+ *
+ * @param xmlFragment - The XML fragment to retrieve content from.
+ * @param format - The format in which to retrieve the content ("plain" or "json").
+ * @returns The content of the XML fragment in the specified format, or undefined if an error occurs.
+ */
+const getNodeContent = <T extends "plain" | "json">(
+  xmlFragment: Y.XmlFragment,
+  format: T
+): FormatReturnType<T> | undefined => {
   try {
-    const xml = editorDoc.getXmlFragment("default");
-    const json = yXmlFragmentToProsemirrorJSON(xml);
+    const json = yXmlFragmentToProsemirrorJSON(xmlFragment);
     if (format == "plain") {
       const text = proseMirrorJSONToText(json);
       return text as FormatReturnType<T>;
@@ -35,11 +39,33 @@ export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
       return json as FormatReturnType<T>;
     }
   } catch (e) {
-    toast.error("Failed to get node page content");
-    console.error("Failed to get node page content", e);
+    toast.error("Failed to get node content");
+    console.error("Failed to get node content", e);
+  }
+  return;
+};
+
+export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
+  id: string,
+  format: T = "plain" as T
+): Promise<FormatReturnType<T> | undefined> => {
+  const token = store("coordnet-auth");
+  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+  try {
+    const xml = editorDoc.getXmlFragment("default");
+    return getNodeContent(xml, format);
   } finally {
     editorProvider.destroy();
   }
+};
+
+export const getMethodNodePageContent = <T extends "plain" | "json" = "plain">(
+  id: string,
+  document: Y.Doc,
+  format: T = "plain" as T
+): FormatReturnType<T> | undefined => {
+  const xml = document.getXmlFragment(`${id}-document`);
+  return getNodeContent(xml, format);
 };
 
 export const setNodePageMarkdown = async (markdown: string, id: string) => {
@@ -125,7 +151,7 @@ export const exportNode = async (
   id: string,
   nodesMap: Y.Map<GraphNode> | undefined,
   spaceMap: Y.Map<SpaceNode> | undefined,
-  includeSubNodes = false,
+  includeSubNodes = false
 ): Promise<ExportNode | null> => {
   const node = nodesMap?.get(id);
   const spaceNode = spaceMap?.get(id);
@@ -152,7 +178,7 @@ export const exportNode = async (
 export const importNodeCanvas = async (spaceId: string, graphId: string, node: ExportNode) => {
   const { disconnect, nodesMap, edgesMap, spaceMap } = await createConnectedGraph(
     spaceId!,
-    graphId,
+    graphId
   );
 
   const idMap: { [k: string]: string } = {};

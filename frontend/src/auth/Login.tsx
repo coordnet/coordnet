@@ -52,7 +52,7 @@ function Login() {
       const response = await authApi.post(
         "/api/auth/login/",
         {},
-        { auth: { username: values.email, password: values.password } },
+        { auth: { username: values.email, password: values.password } }
       );
       store("coordnet-auth", response.data.token);
 
@@ -66,6 +66,7 @@ function Login() {
           if (
             redirectUrl.pathname.startsWith("/spaces/") ||
             redirectUrl.pathname.startsWith("/auth/") ||
+            redirectUrl.pathname.startsWith("/methods/") ||
             redirectUrl.pathname.startsWith("/profiles/")
           ) {
             dest.pathname = redirectUrl.pathname;
@@ -83,12 +84,12 @@ function Login() {
 
   return (
     <>
-      <div className="size-full flex items-center justify-center absolute z-10">
-        <div className="bg-white min-w-[35vw] max-w-[500px] shadow-lg rounded-md border p-5">
+      <div className="absolute z-10 flex size-full items-center justify-center">
+        <div className="min-w-[35vw] max-w-[500px] rounded-md border bg-white p-5 shadow-lg">
           <Form {...form}>
             <img
               src="/static/coordination-network-logo.png"
-              className="max-w-[250px] w-full m-auto mb-4"
+              className="m-auto mb-4 w-full max-w-[250px]"
             />
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-y-2">
               <FormField
@@ -121,11 +122,11 @@ function Login() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-violet-600 rounded my-2">
+              <Button type="submit" className="my-2 w-full rounded bg-violet-600">
                 Login
               </Button>
               <Link to="/auth/reset-password">
-                <Button variant="ghost" className="w-full -my-2">
+                <Button variant="ghost" className="-my-2 w-full">
                   Reset password
                 </Button>
               </Link>

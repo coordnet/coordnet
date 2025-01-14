@@ -14,9 +14,9 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { useNode, useQuickView, useSpace } from "@/hooks";
+import { useCanvas, useNodesContext, useQuickView } from "@/hooks";
 import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
-import { GraphNode, NodeType, nodeTypeMap } from "@/types";
+import { BackendEntityType, GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { EditableNode } from "../";
 import Footer from "./Footer";
@@ -36,8 +36,8 @@ interface GraphNodeComponentProps {
 }
 
 const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => {
-  const { nodesMap: spaceMap } = useSpace();
-  const { nodesMap, node } = useNode();
+  const { nodesMap: spaceMap } = useNodesContext();
+  const { nodesMap, nodeFeatures, parent } = useCanvas();
   const { showQuickView } = useQuickView();
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
@@ -48,9 +48,9 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [lineClamp, setLineClamp] = useState<number>(3);
 
-  const backendNode = node?.subnodes.find((node) => node.id === id);
-  const hasGraph = backendNode?.has_subnodes;
-  const hasPage = Boolean(backendNode?.text_token_count);
+  const { hasPage, hasGraph } = nodeFeatures(id);
+
+  const isMethod = parent.type === BackendEntityType.METHOD;
 
   useEffect(() => {
     if (!nodeRef.current) return;
@@ -135,15 +135,13 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
       <Handle id="target-top" type="target" position={Position.Top} style={handleStyle} />
       <Handle id="target-left" type="target" position={Position.Left} style={handleStyle} />
       <ContextMenu>
-        <ContextMenuTrigger>
+        <ContextMenuTrigger disabled={isMethod}>
           <div
             className={clsx(
-              "GraphNode border border-gray-1 rounded-lg p-3 bg-white",
-              "size-full overflow-hidden flex items-center justify-center text-center text-sm",
-              {
-                "border-2": Boolean(data.borderColor),
-                "shadow-node-selected": selected,
-              },
+              `GraphNode flex size-full items-center justify-center overflow-hidden rounded-lg
+              border border-gray-1 bg-white p-3 text-center text-sm`,
+              Boolean(data.borderColor) && "border-2",
+              selected && "shadow-node-selected"
             )}
             style={nodeStyle}
             ref={nodeRef}
@@ -153,17 +151,17 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
               <>
                 <div
                   className={clsx(
-                    "h-4 bg-white rounded border border-gray-1 flex items-center justify-center",
-                    "cursor-default nodrag absolute -top-2 right-2 text-[10px] gap-1 px-1",
+                    `nodrag absolute -top-2 right-2 flex h-4 cursor-default items-center
+                    justify-center gap-1 rounded border border-gray-1 bg-white px-1 text-[10px]`
                   )}
                   style={{ borderColor: nodeStyle.borderColor }}
                   data-tooltip-id="syncing"
                   data-tooltip-place="top"
                 >
-                  Syncing <Loader2 className="animate-spin size-2.5" />
+                  Syncing <Loader2 className="size-2.5 animate-spin" />
                 </div>
                 <Tooltip id="syncing">
-                  <div className="text-xs w-[180px]">
+                  <div className="w-[180px] text-xs">
                     Some features of a node such as the node page or graph are only available after
                     the initial sync
                   </div>
@@ -171,20 +169,19 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
               </>
             )}
             {data?.type && data?.type !== NodeType.Default && (
-              <div className="absolute top-0 left-2 text-[10px]">
+              <div className="absolute left-2 top-0 text-[10px]">
                 {nodeTypeMap[data.type as NodeType]}
               </div>
             )}
             {/* if domain is localhost show the id */}
             {window.location.hostname === "localhost" && (
-              <div className="absolute top-0 right-2 text-[10px]">{id.slice(0, 8)}</div>
+              <div className="absolute right-2 top-0 text-[10px]">{id.slice(0, 8)}</div>
             )}
             {data?.state && data?.state == "executing" && (
               <div
                 className={clsx(
-                  "absolute top-[-7px] right-2 flex gap-1",
-                  "size-4 bg-white rounded border border-purple flex items-center justify-center",
-                  "cursor-pointer nodrag",
+                  `nodrag absolute right-2 top-[-7px] flex size-4 cursor-pointer items-center
+                  justify-center gap-1 rounded border border-purple bg-white`
                 )}
               >
                 <LoaderIcon className="size-3 animate-spin text-purple" />
@@ -201,17 +198,19 @@ const GraphNodeComponent = ({ id, data, selected }: GraphNodeComponentProps) => 
                 if (node) nodesMap?.set(id, { ...node, data: { ...node.data, editing: false } });
               }}
               contentEditable={isEditing}
-              className={clsx("w-full items-center justify-center", {
-                "nodrag cursor-text h-full overflow-hidden": isEditing,
-                [`line-clamp-${lineClamp}`]: !isEditing,
-              })}
+              className={clsx(
+                "w-full items-center justify-center",
+                isEditing && "nodrag h-full cursor-text overflow-hidden",
+                !isEditing && `line-clamp-${lineClamp}`
+              )}
             />
             <Footer id={id} nodeStyle={nodeStyle} />
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={() => onExportNode(false)}>Export Node</ContextMenuItem>
-          {backendNode?.has_subnodes && (
+          {/* TODO: Fix this */}
+          {hasGraph && (
             <ContextMenuItem onClick={() => onExportNode(true)}>
               Export Node & Canvas Nodes
             </ContextMenuItem>

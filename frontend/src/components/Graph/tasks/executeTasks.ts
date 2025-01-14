@@ -7,11 +7,9 @@ import { z } from "zod";
 
 import { querySemanticScholar } from "@/api";
 import { apiUrl } from "@/constants";
-import { getCanvas } from "@/lib/canvases";
-import { getNodePageContent, waitForNode } from "@/lib/nodes";
-import { Buddy, GraphNode, NodeType, Space, SpaceNode } from "@/types";
+import { getMethodNodePageContent } from "@/lib/nodes";
+import { Buddy, GraphNode, Method, NodeType, SpaceNode } from "@/types";
 
-import { addToGraph, setNodeTitleAndContent } from "../utils";
 import { executeTableTask } from "./tables";
 import {
   ExecutionContext,
@@ -24,10 +22,13 @@ import {
   Task,
 } from "./types";
 import {
+  addToMethodGraph,
+  getMethodNodeCanvas,
   isMultipleResponseNode,
   isResponseNode,
   isSingleResponseType,
   isTableResponseType,
+  setMethodNodeTitleAndContent,
   setNodesState,
 } from "./utils";
 
@@ -52,22 +53,27 @@ function formatName(input: string) {
 export const processTasks = async (
   context: ExecutionContext,
   buddy: Buddy | undefined,
-  space: Space | undefined,
-  spaceNodesMap: Y.Map<SpaceNode> | undefined,
+  methodDoc: Y.Doc | undefined,
+  method: Method | undefined,
+  methodNodesMap: Y.Map<SpaceNode> | undefined,
   nodesMap: Y.Map<GraphNode> | undefined,
-  cancelRef: React.MutableRefObject<boolean>, // Accept cancellation ref
-  dryRun: boolean = false,
+  cancelRef: React.RefObject<boolean | null>,
+  dryRun: boolean = false
 ) => {
   if (!buddy) {
     toast.error("Buddy not found");
     return;
   }
-  if (!space) {
-    toast.error("Space node map not found");
+  if (!methodDoc) {
+    toast.error("Method yDoc not found");
     return;
   }
-  if (!spaceNodesMap) {
-    toast.error("Space node map not found");
+  if (!method) {
+    toast.error("Method not found");
+    return;
+  }
+  if (!methodNodesMap) {
+    toast.error("Method node map not found");
     return;
   }
   if (!nodesMap) {
@@ -93,11 +99,11 @@ export const processTasks = async (
     if (task?.loop === true) {
       tasks = [];
       const otherNodes = task.inputNodes.filter((node) => !isResponseNode(node));
-      for await (const inputNode of task.inputNodes) {
+      for (const inputNode of task.inputNodes) {
         if (isResponseNode(inputNode)) {
-          const { nodes: inputNodeNodes } = await getCanvas(inputNode.id);
-          for await (const responseNode of inputNodeNodes) {
-            if (cancelRef.current) break; // Check for cancellation within nested loop
+          const { nodes: inputNodeNodes } = getMethodNodeCanvas(inputNode.id, methodDoc);
+          for (const responseNode of inputNodeNodes) {
+            if (cancelRef.current) break;
             tasks.push({ ...task, inputNodes: [...otherNodes, responseNode] });
           }
         }
@@ -112,28 +118,28 @@ export const processTasks = async (
       }
 
       if (task.promptNode.data.type === NodeType.PaperFinder) {
-        const query = await generateKeywords(task, spaceNodesMap);
+        const query = await generateKeywords(task, methodDoc, methodNodesMap);
         if (dryRun) {
           executionPlan.tasks.push({ task, query, type: "PAPERS" });
         } else {
           try {
             // setNodesState(selectedIds, nodesMap, "executing");
             setNodesState([task.promptNode.id], nodesMap, "executing");
-            await executeKeywordTask(task, space, query, cancelRef);
+            await executeKeywordTask(task, methodDoc, query, cancelRef);
           } catch (e) {
             toast.error(`Failed to execute keyword task`);
             console.error(e);
           }
         }
       } else {
-        const messages = await generatePrompt(task, buddy, spaceNodesMap);
+        const messages = await generatePrompt(task, buddy, methodDoc, methodNodesMap);
         if (dryRun) {
           executionPlan.tasks.push({ task, messages, type: "PROMPT" });
         } else {
           try {
             // setNodesState(selectedIds, nodesMap, "executing");
             setNodesState([task.promptNode.id], nodesMap, "executing");
-            await executePromptTask(task, space, messages, cancelRef, spaceNodesMap);
+            await executePromptTask(task, messages, methodDoc, cancelRef, methodNodesMap);
           } catch (e) {
             toast.error(`Failed to execute prompt task`);
             console.error(e);
@@ -149,13 +155,13 @@ export const processTasks = async (
 
 export const executePromptTask = async (
   task: Task,
-  space: Space,
   messages: ChatCompletionMessageParam[],
-  cancelRef: React.MutableRefObject<boolean>,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  methodDoc: Y.Doc,
+  cancelRef: React.RefObject<boolean | null>,
+  spaceNodesMap: Y.Map<SpaceNode>
 ) => {
   if (isTableResponseType(task.outputNode)) {
-    await executeTableTask(task, messages, cancelRef, spaceNodesMap);
+    await executeTableTask(task, messages, methodDoc, cancelRef, spaceNodesMap);
     return;
   }
 
@@ -209,13 +215,13 @@ export const executePromptTask = async (
     if (cancelRef.current) return;
 
     if (isMultipleResponseNode(task.outputNode)) {
-      await addToGraph({ spaceId: space?.id, graphId: task?.outputNode?.id ?? "", nodes });
+      await addToMethodGraph({ graphId: task?.outputNode?.id ?? "", document: methodDoc, nodes });
     } else {
-      setNodeTitleAndContent(
-        space?.id,
+      setMethodNodeTitleAndContent(
+        methodDoc,
         task?.outputNode?.id ?? "",
         nodes[0].title,
-        nodes[0].markdown,
+        nodes[0].markdown
       );
     }
   } catch (e) {
@@ -227,16 +233,16 @@ export const executePromptTask = async (
 export const generatePrompt = async (
   task: Task,
   buddy: Buddy,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  methodDoc: Y.Doc,
+  spaceNodesMap: Y.Map<SpaceNode>
 ): Promise<ChatCompletionMessageParam[]> => {
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: buddy?.system_message },
   ];
 
-  const formatNode = async (nodeId: string) => {
-    await waitForNode(nodeId);
+  const formatNode = (nodeId: string) => {
     const spaceNode = spaceNodesMap?.get(nodeId);
-    const nodePageContent = await getNodePageContent(nodeId);
+    const nodePageContent = getMethodNodePageContent(nodeId, methodDoc);
     return ["Title: " + (spaceNode?.title ?? ""), "Content: " + nodePageContent, ""].join("/n");
   };
 
@@ -245,16 +251,15 @@ export const generatePrompt = async (
       graphNode.data.type == NodeType.ResponseSingle ||
       graphNode.data.type == NodeType.ResponseMultiple
     ) {
-      const { nodes } = await getCanvas(graphNode.id);
+      const { nodes } = getMethodNodeCanvas(graphNode.id, methodDoc);
       const content = [];
       for (const node of nodes) {
-        const formattedNode = await formatNode(node.id);
+        const formattedNode = formatNode(node.id);
         content.push(formattedNode);
       }
       messages.push({ role: "user", content: content.join("/n") });
     } else {
-      await waitForNode(graphNode.id);
-      const content = await formatNode(graphNode.id);
+      const content = formatNode(graphNode.id);
       const spaceNode = spaceNodesMap?.get(graphNode.id);
       messages.push({ role: "user", content, name: formatName(spaceNode?.title ?? "") });
     }
@@ -267,9 +272,9 @@ export const generatePrompt = async (
 
 export const executeKeywordTask = async (
   task: Task,
-  space: Space,
+  methodDoc: Y.Doc,
   query: string,
-  cancelRef: React.MutableRefObject<boolean>,
+  cancelRef: React.RefObject<boolean | null>
 ) => {
   try {
     if (cancelRef.current) return;
@@ -290,7 +295,7 @@ ${paper.abstract}`,
 
     if (cancelRef.current) return;
 
-    await addToGraph({ spaceId: space?.id, graphId: task?.outputNode?.id ?? "", nodes });
+    await addToMethodGraph({ graphId: task?.outputNode?.id ?? "", nodes, document: methodDoc });
   } catch (e) {
     console.error(e);
     toast.info("A request to find papers failed, continuing with the next task");
@@ -299,7 +304,8 @@ ${paper.abstract}`,
 
 export const generateKeywords = async (
   task: Task,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  methodDoc: Y.Doc,
+  spaceNodesMap: Y.Map<SpaceNode>
 ): Promise<string> => {
   let query = "";
 
@@ -308,7 +314,7 @@ export const generateKeywords = async (
       graphNode.data.type == NodeType.ResponseSingle ||
       graphNode.data.type == NodeType.ResponseMultiple
     ) {
-      const { nodes } = await getCanvas(graphNode.id);
+      const { nodes } = getMethodNodeCanvas(graphNode.id, methodDoc);
       for (const node of nodes) {
         const title = spaceNodesMap?.get(node.id)?.title;
         if (title) query += title;

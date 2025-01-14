@@ -4,19 +4,19 @@ import { toast } from "sonner";
 import * as Y from "yjs";
 import { z, ZodString } from "zod";
 
-import { getCanvas } from "@/lib/canvases";
-import { getNodePageContent, setNodePageContent } from "@/lib/nodes";
+import { getMethodNodePageContent } from "@/lib/nodes";
 import { SpaceNode } from "@/types";
 
 import { client } from "./executeTasks";
 import { TableResponse, Task } from "./types";
-import { formatTitleToKey } from "./utils";
+import { formatTitleToKey, getMethodNodeCanvas, setMethodNodePageContent } from "./utils";
 
 export const executeTableTask = async (
   task: Task,
   messages: ChatCompletionMessageParam[],
-  cancelRef: React.MutableRefObject<boolean>,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  methodDoc: Y.Doc,
+  cancelRef: React.RefObject<boolean | null>,
+  spaceNodesMap: Y.Map<SpaceNode>
 ) => {
   try {
     if (!task?.outputNode?.id) {
@@ -25,7 +25,7 @@ export const executeTableTask = async (
     }
 
     // Get the table columns from the node
-    const { nodes } = await getCanvas(task.outputNode.id);
+    const { nodes } = getMethodNodeCanvas(task.outputNode.id, methodDoc);
 
     // Sort the nodes by y position to get the order of columns
     const sortedNodes = nodes.slice().sort((a, b) => {
@@ -39,7 +39,7 @@ export const executeTableTask = async (
     for (const node of sortedNodes) {
       const spaceNode = spaceNodesMap.get(node.id);
       const title = spaceNode?.title;
-      const content = await getNodePageContent(node.id);
+      const content = getMethodNodePageContent(node.id, methodDoc);
       if (title) {
         const key = formatTitleToKey(title);
         schemaShape[key] = z.string().describe(content!);
@@ -75,9 +75,10 @@ export const executeTableTask = async (
     if (cancelRef.current) return;
 
     // Get the page content as JSON
-    let pageContent: JSONContent = (await getNodePageContent(
+    let pageContent: JSONContent = (await getMethodNodePageContent(
       task?.outputNode?.id ?? "",
-      "json",
+      methodDoc,
+      "json"
     )) as JSONContent;
 
     if (!pageContent) {
@@ -141,7 +142,7 @@ export const executeTableTask = async (
     }
 
     // Set the updated document as the node content
-    await setNodePageContent(pageContent, task?.outputNode?.id ?? "");
+    await setMethodNodePageContent(pageContent, task?.outputNode?.id ?? "", methodDoc);
   } catch (e) {
     console.error(e);
     toast.error("Error when calling LLM, check console for details");

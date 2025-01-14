@@ -5,7 +5,8 @@ import { GripIcon } from "lucide-react";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { EditableNode } from "@/components";
-import Footer from "@/components/Graph/Footer";
+
+// import Footer from "@/components/Graph/Footer";
 
 const NodeComponent = ({
   node: pmNode,
@@ -24,18 +25,19 @@ const NodeComponent = ({
     <NodeViewWrapper className={clsx()}>
       <div
         className={clsx(
-          "GraphNode border border-gray-1 rounded-lg p-1 relative",
-          "flex items-center justify-center text-center text-sm w-1/2",
-          { "shadow-node-selected": selected },
+          "GraphNode relative rounded-lg border border-gray-1 p-1",
+          "flex w-1/2 items-center justify-center text-center text-sm",
+          { "shadow-node-selected": selected }
         )}
         onDoubleClick={() => setNodePage(id)}
       >
         <div draggable={true} contentEditable={false} className="p-3">
-          <div className="absolute top-2 left-2 cursor-grab select-none" data-drag-handle>
+          <div className="absolute left-2 top-2 cursor-grab select-none" data-drag-handle>
             <GripIcon className="size-3 text-gray-4" />
           </div>
           <EditableNode id={id} contentEditable={false} className="line-clamp-3" />
-          <Footer id={id} nodeStyle={{}} />
+          {/* TODO: Fix this */}
+          {/* <Footer id={id} nodeStyle={{}} /> */}
         </div>
       </div>
     </NodeViewWrapper>

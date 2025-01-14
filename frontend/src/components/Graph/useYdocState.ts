@@ -16,8 +16,7 @@ import {
   OnNodesChange,
 } from "reactflow";
 
-import { useSpace } from "@/hooks";
-import useNode from "@/hooks/useNode";
+import { useCanvas } from "@/hooks";
 import { GraphEdge } from "@/types";
 
 const isNodeAddChange = (change: NodeChange): change is NodeAddChange => change.type === "add";
@@ -31,16 +30,15 @@ const isEdgeRemoveChange = (change: EdgeChange): change is EdgeRemoveChange =>
   change.type === "remove";
 
 function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
-  const { space } = useSpace();
   const {
-    node: graphNode,
+    parent,
     nodesMap,
     edgesMap,
     nodesSelection,
     setNodesSelection,
     edgesSelection,
     setEdgesSelection,
-  } = useNode();
+  } = useCanvas();
 
   // The onNodesChange callback updates nodesMap.
   // When the changes are applied to the map, the observer will be triggered and updates the nodes state.
@@ -65,10 +63,10 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
           } else if (
             node &&
             change.type !== "remove" &&
-            space?.allowed_actions?.includes("write")
+            parent.data?.allowed_actions?.includes("write")
           ) {
             nodesMap.set(change.id, node);
-          } else if (change.type === "remove" && space?.allowed_actions?.includes("write")) {
+          } else if (change.type === "remove" && parent.data?.allowed_actions?.includes("delete")) {
             const deletedNode = nodesMap.get(change.id);
             nodesMap.delete(change.id);
             // when a node is removed, we also need to remove the connected edges
@@ -80,12 +78,12 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       });
       setNodesSelection(newSelection);
     },
-    [edgesMap, nodesMap, nodesSelection, graphNode, space?.allowed_actions],
+    [edgesMap, nodesMap, nodesSelection, parent.data]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
-      if (!space?.allowed_actions?.includes("write")) return;
+      if (!parent.data?.allowed_actions?.includes("write")) return;
       if (!edgesMap) return console.error("Edges map is not initialized");
       const currentEdges = Array.from(edgesMap.values()).filter((e) => e);
       const nextEdges = applyEdgeChanges(changes, currentEdges);
@@ -108,7 +106,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       });
       setEdgesSelection(newSelection);
     },
-    [edgesMap, edgesSelection, graphNode, space?.allowed_actions],
+    [edgesMap, edgesSelection, parent.data]
   );
 
   const onConnect = useCallback(
@@ -121,7 +119,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
         ...params,
       } as GraphEdge);
     },
-    [edgesMap],
+    [edgesMap]
   );
 
   return [onNodesChanges, onEdgesChange, onConnect];

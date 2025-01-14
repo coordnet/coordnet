@@ -9,6 +9,29 @@ const isInputNode = (node: GraphNode) => {
   return node?.data?.type === NodeType.Default || isResponseNode(node) || !node?.data?.type;
 };
 
+const preprocessInputNode = (graph: Graph) => {
+  const inputNodeId = Object.keys(graph.nodes).find(
+    (id) => graph.nodes[id].data.type === NodeType.Input
+  );
+  if (!inputNodeId) return;
+
+  const inputChildren = graph.adjacencyList[inputNodeId] ?? [];
+
+  Object.entries(graph.adjacencyList).forEach(([nodeId, targets]) => {
+    if (targets.includes(inputNodeId)) {
+      const newTargets = targets.filter((t) => t !== inputNodeId);
+      inputChildren.forEach((childId) => {
+        if (!newTargets.includes(childId) && childId !== nodeId) {
+          newTargets.push(childId);
+        }
+      });
+      graph.adjacencyList[nodeId] = newTargets;
+    }
+  });
+
+  delete graph.adjacencyList[inputNodeId];
+};
+
 /**
  * Iterates each prompt node in the graph and creates tasks for each prompt.
  *
@@ -25,6 +48,9 @@ const isInputNode = (node: GraphNode) => {
  * @param context - The execution context.
  */
 export const createTasks = (graph: Graph, context: ExecutionContext) => {
+  // Move nodes connected to the input node to ensure they are connected to the correct nodes
+  preprocessInputNode(graph);
+
   /**
    * Recursively creates tasks for each combination of loop items.
    *
@@ -95,7 +121,6 @@ export const createTasks = (graph: Graph, context: ExecutionContext) => {
           loopItems.push(handleLoopNode(targetNode));
         }
       } else if (node.data.type === NodeType.PaperFinder) {
-        console.log(baseTask);
         // For PaperFinder nodes, only allow response nodes as input
         if (baseTask.outputNode && baseTask.outputNode?.data.type !== NodeType.ResponseMultiple) {
           toast.error("Paper Finder nodes can only have Responses (Many nodes) as output.");
@@ -114,7 +139,7 @@ export const createTasks = (graph: Graph, context: ExecutionContext) => {
     if (loopItems.length > 0) {
       // Check if any loop items contain response nodes
       const containsResponseNode = loopItems.some((items) =>
-        items.some((item) => isResponseNode(item)),
+        items.some((item) => isResponseNode(item))
       );
 
       if (containsResponseNode) {

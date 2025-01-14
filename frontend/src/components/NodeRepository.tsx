@@ -16,7 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFocus, useQuickView, useSpace } from "@/hooks";
+import { useFocus, useNodesContext, useQuickView } from "@/hooks";
 import { GraphNode, NodeSearchResult } from "@/types";
 
 import { addNodeToGraph } from "./Graph/utils";
@@ -25,7 +25,7 @@ import { Button } from "./ui/button";
 type NodeProps = { className?: string };
 
 const NodeRepository = ({ className }: NodeProps) => {
-  const { space, nodesMap: spaceNodesMap } = useSpace();
+  const { parent, nodesMap: spaceNodesMap } = useNodesContext();
   const { isQuickViewOpen, showQuickView } = useQuickView();
   const navigate = useNavigate();
   const { data: spaces, isLoading: spacesLoading } = useQuery({
@@ -52,7 +52,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         setVisible(false);
       }
     },
-    [visible, setVisible, isQuickViewOpen],
+    [visible, setVisible, isQuickViewOpen]
   );
 
   useEffect(() => {
@@ -96,8 +96,8 @@ const NodeRepository = ({ className }: NodeProps) => {
   const [debouncedInputvalue] = useDebounceValue(inputValue, 300);
   const { data, isLoading } = useQuery({
     queryKey: ["searchNodes", debouncedInputvalue],
-    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, space?.id ?? ""),
-    enabled: Boolean(debouncedInputvalue && space),
+    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, parent.data?.id ?? ""),
+    enabled: Boolean(debouncedInputvalue && parent.data),
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,7 +129,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         }
       }
     },
-    [results, selectedIndex, createNodeSelected, inputValue],
+    [results, selectedIndex, createNodeSelected, inputValue]
   );
 
   useEffect(() => {
@@ -143,7 +143,7 @@ const NodeRepository = ({ className }: NodeProps) => {
 
   return visible && !isQuickViewOpen ? (
     <div
-      className={clsx("absolute top-0 left-0 h-dvh w-dvw z-60", className)}
+      className={clsx("absolute left-0 top-0 z-60 h-dvh w-dvw", className)}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           e.stopPropagation();
@@ -151,12 +151,16 @@ const NodeRepository = ({ className }: NodeProps) => {
         }
       }}
     >
-      <div className="m-auto flex flex-col w-[600px] mt-16 rounded-md border border-neutral-200 shadow-node-repo bg-white pointer-events-auto">
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-b-neutral-100">
+      <div
+        className="pointer-events-auto m-auto mt-16 flex w-[600px] flex-col rounded-md border
+          border-neutral-200 bg-white shadow-node-repo"
+      >
+        <div className="flex items-center gap-2 border-b border-b-neutral-100 px-4 py-2.5">
           <Search className="size-4 text-neutral-400/50" strokeWidth={3} />
           <input
             placeholder="Search Content"
-            className="w-full text-base font-medium focus:outline-none px-0 placeholder:text-neutral-400/50"
+            className="w-full px-0 text-base font-medium placeholder:text-neutral-400/50
+              focus:outline-none"
             autoFocus
             value={inputValue}
             onChange={handleInputChange}
@@ -168,7 +172,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         </div>
         <ul
           ref={nodeListRef}
-          className={clsx("px-2 py-1.5 max-h-[250px] overflow-y-scroll", {
+          className={clsx("max-h-[250px] overflow-y-scroll px-2 py-1.5", {
             hidden: !results.length,
           })}
         >
@@ -176,17 +180,17 @@ const NodeRepository = ({ className }: NodeProps) => {
           {results.map((item, index) => (
             <li
               className={clsx(
-                "text-sm px-2 py-1.5 rounded flex items-start",
+                "flex items-start rounded px-2 py-1.5 text-sm",
                 "hover:bg-neutral-100",
-                { "bg-neutral-100": index === selectedIndex },
+                { "bg-neutral-100": index === selectedIndex }
               )}
               key={item.id + index}
             >
-              <div className="flex flex-col mr-2">
+              <div className="mr-2 flex flex-col">
                 <div className="cursor-pointer" onClick={() => addNode(item)}>
                   {DOMPurify.sanitize(item.title ?? "", { ALLOWED_TAGS: [] })}
                 </div>
-                <div className="flex gap-1 text-xs text-neutral-400 font-medium">
+                <div className="flex gap-1 text-xs font-medium text-neutral-400">
                   {!spacesLoading && (
                     <>
                       <span>{spaces?.results.find((space) => space.id == item.space)?.title}</span>
@@ -195,7 +199,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                   )}
                   <span>
                     {numeral((item.title_token_count ?? 0) + (item.text_token_count ?? 0)).format(
-                      "0a",
+                      "0a"
                     )}{" "}
                     token
                     {(item.title_token_count ?? 0) + (item.text_token_count ?? 0) > 1 ? "s" : ""}
@@ -205,34 +209,34 @@ const NodeRepository = ({ className }: NodeProps) => {
                       <span>·</span>
                       <DropdownMenu>
                         <DropdownMenuTrigger>
-                          <span className="flex items-center underline cursor-pointer">
+                          <span className="flex cursor-pointer items-center underline">
                             <RefreshCcw className="size-2.5" />
                             {item?.parents.length}
                           </span>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="z-70 w-[200px]" align="start">
                           <DropdownMenuLabel>Canvases</DropdownMenuLabel>
-                          {item?.parents.map((parent, i) => {
-                            if (!spaceNodesMap?.get(parent)?.title) return null;
+                          {item?.parents.map((parentId, i) => {
+                            if (!spaceNodesMap?.get(parentId)?.title) return null;
                             return (
                               <DropdownMenuItem
                                 key={`${item?.id}-${i}`}
-                                className="flex items-center cursor-pointer"
+                                className="flex cursor-pointer items-center"
                                 onClick={() => {
-                                  navigate(`/spaces/${space?.id}/${parent}`);
+                                  navigate(`/spaces/${parent.data?.id}/${parentId}`);
                                   setVisible(false);
                                 }}
                               >
-                                {DOMPurify.sanitize(spaceNodesMap?.get(parent)?.title ?? "", {
+                                {DOMPurify.sanitize(spaceNodesMap?.get(parentId)?.title ?? "", {
                                   ALLOWED_TAGS: [],
                                 })}
 
                                 <Button
                                   variant="ghost"
-                                  className="p-0 h-auto flex items-center ml-auto"
+                                  className="ml-auto flex h-auto items-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    showQuickView(parent);
+                                    showQuickView(parentId);
                                   }}
                                 >
                                   <View className="size-4 text-neutral-600" />
@@ -252,7 +256,7 @@ const NodeRepository = ({ className }: NodeProps) => {
               <div className="ml-auto flex items-center gap-2">
                 <Button
                   variant="ghost"
-                  className="p-0 h-auto flex items-center"
+                  className="flex h-auto items-center p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     showQuickView(item.id);
@@ -263,16 +267,16 @@ const NodeRepository = ({ className }: NodeProps) => {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="p-0 h-auto flex items-center">
+                    <Button variant="ghost" className="flex h-auto items-center p-0">
                       <Ellipsis className="size-4 text-neutral-600" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="z-70 w-[200px]" align="start">
                     <DropdownMenuItem
-                      className="font-normal flex items-center cursor-pointer"
+                      className="flex cursor-pointer items-center font-normal"
                       onClick={() => addNode(item)}
                     >
-                      <Plus className="size-3 mr-1" /> Add to Canvas
+                      <Plus className="mr-1 size-3" /> Add to Canvas
                       <div className="ml-auto text-xs text-neutral-500">⏎</div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -282,24 +286,24 @@ const NodeRepository = ({ className }: NodeProps) => {
           ))}
         </ul>
         {isLoading && (
-          <div className="px-4 py-3 flex items-center justify-center">
-            Loading <Loader2 className="animate-spin size-3 ml-2" />
+          <div className="flex items-center justify-center px-4 py-3">
+            Loading <Loader2 className="ml-2 size-3 animate-spin" />
           </div>
         )}
         {Boolean(!isLoading && results?.length == 0 && inputValue.length) && (
-          <div className="px-4 py-3 flex items-center justify-center">No results</div>
+          <div className="flex items-center justify-center px-4 py-3">No results</div>
         )}
         {Boolean(inputValue.length) && (
           <div
             className={clsx(
-              "px-2 py-1.5 text-neutral-700 font-medium cursor-pointer",
-              "border-t border-t-neutral-100 px-2 py-1.5 flex items-center",
+              "cursor-pointer px-2 py-1.5 font-medium text-neutral-700",
+              "flex items-center border-t border-t-neutral-100 px-2 py-1.5",
               "hover:bg-neutral-100",
-              { "bg-neutral-100": createNodeSelected },
+              { "bg-neutral-100": createNodeSelected }
             )}
             onClick={() => addNewNode(inputValue)}
           >
-            <Plus className="size-4 mr-2" strokeWidth={2.5} /> Create {inputValue}
+            <Plus className="mr-2 size-4" strokeWidth={2.5} /> Create {inputValue}
           </div>
         )}
       </div>

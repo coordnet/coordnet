@@ -1,13 +1,14 @@
 import { Maximize2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
-import { useSpace } from "@/hooks";
+import { useNodesContext } from "@/hooks";
 import useQuickView from "@/hooks/useQuickView";
 
 const QuickView = () => {
-  const { space } = useSpace();
+  const { runId } = useParams();
+  const { parent } = useNodesContext();
   const { isQuickViewOpen, nodeId, closeQuickView } = useQuickView();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -37,35 +38,38 @@ const QuickView = () => {
     >
       <div className="absolute inset-0" onClick={closeQuickView}></div>
       <div
-        className="relative bg-white h-[90vh] w-[80vw] shadow-lg rounded-md transition-all transform duration-300 ease-in-out border"
+        className="relative h-[90vh] w-[80vw] transform rounded-md border bg-white shadow-lg
+          transition-all duration-300 ease-in-out"
         style={{ animation: "scaleIn 0.2s forwards" }}
       >
         {Boolean(nodeId) && (
           <iframe
             ref={iframeRef}
             className="size-full"
-            src={`/spaces/${space?.id}/${nodeId}`}
+            src={`/${parent.type}s/${parent.data?.id}/${nodeId}` + (runId ? `/runs/${runId}/` : "")}
           ></iframe>
         )}
 
-        <div className="justify-between items-center absolute top-0 -right-9 flex flex-col gap-3">
+        <div className="absolute -right-9 top-0 flex flex-col items-center justify-between gap-3">
           <button
             onClick={closeQuickView}
-            className="size-7 overflow-hidden rounded-full bg-black text-white flex items-center justify-center"
+            className="flex size-7 items-center justify-center overflow-hidden rounded-full bg-black
+              text-white"
           >
             <X className="size-4" />
           </button>
           <Link
-            to={`/spaces/${space?.id}/${nodeId}`}
+            to={`/${parent.type}s/${parent.data?.id}/${nodeId}`}
             target="_top"
-            className="size-7 overflow-hidden rounded-full bg-black hover:text-white text-white flex items-center justify-center"
+            className="flex size-7 items-center justify-center overflow-hidden rounded-full bg-black
+              text-white hover:text-white"
           >
             <Maximize2 className="size-4" />
           </Link>
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 };
 

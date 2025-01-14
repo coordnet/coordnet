@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Edge } from "reactflow";
 
-import { useFocus } from "@/hooks";
-import useNode from "@/hooks/useNode";
+import { useCanvas, useFocus } from "@/hooks";
 import { GraphNode } from "@/types";
 
 // Defining the shape of the state stored in history
@@ -17,7 +16,7 @@ const MAX_HISTORY_SIZE = 100;
 export const useUndoRedo = () => {
   const [past, setPast] = useState<HistoryState[]>([]);
   const [future, setFuture] = useState<HistoryState[]>([]);
-  const { nodesMap, edgesMap } = useNode(); // Accessing Yjs maps
+  const { nodesMap, edgesMap } = useCanvas();
   const { focus } = useFocus();
 
   // Serialize the current state of the Yjs maps

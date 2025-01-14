@@ -1,74 +1,83 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 import useSessionStorageState from "use-session-storage-state";
 import { v4 as uuid } from "uuid";
 import * as Y from "yjs";
 
-import { getSpace, updateSpace } from "@/api";
+import { updateSpace } from "@/api";
+import { addMethodRunToYdoc, loadDisconnectedDoc } from "@/components/Methods/utils";
 import { crdtUrl } from "@/constants";
 import { waitForNode } from "@/lib/nodes";
 import { CustomError } from "@/lib/utils";
-import { SpaceNode } from "@/types";
+import { BackendEntityType, Space, SpaceNode } from "@/types";
 
+import useBackendParent from "../useBackendParent";
 import useUser from "../useUser";
-import { SpaceContext } from "./context";
+import { NodesContext } from "./context";
 
 /**
  * Provider for sharing space between components
  */
-export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
-  const { spaceId } = useParams();
+export const NodesContextProvider = ({ children }: { children: React.ReactNode }) => {
+  const { spaceId, methodId, runId } = useParams();
+  const parent = useBackendParent(methodId, spaceId);
+
   const { token } = useUser();
   const [synced, setSynced] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
   const queryClient = useQueryClient();
-  const [spaceError, setSpaceError] = useState<Error | undefined>();
+  const [error, setError] = useState<Error | undefined>();
   const [provider, setProvider] = useState<HocuspocusProvider | undefined>();
 
-  const {
-    data: space,
-    error,
-    isLoading: spaceLoading,
-  } = useQuery({
-    queryKey: ["spaces", spaceId],
-    queryFn: ({ signal }) => getSpace(signal, spaceId),
-    enabled: Boolean(spaceId),
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
-  useEffect(() => {
-    if (error) setSpaceError(error);
-  }, [error]);
-
   const [breadcrumbs, setBreadcrumbs] = useSessionStorageState<string[]>(
-    `coordnet:breadcrumbs-${spaceId}`,
-    { defaultValue: [] },
+    `coordnet:breadcrumbs-${spaceId ?? methodId}`,
+    { defaultValue: [] }
   );
 
-  const ydoc = useMemo(
-    () => (!space?.id ? undefined : new Y.Doc({ guid: `space-${space.id}` })),
-    [space],
+  const name = spaceId ? `space-${spaceId}` : `method-${methodId}`;
+  const document = useMemo(() => new Y.Doc({ guid: name }), [name]);
+
+  const loadMethod = useCallback(
+    async (runId: string) => {
+      try {
+        if (runId === "new") {
+          await loadDisconnectedDoc(name, token, document);
+        } else {
+          await addMethodRunToYdoc(runId, document);
+        }
+        setSynced(true);
+        setConnected(true);
+      } catch (error) {
+        toast.error("Failed to load the document");
+        console.error("Failed to load the document:", error);
+      }
+    },
+    [document, name, token]
   );
 
   useEffect(() => {
-    if (!spaceId || !ydoc) return;
+    if (!spaceId && !methodId) return;
+    if (runId) {
+      loadMethod(runId);
+      return;
+    }
     const newProvider = new HocuspocusProvider({
       url: crdtUrl,
-      name: `space-${spaceId}`,
-      document: ydoc,
+      name,
+      document,
       token,
       preserveConnection: false,
       onAuthenticationFailed(data) {
-        setSpaceError(
+        setError(
           new CustomError({
             code: "ERR_PERMISSION_DENIED",
             name: "Space Websocket Authentication Failed",
             message: data.reason,
-          }),
+          })
         );
       },
       onSynced() {
@@ -83,32 +92,37 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       newProvider.destroy();
     };
-  }, [spaceId, space, ydoc]);
+  }, [spaceId, methodId, runId]);
 
-  const nodesMap = ydoc?.getMap<SpaceNode>("nodes");
-  const deletedNodes = ydoc?.getArray<string>("deletedNodes");
+  const nodesMap = document?.getMap<SpaceNode>("nodes");
 
   // Update the space with a default node if it doesn't have one
-  const updateSpaceDefaultNode = async (spaceId: string) => {
+  const updateSpaceDefaultNode = async (space: Space) => {
     const id = uuid();
-    nodesMap?.set(id, { id, title: space?.title ?? "Default Node" });
+    nodesMap?.set(id, { id, title: space.title ?? "Default Node" });
 
     // Wait for node to appear in backend
     await waitForNode(id);
 
     // Update the space with the default node and clear queries
-    await updateSpace(spaceId, { default_node: id });
+    await updateSpace(space.id, { default_node: id });
     queryClient.invalidateQueries({ queryKey: ["spaces", spaceId] });
     queryClient.invalidateQueries({ queryKey: ["spaces", spaceId, "nodes"] });
   };
 
-  // No default node, create one
+  // If the parent is a Space and there is no default node, create one
   useEffect(() => {
-    if (connected && nodesMap && space && !space?.default_node) {
-      updateSpaceDefaultNode(space.id);
+    if (
+      connected &&
+      nodesMap &&
+      parent.type === BackendEntityType.SPACE &&
+      parent.data &&
+      !parent.data?.default_node
+    ) {
+      updateSpaceDefaultNode(parent.data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [space, nodesMap, connected]);
+  }, [parent.data, nodesMap, connected]);
 
   // Here we are observing the nodesMap and updating the nodes state whenever the map changes.
   useEffect(() => {
@@ -124,19 +138,21 @@ export const SpaceProvider = ({ children }: { children: React.ReactNode }) => {
   }, [nodesMap, setNodes]);
 
   const value = {
-    space: space,
-    spaceLoading,
-    spaceError,
+    parent,
+    // space: space,
+    // spaceLoading,
+    // spaceError,
+    yDoc: document,
+    error,
     nodes,
     nodesMap,
-    deletedNodes,
     synced,
     connected,
     provider,
     breadcrumbs,
     setBreadcrumbs,
-    scope: provider?.authorizedScope,
+    scope: provider ? provider?.authorizedScope : "readonly",
   };
 
-  return <SpaceContext.Provider value={value}>{children}</SpaceContext.Provider>;
+  return <NodesContext.Provider value={value}>{children}</NodesContext.Provider>;
 };

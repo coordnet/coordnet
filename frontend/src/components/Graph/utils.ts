@@ -15,7 +15,14 @@ import {
 import { readPdf } from "@/lib/pdfjs";
 import { extensions } from "@/lib/readOnlyEditor";
 import { createConnectedYDoc } from "@/lib/utils";
-import { ExportNode, GraphEdge, GraphNode, Space, SpaceNode } from "@/types";
+import {
+  BackendEntityType,
+  BackendParent,
+  ExportNode,
+  GraphEdge,
+  GraphNode,
+  SpaceNode,
+} from "@/types";
 
 import { SingleNode } from "./tasks/types";
 
@@ -40,10 +47,10 @@ export const createConnectedGraph = async (spaceId: string, graphId: string) => 
 export const handleGraphDrop = async (
   dataTransfer: React.DragEvent<Element>["dataTransfer"],
   takeSnapshot: () => void,
-  space: Space,
+  parent: BackendParent,
   nodesMap: Y.Map<GraphNode>,
   spaceMap: Y.Map<SpaceNode>,
-  position: XYPosition,
+  position: XYPosition
 ) => {
   const transferredHtml = dataTransfer.getData("text/html");
 
@@ -59,7 +66,8 @@ export const handleGraphDrop = async (
         const { title, content, data, nodes } = importNode;
         takeSnapshot();
         const id = await addNodeToGraph(nodesMap, spaceMap, title, position, content, data);
-        if (nodes.length) await importNodeCanvas(space?.id, id, importNode);
+        if (nodes.length && parent.type === BackendEntityType.SPACE && parent.data)
+          await importNodeCanvas(parent.data.id, id, importNode);
       } catch (e) {
         console.log("Error importing node", e);
         toast.error("Error importing node");
@@ -137,7 +145,7 @@ export const addNodeToGraph = async (
   title = "New node",
   position: XYPosition = { x: 100, y: 100 },
   content?: string | JSONContent | undefined,
-  data?: GraphNode["data"],
+  data?: GraphNode["data"]
 ): Promise<string> => {
   const id = crypto.randomUUID();
   const newNode: GraphNode = {
@@ -173,7 +181,7 @@ export const addEdge = async (
   source: string,
   target: string,
   sourceHandle: string = "target-bottom",
-  targetHandle: string = "target-top",
+  targetHandle: string = "target-top"
 ): Promise<void> => {
   const id = `edge-${source}${sourceHandle || ""}-${target}${targetHandle || ""}`;
   edgesMap?.set(id, { id, source, target, sourceHandle, targetHandle } as GraphEdge);
@@ -186,11 +194,11 @@ export const findCentralNode = (ids: string[], nodesMap: Y.Map<GraphNode>) => {
   const centralTargetNode = sourceNodes.reduce(
     (nearest, node) => {
       const distance = Math.sqrt(
-        Math.pow(node.position.x - averageX, 2) + Math.pow(node.position.y - averageY, 2),
+        Math.pow(node.position.x - averageX, 2) + Math.pow(node.position.y - averageY, 2)
       );
       return nearest.distance < distance ? nearest : { node, distance };
     },
-    { node: sourceNodes[0], distance: Infinity },
+    { node: sourceNodes[0], distance: Infinity }
   );
   return centralTargetNode.node;
 };
@@ -228,7 +236,7 @@ export const setNodeTitleAndContent = async (
   spaceId: string | undefined,
   id: string,
   title: string,
-  markdown: string,
+  markdown: string
 ) => {
   const token = store("coordnet-auth");
 

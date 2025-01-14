@@ -35,14 +35,14 @@ export default function ErrorPage({
       subTitle: "There was an error in a request to the Coordination Network API",
       message: `${parsedError.name}: ${parsedError.message}`,
     },
+    ERR_NOT_FOUND: {
+      title: "404: Not Found",
+      subTitle: "The requested resource could not be found",
+      message: `${parsedError.data}`,
+    },
     ERR_PERMISSION_DENIED: {
       title: "Permissions Error",
       subTitle: "You do not have permission to access this resource",
-      message: `${parsedError.name}: ${parsedError.message}`,
-    },
-    ERR_NOT_FOUND: {
-      title: "404 - Not Found",
-      subTitle: "The resource you are looking for could not be found",
       message: `${parsedError.name}: ${parsedError.message}`,
     },
     NO_SPACES: {
@@ -72,26 +72,29 @@ export default function ErrorPage({
     },
   };
 
-  const errorCode = parsedError.code ?? "default";
+  let errorCode = parsedError.code ?? "default";
+  if (errorCode === "default" && parsedError.status && parsedError.status === 404) {
+    errorCode = "ERR_NOT_FOUND";
+  }
   const { title, subTitle, message } = errorCodes[errorCode] || errorCodes.default;
 
   return (
     <div
       id="error-page"
       className={clsx(
-        "fixed top-0 left-0 right-0 bottom-0 z-100 bg-gray-100 size-full flex justify-center",
-        className,
+        "z-100 fixed bottom-0 left-0 right-0 top-0 flex size-full justify-center bg-gray-100",
+        className
       )}
     >
-      <div className="self-center grayscale max-w-[700px]">
-        <div className="flex items-center mb-4 justify-center">
-          <img src="/static/coordination-network.png" alt="Error" className="w-12 mr-3" />
+      <div className="max-w-[700px] self-center grayscale">
+        <div className="mb-4 flex items-center justify-center">
+          <img src="/static/coordination-network.png" alt="Error" className="mr-3 w-12" />
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
         </div>
-        <p className="text-lg text-gray-700 mb-2 text-center">{subTitle}</p>
-        <p className="text-md text-gray-500 italic text-center leading-7">{message}</p>
+        <p className="mb-2 text-center text-lg text-gray-700">{subTitle}</p>
+        <p className="text-md text-center italic leading-7 text-gray-500">{message}</p>
         {isAxiosError(error) && (
-          <p className="text-sm text-gray-500 italic text-center leading-7 mt-4">
+          <p className="mt-4 text-center text-sm italic leading-7 text-gray-500">
             {error?.config?.method?.toUpperCase()} {error?.config?.url}
           </p>
         )}

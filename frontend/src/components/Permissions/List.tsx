@@ -4,24 +4,22 @@ import clsx from "clsx";
 import { Loader2, Settings2 } from "lucide-react";
 import { useState } from "react";
 
-import { getNodePermissions, getSpacePermissions } from "@/api";
+import { getPermissions } from "@/api";
 import useUser from "@/hooks/useUser";
-import { Space } from "@/types";
+import { Method, PermissionModel, Space } from "@/types";
 
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import Member from "./Member";
 
 const List = ({
-  model,
-  id,
   space,
+  method,
   readOnly = false,
   className,
 }: {
-  model: "node" | "space";
-  id: string;
-  space: Space;
+  space?: Space;
+  method?: Method;
   readOnly?: boolean;
   className?: string;
 }) => {
@@ -29,22 +27,19 @@ const List = ({
   const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
   const { user, isLoading: userLoading } = useUser();
 
+  const model = space ? PermissionModel.Space : PermissionModel.Method;
+  const data = space ? space : method;
+
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
-    queryKey: ["spaces", id, "permissions"],
-    queryFn: ({ signal }) => {
-      return model == "space"
-        ? getSpacePermissions(signal, id ?? "")
-        : model == "node"
-          ? getNodePermissions(signal, id ?? "")
-          : [];
-    },
-    enabled: Boolean(id),
+    queryKey: [model + "s", data?.id, "permissions"],
+    queryFn: ({ signal }) => getPermissions(signal, model, data?.id),
+    enabled: Boolean(data?.id),
   });
 
   if (permissionsLoading || userLoading)
     return (
       <div className="flex items-center justify-center p-6 pb-0">
-        Loading <Loader2 className="size-4 text-neutral-500 animate-spin ml-3" />
+        Loading <Loader2 className="ml-3 size-4 animate-spin text-neutral-500" />
       </div>
     );
 
@@ -52,10 +47,10 @@ const List = ({
   const canEdit = !readOnly && ownPermissions?.role?.toLowerCase() == "owner";
 
   return (
-    <ul className={clsx("mt-1 max-h-40 overflow-auto", className)} key={`${model}-${id}`}>
+    <ul className={clsx("mt-1 max-h-40 overflow-auto", className)} key={`${model}-${data?.id}`}>
       <Dialog open={memberOpen} onOpenChange={setMemberOpen}>
         {!permissionsLoading && permissions?.length === 0 && (
-          <div className="flex items-center justify-center mt-6 italic text-neutral-400">
+          <div className="mt-6 flex items-center justify-center italic text-neutral-400">
             No permissions set
           </div>
         )}
@@ -64,21 +59,22 @@ const List = ({
           return (
             <li
               key={`permissions-members-${permission?.id}`}
-              className={clsx("flex gap-2 items-center text-sm font-medium rounded p-2", {
-                "cursor-pointer group hover:bg-neutral-100": canEdit,
+              className={clsx("flex items-center gap-2 rounded p-2 text-sm font-medium", {
+                "group cursor-pointer hover:bg-neutral-100": canEdit,
               })}
             >
               <img src={icon} className="size-4 rounded-full" /> {permission?.user}
               {permission?.user == user?.email && (
-                <div className="text-neutral-500 text-xs font-normal">You</div>
+                <div className="text-xs font-normal text-neutral-500">You</div>
               )}
-              <div className="ml-auto text-sm text-neutral-400 group-hover:hidden capitalize">
+              <div className="ml-auto text-sm capitalize text-neutral-400 group-hover:hidden">
                 {permission?.role}
               </div>
               {canEdit && (
                 <Button
                   variant="ghost"
-                  className="ml-auto text-sm text-neutral-700 group-hover:block hidden p-0 pl-3 h-auto"
+                  className="ml-auto hidden h-auto p-0 pl-3 text-sm text-neutral-700
+                    group-hover:block"
                   onClick={() => {
                     setSelectedPermission(permission.id);
                     setMemberOpen(true);
@@ -90,9 +86,14 @@ const List = ({
             </li>
           );
         })}
-        <DialogContent className="p-0 w-[400px]">
+        <DialogContent className="w-[400px] p-0">
           {selectedPermission && (
-            <Member space={space} permissionId={selectedPermission} setOpen={setMemberOpen} />
+            <Member
+              space={space}
+              method={method}
+              permissionId={selectedPermission}
+              setOpen={setMemberOpen}
+            />
           )}
         </DialogContent>
       </Dialog>

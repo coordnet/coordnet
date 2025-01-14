@@ -12,7 +12,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
-import { useNode, useQuickView, useSpace } from "@/hooks";
+import { useCanvas, useQuickView } from "@/hooks";
 import { GraphNode, NodeType, nodeTypeMap } from "@/types";
 
 import { Button } from "../ui/button";
@@ -28,14 +28,12 @@ const HoverMenu = ({
   onClickEdit: (e: React.MouseEvent) => void;
   className?: string;
 }) => {
-  const { nodesMap, node } = useNode();
+  const { nodesMap, parent, nodeFeatures } = useCanvas();
   const { showQuickView } = useQuickView();
-  const { space, scope } = useSpace();
   const navigate = useNavigate();
 
-  const backendNode = node?.subnodes.find((node) => node.id === id);
-  const hasGraph = backendNode?.has_subnodes;
-  const hasPage = Boolean(backendNode?.text_token_count);
+  const canWrite = parent.data?.allowed_actions.includes("write");
+  const { hasPage, hasGraph } = nodeFeatures(id);
   const GraphIcon = hasGraph ? Share2 : GitBranchPlus;
 
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
@@ -57,58 +55,62 @@ const HoverMenu = ({
     if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, type } });
   };
 
+  // if (isMethodRun) return null;
+
   return (
     <div
       className={clsx(
-        "border nodrag cursor-default border-gray rounded shadow-md bg-white",
-        "h-9 flex items-center px-4 gap-4",
-        className,
+        "nodrag border-gray cursor-default rounded border bg-white shadow-md",
+        "flex h-9 items-center gap-4 px-4",
+        className
       )}
     >
       <Button
         variant="ghost"
         onClick={onClickEdit}
-        className="p-0 h-auto"
-        disabled={scope != "read-write"}
+        className="h-auto p-0"
+        disabled={!canWrite}
         data-tooltip-id="node-edit"
       >
-        <Edit className="cursor-pointer size-4" />
+        <Edit className="size-4 cursor-pointer" />
       </Button>
       <Tooltip id="node-edit">Edit text</Tooltip>
-      <div className="border-r border-gray h-5"></div>
+      <div className="border-gray h-5 border-r"></div>
       <Button
         variant="ghost"
-        className="p-0 h-auto"
-        disabled={data?.syncing || (!hasPage && !space?.allowed_actions.includes("write"))}
+        className="h-auto p-0"
+        disabled={data?.syncing || (!hasPage && !canWrite)}
         data-tooltip-id="node-page"
         onClick={() => setNodePage(nodePage == id ? "" : id)}
       >
-        <FileText className="cursor-pointer size-4" />
+        <FileText className="size-4 cursor-pointer" />
       </Button>
       <Tooltip id="node-page">{hasGraph ? "Open Page" : "Create Page"}</Tooltip>
-      <div className="border-r border-gray h-5"></div>
+      <div className="border-gray h-5 border-r"></div>
       <Button
         variant="ghost"
-        className="p-0 h-auto"
+        className="h-auto p-0"
         data-tooltip-id="quick-view"
-        disabled={data?.syncing || (!hasGraph && !space?.allowed_actions.includes("write"))}
-        onClick={() => (hasGraph ? showQuickView(id) : navigate(`/spaces/${space?.id}/${id}`))}
+        disabled={data?.syncing || (!hasGraph && !canWrite)}
+        onClick={() =>
+          hasGraph ? showQuickView(id) : navigate(`/${parent?.type}s/${parent.data?.id}/${id}`)
+        }
       >
-        <GraphIcon className={clsx("cursor-pointer size-4", hasGraph && "rotate-90")} />
+        <GraphIcon className={clsx("size-4 cursor-pointer", hasGraph && "rotate-90")} />
       </Button>
       <Tooltip id="quick-view">{hasGraph ? "Show Graph" : "Create Graph"}</Tooltip>
-      <div className="border-r border-gray h-5"></div>
+      <div className="border-gray h-5 border-r"></div>
       <Menubar unstyled>
         <MenubarMenu>
           <MenubarTrigger asChild>
             <Button
               variant="ghost"
-              className="p-0 h-auto"
+              className="h-auto p-0"
               data-tooltip-id="node-color"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!canWrite}
             >
               <div
-                className={clsx("cursor-pointer size-3 rounded-lg border-gray-1 border", {
+                className={clsx("size-3 cursor-pointer rounded-lg border border-gray-1", {
                   "border-dashed": !data.borderColor,
                 })}
                 style={{ borderColor: data.borderColor, backgroundColor: data.borderColor }}
@@ -119,7 +121,7 @@ const HoverMenu = ({
             {nodeColors.map((color) => (
               <MenubarItem onClick={() => setColor(color)} key={color.color}>
                 <div
-                  className="size-3 rounded-lg border mr-2"
+                  className="mr-2 size-3 rounded-lg border"
                   style={{ backgroundColor: color.color }}
                 ></div>
                 {color.value}
@@ -129,15 +131,15 @@ const HoverMenu = ({
         </MenubarMenu>
       </Menubar>
       <Tooltip id="node-color">Color</Tooltip>
-      <div className="border-r border-gray h-5"></div>
+      <div className="border-gray h-5 border-r"></div>
       <Menubar unstyled>
         <MenubarMenu>
           <MenubarTrigger asChild>
             <Button
               variant="ghost"
-              className="p-0 h-auto"
+              className="h-auto p-0"
               data-tooltip-id="node-progress"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!canWrite}
             >
               <div className="cursor-pointer text-sm">{data?.progress}%</div>
             </Button>
@@ -152,17 +154,17 @@ const HoverMenu = ({
         </MenubarMenu>
       </Menubar>
       <Tooltip id="node-progress">Progress</Tooltip>
-      <div className="border-r border-gray h-5"></div>
+      <div className="border-gray h-5 border-r"></div>
       <Menubar unstyled>
         <MenubarMenu>
           <MenubarTrigger asChild>
             <Button
               variant="ghost"
-              className="p-0 h-auto"
+              className="h-auto p-0"
               data-tooltip-id="node-type"
-              disabled={!space?.allowed_actions.includes("write")}
+              disabled={!canWrite}
             >
-              <Tag className="cursor-pointer size-4" />
+              <Tag className="size-4 cursor-pointer" />
             </Button>
           </MenubarTrigger>
           <MenubarContent className="min-w-20">

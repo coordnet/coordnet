@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import {
   Align,
@@ -23,7 +24,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
-import { useNode } from "@/hooks";
+import { useCanvas } from "@/hooks";
 
 import { Button } from "../ui/button";
 
@@ -42,7 +43,7 @@ function getTransform(
   transform: Transform,
   position: Position,
   offset: number,
-  align: Align,
+  align: Align
 ): string {
   let alignmentOffset = 0.5;
 
@@ -93,11 +94,12 @@ function NodeToolbar({
   align = "center",
   ...rest
 }: NodeToolbarProps) {
+  const { runId } = useParams();
   const { x, y, zoom } = useViewport();
-  const { nodes, nodesMap } = useNode();
+  const { nodes, nodesMap } = useCanvas();
   const selectedNodesCount = useStore(selectedNodesSelector);
 
-  if (selectedNodesCount < 2) {
+  if (selectedNodesCount < 2 || runId) {
     return null;
   }
 
@@ -128,19 +130,19 @@ function NodeToolbar({
           zIndex: Math.max(...selectedNodes.map((node) => (node.zIndex || 1) + 1)),
         }}
         className={clsx(
-          "border nodrag cursor-default border-gray rounded shadow-md bg-white",
-          "h-9 flex items-center px-4 gap-4",
-          className,
+          "nodrag border-gray cursor-default rounded border bg-white shadow-md",
+          "flex h-9 items-center gap-4 px-4",
+          className
         )}
         {...rest}
       >
         <Menubar unstyled>
           <MenubarMenu>
             <MenubarTrigger asChild>
-              <Button variant="ghost" className="p-0 h-auto" data-tooltip-id="node-color">
+              <Button variant="ghost" className="h-auto p-0" data-tooltip-id="node-color">
                 <div
                   className={clsx(
-                    "cursor-pointer size-3 rounded-lg border-gray-1 border border-dashed",
+                    "size-3 cursor-pointer rounded-lg border border-dashed border-gray-1"
                   )}
                 ></div>
               </Button>
@@ -149,7 +151,7 @@ function NodeToolbar({
               {nodeColors.map((color) => (
                 <MenubarItem onClick={() => setColor(color)} key={color.color}>
                   <div
-                    className="size-3 rounded-lg border mr-2"
+                    className="mr-2 size-3 rounded-lg border"
                     style={{ backgroundColor: color.color }}
                   ></div>
                   {color.value}
@@ -159,11 +161,11 @@ function NodeToolbar({
           </MenubarMenu>
         </Menubar>
         <Tooltip id="node-color">Color</Tooltip>
-        <div className="border-r border-gray h-5"></div>
+        <div className="border-gray h-5 border-r"></div>
         <Menubar unstyled>
           <MenubarMenu>
             <MenubarTrigger asChild>
-              <Button variant="ghost" className="p-0 h-auto" data-tooltip-id="node-progress">
+              <Button variant="ghost" className="h-auto p-0" data-tooltip-id="node-progress">
                 <div className="cursor-pointer text-sm">%</div>
               </Button>
             </MenubarTrigger>
