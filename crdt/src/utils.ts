@@ -13,6 +13,8 @@ import { settings } from "./settings";
 export const getDocumentType = (name: string) => {
   if (name.startsWith("space-")) {
     return "SPACE";
+  } else if (name.startsWith("method-")) {
+    return "METHOD";
   } else if (name.startsWith("node-graph-")) {
     return "GRAPH";
   } else if (name.startsWith("node-editor-")) {
@@ -21,7 +23,7 @@ export const getDocumentType = (name: string) => {
 };
 
 export const cleanDocumentName = (name: string) => {
-  return name.replace(/^(node-graph-|space-|node-editor-)/, "");
+  return name.replace(/^(node-graph-|space-|node-editor-|method-)/, "");
 };
 
 export const backendRequest = (path: string, token?: string) => {

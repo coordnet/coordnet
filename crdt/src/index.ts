@@ -27,6 +27,13 @@ const environment = process.env.ENVIRONMENT || "development";
 const db = knex(config[environment]);
 if (!db) throw Error("Database not connected");
 
+const modelMap = {
+  SPACE: "spaces",
+  GRAPH: "nodes",
+  EDITOR: "nodes",
+  METHOD: "methods",
+};
+
 const server = Server.configure({
   name: "coordnet-crdt",
   ...hocuspocusSettings,
@@ -39,8 +46,13 @@ const server = Server.configure({
     const document_type = getDocumentType(documentName);
     const public_id = cleanDocumentName(documentName);
 
-    if (document_type === "SPACE" || document_type === "GRAPH" || document_type === "EDITOR") {
-      const model = document_type === "SPACE" ? "spaces" : "nodes";
+    if (
+      document_type === "SPACE" ||
+      document_type === "GRAPH" ||
+      document_type === "EDITOR" ||
+      document_type === "METHOD"
+    ) {
+      const model = modelMap[document_type];
       const request = await backendRequest(
         `api/nodes/${model}/${public_id}/?show_permissions=true`,
         token == "public" ? undefined : token,
@@ -78,11 +90,12 @@ const server = Server.configure({
     const document_type = getDocumentType(documentName);
     const public_id = cleanDocumentName(documentName);
 
-    let json = {};
+    console.log("Storing document", documentName, document_type, public_id);
+
+    let json: { [key: string]: { [key: string]: unknown } } = {};
     if (document_type === "SPACE") {
       json = {
         nodes: document.getMap("nodes").toJSON(),
-        deletedNodes: document.getArray("deletedNodes").toJSON(),
       };
     } else if (document_type === "GRAPH") {
       json = {
@@ -90,7 +103,16 @@ const server = Server.configure({
         edges: document.getMap("edges").toJSON(),
       };
     } else if (document_type === "EDITOR") {
-      json = transformer.fromYdoc(document);
+      json = transformer.fromYdoc(document, "default");
+    } else if (document_type === "METHOD") {
+      // Add all the maps and documents from the method
+      for (const key of document.share.keys()) {
+        if (key.endsWith("-document")) {
+          json[key] = transformer.fromYdoc(document, key);
+        } else {
+          json[key] = document.getMap(key).toJSON();
+        }
+      }
     }
     const columns = { data, json, updated_at: db.fn.now() };
     await db("nodes_document")
