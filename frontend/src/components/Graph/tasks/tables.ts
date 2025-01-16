@@ -55,7 +55,7 @@ export const executeTableTask = async (
     const response = await client.chat.completions.create({
       messages,
       model: "gpt-4o",
-      stream: true,
+      stream: false,
       response_model: { schema: TableSchema, name: "TableSchema" },
     });
 
@@ -63,10 +63,7 @@ export const executeTableTask = async (
 
     let extractedTableData: TableResponse<typeof TableSchema> = {};
     try {
-      for await (const result of response) {
-        if (cancelRef.current) break;
-        extractedTableData = result;
-      }
+      extractedTableData = response;
     } catch (e) {
       toast.error("Error when calling LLM, check console for details");
       console.error(e);

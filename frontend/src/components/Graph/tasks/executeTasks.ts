@@ -177,7 +177,7 @@ export const executePromptTask = async (
     const response = await client.chat.completions.create({
       messages,
       model: "gpt-4o",
-      stream: true,
+      stream: false,
       response_model,
     });
 
@@ -187,10 +187,7 @@ export const executePromptTask = async (
     if (isSingleResponseType(task.outputNode)) {
       let extractedNode: SingleNodeResponse = {};
       try {
-        for await (const result of response) {
-          if (cancelRef.current) break;
-          extractedNode = result;
-        }
+        extractedNode = response;
       } catch (e) {
         toast.error("Error when calling LLM, check console for details");
         console.error(e);
@@ -201,10 +198,7 @@ export const executePromptTask = async (
     } else {
       let extractedData: MultipleNodesResponse = {};
       try {
-        for await (const result of response) {
-          if (cancelRef.current) break;
-          extractedData = result;
-        }
+        extractedData = response;
       } catch (e) {
         toast.error("Error when calling LLM, check console for details");
         console.error(e);
