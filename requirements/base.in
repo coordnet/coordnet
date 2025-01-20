@@ -11,7 +11,7 @@ uvicorn-worker==0.3.0  # https://github.com/Kludex/uvicorn-worker
 
 # Django
 # ------------------------------------------------------------------------------
-django==5.1.4  # https://www.djangoproject.com/
+django==5.1.5  # https://www.djangoproject.com/
 django-environ==0.11.2  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
 django-allauth==65.3.1  # https://github.com/pennersr/django-allauth
@@ -36,7 +36,7 @@ django-pgtrigger==4.13.3  # https://github.com/Opus10/django-pgtrigger
 # Django-Channels
 channels==4.1.0  # https://github.com/django/channels
 # Async DRF endpoints
-adrf==0.1.8  # https://github.com/em1208/adrf
+adrf==0.1.9  # https://github.com/em1208/adrf
 # Postgres lock support
 django-pglock==1.7.1  # https://github.com/Opus10/django-pglock
 # Storages for S3 support
