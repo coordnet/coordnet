@@ -304,7 +304,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         "method_version",
         "method",
         "space",
-    )
+    ).defer("method_version__method_data", "method__content")
     serializer_class = serializers.MethodNodeRunListSerializer
     filterset_class = filters.MethodNodeRunFilterSet
     filter_backends = (filters.MethodNodeRunPermissionFilterBackend, base_filters.BaseFilterBackend)
