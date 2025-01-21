@@ -1,17 +1,39 @@
 import factory.django
+from django.db.models.signals import post_save
 
 import profiles.models
 
 
+@factory.django.mute_signals(post_save)
 class ProfileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = profiles.models.Profile
+        abstract = True
 
-    user = factory.SubFactory("users.tests.factories.UserFactory")
     title = factory.Faker("sentence", nb_words=4)
-    is_public = True
-    is_removed = False
-    profile_image = factory.django.ImageField()
-    banner_image = factory.django.ImageField()
+    draft = True
+    # profile_image_original = factory.django.ImageField()
+    # banner_image_original = factory.django.ImageField()
     description = factory.Faker("text")
     profile_slug = factory.Faker("slug")
+
+
+class UserProfileFactory(ProfileFactory):
+    user = factory.SubFactory("users.tests.factories.UserFactory")
+    space = None
+
+
+class SpaceProfileFactory(ProfileFactory):
+    user = None
+    space = factory.SubFactory("nodes.tests.factories.SpaceFactory")
+
+
+class ProfileCardFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = profiles.models.ProfileCard
+
+    title = factory.Faker("sentence", nb_words=4)
+    description = factory.Faker("text")
+    url = factory.Faker("url")
+    created_by = factory.SubFactory("users.tests.factories.UserFactory")
+    draft = False
