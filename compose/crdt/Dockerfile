@@ -18,4 +18,6 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY ./crdt .
 
-CMD ["pnpm", "dev"]
+RUN pnpm build
+
+CMD ["pnpm", "start"]
