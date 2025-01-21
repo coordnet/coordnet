@@ -14,6 +14,7 @@ import permissions.managers
 import permissions.models
 import permissions.utils
 import permissions.views
+import users.models
 import utils.managers
 import utils.pagination
 import utils.parsers
@@ -124,10 +125,16 @@ class MethodNodeModelViewSet(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.MethodNode]":
         queryset = (
-            self.queryset.annotate_user_permissions(# type: ignore[attr-defined]request=self.request)
+            self.queryset.annotate_user_permissions(  # type: ignore[attr-defined]
+                request=self.request
+            )
             .defer("content", "text", "graph_document", "editor_document", "search_vector")
-            .select_related("space", "creator")
-            .prefetch_related("authors")
+            .select_related("space__profile", "creator__profile")
+            .prefetch_related(
+                django_models.Prefetch(
+                    "authors", queryset=users.models.User.objects.select_related("profile")
+                ),
+            )
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset

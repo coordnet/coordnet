@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 import permissions.models
 import permissions.utils
+import profiles.serializers
 import utils.serializers
 from nodes import models
 
@@ -163,7 +164,8 @@ class DocumentVersionSerializer(
 
 
 class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[models.MethodNode]):
-    authors = utils.serializers.AvailableUserField(many=True, required=False, allow_null=True)
+    creator = profiles.serializers.AvailableUserProfileForUserField(read_only=True)
+    authors = profiles.serializers.AvailableUserProfileForUserField(many=True)
     image = serializers.ImageField(read_only=True)
     image_2x = serializers.ImageField(read_only=True)
     image_thumbnail = serializers.ImageField(read_only=True)
