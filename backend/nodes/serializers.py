@@ -250,6 +250,7 @@ class MethodNodeVersionListSerializer(
             "search_vector",
             "image_original",
         ]
+        create_only_fields = ["method", "method_data"]
         read_only_fields = [
             "node_type",
             "title",

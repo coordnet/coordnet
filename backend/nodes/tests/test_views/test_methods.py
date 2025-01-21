@@ -11,10 +11,11 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:methods-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
-        factories.MethodNodeFactory.create(creator=self.owner_user, owner=self.owner_user)
-        response = self.owner_client.get(reverse("nodes:methods-list"))
+        factories.MethodNodeFactory.create_batch(10, creator=self.owner_user, owner=self.owner_user)
+        with self.assertNumQueries(3):
+            response = self.owner_client.get(reverse("nodes:methods-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["count"], 10)
 
     def test_retrieve(self) -> None:
         node = factories.MethodNodeFactory.create(creator=self.owner_user, owner=self.owner_user)
@@ -44,24 +45,6 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
 
         node.refresh_from_db()
         self.assertEqual(node.is_removed, True)
-
-    # def test_filter_by_space(self) -> None:
-    #     space = factories.SpaceFactory.create(owner=self.owner_user)
-    #     another_space = factories.SpaceFactory.create(owner=self.owner_user)
-    #     node = factories.MethodNodeFactory.create(space=space)
-    #
-    #     response = self.owner_client.get(
-    #         reverse("nodes:methods-list"), {"space": str(space.public_id)}
-    #     )
-    #     self.assertEqual(response.status_code, 200, response.data)
-    #     self.assertEqual(response.data["count"], 1)
-    #     self.assertEqual(response.data["results"][0]["id"], str(node.public_id))
-    #
-    #     response = self.owner_client.get(
-    #         reverse("nodes:methods-list"), {"space": str(another_space.public_id)}
-    #     )
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertEqual(response.data["count"], 0)
 
     def test_permissions(self) -> None:
         # A method node by itself should not be visible to the viewer.

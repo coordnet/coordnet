@@ -982,7 +982,7 @@ class MethodNodeRun(utils.models.SoftDeletableBaseModel):
         return False
 
     @dry_rest_permissions.generics.authenticated_users
-    def has_object_delete_permission(self, request: "http.HttpRequest") -> bool:
+    def has_object_destroy_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user is the owner of the object."""
         return self.user == request.user
 

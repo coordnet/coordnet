@@ -123,9 +123,12 @@ class MethodNodeModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.MethodNode]":
-        queryset = self.queryset.annotate_user_permissions(  # type: ignore[attr-defined]
-            request=self.request
-        ).defer("content", "text", "graph_document", "editor_document", "search_vector")
+        queryset = (
+            self.queryset.annotate_user_permissions(# type: ignore[attr-defined]request=self.request)
+            .defer("content", "text", "graph_document", "editor_document", "search_vector")
+            .select_related("space", "creator")
+            .prefetch_related("authors")
+        )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset
 
@@ -311,7 +314,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeRun]":
-        if self.action == "retrieve":
+        if self.action == "list":
             return self.queryset.defer("method_data")
         return self.queryset
 
@@ -324,7 +327,9 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
 class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVersion]):
     """API endpoint that allows method node versions to be viewed or edited."""
 
-    queryset = models.MethodNodeVersion.available_objects.select_related("method")
+    queryset = models.MethodNodeVersion.available_objects.select_related(
+        "method", "creator"
+    ).prefetch_related("authors")
     serializer_class = serializers.MethodNodeVersionListSerializer
     filterset_class = filters.MethodNodeVersionFilterSet
     filter_backends = (

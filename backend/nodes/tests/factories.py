@@ -87,10 +87,35 @@ class DocumentEventFactory(DjangoModelFactory):
 
 
 class DocumentVersionFactory(DjangoModelFactory):
-    public_id = factory.Faker("uuid4")
     document = factory.SubFactory(DocumentFactory)
     document_type = factory.fuzzy.FuzzyChoice(models.DocumentType.choices, getter=lambda c: c[0])
     json_hash = factory.Faker("sha256")
 
     class Meta:
         model = "nodes.DocumentVersion"
+
+
+class MethodeNodeFactory(NodeFactory):
+    class Meta:
+        model = "nodes.MethodNode"
+
+
+class MethodNodeVersionFactory(DjangoModelFactory):
+    method = factory.SubFactory(MethodeNodeFactory)
+    version = factory.Sequence(lambda n: n)
+    method_data = factory.Faker("json", num_rows=50)
+
+    class Meta:
+        model = "nodes.MethodNodeVersion"
+
+
+class MethodNodeRunFactory(DjangoModelFactory):
+    method = factory.SubFactory(MethodeNodeFactory)
+    method_version = factory.SubFactory(MethodNodeVersionFactory)
+    user = factory.SubFactory("users.tests.factories.UserFactory")
+    space = factory.SubFactory(SpaceFactory)
+
+    method_data = factory.Faker("json", num_rows=50)
+
+    class Meta:
+        model = "nodes.MethodNodeRun"
