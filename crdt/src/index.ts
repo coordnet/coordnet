@@ -136,6 +136,6 @@ app.ws("/", (websocket, request) => {
 
 if (settings.SENTRY_DSN) Sentry.setupExpressErrorHandler(app);
 
-app.listen(hocuspocusSettings.port, () =>
-  console.log(`Listening on http://127.0.0.1:${hocuspocusSettings.port}`),
+app.listen(hocuspocusSettings.port, "0.0.0.0", () =>
+  console.log(`Listening on http://0.0.0.0:${hocuspocusSettings.port}`),
 );
