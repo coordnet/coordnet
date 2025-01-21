@@ -9,6 +9,7 @@ import useUser from "@/hooks/useUser";
 import { cleanNodeTitle } from "@/lib/nodes";
 import { BackendEntityType } from "@/types";
 
+import { formatMethodRunId } from "./Methods/utils";
 import ProfileDropdownButton from "./Profiles/ProfileDropdownButton";
 import SpaceSidebar from "./Spaces/Sidebar";
 import { Button } from "./ui/button";
@@ -35,19 +36,34 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
           </Link>
         </div>
         {Boolean(breadcrumbs.length > 0) && <div className="">&raquo;</div>}
-        {breadcrumbs.map((id, index) => (
-          <div key={id} className="flex items-center gap-2">
-            <div className="max-w-[220px] truncate">
-              <Link
-                to={`/${parent.type}s/${parent?.data?.id}/${id}`}
-                className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
-              >
-                {cleanNodeTitle(nodes.find((n) => n.id === id)?.title)}
-              </Link>
+        {breadcrumbs.map((id, index) => {
+          const isNewRun = id === "new-run";
+          const isRun = id.startsWith("run-");
+          const runId = id.split("run-")[1];
+
+          const title = isRun
+            ? `Run ${formatMethodRunId(runId)}`
+            : cleanNodeTitle(nodes.find((n) => n.id === id)?.title);
+
+          const link = `/${parent.type}s/${parent?.data?.id}/${isRun ? `runs/${runId}` : id}`;
+          return (
+            <div key={id} className="flex items-center gap-2">
+              <div className="max-w-[220px] truncate text-neutral-500">
+                {isNewRun ? (
+                  "New Run"
+                ) : (
+                  <Link
+                    to={link}
+                    className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
+                  >
+                    {title}
+                  </Link>
+                )}
+              </div>
+              {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
             </div>
-            {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
-          </div>
-        ))}
+          );
+        })}
         {breadcrumbs[breadcrumbs.length - 1] !== id &&
           ((parent.type === BackendEntityType.SPACE && id != parent?.data?.default_node) ||
             (parent.type === BackendEntityType.METHOD && id != parent?.data?.id)) && (

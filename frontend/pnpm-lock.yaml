@@ -241,6 +241,9 @@ devDependencies:
   '@eslint/js':
     specifier: 9.18.0
     version: 9.18.0
+  '@simbathesailor/use-what-changed':
+    specifier: ^2.0.0
+    version: 2.0.0(react@19.0.0)
   '@tailwindcss/typography':
     specifier: ^0.5.16
     version: 0.5.16(tailwindcss@3.4.17)
@@ -2360,6 +2363,14 @@ packages:
       - encoding
       - supports-color
     dev: false
+
+  /@simbathesailor/use-what-changed@2.0.0(react@19.0.0):
+    resolution: {integrity: sha512-ulBNrPSvfho9UN6zS2fii3AsdEcp2fMaKeqUZZeCNPaZbB6aXyTUhpEN9atjMAbu/eyK3AY8L4SYJUG62Ekocw==}
+    peerDependencies:
+      react: '>=16'
+    dependencies:
+      react: 19.0.0
+    dev: true
 
   /@tailwindcss/typography@0.5.16(tailwindcss@3.4.17):
     resolution: {integrity: sha512-0wDLwCVF5V3x3b1SGXPCDcdsbDHMBe+lkFzBRaHeLvNi+nrrnZ1lA18u+OTWO8iSWU2GxUOCvlXtDuqftc1oiA==}
@@ -5892,7 +5903,6 @@ packages:
   /react@19.0.0:
     resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
     engines: {node: '>=0.10.0'}
-    dev: false
 
   /reactflow@11.11.4(@types/react@19.0.7)(react-dom@19.0.0)(react@19.0.0):
     resolution: {integrity: sha512-70FOtJkUWH3BAOsN+LU9lCrKoKbtOPnz2uq0CV2PLdNSwxTXOhCbsZr50GmZ+Rtw3jx8Uv7/vBFtCGixLfd4Og==}

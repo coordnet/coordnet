@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
+import { findExtremePositions } from "@/components/Graph/utils";
 import { extensions, readOnlyEditor } from "@/lib/readOnlyEditor";
 import { GraphNode, NodeType, SpaceNode } from "@/types";
 
-import { findExtremePositions } from "../utils";
 import { Graph, SingleNode } from "./types";
 
 export const setNodesState = (

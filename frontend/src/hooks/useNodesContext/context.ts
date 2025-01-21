@@ -8,7 +8,7 @@ type NodesContextType = {
   parent: BackendParent;
   // space: Space | undefined;
   // spaceLoading: boolean;
-  yDoc: Y.Doc | undefined;
+  YDoc: Y.Doc | undefined;
   error: Error | undefined;
   nodesMap: Y.Map<SpaceNode> | undefined;
   nodes: SpaceNode[];

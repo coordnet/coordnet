@@ -194,7 +194,7 @@ export interface SemanticScholarPaper {
   isOpenAccess: boolean;
 }
 
-const ProfileCardSubProfileSchema = z.object({
+const SubProfile = z.object({
   id: z.string().uuid(),
   profile_image: z.union([z.null(), z.string().url()]),
   profile_image_2x: z.union([z.null(), z.string().url()]),
@@ -210,12 +210,12 @@ const ProfileCardSubProfileSchema = z.object({
   user: z.union([z.string().uuid(), z.null()]),
 });
 
-export type ProfileCardSubProfile = z.infer<typeof ProfileCardSubProfileSchema>;
+export type ProfileCardSubProfile = z.infer<typeof SubProfile>;
 
 export const ProfileCardSchema = z.object({
   id: z.string().uuid(),
-  space_profile: ProfileCardSubProfileSchema.nullable(),
-  author_profile: ProfileCardSubProfileSchema.nullable(),
+  space_profile: SubProfile.nullable(),
+  author_profile: SubProfile.nullable(),
   created_by: z.string().uuid(),
   image: z.union([z.null(), z.string().url()]),
   image_2x: z.union([z.null(), z.string().url()]),
@@ -261,7 +261,7 @@ export const ProfileSchema = z.object({
   profile_image_2x: z.union([z.null(), z.string().url()]),
   banner_image: z.union([z.null(), z.string().url()]),
   banner_image_2x: z.union([z.null(), z.string().url()]),
-  members: z.array(ProfileCardSubProfileSchema),
+  members: z.array(SubProfile),
   object_created: z.coerce.date(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
@@ -354,12 +354,12 @@ export const MethodSchema = z.object({
   search_vector: z.null(),
   is_public: z.boolean(),
   is_public_writable: z.boolean(),
-  creator: z.string(),
+  creator: SubProfile.nullable(),
   space: z.null(),
   editor_document: z.null(),
   graph_document: z.null(),
   subnodes: z.array(z.any()),
-  authors: z.array(z.string()),
+  authors: z.array(SubProfile),
   allowed_actions: z.array(AllowedActionsSchema),
 });
 export type Method = z.infer<typeof MethodSchema>;

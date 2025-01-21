@@ -89,6 +89,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.18.0",
+    "@simbathesailor/use-what-changed": "^2.0.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/dompurify": "^3.2.0",
     "@types/eslint__js": "^8.42.3",

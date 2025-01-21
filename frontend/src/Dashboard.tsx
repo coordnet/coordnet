@@ -18,7 +18,7 @@ import ProfileDropdownButton from "./components/Profiles/ProfileDropdownButton";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { user, isGuest, isLoading: userLoading } = useUser();
+  const { user, isGuest, isLoading: userLoading, profile } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const { data: spaces, isLoading: spacesLoading } = useQuery({
     queryKey: ["spaces"],
@@ -41,7 +41,8 @@ function Dashboard() {
     navigate(`/methods/${response.id}`);
   };
 
-  if (userLoading || spacesLoading || methodsLoading) return <Loader message="Loading" />;
+  if (userLoading || spacesLoading || methodsLoading || !profile)
+    return <Loader message="Loading" />;
 
   // if (!spaces || spaces.count === 0)
   //   return <ErrorPage error={new CustomError({ code: "NO_SPACES", name: "", message: "" })} />;
@@ -72,7 +73,7 @@ function Dashboard() {
       <div className="z-30 mx-auto mt-10 w-[90%] max-w-[640px] rounded-lg">
         <img src="/static/coordination-network-logo-bw.png" className="m-auto h-9" />
         <div className="my-16 text-center text-3xl font-normal">
-          Welcome back{", " + user?.name?.split(" ")[0] || ""}!
+          Welcome back{profile?.title?.length ? ", " + profile?.title?.split(" ")[0] : ""}!
         </div>
         <div className="mb-3 flex items-center justify-between">
           <div className="text-xl font-medium leading-7 text-black">Methods</div>
@@ -88,10 +89,8 @@ function Dashboard() {
           <div className="py-5 text-center">No methods yet</div>
         ) : (
           <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
-            {methods?.results.map((method, i) => (
-              <Link to={`/methods/${method.id}`} key={i}>
-                <MethodCard key={i} method={method} />
-              </Link>
+            {methods?.results.map((method) => (
+              <MethodCard key={`dashboard-method-${method.id}`} method={method} />
             ))}
           </div>
         )}

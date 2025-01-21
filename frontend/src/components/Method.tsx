@@ -15,13 +15,14 @@ import ErrorPage from "./ErrorPage";
 type MethodProps = { id?: string; isMethodRun?: boolean; className?: string };
 
 const Method = ({ className }: MethodProps) => {
+  const { runId } = useParams();
   const { parent } = useNodesContext();
   const { isGuest } = useUser();
   const { error, connected, synced, parent: canvasParent } = useCanvas();
 
   if (error) return <ErrorPage error={error} />;
-  if (!synced || canvasParent.isLoading) return <Loader message="Loading canvas..." />;
-  if (!connected) return <Loader message="Obtaining connection to canvas..." />;
+  if (!runId && (!synced || canvasParent.isLoading)) return <Loader message="Loading canvas..." />;
+  if (!runId && !connected) return <Loader message="Obtaining connection to canvas..." />;
 
   const method = parent.type === BackendEntityType.METHOD ? parent.data : undefined;
   const methodIcon = blockies.create({ seed: method?.id }).toDataURL();

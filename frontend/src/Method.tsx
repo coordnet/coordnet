@@ -4,13 +4,13 @@ import { useQueryParam } from "use-query-params";
 
 import { Editor, Header, Loader, Method as MethodCanvas, QuickView } from "@/components";
 import ErrorPage from "@/components/ErrorPage";
-import { EditorProvider, NodesContextProvider, useNodesContext } from "@/hooks";
+import { NodesContextProvider, useNodesContext } from "@/hooks";
 
 import { title } from "./lib/utils";
 import { BackendEntityType } from "./types";
 
 const Method = () => {
-  const { pageId, methodId } = useParams();
+  const { pageId, methodId, runId } = useParams();
   const { parent, synced, connected, error, breadcrumbs, setBreadcrumbs } = useNodesContext();
   const [nodePage] = useQueryParam<string>("nodePage");
 
@@ -30,30 +30,47 @@ const Method = () => {
     // If in an iframe (QuickView) don't add
     if (window.self !== window.top) return;
 
+    let updatedBreadcrumbs: string[] = [];
+
     // If at the default node, reset the breadcrumbs
-    if (nodeId == method.id) {
-      setBreadcrumbs([]);
-      return;
+    if (nodeId === method.id) {
+      updatedBreadcrumbs = [];
+    } else {
+      // Handle primary breadcrumbs based on nodeId
+      const index = breadcrumbs.indexOf(nodeId);
+      if (index !== -1) {
+        updatedBreadcrumbs = breadcrumbs.slice(0, index + 1);
+      } else {
+        updatedBreadcrumbs = [...breadcrumbs.filter((id) => id !== method.id), nodeId];
+      }
     }
 
-    // Otherwise add the node to the breadcrumbs
-    setBreadcrumbs((prev) => {
-      if (prev[prev.length - 1] === nodeId) return prev;
-      // If the ID is lower down the chain then go back to it
-      const index = prev.indexOf(nodeId);
-      if (index !== -1) return prev.slice(0, index + 1);
-      return [...prev.filter((id) => id !== method.id), nodeId];
-    });
-  }, [breadcrumbs, setBreadcrumbs, nodeId, method]);
+    // Handle runId for breadcrumbs
+    if (runId) {
+      const runLabel = runId === "new" ? "new-run" : `run-${runId}`;
+      const lastBreadcrumb = updatedBreadcrumbs[updatedBreadcrumbs.length - 1];
+
+      if (lastBreadcrumb !== runLabel) {
+        updatedBreadcrumbs = [...updatedBreadcrumbs, runLabel];
+      }
+    }
+
+    setBreadcrumbs(updatedBreadcrumbs);
+  }, [breadcrumbs, setBreadcrumbs, nodeId, method, runId]);
 
   return (
     <>
-      {(!synced || parent.isLoading) && !error ? (
+      {parent.isLoading && !error ? (
         <Loader message="Loading method..." className="z-60" />
-      ) : !connected && !error ? (
+      ) : !connected && !runId && !error ? (
         <Loader message="Obtaining connection for method..." className="z-60" />
+      ) : !connected && runId && runId !== "new" && !error ? (
+        <Loader message="Loading run..." className="z-60 bg-white/30" />
       ) : (
         <></>
+      )}
+      {!parent.isLoading && !error && !synced && runId == "new" && (
+        <Loader message="Creating run..." className="z-60 bg-white/30" />
       )}
       <div className="relative flex h-full flex-col">
         <Header id={nodeId} />
@@ -62,13 +79,11 @@ const Method = () => {
         ) : (
           <>
             <MethodCanvas key={methodId} id={methodId} className="w-full flex-grow" />
-            <EditorProvider methodId={methodId}>
-              <Editor
-                id={nodePage}
-                key={nodePage}
-                className="absolute bottom-0 right-0 top-6 z-20 w-1/2 bg-white shadow-md"
-              />
-            </EditorProvider>
+            <Editor
+              id={nodePage}
+              key={nodePage}
+              className="absolute bottom-0 right-0 top-6 z-20 w-1/2 bg-white shadow-md"
+            />
             <QuickView />
           </>
         )}
@@ -78,9 +93,8 @@ const Method = () => {
 };
 
 const MethodOuter = () => {
-  const { methodId, runId } = useParams();
   return (
-    <NodesContextProvider key={`${methodId}-${runId}`}>
+    <NodesContextProvider>
       <Method />
     </NodesContextProvider>
   );

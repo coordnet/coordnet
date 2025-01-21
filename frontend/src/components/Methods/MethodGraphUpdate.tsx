@@ -25,7 +25,7 @@ const MethodGraphUpdate = ({
 }) => {
   const queryClient = useQueryClient();
   const { parent } = useCanvas();
-  const { yDoc } = useNodesContext();
+  const { YDoc } = useNodesContext();
   const isMethod = parent.type === BackendEntityType.METHOD;
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
@@ -53,7 +53,7 @@ const MethodGraphUpdate = ({
     try {
       await updateMethod(parent.id, data);
       await updateMethodImage(parent.id, croppedBanner);
-      const canvasData = methodYdocToJson(yDoc!);
+      const canvasData = methodYdocToJson(YDoc!);
       await createMethodVersion(parent.id, canvasData);
       queryClient.invalidateQueries({ queryKey: ["methods"] });
       setOpen(false);

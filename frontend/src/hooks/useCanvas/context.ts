@@ -6,7 +6,7 @@ import { BackendParent, GraphEdge, GraphNode } from "@/types";
 export type CanvasContextType = {
   id: string | undefined;
   parent: BackendParent;
-  document: Y.Doc | undefined;
+  YDoc: Y.Doc | undefined;
   nodesMap: Y.Map<GraphNode> | undefined;
   edgesMap: Y.Map<GraphEdge> | undefined;
   nodes: GraphNode[];

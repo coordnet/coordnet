@@ -1,100 +1,39 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useQueryClient } from "@tanstack/react-query";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { toast } from "sonner";
 import useSessionStorageState from "use-session-storage-state";
 import { v4 as uuid } from "uuid";
-import * as Y from "yjs";
 
 import { updateSpace } from "@/api";
-import { addMethodRunToYdoc, loadDisconnectedDoc } from "@/components/Methods/utils";
-import { crdtUrl } from "@/constants";
 import { waitForNode } from "@/lib/nodes";
-import { CustomError } from "@/lib/utils";
 import { BackendEntityType, Space, SpaceNode } from "@/types";
 
-import useBackendParent from "../useBackendParent";
-import useUser from "../useUser";
+import useYDoc from "../useYDoc";
 import { NodesContext } from "./context";
 
 /**
  * Provider for sharing space between components
  */
 export const NodesContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const { spaceId, methodId, runId } = useParams();
-  const parent = useBackendParent(methodId, spaceId);
-
-  const { token } = useUser();
-  const [synced, setSynced] = useState<boolean>(false);
-  const [connected, setConnected] = useState<boolean>(false);
-  const [nodes, setNodes] = useState<SpaceNode[]>([]);
+  const { spaceId, methodId } = useParams();
   const queryClient = useQueryClient();
-  const [error, setError] = useState<Error | undefined>();
-  const [provider, setProvider] = useState<HocuspocusProvider | undefined>();
 
+  const {
+    parent,
+    space: { YDoc, connected, provider, synced, error },
+  } = useYDoc();
+
+  const [nodes, setNodes] = useState<SpaceNode[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useSessionStorageState<string[]>(
     `coordnet:breadcrumbs-${spaceId ?? methodId}`,
     { defaultValue: [] }
   );
 
-  const name = spaceId ? `space-${spaceId}` : `method-${methodId}`;
-  const document = useMemo(() => new Y.Doc({ guid: name }), [name]);
-
-  const loadMethod = useCallback(
-    async (runId: string) => {
-      try {
-        if (runId === "new") {
-          await loadDisconnectedDoc(name, token, document);
-        } else {
-          await addMethodRunToYdoc(runId, document);
-        }
-        setSynced(true);
-        setConnected(true);
-      } catch (error) {
-        toast.error("Failed to load the document");
-        console.error("Failed to load the document:", error);
-      }
-    },
-    [document, name, token]
-  );
-
   useEffect(() => {
-    if (!spaceId && !methodId) return;
-    if (runId) {
-      loadMethod(runId);
-      return;
-    }
-    const newProvider = new HocuspocusProvider({
-      url: crdtUrl,
-      name,
-      document,
-      token,
-      preserveConnection: false,
-      onAuthenticationFailed(data) {
-        setError(
-          new CustomError({
-            code: "ERR_PERMISSION_DENIED",
-            name: "Space Websocket Authentication Failed",
-            message: data.reason,
-          })
-        );
-      },
-      onSynced() {
-        setSynced(true);
-      },
-      onStatus(data) {
-        setConnected(data.status == "connected");
-      },
-    });
-    setProvider(newProvider);
+    console.log("space document changed", YDoc);
+  }, [YDoc]);
 
-    return () => {
-      newProvider.destroy();
-    };
-  }, [spaceId, methodId, runId]);
-
-  const nodesMap = document?.getMap<SpaceNode>("nodes");
+  const nodesMap = YDoc?.getMap<SpaceNode>("nodes");
 
   // Update the space with a default node if it doesn't have one
   const updateSpaceDefaultNode = async (space: Space) => {
@@ -139,10 +78,7 @@ export const NodesContextProvider = ({ children }: { children: React.ReactNode }
 
   const value = {
     parent,
-    // space: space,
-    // spaceLoading,
-    // spaceError,
-    yDoc: document,
+    YDoc,
     error,
     nodes,
     nodesMap,

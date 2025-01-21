@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
+import { useRunMethod } from "@/components/Methods/running/useRunMethod";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -15,7 +16,6 @@ import { useCanvas } from "@/hooks";
 import { BackendEntityType } from "@/types";
 
 import ExecutionPlanRenderer from "../Graph/ExecutionPlan";
-import { useRunCanvas } from "../Graph/tasks/useRunCanvas";
 import { Button } from "../ui/button";
 import MethodGraphUpdate from "./MethodGraphUpdate";
 import MethodPermissions from "./MethodPermissions";
@@ -26,7 +26,7 @@ import { formatMethodRunId } from "./utils";
 const MethodGraphControls = () => {
   const { runId } = useParams();
   const { parent } = useCanvas();
-  const { resetCanvas, isRunning } = useRunCanvas();
+  const { runStatus } = useRunMethod();
   const [planOpen, setPlanOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const isMethod = parent.type === BackendEntityType.METHOD;
@@ -64,7 +64,7 @@ const MethodGraphControls = () => {
     <>
       <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
         <Dialog>
-          <DialogTrigger>
+          <DialogTrigger asChild>
             <Button
               className="flex h-16 items-center justify-center gap-2.5 rounded-full border
                 border-neutral-200 bg-white px-5 py-4 text-xl font-medium text-neutral-500"
@@ -100,14 +100,6 @@ const MethodGraphControls = () => {
             <DropdownMenuItem className="cursor-pointer" onClick={() => setPlanOpen(true)}>
               Show Analysis
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => resetCanvas()}
-              data-tooltip-id="run-canvas"
-              data-tooltip-place="right"
-            >
-              Reset Canvas
-            </DropdownMenuItem>
             <Tooltip id="run-canvas">
               Use this to remove highlighted state from nodes if processing was interrupted
             </Tooltip>
@@ -123,7 +115,7 @@ const MethodGraphControls = () => {
                 border-neutral-200 bg-white py-4 pl-8 pr-6 text-xl font-medium text-neutral-500"
               // onClick={() => runCanvas(areNodesSelected)}
               variant="secondary"
-              disabled={isRunning}
+              disabled={runStatus === "running"}
             >
               <div className="flex flex-col">
                 <span>Run</span>

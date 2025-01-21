@@ -4,13 +4,13 @@ import { useQueryParam } from "use-query-params";
 
 import { Editor, Header, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
 import ErrorPage from "@/components/ErrorPage";
-import { EditorProvider, NodeProvider, NodesContextProvider, useNodesContext } from "@/hooks";
+import { NodeProvider, NodesContextProvider, useNodesContext } from "@/hooks";
 import { title } from "@/lib/utils";
 
 import { BackendEntityType } from "./types";
 
 const Space = () => {
-  const { pageId, spaceId } = useParams();
+  const { pageId } = useParams();
   const { parent, synced, connected, breadcrumbs, setBreadcrumbs, error } = useNodesContext();
   const [nodePage] = useQueryParam<string>("nodePage");
 
@@ -61,13 +61,11 @@ const Space = () => {
               <NodeRepository />
               <LLM id={nodeId} />
               <Node key={nodeId} id={nodeId} className="w-full flex-grow" />
-              <EditorProvider nodeId={nodePage} spaceId={spaceId}>
-                <Editor
-                  id={nodePage}
-                  key={nodePage}
-                  className="absolute bottom-0 right-0 top-6 z-20 w-1/2 bg-white shadow-md"
-                />
-              </EditorProvider>
+              <Editor
+                id={nodePage}
+                key={nodePage}
+                className="absolute bottom-0 right-0 top-6 z-20 w-1/2 bg-white shadow-md"
+              />
               <QuickView />
             </NodeProvider>
           </>

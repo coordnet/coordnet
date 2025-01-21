@@ -87,7 +87,6 @@ export const processTasks = async (
     const selectedIds = [task.promptNode.id, ...task.inputNodes.map((node) => node.id)];
 
     if (cancelRef.current) {
-      toast.info("Process stopped by user.");
       setNodesState(selectedIds, nodesMap, "inactive");
       break;
     }
@@ -112,7 +111,6 @@ export const processTasks = async (
 
     for await (const task of tasks) {
       if (cancelRef.current) {
-        toast.info("Process stopped by user.");
         setNodesState(selectedIds, nodesMap, "inactive");
         break; // Exit the loop if cancellation is requested
       }

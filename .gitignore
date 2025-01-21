@@ -179,3 +179,6 @@ backend/coordnet/media/
 !frontend/src/lib/
 frontend/.env.sentry-build-plugin
 frontend/.vite
+
+### k8s
+kubernetes/secrets.yaml

@@ -13,7 +13,7 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useEditor, useFocus, useUser } from "@/hooks";
+import { useFocus, useUser, useYDoc } from "@/hooks";
 import { rgbToHex } from "@/lib/utils";
 import { BackendEntityType } from "@/types";
 
@@ -29,7 +29,10 @@ type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
   const { runId } = useParams();
-  const { parent, error, synced, yDoc, provider } = useEditor();
+  const {
+    parent,
+    editor: { error, synced, YDoc, provider },
+  } = useYDoc();
   const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
 
@@ -51,7 +54,7 @@ const Editor = ({ id, className }: EditorProps) => {
   const editor = useEditorTipTap(
     {
       immediatelyRender: false,
-      extensions: loadExtensions(provider, yDoc, field, parent.type == BackendEntityType.METHOD),
+      extensions: loadExtensions(provider, YDoc, field, parent.type == BackendEntityType.METHOD),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
       editable: Boolean(!runId && parent.data?.allowed_actions.includes("write")),
@@ -60,10 +63,10 @@ const Editor = ({ id, className }: EditorProps) => {
   );
 
   useEffect(() => {
-    if (!editor || !synced || !yDoc) return;
+    if (!editor || !synced || !YDoc) return;
     // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
     setEditor(editor);
-  }, [editor, synced, yDoc, setEditor]);
+  }, [editor, synced, YDoc, setEditor]);
 
   useEffect(() => {
     if (user && editor && editor.commands.updateUser) {

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import store from "store2";
 import * as Y from "yjs";
 
+import { SingleNode } from "@/components/Methods/running/types";
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
 import {
   importNodeCanvas,
@@ -23,8 +24,6 @@ import {
   GraphNode,
   SpaceNode,
 } from "@/types";
-
-import { SingleNode } from "./tasks/types";
 
 export const createConnectedGraph = async (spaceId: string, graphId: string) => {
   const token = store("coordnet-auth");

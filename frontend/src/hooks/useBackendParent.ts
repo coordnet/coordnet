@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
 
 import { getMethod, getSpace } from "@/api";
 import { BackendEntityType, BackendParent } from "@/types";
@@ -6,9 +7,6 @@ import { BackendEntityType, BackendParent } from "@/types";
 /**
  * Custom hook to fetch data for either a node, method, or space from the backend.
  *
- * @param {string | undefined} nodeId - The ID of the node to fetch. If undefined, methodId or spaceId must be provided.
- * @param {string | undefined} methodId - The ID of the method to fetch. If undefined, nodeId or spaceId must be provided.
- * @param {string | undefined} spaceId - The ID of the space to fetch. If undefined, nodeId or methodId must be provided.
  * @throws {Error} Throws an error if all nodeId, methodId, and spaceId are undefined.
  * @returns {BackendParent} An object containing:
  * - id: The ID of the fetched entity (node, method, or space).
@@ -16,10 +14,8 @@ import { BackendEntityType, BackendParent } from "@/types";
  * - data: The fetched data.
  * - isLoading: A boolean indicating if the data is still being loaded.
  */
-const useBackendParent = (
-  methodId: string | undefined,
-  spaceId: string | undefined
-): BackendParent => {
+const useBackendParent = (): BackendParent => {
+  const { spaceId, methodId } = useParams();
   const isMethod = Boolean(methodId);
   const isSpace = Boolean(spaceId);
 
