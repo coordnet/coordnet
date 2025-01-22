@@ -6,8 +6,6 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { EditableNode } from "@/components";
 
-// import Footer from "@/components/Graph/Footer";
-
 const NodeComponent = ({
   node: pmNode,
   selected,
@@ -25,7 +23,7 @@ const NodeComponent = ({
     <NodeViewWrapper className={clsx()}>
       <div
         className={clsx(
-          "GraphNode relative rounded-lg border border-gray-1 p-1",
+          "CanvasNode relative rounded-lg border border-gray-1 p-1",
           "flex w-1/2 items-center justify-center text-center text-sm",
           { "shadow-node-selected": selected }
         )}

@@ -5,7 +5,7 @@ import { ChevronsRight, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { createMethod, getMethods, getSpaces } from "@/api";
+import { createSkill, getSkills, getSpaces } from "@/api";
 import { Loader } from "@/components";
 import shadowsBg from "@/components/Profiles/assets/shadows.svg";
 import SpaceSidebar from "@/components/Spaces/Sidebar";
@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import useUser from "@/hooks/useUser";
 
-import MethodCard from "./components/Methods/MethodCard";
 import ProfileDropdownButton from "./components/Profiles/ProfileDropdownButton";
+import SkillCard from "./components/Skills/SkillCard";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -26,9 +26,9 @@ function Dashboard() {
     enabled: Boolean(user),
   });
 
-  const { data: methods, isLoading: methodsLoading } = useQuery({
-    queryKey: ["methods"],
-    queryFn: ({ signal }) => getMethods(signal),
+  const { data: skills, isLoading: skillsLoading } = useQuery({
+    queryKey: ["skills"],
+    queryFn: ({ signal }) => getSkills(signal),
     enabled: Boolean(user),
   });
 
@@ -36,12 +36,12 @@ function Dashboard() {
     if (!userLoading && isGuest) window.location.href = "/auth/login";
   }, [isGuest, userLoading]);
 
-  const onCreateMethod = async () => {
-    const response = await createMethod({});
-    navigate(`/methods/${response.id}`);
+  const onCreateSkill = async () => {
+    const response = await createSkill({});
+    navigate(`/skills/${response.id}`);
   };
 
-  if (userLoading || spacesLoading || methodsLoading || !profile)
+  if (userLoading || spacesLoading || skillsLoading || !profile)
     return <Loader message="Loading" />;
 
   // if (!spaces || spaces.count === 0)
@@ -76,21 +76,21 @@ function Dashboard() {
           Welcome back{profile?.title?.length ? ", " + profile?.title?.split(" ")[0] : ""}!
         </div>
         <div className="mb-3 flex items-center justify-between">
-          <div className="text-xl font-medium leading-7 text-black">Methods</div>
+          <div className="text-xl font-medium leading-7 text-black">Skills</div>
           <Button
             variant="default"
             className="h-8 bg-violet-600 px-2 hover:bg-violet-700"
-            onClick={onCreateMethod}
+            onClick={onCreateSkill}
           >
-            <Plus className="mr-2 size-5" /> Create Method
+            <Plus className="mr-1 size-5" /> Create Skill
           </Button>
         </div>
-        {methods?.count === 0 ? (
-          <div className="py-5 text-center">No methods yet</div>
+        {skills?.count === 0 ? (
+          <div className="py-5 text-center">No skills yet</div>
         ) : (
           <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
-            {methods?.results.map((method) => (
-              <MethodCard key={`dashboard-method-${method.id}`} method={method} />
+            {skills?.results.map((skill) => (
+              <SkillCard key={`dashboard-skill-${skill.id}`} skill={skill} />
             ))}
           </div>
         )}

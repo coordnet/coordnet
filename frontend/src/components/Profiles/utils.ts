@@ -1,6 +1,6 @@
 import * as blockies from "blockies-ts";
 
-import { Method, Profile, ProfileCard, ProfileCardSubProfile } from "@/types";
+import { Profile, ProfileCard, ProfileCardSubProfile, Skill } from "@/types";
 
 import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 
@@ -67,7 +67,7 @@ export const getProfileBannerImage = (
 };
 
 export const getProfileCardImage = (
-  card: ProfileCard | Method | null | undefined,
+  card: ProfileCard | Skill | null | undefined,
   retina: boolean = false,
   thumbnail: boolean = false
 ) => {

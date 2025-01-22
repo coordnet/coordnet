@@ -32,7 +32,7 @@ export type Permission = z.infer<typeof PermissionSchema>;
 
 export enum PermissionModel {
   Space = "space",
-  Method = "method",
+  Skill = "skill",
 }
 
 export interface ApiError {
@@ -72,8 +72,8 @@ export type SpaceNode = {
   title: string;
 };
 
-export type GraphNode = ReactFlowNode;
-export type GraphEdge = Edge;
+export type CanvasNode = ReactFlowNode;
+export type CanvasEdge = Edge;
 
 export type ExportNodeSingle = {
   id: string;
@@ -94,7 +94,7 @@ export type ExportNodeSingle = {
 
 export type ExportNode = ExportNodeSingle & {
   nodes: ExportNodeSingle[];
-  edges: GraphEdge[];
+  edges: CanvasEdge[];
 };
 
 export const BackendNodeSchema = z.object({
@@ -302,16 +302,16 @@ export const ProfileFormSchema = ProfileSchema.pick({
 });
 export type ProfileForm = z.infer<typeof ProfileFormSchema>;
 
-// Types for the canvas or editor parent which can be a node or a method
+// Types for the canvas or editor parent which can be a node or a skill
 export enum BackendEntityType {
-  METHOD = "method",
+  SKILL = "skill",
   SPACE = "space",
 }
 
 // export type BackendParent = {
 //   id: string;
 //   type: BackendEntityType;
-//   data?: BackendNodeDetail | Method | Space;
+//   data?: BackendNodeDetail | Skill | Space;
 //   error: Error | null;
 //   isLoading: boolean;
 // };
@@ -319,8 +319,8 @@ export enum BackendEntityType {
 export type BackendParent =
   | {
       id: string;
-      type: BackendEntityType.METHOD;
-      data?: Method;
+      type: BackendEntityType.SKILL;
+      data?: Skill;
       error: Error | null;
       isLoading: boolean;
     }
@@ -332,11 +332,11 @@ export type BackendParent =
       isLoading: boolean;
     };
 
-export const MethodSchema = z.object({
+export const SkillSchema = z.object({
   id: z.string(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
-  title: z.string().min(1, "Method name is required"),
+  title: z.string().min(1, "Skill name is required"),
   title_token_count: z.null(),
   description: z
     .string()
@@ -362,17 +362,19 @@ export const MethodSchema = z.object({
   authors: z.array(SubProfile),
   allowed_actions: z.array(AllowedActionsSchema),
 });
-export type Method = z.infer<typeof MethodSchema>;
+export type Skill = z.infer<typeof SkillSchema>;
 
-export const MethodUpdateFormSchema = MethodSchema.pick({
+export type SkillJson = { [key: string]: unknown };
+
+export const SkillUpdateFormSchema = SkillSchema.pick({
   title: true,
   description: true,
   text: true,
   is_public: true,
 });
-export type MethodUpdateForm = z.infer<typeof MethodUpdateFormSchema>;
+export type SkillUpdateForm = z.infer<typeof SkillUpdateFormSchema>;
 
-export const MethodRunSchema = z.object({
+export const SkillRunSchema = z.object({
   id: z.string(),
   space: z.null(),
   method: z.string(),
@@ -382,9 +384,9 @@ export const MethodRunSchema = z.object({
   method_data: z.record(z.string(), z.unknown()),
   is_dev_run: z.boolean(),
 });
-export type MethodRun = z.infer<typeof MethodRunSchema>;
+export type SkillRun = z.infer<typeof SkillRunSchema>;
 
-export const MethodVersionSchema = MethodSchema.pick({
+export const SkillVersionSchema = SkillSchema.pick({
   id: true,
   created_at: true,
   updated_at: true,
@@ -402,4 +404,4 @@ export const MethodVersionSchema = MethodSchema.pick({
   method: z.string(),
   version: z.number(),
 });
-export type MethodVersion = z.infer<typeof MethodVersionSchema>;
+export type SkillVersion = z.infer<typeof SkillVersionSchema>;

@@ -54,7 +54,7 @@ const Editor = ({ id, className }: EditorProps) => {
   const editor = useEditorTipTap(
     {
       immediatelyRender: false,
-      extensions: loadExtensions(provider, YDoc, field, parent.type == BackendEntityType.METHOD),
+      extensions: loadExtensions(provider, YDoc, field, parent.type == BackendEntityType.SKILL),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
       editable: Boolean(!runId && parent.data?.allowed_actions.includes("write")),

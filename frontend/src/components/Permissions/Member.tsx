@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useUser from "@/hooks/useUser";
-import { Method, PermissionModel, PermissionSchema, Space } from "@/types";
+import { PermissionModel, PermissionSchema, Skill, Space } from "@/types";
 
 import { Button } from "../ui/button";
 import { DialogClose } from "../ui/dialog";
@@ -30,13 +30,13 @@ type FormType = z.infer<typeof formSchema>;
 
 const Member = ({
   space,
-  method,
+  skill,
   permissionId,
   setOpen,
   className,
 }: {
   space?: Space;
-  method?: Method;
+  skill?: Skill;
   permissionId?: string;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   className?: string;
@@ -44,8 +44,8 @@ const Member = ({
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
 
-  const model = space ? PermissionModel.Space : PermissionModel.Method;
-  const data = space ? space : method;
+  const model = space ? PermissionModel.Space : PermissionModel.Skill;
+  const data = space ? space : skill;
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: [model + "s", data?.id, "permissions"],

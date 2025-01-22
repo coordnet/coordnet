@@ -12,7 +12,7 @@ import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import ProfileMethodCard from "./ProfileMethodCard";
+import ProfileSkillCard from "./ProfileSkillCard";
 
 const searchCards = (data: ProfileCardType[], searchString: string): ProfileCardType[] => {
   // Trim the search string and convert to lowercase for case-insensitive search
@@ -120,7 +120,7 @@ const ProfileCardFind = ({
                     <Plus className="mr-1 size-4" />
                     Add
                   </Button>
-                  <ProfileMethodCard card={card} />
+                  <ProfileSkillCard card={card} />
                 </div>
               ))}
             </div>

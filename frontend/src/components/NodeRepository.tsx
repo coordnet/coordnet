@@ -17,9 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFocus, useNodesContext, useQuickView } from "@/hooks";
-import { GraphNode, NodeSearchResult } from "@/types";
+import { CanvasNode, NodeSearchResult } from "@/types";
 
-import { addNodeToGraph } from "./Graph/utils";
+import { addNodeToCanvas } from "./Canvas/utils";
 import { Button } from "./ui/button";
 
 type NodeProps = { className?: string };
@@ -63,15 +63,15 @@ const NodeRepository = ({ className }: NodeProps) => {
   }, [handleKeyPress]);
 
   const addNode = (node: NodeSearchResult) => {
-    if (focus === "graph") {
+    if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
       const flowPosition = reactFlowInstance.screenToFlowPosition({ x: 100, y: 100 });
       if (!flowPosition) alert("Failed to add node");
       const id = node.id;
-      const newNode: GraphNode = {
+      const newNode: CanvasNode = {
         id,
-        type: "GraphNode",
+        type: "CanvasNode",
         position: flowPosition,
         style: { width: 200, height: 80 },
         data: {},
@@ -85,10 +85,10 @@ const NodeRepository = ({ className }: NodeProps) => {
   };
 
   const addNewNode = (text: string) => {
-    if (focus === "graph") {
+    if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap || !spaceNodesMap) return alert("nodesMap not found");
-      addNodeToGraph(nodesMap, spaceNodesMap, text, { x: 100, y: 100 });
+      addNodeToCanvas(nodesMap, spaceNodesMap, text, { x: 100, y: 100 });
     }
   };
 

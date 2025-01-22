@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { ReactFlowInstance } from "reactflow";
 import * as Y from "yjs";
 
-import { GraphNode } from "@/types";
+import { CanvasNode } from "@/types";
 
 import { FocusContext } from "./context";
 
@@ -13,9 +13,9 @@ import { FocusContext } from "./context";
 export const FocusProvider = ({ children }: { children: React.ReactNode }) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<any, any>>();
-  const [nodesMap, setNodesMap] = useState<Y.Map<GraphNode>>();
-  const [nodes, setNodes] = useState<GraphNode[]>([]);
-  const [focus, setFocus] = useState<"graph" | "editor">("graph");
+  const [nodesMap, setNodesMap] = useState<Y.Map<CanvasNode>>();
+  const [nodes, setNodes] = useState<CanvasNode[]>([]);
+  const [focus, setFocus] = useState<"canvas" | "editor">("canvas");
   const [nodeRepositoryVisible, setNodeRepositoryVisible] = useState<boolean>(false);
   const [editor, setEditor] = useState<Editor>();
 

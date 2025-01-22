@@ -15,7 +15,7 @@ import { NodesContext } from "./context";
  * Provider for sharing space between components
  */
 export const NodesContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const { spaceId, methodId } = useParams();
+  const { spaceId, skillId } = useParams();
   const queryClient = useQueryClient();
 
   const {
@@ -25,7 +25,7 @@ export const NodesContextProvider = ({ children }: { children: React.ReactNode }
 
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useSessionStorageState<string[]>(
-    `coordnet:breadcrumbs-${spaceId ?? methodId}`,
+    `coordnet:breadcrumbs-${spaceId ?? skillId}`,
     { defaultValue: [] }
   );
 

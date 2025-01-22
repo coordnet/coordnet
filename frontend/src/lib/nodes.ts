@@ -7,9 +7,9 @@ import { prosemirrorJSONToYXmlFragment, yXmlFragmentToProsemirrorJSON } from "y-
 import * as Y from "yjs";
 
 import { getNode } from "@/api";
-import { createConnectedGraph } from "@/components/Graph/utils";
+import { createConnectedCanvas } from "@/components/Canvas/utils";
 import { extensions } from "@/lib/readOnlyEditor";
-import { ExportNode, GraphNode, SpaceNode } from "@/types";
+import { CanvasNode, ExportNode, SpaceNode } from "@/types";
 
 import { getCanvas } from "./canvases";
 import { proseMirrorJSONToText } from "./proseMirror";
@@ -59,7 +59,7 @@ export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
   }
 };
 
-export const getMethodNodePageContent = <T extends "plain" | "json" = "plain">(
+export const getSkillNodePageContent = <T extends "plain" | "json" = "plain">(
   id: string,
   document: Y.Doc,
   format: T = "plain" as T
@@ -118,7 +118,10 @@ export const cleanNodeTitle = (title: string | undefined) => {
   });
 };
 
-export const getNodeExport = async (node: GraphNode, spaceNode: SpaceNode): Promise<ExportNode> => {
+export const getNodeExport = async (
+  node: CanvasNode,
+  spaceNode: SpaceNode
+): Promise<ExportNode> => {
   const exportNode: ExportNode = {
     id: node.id,
     width: node.width,
@@ -149,7 +152,7 @@ export const slugifyNodeTitle = (title: string): string => {
 
 export const exportNode = async (
   id: string,
-  nodesMap: Y.Map<GraphNode> | undefined,
+  nodesMap: Y.Map<CanvasNode> | undefined,
   spaceMap: Y.Map<SpaceNode> | undefined,
   includeSubNodes = false
 ): Promise<ExportNode | null> => {
@@ -175,10 +178,10 @@ export const exportNode = async (
   return mainExportNode;
 };
 
-export const importNodeCanvas = async (spaceId: string, graphId: string, node: ExportNode) => {
-  const { disconnect, nodesMap, edgesMap, spaceMap } = await createConnectedGraph(
+export const importNodeCanvas = async (spaceId: string, canvasId: string, node: ExportNode) => {
+  const { disconnect, nodesMap, edgesMap, spaceMap } = await createConnectedCanvas(
     spaceId!,
-    graphId
+    canvasId
   );
 
   const idMap: { [k: string]: string } = {};
@@ -187,7 +190,7 @@ export const importNodeCanvas = async (spaceId: string, graphId: string, node: E
     idMap[node.id] = id;
     nodesMap.set(id, {
       id,
-      type: "GraphNode",
+      type: "CanvasNode",
       position: node.position,
       style: { width: node.width ? node.width : 200, height: node.height ? node.height : 80 },
       data: node.data ? node.data : {},

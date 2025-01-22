@@ -20,7 +20,7 @@ import useUser from "@/hooks/useUser";
 import { readOnlyEditor } from "@/lib/readOnlyEditor";
 import { LLMTokenCount } from "@/types";
 
-import { addNodeToGraph } from "../Graph/utils";
+import { addNodeToCanvas } from "../Canvas/utils";
 import { Button } from "../ui/button";
 import Buddies from "./Buddies";
 import Depth from "./Depth";
@@ -160,12 +160,12 @@ const LLM = ({ id }: { id: string }) => {
   };
 
   const addNode = () => {
-    if (focus === "graph") {
+    if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
       if (!spaceNodesMap) return alert("spaceNodesMap not found");
       const position = reactFlowInstance.screenToFlowPosition({ x: 200, y: 100 });
-      addNodeToGraph(nodesMap, spaceNodesMap, "New node", position, response);
+      addNodeToCanvas(nodesMap, spaceNodesMap, "New node", position, response);
     } else if (focus === "editor") {
       editor?.commands.insertContent(response);
     } else {
@@ -241,7 +241,7 @@ const LLM = ({ id }: { id: string }) => {
               </Button>
             ) : !isGuest ? (
               <Button variant="outline" onClick={() => addNode()}>
-                <Plus className="mr-1 size-4" /> Add to {focus === "graph" ? "Graph" : "Editor"}
+                <Plus className="mr-1 size-4" /> Add to {focus === "canvas" ? "Canvas" : "Editor"}
               </Button>
             ) : (
               <></>

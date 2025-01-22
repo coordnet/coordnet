@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { getPermissions } from "@/api";
 import useUser from "@/hooks/useUser";
-import { Method, PermissionModel, Space } from "@/types";
+import { PermissionModel, Skill, Space } from "@/types";
 
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
@@ -14,12 +14,12 @@ import Member from "./Member";
 
 const List = ({
   space,
-  method,
+  skill,
   readOnly = false,
   className,
 }: {
   space?: Space;
-  method?: Method;
+  skill?: Skill;
   readOnly?: boolean;
   className?: string;
 }) => {
@@ -27,8 +27,8 @@ const List = ({
   const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
   const { user, isLoading: userLoading } = useUser();
 
-  const model = space ? PermissionModel.Space : PermissionModel.Method;
-  const data = space ? space : method;
+  const model = space ? PermissionModel.Space : PermissionModel.Skill;
+  const data = space ? space : skill;
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: [model + "s", data?.id, "permissions"],
@@ -90,7 +90,7 @@ const List = ({
           {selectedPermission && (
             <Member
               space={space}
-              method={method}
+              skill={skill}
               permissionId={selectedPermission}
               setOpen={setMemberOpen}
             />

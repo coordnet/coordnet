@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 
 import { getNode } from "@/api";
-import { BackendEntityType, GraphEdge, GraphNode } from "@/types";
+import { BackendEntityType, CanvasEdge, CanvasNode } from "@/types";
 
 import useYDoc from "../useYDoc";
 import { CanvasContext } from "./context";
@@ -13,14 +13,14 @@ import { CanvasContext } from "./context";
 export function CanvasProvider({
   nodeId,
   spaceId,
-  methodId,
-  methodNodeId,
+  skillId,
+  skillNodeId,
   children,
 }: {
   nodeId?: string;
   spaceId?: string;
-  methodId?: string;
-  methodNodeId?: string;
+  skillId?: string;
+  skillNodeId?: string;
   children: React.ReactNode;
 }) {
   const {
@@ -38,13 +38,13 @@ export function CanvasProvider({
     refetchInterval: 5000,
   });
 
-  const nodesKey = methodId ? `${methodNodeId ? methodNodeId : methodId}-canvas-nodes` : "nodes";
-  const edgesKey = methodId ? `${methodNodeId ? methodNodeId : methodId}-canvas-edges` : "edges";
-  const nodesMap = YDoc?.getMap<GraphNode>(nodesKey);
-  const edgesMap = YDoc?.getMap<GraphEdge>(edgesKey);
+  const nodesKey = skillId ? `${skillNodeId ? skillNodeId : skillId}-canvas-nodes` : "nodes";
+  const edgesKey = skillId ? `${skillNodeId ? skillNodeId : skillId}-canvas-edges` : "edges";
+  const nodesMap = YDoc?.getMap<CanvasNode>(nodesKey);
+  const edgesMap = YDoc?.getMap<CanvasEdge>(edgesKey);
 
-  const [nodes, setNodes] = useState<GraphNode[]>([]);
-  const [edges, setEdges] = useState<GraphEdge[]>([]);
+  const [nodes, setNodes] = useState<CanvasNode[]>([]);
+  const [edges, setEdges] = useState<CanvasEdge[]>([]);
 
   useEffect(() => {
     if (!nodesMap) return;
@@ -79,25 +79,25 @@ export function CanvasProvider({
   const nodeFeatures = (id: string) => {
     if (parent.type === BackendEntityType.SPACE) {
       const backendNode = node?.subnodes.find((node) => node.id === id);
-      const hasGraph = backendNode?.has_subnodes ?? false;
+      const hasCanvas = backendNode?.has_subnodes ?? false;
       const hasPage = Boolean(backendNode?.text_token_count);
       const tokens = (backendNode?.text_token_count ?? 0) + (backendNode?.title_token_count ?? 0);
-      return { hasGraph, hasPage, tokens };
+      return { hasCanvas, hasPage, tokens };
     }
-    if (parent.type === BackendEntityType.METHOD) {
-      const nodesMap = YDoc?.getMap<GraphNode>(`${id}-canvas-nodes`);
+    if (parent.type === BackendEntityType.SKILL) {
+      const nodesMap = YDoc?.getMap<CanvasNode>(`${id}-canvas-nodes`);
       const nodeDocument = YDoc?.getXmlFragment(`${id}-document`);
       return {
-        hasGraph: Boolean(nodesMap?.size),
+        hasCanvas: Boolean(nodesMap?.size),
         hasPage: Boolean(nodeDocument?.length),
         tokens: 0,
       };
     }
-    return { hasGraph: false, hasPage: false, tokens: 0 };
+    return { hasCanvas: false, hasPage: false, tokens: 0 };
   };
 
   const value = {
-    id: nodeId ?? methodNodeId ?? methodId,
+    id: nodeId ?? skillNodeId ?? skillId,
     parent,
     YDoc,
     nodesMap,

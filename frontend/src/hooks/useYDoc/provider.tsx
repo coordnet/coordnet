@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 import * as Y from "yjs";
 
-import { addMethodRunToYdoc, loadDisconnectedDoc } from "@/components/Methods/utils";
+import { addSkillRunToYdoc, loadDisconnectedDoc } from "@/components/Skills/utils";
 import { BackendEntityType } from "@/types";
 
 import useBackendParent from "../useBackendParent";
@@ -30,25 +30,25 @@ export type YDocProviderReturn = {
  * Provider for sharing Y.Docs between components
  */
 export function YDocProvider({ children }: { children: React.ReactNode }) {
-  const { spaceId, methodId, runId, pageId } = useParams();
+  const { spaceId, skillId, runId, pageId } = useParams();
   const { token } = useUser();
   const [nodePage] = useQueryParam<string>("nodePage");
   const parent = useBackendParent();
 
   /*
-  Methods:
+  Skills:
     Load one document, either
-      - Method edit view (Connected Y.Doc)
-      - Method new run view (Disconnected Y.Doc)
-      - Method run view (Run JSON loaded into Y.Doc)
+      - Skill edit view (Connected Y.Doc)
+      - Skill new run view (Disconnected Y.Doc)
+      - Skill run view (Run JSON loaded into Y.Doc)
   Spaces:
     Load three documents
       - Space doc
-      - Graph doc
+      - Canvas doc
       - Editor doc
   */
 
-  const isMethod = !!methodId;
+  const isSkill = !!skillId;
   const isSpace = !!spaceId;
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
 
@@ -57,41 +57,41 @@ export function YDocProvider({ children }: { children: React.ReactNode }) {
   const space = useConnectedDocument();
   const editor = useConnectedDocument();
   const canvas = useConnectedDocument();
-  const method = useConnectedDocument();
+  const skill = useConnectedDocument();
 
   const loadRun = async (runId: string) => {
-    const newDoc = new Y.Doc({ guid: `method-${methodId}-${runId}` });
+    const newDoc = new Y.Doc({ guid: `method-${skillId}-${runId}` });
     try {
       if (runId === "new") {
-        await loadDisconnectedDoc(`method-${methodId}`, token, newDoc);
+        await loadDisconnectedDoc(`method-${skillId}`, token, newDoc);
       } else {
-        await addMethodRunToYdoc(runId, newDoc);
+        await addSkillRunToYdoc(runId, newDoc);
       }
-      method.setYDoc(newDoc);
-      method.setSynced(true);
-      method.setConnected(true);
+      skill.setYDoc(newDoc);
+      skill.setSynced(true);
+      skill.setConnected(true);
     } catch (error) {
-      method.setError(error as Error);
+      skill.setError(error as Error);
     }
   };
 
-  // This is required to track whether a method run has been loaded before, it causes errors in
+  // This is required to track whether a skill run has been loaded before, it causes errors in
   // development due to StrictMode but is fine in production
   const lastRunId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!methodId) return;
-    console.log("Setting method doc");
+    if (!skillId) return;
+    console.log("Setting skill doc");
     if (!runId) {
       lastRunId.current = null;
-      method.create(`method-${methodId}`);
+      skill.create(`method-${skillId}`);
     } else {
       if (lastRunId.current === runId) return;
       lastRunId.current = runId;
       loadRun(runId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methodId, isMethod, runId]);
+  }, [skillId, isSkill, runId]);
 
   useEffect(() => {
     if (!spaceId) return;
@@ -113,9 +113,9 @@ export function YDocProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     parent,
-    space: isMethod ? method : space,
-    canvas: isMethod ? method : canvas,
-    editor: isMethod ? method : editor,
+    space: isSkill ? skill : space,
+    canvas: isSkill ? skill : canvas,
+    editor: isSkill ? skill : editor,
   };
 
   return <YDocContext.Provider value={value}>{children}</YDocContext.Provider>;

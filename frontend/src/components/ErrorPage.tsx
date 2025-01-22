@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useRouteError } from "react-router-dom";
 import { ErrorObject, serializeError } from "serialize-error";
 
@@ -77,6 +77,10 @@ export default function ErrorPage({
     errorCode = "ERR_NOT_FOUND";
   }
   const { title, subTitle, message } = errorCodes[errorCode] || errorCodes.default;
+
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
 
   return (
     <div

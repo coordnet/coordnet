@@ -1,16 +1,16 @@
 import { createContext } from "react";
 import * as Y from "yjs";
 
-import { BackendParent, GraphEdge, GraphNode } from "@/types";
+import { BackendParent, CanvasEdge, CanvasNode } from "@/types";
 
 export type CanvasContextType = {
   id: string | undefined;
   parent: BackendParent;
   YDoc: Y.Doc | undefined;
-  nodesMap: Y.Map<GraphNode> | undefined;
-  edgesMap: Y.Map<GraphEdge> | undefined;
-  nodes: GraphNode[];
-  edges: GraphEdge[];
+  nodesMap: Y.Map<CanvasNode> | undefined;
+  edgesMap: Y.Map<CanvasEdge> | undefined;
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
   nodesSelection: Set<string>;
   edgesSelection: Set<string>;
   setNodesSelection: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -18,7 +18,7 @@ export type CanvasContextType = {
   error: Error | undefined;
   connected: boolean;
   synced: boolean;
-  nodeFeatures: (id: string) => { hasGraph: boolean; hasPage: boolean; tokens: number };
+  nodeFeatures: (id: string) => { hasCanvas: boolean; hasPage: boolean; tokens: number };
 };
 
 /**

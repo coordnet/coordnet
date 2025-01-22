@@ -20,7 +20,7 @@ import VerifyEmail from "./auth/VerifyEmail";
 import { Profile } from "./components";
 import ErrorPage from "./components/ErrorPage";
 import Dashboard from "./Dashboard";
-import Method from "./Method";
+import Skill from "./Skill";
 import Space from "./Space";
 
 const queryClient = new QueryClient();
@@ -57,26 +57,26 @@ export const router = createBrowserRouter([
   },
   {
     // Edit view
-    path: "/methods/:methodId/:pageId?",
-    element: addProviders(<Method />),
+    path: "/skills/:skillId/:pageId?",
+    element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },
   {
-    // View a run from a method without a version (own method)
-    path: "/methods/:methodId/:pageId?/runs/:runId?",
-    element: addProviders(<Method />),
+    // View a run from a skill without a version (own skill)
+    path: "/skills/:skillId/:pageId?/runs/:runId?",
+    element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },
   {
-    // View a method version (not owner)
-    path: "/methods/:methodId/version/:versionId/:pageId?",
-    element: addProviders(<Method />),
+    // View a skill version (not owner)
+    path: "/skills/:skillId/version/:versionId/:pageId?",
+    element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },
   {
-    // View a method version run (not owner)
-    path: "/methods/:methodId/version/:versionId/:pageId?/runs/:runId?",
-    element: addProviders(<Method />),
+    // View a skill version run (not owner)
+    path: "/skills/:skillId/version/:versionId/:pageId?/runs/:runId?",
+    element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },
   {

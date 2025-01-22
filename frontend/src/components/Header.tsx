@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronsRight } from "lucide-react";
+import { ChevronsRight, Home } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -9,8 +9,8 @@ import useUser from "@/hooks/useUser";
 import { cleanNodeTitle } from "@/lib/nodes";
 import { BackendEntityType } from "@/types";
 
-import { formatMethodRunId } from "./Methods/utils";
 import ProfileDropdownButton from "./Profiles/ProfileDropdownButton";
+import { formatSkillRunId } from "./Skills/utils";
 import SpaceSidebar from "./Spaces/Sidebar";
 import { Button } from "./ui/button";
 
@@ -20,13 +20,22 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   const parentSpace = parent.type === BackendEntityType.SPACE ? parent.data : undefined;
-  const parentMethod = parent.type === BackendEntityType.METHOD ? parent.data : undefined;
+  const parentSkill = parent.type === BackendEntityType.SKILL ? parent.data : undefined;
 
-  const title = (parentSpace || parentMethod)?.title ?? "Untitled";
+  const title = (parentSpace || parentSkill)?.title ?? "Untitled";
 
   return (
     <>
       <div className={clsx("flex h-6 items-center gap-2 px-3 text-sm", className)}>
+        <div className="max-w-[220px] truncate">
+          <Link
+            to="/"
+            className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
+          >
+            <Home className="size-3" />
+          </Link>
+        </div>
+        <div className="">&raquo;</div>
         <div className="max-w-[220px] truncate">
           <Link
             to={`/${parent.type}s/${parent?.data?.id}`}
@@ -42,7 +51,7 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
           const runId = id.split("run-")[1];
 
           const title = isRun
-            ? `Run ${formatMethodRunId(runId)}`
+            ? `Run ${formatSkillRunId(runId)}`
             : cleanNodeTitle(nodes.find((n) => n.id === id)?.title);
 
           const link = `/${parent.type}s/${parent?.data?.id}/${isRun ? `runs/${runId}` : id}`;
@@ -66,7 +75,7 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
         })}
         {breadcrumbs[breadcrumbs.length - 1] !== id &&
           ((parent.type === BackendEntityType.SPACE && id != parent?.data?.default_node) ||
-            (parent.type === BackendEntityType.METHOD && id != parent?.data?.id)) && (
+            (parent.type === BackendEntityType.SKILL && id != parent?.data?.id)) && (
             <div className="flex items-center gap-2">
               <div className="">&raquo;</div>
               <div className="max-w-[220px] truncate">

@@ -11,10 +11,6 @@ import {
   Buddy,
   LLMTokenCount,
   Me,
-  Method,
-  MethodRun,
-  MethodUpdateForm,
-  MethodVersion,
   NodeSearchResult,
   NodeVersion,
   PaginatedApiResponse,
@@ -25,6 +21,11 @@ import {
   ProfileCardForm,
   ProfileForm,
   SemanticScholarPaper,
+  Skill,
+  SkillJson,
+  SkillRun,
+  SkillUpdateForm,
+  SkillVersion,
   Space,
 } from "./types";
 
@@ -128,7 +129,7 @@ export const getPermissions = async (
     const response = await api.get(`api/nodes/spaces/${id}/permissions/`, { signal });
     return response.data;
   }
-  if (type == PermissionModel.Method) {
+  if (type == PermissionModel.Skill) {
     const response = await api.get(`api/nodes/methods/${id}/permissions/`, { signal });
     return response.data;
   }
@@ -144,7 +145,7 @@ export const createPermission = async (
     const response = await api.post(`api/nodes/spaces/${id}/permissions/`, data);
     return response.data;
   }
-  if (type == PermissionModel.Method) {
+  if (type == PermissionModel.Skill) {
     const response = await api.post(`api/nodes/methods/${id}/permissions/`, data);
     return response.data;
   }
@@ -160,7 +161,7 @@ export const deletePermission = async (
     const response = await api.delete(`api/nodes/spaces/${modelId}/permissions/${id}/`);
     return response.data;
   }
-  if (type == PermissionModel.Method) {
+  if (type == PermissionModel.Skill) {
     const response = await api.delete(`api/nodes/methods/${modelId}/permissions/${id}/`);
     return response.data;
   }
@@ -486,29 +487,29 @@ export const updateProfileCardImage = async (
   return response.data;
 };
 
-export const getMethods = async (
+export const getSkills = async (
   signal: AbortSignal | undefined
-): Promise<PaginatedApiResponse<Method>> => {
+): Promise<PaginatedApiResponse<Skill>> => {
   const response = await api.get(`api/nodes/methods/`, { signal });
   return response.data;
 };
 
-export const getMethod = async (signal: AbortSignal | undefined, id?: string): Promise<Method> => {
+export const getSkill = async (signal: AbortSignal | undefined, id?: string): Promise<Skill> => {
   const response = await api.get(`api/nodes/methods/${id}/?show_permissions=1`, { signal });
   return response.data;
 };
 
-export const createMethod = async (data: Partial<Method>): Promise<Method> => {
+export const createSkill = async (data: Partial<Skill>): Promise<Skill> => {
   const response = await api.post("api/nodes/methods/", data);
   return response.data;
 };
 
-export const updateMethod = async (id: string, data: MethodUpdateForm): Promise<Method> => {
+export const updateSkill = async (id: string, data: SkillUpdateForm): Promise<Skill> => {
   const response = await api.patch(`api/nodes/methods/${id}/`, data);
   return response.data;
 };
 
-export const updateMethodImage = async (id: string, banner: string | null): Promise<Profile> => {
+export const updateSkillImage = async (id: string, banner: string | null): Promise<Profile> => {
   const formData = new FormData();
   if (banner) {
     formData.append("image", dataURItoBlob(banner));
@@ -520,10 +521,10 @@ export const updateMethodImage = async (id: string, banner: string | null): Prom
   return response.data;
 };
 
-export const getMethodRuns = async (
+export const getSkillRuns = async (
   signal: AbortSignal | undefined,
   id?: string
-): Promise<PaginatedApiResponse<MethodRun>> => {
+): Promise<PaginatedApiResponse<SkillRun>> => {
   const response = await api.get("api/nodes/method-runs/", {
     signal,
     params: { method: id, limit: 10000 },
@@ -531,20 +532,28 @@ export const getMethodRuns = async (
   return response.data;
 };
 
-export const createMethodRun = async (data: Partial<MethodRun>): Promise<MethodRun> => {
-  const response = await api.post("api/nodes/method-runs/", data);
+export const createSkillRun = async (data: {
+  skill: string;
+  json: SkillJson;
+  isDev: boolean;
+}): Promise<SkillRun> => {
+  const response = await api.post("api/nodes/method-runs/", {
+    method: data.skill,
+    method_data: data.json,
+    is_dev_run: data.isDev,
+  });
   return response.data;
 };
 
-export const getMethodRun = async (id?: string): Promise<MethodRun> => {
-  const response = await api.get(`api/nodes/method-runs/${id}`);
+export const getSkillRun = async (id?: string): Promise<SkillRun> => {
+  const response = await api.get(`api/nodes/method-runs/${id}/`);
   return response.data;
 };
 
-export const getMethodVersions = async (
+export const getSkillVersions = async (
   signal: AbortSignal | undefined,
   id?: string
-): Promise<PaginatedApiResponse<MethodVersion>> => {
+): Promise<PaginatedApiResponse<SkillVersion>> => {
   const response = await api.get("api/nodes/method-versions/", {
     signal,
     params: { method: id, limit: 10000 },
@@ -552,12 +561,9 @@ export const getMethodVersions = async (
   return response.data;
 };
 
-export const createMethodVersion = async (
-  method: string,
-  data: { [key: string]: unknown }
-): Promise<MethodVersion> => {
+export const createSkillVersion = async (skill: string, data: SkillJson): Promise<SkillVersion> => {
   const response = await api.post("api/nodes/method-versions/", {
-    method,
+    method: skill,
     method_data: data,
   });
   return response.data;

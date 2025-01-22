@@ -1,32 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
-import { getMethod, getSpace } from "@/api";
+import { getSkill, getSpace } from "@/api";
 import { BackendEntityType, BackendParent } from "@/types";
 
 /**
- * Custom hook to fetch data for either a node, method, or space from the backend.
+ * Custom hook to fetch data for either a node, skill, or space from the backend.
  *
- * @throws {Error} Throws an error if all nodeId, methodId, and spaceId are undefined.
+ * @throws {Error} Throws an error if all nodeId, skillId, and spaceId are undefined.
  * @returns {BackendParent} An object containing:
- * - id: The ID of the fetched entity (node, method, or space).
- * - type: The type of the fetched entity (BackendEntityType.NODE, BackendEntityType.METHOD, or BackendEntityType.SPACE).
+ * - id: The ID of the fetched entity (node, skill, or space).
+ * - type: The type of the fetched entity (BackendEntityType.NODE, BackendEntityType.SKILL, or BackendEntityType.SPACE).
  * - data: The fetched data.
  * - isLoading: A boolean indicating if the data is still being loaded.
  */
 const useBackendParent = (): BackendParent => {
-  const { spaceId, methodId } = useParams();
-  const isMethod = Boolean(methodId);
+  const { spaceId, skillId } = useParams();
+  const isSkill = Boolean(skillId);
   const isSpace = Boolean(spaceId);
 
   const {
-    data: method,
-    error: methodError,
-    isLoading: methodLoading,
+    data: skill,
+    error: skillError,
+    isLoading: skillLoading,
   } = useQuery({
-    queryKey: ["methods", methodId],
-    queryFn: ({ signal }: { signal: AbortSignal }) => getMethod(signal, methodId!),
-    enabled: isMethod,
+    queryKey: ["skills", skillId],
+    queryFn: ({ signal }: { signal: AbortSignal }) => getSkill(signal, skillId!),
+    enabled: isSkill,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -43,13 +43,13 @@ const useBackendParent = (): BackendParent => {
     refetchOnWindowFocus: false,
   });
 
-  if (isMethod) {
+  if (isSkill) {
     return {
-      id: methodId!,
-      type: BackendEntityType.METHOD,
-      data: method,
-      error: methodError,
-      isLoading: methodLoading,
+      id: skillId!,
+      type: BackendEntityType.SKILL,
+      data: skill,
+      error: skillError,
+      isLoading: skillLoading,
     };
   } else {
     return {

@@ -27,8 +27,8 @@ import EditProfile from "./EditProfile";
 import ProfileCardFind from "./ProfileCardFind";
 import ProfileCardManage from "./ProfileCardManage";
 import ProfileLink from "./ProfileLink";
-import ProfileMethodCard from "./ProfileMethodCard";
-import ProfileMethodCardExpanded from "./ProfileMethodCardExpanded";
+import ProfileSkillCard from "./ProfileSkillCard";
+import ProfileSkillCardExpanded from "./ProfileSkillCardExpanded";
 import { getProfileBannerImage, getProfileImage } from "./utils";
 
 const Profile = ({ className }: { className?: string }) => {
@@ -178,7 +178,7 @@ const Profile = ({ className }: { className?: string }) => {
                 <>
                   <span>&middot;</span>
                   <span>
-                    {profile?.cards.length} method{(profile?.cards.length ?? 0) > 1 ? "s" : ""}
+                    {profile?.cards.length} skill{(profile?.cards.length ?? 0) > 1 ? "s" : ""}
                   </span>
                 </>
               )}
@@ -254,7 +254,7 @@ const Profile = ({ className }: { className?: string }) => {
                     className="flex items-center text-sm font-bold leading-tight text-neutral-600"
                   >
                     <Orbit className="m-2 mr-4 size-4 text-neutral-500" />
-                    Methods
+                    Skills
                   </div>
                   {isOwner && (
                     <DropdownMenu>
@@ -289,9 +289,9 @@ const Profile = ({ className }: { className?: string }) => {
                     .map((card, i) => (
                       <Dialog key={`profile-card-${card.id}-${i}`}>
                         <DialogTrigger className="text-left">
-                          <ProfileMethodCard className="cursor-pointer" card={card} />
+                          <ProfileSkillCard className="cursor-pointer" card={card} />
                         </DialogTrigger>
-                        {profile && <ProfileMethodCardExpanded profile={profile} card={card} />}
+                        {profile && <ProfileSkillCardExpanded profile={profile} card={card} />}
                       </Dialog>
                     ))}
                   {Boolean(isOwner && profile?.cards.length === 0) && (
@@ -302,7 +302,7 @@ const Profile = ({ className }: { className?: string }) => {
                         onClick={() => setProfileCardManageOpen(true)}
                       >
                         <Button className="w-fit bg-violet-700 hover:bg-violet-800">
-                          <Plus className="mr-1 size-4" /> Create Method
+                          <Plus className="mr-1 size-4" /> Create Skill
                         </Button>
                       </div>
                       <div className="h-48 rounded-lg border border-dashed border-neutral-300"></div>

@@ -14,9 +14,9 @@ export const getDocumentType = (name: string) => {
   if (name.startsWith("space-")) {
     return "SPACE";
   } else if (name.startsWith("method-")) {
-    return "METHOD";
+    return "SKILL";
   } else if (name.startsWith("node-graph-")) {
-    return "GRAPH";
+    return "CANVAS";
   } else if (name.startsWith("node-editor-")) {
     return "EDITOR";
   }

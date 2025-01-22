@@ -13,7 +13,7 @@ import { CanvasProvider, useCanvas, useNodesContext } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { BackendEntityType } from "@/types";
 
-import { Graph, Loader } from "./";
+import { Canvas, Loader } from "./";
 import ErrorPage from "./ErrorPage";
 import { getProfileImage } from "./Profiles/utils";
 import { Button } from "./ui/button";
@@ -95,7 +95,7 @@ const Node = ({ id, className }: NodeProps) => {
           </Dialog>
         )} */}
       </div>
-      <Graph />
+      <Canvas />
     </div>
   );
 };
