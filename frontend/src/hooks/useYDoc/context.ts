@@ -1,11 +1,12 @@
 import { createContext } from "react";
 
-import { BackendParent } from "@/types";
+import { BackendParent, YDocScope } from "@/types";
 
 import { YDocProviderReturn } from "./provider";
 
 export type YDocContextType = {
   parent: BackendParent;
+  scope: YDocScope;
   space: YDocProviderReturn;
   canvas: YDocProviderReturn;
   editor: YDocProviderReturn;

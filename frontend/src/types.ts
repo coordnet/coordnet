@@ -405,3 +405,9 @@ export const SkillVersionSchema = SkillSchema.pick({
   version: z.number(),
 });
 export type SkillVersion = z.infer<typeof SkillVersionSchema>;
+
+// Using the same scopes as HocusPocus here for simplicity
+export enum YDocScope {
+  READ_ONLY = "readonly",
+  READ_WRITE = "read-write",
+}

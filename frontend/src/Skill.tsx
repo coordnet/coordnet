@@ -18,7 +18,7 @@ const Skill = () => {
   const nodeId = pageId ?? skill?.id ?? "";
 
   // TODO: If the user can't edit then redirect them to the latest version
-  // const canEdit = Boolean(skill?.allowed_actions.includes("write"));
+  // const canEdit = scope == YDocScope.READ_WRITE;
   // console.log("yo the user", canEdit, "can edit");
 
   useEffect(() => {

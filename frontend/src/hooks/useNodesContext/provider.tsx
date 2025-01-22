@@ -87,7 +87,6 @@ export const NodesContextProvider = ({ children }: { children: React.ReactNode }
     provider,
     breadcrumbs,
     setBreadcrumbs,
-    scope: provider ? provider?.authorizedScope : "readonly",
   };
 
   return <NodesContext.Provider value={value}>{children}</NodesContext.Provider>;

@@ -80,20 +80,6 @@ const Node = ({ id, className }: NodeProps) => {
           <FileText strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="show-editor">Node Page</Tooltip>
-
-        {/* {node?.allowed_actions.includes("manage") && (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="h-9 p-0 px-3">
-                <Globe className="size-4 mr-2" />
-                {node?.is_public ? "Public" : "Private"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="p-0 w-[400px]">
-              <NodePermissions />
-            </DialogContent>
-          </Dialog>
-        )} */}
       </div>
       <Canvas />
     </div>

@@ -71,7 +71,7 @@ const NodeRepository = ({ className }: NodeProps) => {
       const id = node.id;
       const newNode: CanvasNode = {
         id,
-        type: "CanvasNode",
+        type: "GraphNode",
         position: flowPosition,
         style: { width: 200, height: 80 },
         data: {},

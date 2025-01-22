@@ -16,8 +16,8 @@ import {
   OnNodesChange,
 } from "reactflow";
 
-import { useCanvas } from "@/hooks";
-import { CanvasEdge } from "@/types";
+import { useCanvas, useYDoc } from "@/hooks";
+import { CanvasEdge, YDocScope } from "@/types";
 
 const isNodeAddChange = (change: NodeChange): change is NodeAddChange => change.type === "add";
 const isNodeResetChange = (change: NodeChange): change is NodeResetChange =>
@@ -30,8 +30,8 @@ const isEdgeRemoveChange = (change: EdgeChange): change is EdgeRemoveChange =>
   change.type === "remove";
 
 function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
+  const { parent, scope } = useYDoc();
   const {
-    parent,
     nodesMap,
     edgesMap,
     nodesSelection,
@@ -60,13 +60,9 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
             } else {
               newSelection.delete(change.id);
             }
-          } else if (
-            node &&
-            change.type !== "remove" &&
-            parent.data?.allowed_actions?.includes("write")
-          ) {
+          } else if (node && change.type !== "remove" && scope == YDocScope.READ_WRITE) {
             nodesMap.set(change.id, node);
-          } else if (change.type === "remove" && parent.data?.allowed_actions?.includes("delete")) {
+          } else if (change.type === "remove" && scope == YDocScope.READ_WRITE) {
             const deletedNode = nodesMap.get(change.id);
             nodesMap.delete(change.id);
             // when a node is removed, we also need to remove the connected edges
@@ -83,7 +79,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
-      if (!parent.data?.allowed_actions?.includes("write")) return;
+      if (scope !== YDocScope.READ_WRITE) return;
       if (!edgesMap) return console.error("Edges map is not initialized");
       const currentEdges = Array.from(edgesMap.values()).filter((e) => e);
       const nextEdges = applyEdgeChanges(changes, currentEdges);

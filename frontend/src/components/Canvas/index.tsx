@@ -14,7 +14,8 @@ import ReactFlow, {
   XYPosition,
 } from "reactflow";
 
-import { useCanvas, useFocus, useNodesContext, useQuickView } from "@/hooks";
+import { useCanvas, useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
+import { YDocScope } from "@/types";
 
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
 import CanvasNodeComponent from "./CanvasNode";
@@ -36,7 +37,8 @@ const nodeTypes = { GraphNode: CanvasNodeComponent };
 
 const Canvas = ({ className }: { className?: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { parent, nodes, edges, nodesMap, setNodesSelection } = useCanvas();
+  const { parent, scope } = useYDoc();
+  const { nodes, edges, nodesMap, setNodesSelection } = useCanvas();
   const { nodesMap: spaceMap } = useNodesContext();
   const { isQuickViewOpen } = useQuickView();
   const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
@@ -66,7 +68,7 @@ const Canvas = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (!parent.data?.allowed_actions.includes("write")) return;
+    if (scope !== YDocScope.READ_WRITE) return;
     if (!wrapperRef.current) return alert("Could not find Canvas wrapperRef.");
     if (!nodesMap || !spaceMap) return alert("Space is not initialised");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
@@ -160,14 +162,14 @@ const Canvas = ({ className }: { className?: string }) => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
-          nodesConnectable={Boolean(parent.data?.allowed_actions.includes("write"))}
-          // nodesDraggable={!isSkillRun && Boolean(parent.data?.allowed_actions.includes("write"))}
+          nodesConnectable={scope == YDocScope.READ_WRITE}
+          // nodesDraggable={!isSkillRun && scope == YDocScope.READ_WRITE}
           minZoom={0.1}
           maxZoom={2}
         >
           <Controls />
           <SkillCanvasControls />
-          {parent.data?.allowed_actions.includes("write") && (
+          {scope == YDocScope.READ_WRITE && (
             <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
           )}
           <Background gap={12} size={1} />

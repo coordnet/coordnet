@@ -12,8 +12,8 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
-import { useCanvas, useQuickView } from "@/hooks";
-import { CanvasNode, NodeType, nodeTypeMap } from "@/types";
+import { useCanvas, useQuickView, useYDoc } from "@/hooks";
+import { CanvasNode, NodeType, nodeTypeMap, YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
 
@@ -28,11 +28,12 @@ const HoverMenu = ({
   onClickEdit: (e: React.MouseEvent) => void;
   className?: string;
 }) => {
-  const { nodesMap, parent, nodeFeatures } = useCanvas();
+  const { parent, scope } = useYDoc();
+  const { nodesMap, nodeFeatures } = useCanvas();
   const { showQuickView } = useQuickView();
   const navigate = useNavigate();
 
-  const canWrite = parent.data?.allowed_actions.includes("write");
+  const canWrite = scope == YDocScope.READ_WRITE;
   const { hasPage, hasCanvas } = nodeFeatures(id);
   const CanvasIcon = hasCanvas ? Share2 : GitBranchPlus;
 
@@ -55,7 +56,8 @@ const HoverMenu = ({
     if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, type } });
   };
 
-  // if (isSkillRun) return null;
+  // TODO: Should we disable this menu for read-only?
+  if (!canWrite) return null;
 
   return (
     <div

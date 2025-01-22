@@ -17,7 +17,6 @@ type NodesContextType = {
   provider: HocuspocusProvider | undefined;
   breadcrumbs: string[];
   setBreadcrumbs: React.Dispatch<React.SetStateAction<string[]>>;
-  scope: string | undefined;
 };
 
 /**

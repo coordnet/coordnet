@@ -6,14 +6,15 @@ import useLocalStorageState from "use-local-storage-state";
 
 import { getNodeVersions } from "@/api";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useCanvas } from "@/hooks";
-import { BackendEntityType } from "@/types";
+import { useCanvas, useYDoc } from "@/hooks";
+import { BackendEntityType, YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
 import Versions from "./Versions";
 
 const Controls = () => {
-  const { id, parent } = useCanvas();
+  const { id } = useCanvas();
+  const { parent, scope } = useYDoc();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
     defaultValue: true,
@@ -24,9 +25,7 @@ const Controls = () => {
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", "latest"],
     queryFn: ({ signal }) => getNodeVersions(signal, parent.id, "GRAPH", 0, 1),
-    enabled: Boolean(
-      parent?.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write")
-    ),
+    enabled: Boolean(parent?.type == BackendEntityType.SPACE && scope == YDocScope.READ_WRITE),
     initialData: { count: 0, next: "", previous: "", results: [] },
     refetchInterval: 1000 * 60,
     retry: false,
@@ -52,7 +51,7 @@ const Controls = () => {
           <Map className="size-5" />
         </Button>
       </Panel>
-      {parent.type == BackendEntityType.SPACE && parent.data?.allowed_actions.includes("write") && (
+      {parent.type == BackendEntityType.SPACE && scope == YDocScope.READ_WRITE && (
         <Panel position="bottom-left" className="!bottom-2 !left-2 !m-0 flex gap-1">
           <Dialog>
             <DialogTrigger asChild>

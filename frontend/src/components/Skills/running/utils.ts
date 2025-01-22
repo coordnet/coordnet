@@ -189,7 +189,7 @@ export const addToSkillCanvas = async (options: AddNodeOptions) => {
     const id = crypto.randomUUID();
     nodesMap.set(id, {
       id,
-      type: "CanvasNode",
+      type: "GraphNode",
       position: { x: nodePositions.minX + 210 * i, y: nodePositions.maxY + 120 },
       style: { width: 200, height: 80 },
       data: {},

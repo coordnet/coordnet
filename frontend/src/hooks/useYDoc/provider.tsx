@@ -5,7 +5,7 @@ import { useQueryParam } from "use-query-params";
 import * as Y from "yjs";
 
 import { addSkillRunToYdoc, loadDisconnectedDoc } from "@/components/Skills/utils";
-import { BackendEntityType } from "@/types";
+import { BackendEntityType, YDocScope } from "@/types";
 
 import useBackendParent from "../useBackendParent";
 import useConnectedDocument from "../useConnectedDocument";
@@ -35,24 +35,15 @@ export function YDocProvider({ children }: { children: React.ReactNode }) {
   const [nodePage] = useQueryParam<string>("nodePage");
   const parent = useBackendParent();
 
-  /*
-  Skills:
-    Load one document, either
-      - Skill edit view (Connected Y.Doc)
-      - Skill new run view (Disconnected Y.Doc)
-      - Skill run view (Run JSON loaded into Y.Doc)
-  Spaces:
-    Load three documents
-      - Space doc
-      - Canvas doc
-      - Editor doc
-  */
-
   const isSkill = !!skillId;
   const isSpace = !!spaceId;
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
-
   const nodeId = pageId ?? spaceModel?.default_node ?? "";
+  const scope: YDocScope = runId
+    ? YDocScope.READ_ONLY
+    : parent?.data?.allowed_actions.includes("write")
+      ? YDocScope.READ_WRITE
+      : YDocScope.READ_ONLY;
 
   const space = useConnectedDocument();
   const editor = useConnectedDocument();
@@ -113,6 +104,7 @@ export function YDocProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     parent,
+    scope,
     space: isSkill ? skill : space,
     canvas: isSkill ? skill : canvas,
     editor: isSkill ? skill : editor,

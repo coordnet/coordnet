@@ -190,7 +190,7 @@ export const importNodeCanvas = async (spaceId: string, canvasId: string, node: 
     idMap[node.id] = id;
     nodesMap.set(id, {
       id,
-      type: "CanvasNode",
+      type: "GraphNode",
       position: node.position,
       style: { width: node.width ? node.width : 200, height: node.height ? node.height : 80 },
       data: node.data ? node.data : {},

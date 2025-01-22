@@ -5,8 +5,8 @@ import { Tooltip } from "react-tooltip";
 import { useOnViewportChange, useReactFlow } from "reactflow";
 import * as Y from "yjs";
 
-import { useCanvas, useFocus } from "@/hooks";
-import { BackendEntityType, CanvasNode, SpaceNode } from "@/types";
+import { useFocus, useYDoc } from "@/hooks";
+import { BackendEntityType, CanvasNode, SpaceNode, YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
 import { addNodeToCanvas } from "./utils";
@@ -29,7 +29,7 @@ const Sidebar = ({
   className?: string;
   onLayoutNodes: () => Promise<void>;
 }) => {
-  const { parent } = useCanvas();
+  const { parent, scope } = useYDoc();
 
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
@@ -80,7 +80,7 @@ const Sidebar = ({
           draggable
           data-tooltip-id="add-node"
           data-tooltip-place="right"
-          disabled={!parent.data?.allowed_actions.includes("write")}
+          disabled={scope !== YDocScope.READ_WRITE}
         >
           <Plus strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
@@ -92,7 +92,7 @@ const Sidebar = ({
             onClick={() => setNodeRepositoryVisible(true)}
             data-tooltip-id="node-repository"
             data-tooltip-place="right"
-            disabled={!parent.data?.allowed_actions.includes("write")}
+            disabled={scope !== YDocScope.READ_WRITE}
           >
             <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
           </Button>
@@ -104,7 +104,7 @@ const Sidebar = ({
           onClick={() => onLayoutNodes()}
           data-tooltip-id="layout-nodes"
           data-tooltip-place="right"
-          disabled={!parent.data?.allowed_actions.includes("write")}
+          disabled={scope !== YDocScope.READ_WRITE}
         >
           <LayoutDashboard strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>

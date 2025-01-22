@@ -15,7 +15,7 @@ import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useFocus, useUser, useYDoc } from "@/hooks";
 import { rgbToHex } from "@/lib/utils";
-import { BackendEntityType } from "@/types";
+import { BackendEntityType, YDocScope } from "@/types";
 
 import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
@@ -31,6 +31,7 @@ const Editor = ({ id, className }: EditorProps) => {
   const { runId } = useParams();
   const {
     parent,
+    scope,
     editor: { error, synced, YDoc, provider },
   } = useYDoc();
   const { user, isGuest } = useUser();
@@ -57,9 +58,9 @@ const Editor = ({ id, className }: EditorProps) => {
       extensions: loadExtensions(provider, YDoc, field, parent.type == BackendEntityType.SKILL),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: Boolean(!runId && parent.data?.allowed_actions.includes("write")),
+      editable: Boolean(!runId && scope == YDocScope.READ_WRITE),
     },
-    [id, parent.data?.allowed_actions, synced]
+    [id, scope, synced]
   );
 
   useEffect(() => {

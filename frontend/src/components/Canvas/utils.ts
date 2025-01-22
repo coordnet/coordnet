@@ -149,7 +149,7 @@ export const addNodeToCanvas = async (
   const id = crypto.randomUUID();
   const newNode: CanvasNode = {
     id,
-    type: "CanvasNode",
+    type: "GraphNode",
     position,
     style: { width: 200, height: 80 },
     data: { syncing: content ? true : false, ...(data ? data : {}) },
@@ -218,7 +218,7 @@ export const addToCanvas = async (options: AddNodeOptions) => {
     const id = crypto.randomUUID();
     nodesMap.set(id, {
       id,
-      type: "CanvasNode",
+      type: "GraphNode",
       position: { x: nodePositions.minX + 210 * i, y: nodePositions.maxY + 120 },
       style: { width: 200, height: 80 },
       data: {},
