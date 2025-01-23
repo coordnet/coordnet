@@ -35,7 +35,7 @@ class NodeDetailSerializer(NodeListSerializer):
     class Meta(NodeListSerializer.Meta):
         fields = NodeListSerializer.Meta.fields + ["subnodes"]
 
-    def get_fields(self):
+    def get_fields(self) -> dict[str, serializers.Field]:
         fields = super().get_fields()
         if self.context.get("request") and self.context["request"].query_params.get(
             "show_permissions"
@@ -44,7 +44,12 @@ class NodeDetailSerializer(NodeListSerializer):
         return fields
 
     def get_allowed_actions(self, obj: AnnotatedNode) -> list[permissions.models.Action]:
-        return obj.space.get_allowed_actions_for_user(user=self.context["request"].user)
+        try:
+            if self.context.get("request") and self.context["request"].user and obj.space:
+                return obj.space.get_allowed_actions_for_user(user=self.context["request"].user)
+        except models.Space.DoesNotExist:
+            return []
+        return []
 
 
 class NodeSearchResultSerializer(utils.serializers.BaseSoftDeletableSerializer[models.Node]):

@@ -1,3 +1,4 @@
+import logging
 import typing
 import uuid
 
@@ -14,6 +15,11 @@ import utils.serializers
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
 
+    import users.models
+
+
+logger = logging.getLogger(__name__)
+
 
 @extend_schema_field(uuid.UUID)
 class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
@@ -26,7 +32,7 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
             & Q(space__is_removed=False, space__isnull=False)
         ).distinct()
 
-    def get_choices(self, cutoff=None):
+    def get_choices(self, cutoff: int | None = None) -> dict[str, str]:
         queryset = self.get_queryset()
         if queryset is None:
             # Ensure that field.choices returns something sensible
@@ -38,10 +44,11 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
 
         return {str(item.public_id): self.display_value(item) for item in queryset}
 
-    def to_representation(self, value):
+    def to_representation(self, value: "profiles.models.Profile") -> dict:  # type: ignore[override]
+        # This field accepts ids for writing, but returns the rendered profile for reading
         return ReducedProfileSerializer(value).data
 
-    def to_internal_value(self, data):
+    def to_internal_value(self, data: str) -> "profiles.models.Profile":
         user = self.context["request"].user
 
         try:
@@ -49,21 +56,23 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
         except ValueError as exc:
             raise serializers.ValidationError("Invalid UUID format") from exc
 
-        try:
-            return (
-                profiles.models.Profile.objects.filter(
-                    nodes.models.Space.get_user_has_permission_filter(
-                        action=permissions.models.READ, user=user, prefix="space"
-                    ),
-                    public_id=space_profile_id,
-                    space__isnull=False,
-                    space__is_removed=False,
-                )
-                .distinct()
-                .first()
+        space_profile = (
+            profiles.models.Profile.objects.filter(
+                nodes.models.Space.get_user_has_permission_filter(
+                    action=permissions.models.READ, user=user, prefix="space"
+                ),
+                public_id=space_profile_id,
+                space__isnull=False,
+                space__is_removed=False,
             )
-        except profiles.models.Profile.DoesNotExist as exc:
-            raise serializers.ValidationError("Space profile not found") from exc
+            .distinct()
+            .first()
+        )
+
+        if not space_profile:
+            raise serializers.ValidationError("Space profile not found")
+
+        return space_profile
 
 
 @extend_schema_field(uuid.UUID)
@@ -71,7 +80,7 @@ class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
         return profiles.models.Profile.objects.filter(draft=False, user__isnull=False)
 
-    def get_choices(self, cutoff=None):
+    def get_choices(self, cutoff: int | None = None) -> dict[str, str]:
         queryset = self.get_queryset()
         if queryset is None:
             # Ensure that field.choices returns something sensible
@@ -83,11 +92,11 @@ class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
 
         return {str(item.public_id): self.display_value(item) for item in queryset}
 
-    def to_representation(self, value):
+    def to_representation(self, value: "profiles.models.Profile") -> dict:  # type: ignore[override]
+        # This field accepts ids for writing, but returns the rendered profile for reading
         return ReducedProfileSerializer(value).data
 
-    def to_internal_value(self, data):
-        print(data)
+    def to_internal_value(self, data: str) -> "profiles.models.Profile":
         try:
             user_profile_id = uuid.UUID(data)
         except ValueError as exc:
@@ -103,7 +112,7 @@ class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
 
 @extend_schema_field(uuid.UUID)
 class AvailableUserField(utils.serializers.PublicIdRelatedField):
-    def get_queryset(self) -> "django_models.QuerySet[django_models.User]":
+    def get_queryset(self) -> "django_models.QuerySet[users.models.User]":
         user = self.context["request"].user
         filter_expression = Q(profile__draft=False)
         if user.is_authenticated:
@@ -126,9 +135,11 @@ class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.Pro
         exclude = (utils.serializers.BaseSerializer.Meta.exclude or []) + ["image_original"]
         read_only_fields = ["image", "image_2x", "image_thumbnail", "image_thumbnail_2x"]
 
-    def create(self, validated_data):
-        request = self.context.get("request")
-        validated_data["created_by"] = request.user
+    def create(self, validated_data: dict[str, typing.Any]) -> "profiles.models.ProfileCard":
+        if (request := self.context.get("request")) is not None:
+            validated_data["created_by"] = request.user
+        else:
+            logger.warning("Request not found in context, not setting created_by")
         return super().create(validated_data)
 
 
@@ -155,10 +166,13 @@ class ReducedProfileSerializer(utils.serializers.BaseSerializer[profiles.models.
 
 
 class MembersField(serializers.ListField):
-    def to_representation(self, value):
+    def to_representation(self, value: "list[profiles.models.Profile]") -> dict:  # type: ignore[override]
+        # This field accepts ids for writing, but returns the rendered profile for reading
         return ReducedProfileSerializer(value, many=True, read_only=True).data
 
-    def to_internal_value(self, data):
+    def to_internal_value(  # type: ignore[override]
+        self, data: list[str]
+    ) -> "django_models.QuerySet[profiles.models.Profile]":
         if not isinstance(data, list):
             raise serializers.ValidationError("Expected a list of UUIDs")
         try:
@@ -175,10 +189,13 @@ class MembersField(serializers.ListField):
 
 
 class CardsField(serializers.ListField):
-    def to_representation(self, value):
+    def to_representation(self, value: "list[profiles.models.ProfileCard]") -> dict:  # type: ignore[override]
+        # This field accepts ids for writing, but returns the rendered profile for reading
         return ProfileCardSerializer(value, many=True, read_only=True).data
 
-    def to_internal_value(self, data):
+    def to_internal_value(  # type: ignore[override]
+        self, data: list[str]
+    ) -> "django_models.QuerySet[profiles.models.ProfileCard]":
         if not isinstance(data, list):
             raise serializers.ValidationError("Expected a list of UUIDs")
         try:
@@ -187,7 +204,11 @@ class CardsField(serializers.ListField):
             raise serializers.ValidationError("Invalid UUID format") from exc
 
         filter_expression = Q(draft=False)
-        if user := self.context.get("request").user:
+        if (
+            (request := self.context.get("request"))
+            and (user := request.user)
+            and user.is_authenticated
+        ):
             filter_expression |= Q(created_by=user) | Q(author_profile__user=user)
 
         cards = (
@@ -224,7 +245,9 @@ class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile
         ]
         read_only_fields = ["profile_image", "profile_image_2x", "banner_image", "banner_image_2x"]
 
-    def update(self, instance, validated_data):
+    def update(
+        self, instance: "profiles.models.Profile", validated_data: dict
+    ) -> "profiles.models.Profile":
         if (members := validated_data.pop("members", None)) is not None:
             instance.members.set(members)
         if (cards := validated_data.pop("cards", None)) is not None:

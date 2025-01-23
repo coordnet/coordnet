@@ -140,7 +140,7 @@ class NodesViewTestCase(BaseTransactionTestCase):
         response = self.viewer_client.get(reverse("nodes:nodes-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 404)
 
-    def test_requesting_node_permissions(self):
+    def test_requesting_node_permissions(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user, viewer=self.viewer_user)
         node = factories.NodeFactory.create(space=space)
 

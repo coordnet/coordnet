@@ -1,7 +1,7 @@
+import datetime
 import typing
 import uuid
 
-import django.contrib.auth
 import django.core.validators
 import imagekit.models
 import imagekit.processors
@@ -13,12 +13,12 @@ from django.utils.text import slugify
 import nodes.models
 import profiles.utils
 import utils.models
+import utils.typing
 from permissions.models import READ
 
 if typing.TYPE_CHECKING:
+    from django.db.models.base import ModelBase
     from rest_framework import request
-
-User = django.contrib.auth.get_user_model()
 
 
 # We have to explicitly create every function because Django migrations can't handle dynamic
@@ -123,14 +123,15 @@ class Profile(utils.models.BaseModel):
     )
 
     @property
-    def related_object_creation_date(self):
+    def related_object_creation_date(self) -> datetime.datetime | None:
         if self.user:
             return self.user.date_joined
         if self.space:
             return self.space.created_at
+        return None
 
     @staticmethod
-    def get_visible_cards_filter_expression(user: User) -> models.Q:
+    def get_visible_cards_filter_expression(user: "utils.typing.HttpRequestUser") -> models.Q:
         if not user or user == AnonymousUser():
             return models.Q(draft=False)
         return (
@@ -147,18 +148,23 @@ class Profile(utils.models.BaseModel):
     def get_visible_members_filter_expression() -> models.Q:
         return models.Q(draft=False)
 
-    def visible_cards(self, user: User = None) -> "models.QuerySet[ProfileCard]":
+    def visible_cards(
+        self, user: "utils.typing.HttpRequestUser | None" = None
+    ) -> "models.QuerySet[ProfileCard]":
         if not user or user == AnonymousUser():
             return self.cards.filter(draft=False)
         if self.user == user or (self.space and self.space.has_object_manage_permission(user=user)):
             return self.cards.all()
         return self.cards.filter(draft=False)
 
-    def visible_members(self, user: User = None) -> "models.QuerySet[Profile]":
+    def visible_members(
+        self, user: "utils.typing.HttpRequestUser | None" = None
+    ) -> "models.QuerySet[Profile]":
         if not user or user == AnonymousUser():
-            return self.members.filter(profile__draft=False)
+            return self.members.filter(draft=False)
+        return Profile.objects.none()
 
-    def clean(self):
+    def clean(self) -> None:
         if self.user and self.space:
             raise ValidationError("Profile must be either for a user or a space, not both.")
         if not self.user and not self.space:
@@ -166,7 +172,13 @@ class Profile(utils.models.BaseModel):
         if self.user and self.members.exists():
             raise ValidationError("User profiles cannot have members.")
 
-    def save(self, *args, **kwargs):
+    def save(
+        self,
+        force_insert: "bool | tuple[ModelBase, ...]" = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: typing.Iterable[str] | None = None,
+    ) -> None:
         if not self.id:
             # Only set the slug automatically when creating the Profile.
             if self.profile_slug:
@@ -179,7 +191,7 @@ class Profile(utils.models.BaseModel):
             while Profile.objects.filter(profile_slug=self.profile_slug).exists():
                 self.title_slug = f"{profile_slug}-{profiles.utils.random_string(4)}"
 
-        super().save(*args, **kwargs)
+        super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self) -> str:
         if self.user:
@@ -196,7 +208,7 @@ class Profile(utils.models.BaseModel):
         return (
             not self.draft
             or self.user == request.user
-            or (self.space and self.space.has_object_manage_permission(request=request))
+            or bool(self.space and self.space.has_object_manage_permission(request=request))
         )
 
     @staticmethod
@@ -204,7 +216,7 @@ class Profile(utils.models.BaseModel):
         return True
 
     def has_object_write_permission(self, request: "request.Request") -> bool:
-        return self.user == request.user or (
+        return self.user == request.user or bool(
             self.space and self.space.has_object_manage_permission(request=request)
         )
 

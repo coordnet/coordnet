@@ -1,7 +1,7 @@
 import typing
 
 
-def extract_text_from_node(node: dict[str, typing.Any] | list) -> list[str]:
+def extract_text_from_node(node: dict[str, typing.Any] | list | None) -> list[str]:
     """Extract text from a node."""
     texts: list[str] = []
     if isinstance(node, dict):

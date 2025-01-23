@@ -16,6 +16,21 @@ if typing.TYPE_CHECKING:
     # For type checking
     django_stubs_ext.monkeypatch()
 
+    # This is needed until https://github.com/typeddjango/django-stubs/pull/2440 is merged.
+    import mypy_django_plugin.lib.helpers
+    from mypy.nodes import TypeInfo
+    from mypy_django_plugin.lib.helpers import is_model_type as patch
+
+    allowlist = {
+        "dotted.path.to.your.ModelClass",
+    }
+
+    def is_model_type(info: TypeInfo) -> bool:
+        if info.fullname in allowlist:
+            return True
+        return patch(info)
+
+    mypy_django_plugin.lib.helpers.is_model_type = is_model_type
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # coordnet/

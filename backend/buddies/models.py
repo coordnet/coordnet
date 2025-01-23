@@ -36,7 +36,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
 
     def query_model(
         self, nodes: list["nodes_models.Node"], level: int, query: str
-    ) -> typing.Generator[str, None, None]:
+    ) -> typing.Generator[str | None, None, None]:
         """Query the buddy."""
 
         response = utils.llm.get_openai_client().chat.completions.create(

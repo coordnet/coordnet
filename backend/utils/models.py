@@ -49,13 +49,9 @@ class SoftDeletableBaseModel(BaseModel):
 
     is_removed = models.BooleanField(default=False)
 
-    objects: "managers.SoftDeletableUnfilteredManager[SoftDeletableBaseModel]" = (
-        managers.SoftDeletableUnfilteredManager()
-    )
-    available_objects: "managers.SoftDeletableManager[SoftDeletableBaseModel]" = (
-        managers.SoftDeletableManager()
-    )
-    all_objects: "models.Manager[SoftDeletableBaseModel]" = models.Manager()
+    objects = managers.SoftDeletableUnfilteredManager()
+    available_objects = managers.SoftDeletableManager()
+    all_objects = models.Manager()
 
     def delete(  # type: ignore[override]
         self, using: str | None = None, soft: bool = True, keep_parents: bool = False

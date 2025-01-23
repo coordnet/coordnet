@@ -22,7 +22,9 @@ class MembershipModelQuerySetMixinTestCase(BaseTestCase):
             repr(space_queryset)
 
         self.assertEqual(space_queryset.count(), 1)
-        self.assertEqual(space_queryset.first().user_roles, [])
+        space = space_queryset.first()
+        self.assertIsNotNone(space)
+        self.assertEqual(space.user_roles, [])
         space.delete()
 
         # Check that space permissions get annotated correctly.
@@ -38,7 +40,9 @@ class MembershipModelQuerySetMixinTestCase(BaseTestCase):
             repr(space_queryset)
 
         self.assertEqual(space_queryset.count(), 1)
-        self.assertEqual(space_queryset.first().user_roles, [permissions.models.RoleOptions.VIEWER])
+        space = space_queryset.first()
+        self.assertIsNotNone(space)
+        self.assertEqual(space.user_roles, [permissions.models.RoleOptions.VIEWER])
 
         # Now test the same with a public space, for this we use the member user, who doesn't have
         # any permissions at the moment

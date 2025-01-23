@@ -166,7 +166,7 @@ class MembershipModelMixin(utils.typing.ModelBase):
 
     @staticmethod
     def __get_user(
-        *, request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
+        *, request: "http.HttpRequest | None" = None, user: "users.typing.AnyUserType | None" = None
     ) -> "users.typing.AnyUserType":
         if user:
             return user
@@ -245,7 +245,9 @@ class MembershipModelMixin(utils.typing.ModelBase):
         return self.get_allowed_action_for_user(user=request.user, action=WRITE)
 
     def has_object_manage_permission(
-        self, request: "http.HttpRequest" = None, user: "users.typing.AnyUserType" = None
+        self,
+        request: "http.HttpRequest | None" = None,
+        user: "users.typing.AnyUserType | None" = None,
     ) -> bool:
         """Return True if the user has manage permissions for this object."""
         return self.get_allowed_action_for_user(
@@ -274,15 +276,9 @@ class MembershipBaseModel(MembershipModelMixin, utils.models.SoftDeletableBaseMo
     Base model for models that can have members.
     """
 
-    objects: "managers.SoftDeletableMembershipModelUnfilteredManager[MembershipBaseModel]" = (
-        managers.SoftDeletableMembershipModelUnfilteredManager()
-    )
-    available_objects: "managers.SoftDeletableMembershipModelManager[MembershipBaseModel]" = (
-        managers.SoftDeletableMembershipModelManager()
-    )
-    all_objects: "managers.MembershipModelQueryManager[MembershipBaseModel]" = (
-        managers.MembershipModelQueryManager()
-    )
+    objects = managers.SoftDeletableMembershipModelUnfilteredManager()  # type: ignore[misc]
+    available_objects = managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
+    all_objects = managers.MembershipModelQueryManager()  # type: ignore[misc]
 
     @property
     def __permission_manager(self) -> models.Manager:

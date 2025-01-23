@@ -14,11 +14,13 @@ if typing.TYPE_CHECKING:
     from django.db.models import QuerySet
     from rest_framework import request, views
 
+    from users.models import User as UserType
+
 
 class ProfilePermissionFilterBackend(DRYPermissionFiltersBase):
     def filter_list_queryset(
         self, request: "request.Request", queryset: "QuerySet", view: "views.APIView"
-    ) -> "QuerySet[not profiles.models.Profile]":
+    ) -> "QuerySet[profiles.models.Profile]":
         """Only return profiles that the user has access to."""
         queryset_filters = Q(draft=False) & (Q(space__is_removed=False) | Q(space__isnull=True))
         if request.user and request.user.is_authenticated:
@@ -69,7 +71,7 @@ def get_space_queryset(request: "request.Request") -> "QuerySet[nodes.models.Spa
     return nodes.models.Space.available_objects.filter(queryset_filters).distinct()
 
 
-def get_user_queryset(request: "request.Request") -> "QuerySet[django.contrib.objects.User]":
+def get_user_queryset(request: "request.Request") -> "QuerySet[UserType]":
     """Return the queryset of users that the user has access to."""
     queryset_filters = Q(profile__draft=False)
     if request.user and request.user.is_authenticated:
@@ -77,11 +79,15 @@ def get_user_queryset(request: "request.Request") -> "QuerySet[django.contrib.ob
     return django.contrib.auth.get_user_model().objects.filter(queryset_filters).distinct()
 
 
-def filter_profile_slug(queryset, name, value):
+def filter_profile_slug(
+    queryset: "QuerySet[profiles.models.Profile]", name: str, value: str
+) -> "QuerySet[profiles.models.Profile]":
     return queryset.filter(profile_slug__iexact=value)
 
 
-def filter_profile_type(queryset, name, value):
+def filter_profile_type(
+    queryset: "QuerySet[profiles.models.Profile]", name: str, value: str
+) -> "QuerySet[profiles.models.Profile]":
     if value == "space":
         return queryset.filter(space__isnull=False)
     elif value == "user":
@@ -90,10 +96,9 @@ def filter_profile_type(queryset, name, value):
 
 
 def filter_space_membership(
-    queryset, name, value: "nodes.models.Space"
+    queryset: "QuerySet[profiles.models.Profile]", name: str, value: "nodes.models.Space"
 ) -> "QuerySet[profiles.models.Profile]":
     """Return UserProfiles that are members of the given space."""
-    print(name, value)
     return queryset.filter(
         user__memberships__content_type__model="space", user__memberships__object_id=value.pk
     ).distinct()

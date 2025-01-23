@@ -16,6 +16,7 @@ from profiles import serializers
 
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
+    from rest_framework.request import Request
 
 
 @extend_schema(
@@ -25,7 +26,7 @@ if typing.TYPE_CHECKING:
     list=extend_schema(description="List available profiles.", summary="List profiles"),
     retrieve=extend_schema(description="Retrieve a single profile.", summary="Retrieve a profile"),
 )
-class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile]):
+class ProfileModelViewSet(utils.views.BaseNoCreateDeleteModelViewSet[profiles.models.Profile]):
     serializer_class = serializers.ProfileSerializer
     filterset_class = profiles.filters.ProfileFilterSet
     filter_backends = (
@@ -34,7 +35,6 @@ class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile])
         rest_framework.filters.OrderingFilter,
     )
     permission_classes = (dry_permissions.DRYObjectPermissions,)
-    allowed_methods = ("GET", "PATCH", "HEAD", "OPTIONS")
     ordering_fields = ("created",)
 
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
@@ -66,7 +66,7 @@ class ProfileModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profile])
         url_path="upload-images",
         parser_classes=(MultiPartParser,),
     )
-    def upload_images(self, request, public_id=None):
+    def upload_images(self, request: "Request", public_id: str | None = None) -> Response:
         profile = self.get_object()
         for key in ["profile_image", "banner_image"]:
             if key in request.FILES:
@@ -106,7 +106,7 @@ class ProfileCardModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profi
         url_path="upload-images",
         parser_classes=(MultiPartParser,),
     )
-    def upload_images(self, request, public_id=None):
+    def upload_images(self, request: "Request", public_id: str | None = None) -> Response:
         profile_card = self.get_object()
         if "image" in request.FILES:
             profile_card.image_original = request.FILES["image"]

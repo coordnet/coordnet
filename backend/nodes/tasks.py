@@ -84,6 +84,12 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             models.DocumentEvent.EventType.INSERT,
                             models.DocumentEvent.EventType.UPDATE,
                         ):
+                            if not document_event.new_data:
+                                logger.error(
+                                    f"Space Event {document_event.public_id} has no data. "
+                                    "Ignoring..."
+                                )
+                                continue
                             # 1. Update the space
 
                             # Extract nodes and titles from space data
@@ -180,6 +186,13 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             models.DocumentEvent.EventType.INSERT,
                             models.DocumentEvent.EventType.UPDATE,
                         ):
+                            if not document_event.new_data:
+                                logger.error(
+                                    f"Graph Event {document_event.public_id} has no data. "
+                                    "Ignoring..."
+                                )
+                                continue
+
                             # 1. Get or create the parent node
                             try:
                                 node = models.Node.all_objects.select_for_update(no_key=True).get(

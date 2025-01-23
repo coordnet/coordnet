@@ -1,4 +1,7 @@
+from django.contrib.auth.models import AnonymousUser
 from django.db import models
+
+from users.models import User as UserType
 
 
 class ModelBase(models.Model):
@@ -6,3 +9,6 @@ class ModelBase(models.Model):
 
     class Meta:
         abstract = True
+
+
+HttpRequestUser = UserType | AnonymousUser

@@ -31,7 +31,7 @@ class MembershipModelQuerySetMixin(models.QuerySet[T_co], typing.Generic[T_co]):
         return self.annotate(user_roles=role_subquery).distinct()
 
 
-class SoftDeletableMembershipModelQuerySet(
+class SoftDeletableMembershipModelQuerySet(  # type: ignore[override]
     utils_managers.SoftDeletableQuerySet[T_co],
     MembershipModelQuerySetMixin[T_co],
     typing.Generic[T_co],
@@ -62,7 +62,7 @@ class SoftDeletableMembershipModelManager(
         return self.get_queryset().annotate_user_permissions(user=user, request=request)
 
 
-class SoftDeletableMembershipModelUnfilteredQuerySet(
+class SoftDeletableMembershipModelUnfilteredQuerySet(  # type: ignore[override]
     utils_managers.SoftDeletableQuerySet[T_co],
     MembershipModelQuerySetMixin[T_co],
     typing.Generic[T_co],

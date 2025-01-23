@@ -22,6 +22,7 @@ if typing.TYPE_CHECKING:
     import uuid
 
     from django import http
+    from django.db.models.fields.related_descriptors import RelatedManager
 
     from users import typing as user_typing
 
@@ -167,7 +168,7 @@ class Node(utils.models.SoftDeletableBaseModel):
             return public_subquery
 
         space_public_subquery = Space.objects.filter(
-            nodes=models.OuterRef("object_id"), is_removed=False, is_public=True
+            nodes=models.OuterRef("object_id"), is_removed=False, is_public=True  # mypy: ignore
         )
         space_public_writable_subquery = Space.objects.filter(
             nodes=models.OuterRef("object_id"),
@@ -425,8 +426,6 @@ class DocumentVersion(utils.models.SoftDeletableBaseModel):
 
 class Space(permissions.models.MembershipBaseModel):
     title = models.CharField(max_length=255)
-    # Setting the type hint manually is required because of a bug in the Django stubs.
-    # Reported here: https://github.com/typeddjango/django-stubs/issues/2011
     default_node = models.ForeignKey(
         "Node",
         help_text="The node that gets displayed when a space is opened.",
@@ -438,6 +437,10 @@ class Space(permissions.models.MembershipBaseModel):
     document = models.OneToOneField(
         "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="space"
     )
+
+    # Manually annotating reverse relations that are not automatically detected.
+    # See: https://github.com/typeddjango/django-stubs/issues/1354
+    nodes: "RelatedManager[Node]"
 
     def __str__(self) -> str:
         return f"{self.public_id} - {self.title}"
@@ -632,13 +635,13 @@ class Document(models.Model):
         except Space.DoesNotExist:
             pass
         try:
-            if self.node_graph is not None:
+            if self.node_graph is not None and self.node_graph.space is not None:
                 return self.node_graph.space.has_object_read_permission(request)
         except Node.DoesNotExist:
             pass
 
         try:
-            if self.node_editor is not None:
+            if self.node_editor is not None and self.node_editor.space is not None:
                 return self.node_editor.space.has_object_read_permission(request)
         except Node.DoesNotExist:
             pass

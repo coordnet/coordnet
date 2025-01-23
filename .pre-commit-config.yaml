@@ -85,14 +85,14 @@ repos:
         types: [python]
         require_serial: true
         entry: bash .pre-commit-run.sh django ruff check
-      #      - id: mypy
-      #        name: mypy
-      #        entry: bash .pre-commit-run.sh django mypy
-      #        language: python
-      #        language_version: python3.11
-      #        types: [python]
-      #        require_serial: true
-      #        additional_dependencies: []
+      - id: mypy
+        name: mypy
+        entry: bash .pre-commit-run.sh django mypy
+        language: python
+        language_version: python3.11
+        types: [python]
+        require_serial: true
+        additional_dependencies: []
       - id: eslint-crdt
         name: eslint (crdt)
         language: node
