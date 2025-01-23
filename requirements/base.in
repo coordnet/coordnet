@@ -34,7 +34,7 @@ django-rest-passwordreset==1.5.0  # https://github.com/anexia-it/django-rest-pas
 # Django PG trigger for database triggers
 django-pgtrigger==4.13.3  # https://github.com/Opus10/django-pgtrigger
 # Django-Channels
-channels==4.1.0  # https://github.com/django/channels
+channels==4.2.0  # https://github.com/django/channels
 # Async DRF endpoints
 adrf==0.1.9  # https://github.com/em1208/adrf
 # Postgres lock support
