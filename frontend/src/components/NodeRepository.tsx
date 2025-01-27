@@ -143,7 +143,10 @@ const NodeRepository = ({ className }: NodeProps) => {
 
   return visible && !isQuickViewOpen ? (
     <div
-      className={clsx("absolute top-0 left-0 h-dvh w-dvw z-60", className)}
+      className={clsx(
+        "fixed inset-0 z-60 flex items-start justify-center p-4 bg-black/20",
+        className,
+      )}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           e.stopPropagation();
@@ -151,9 +154,9 @@ const NodeRepository = ({ className }: NodeProps) => {
         }
       }}
     >
-      <div className="m-auto flex flex-col w-[600px] mt-16 rounded-md border border-neutral-200 shadow-node-repo bg-white pointer-events-auto">
+      <div className="w-full max-w-[600px] mt-16 rounded-md border border-neutral-200 shadow-node-repo bg-white pointer-events-auto">
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-b-neutral-100">
-          <Search className="size-4 text-neutral-400/50" strokeWidth={3} />
+          <Search className="size-4 text-neutral-400/50 flex-shrink-0" strokeWidth={3} />
           <input
             placeholder="Search Content"
             className="w-full text-base font-medium focus:outline-none px-0 placeholder:text-neutral-400/50"
@@ -162,31 +165,31 @@ const NodeRepository = ({ className }: NodeProps) => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
           />
-          {/* <Button variant="ghost" className="p-0 h-auto">
-            <Settings2 className="size-4 text-neutral-500" strokeWidth={3} />
-          </Button> */}
         </div>
         <ul
           ref={nodeListRef}
-          className={clsx("px-2 py-1.5 max-h-[250px] overflow-y-scroll", {
-            hidden: !results.length,
-          })}
+          className={clsx(
+            "px-2 py-1.5 max-h-[50vh] overflow-y-auto -webkit-overflow-scrolling-touch",
+            {
+              hidden: !results.length,
+            },
+          )}
         >
           <div className="px-2 py-1.5 text-sm font-semibold">Nodes</div>
           {results.map((item, index) => (
             <li
               className={clsx(
-                "text-sm px-2 py-1.5 rounded flex items-start",
+                "text-sm px-2 py-1.5 rounded flex items-start flex-wrap",
                 "hover:bg-neutral-100",
                 { "bg-neutral-100": index === selectedIndex },
               )}
               key={item.id + index}
             >
-              <div className="flex flex-col mr-2">
+              <div className="flex flex-col w-full">
                 <div className="cursor-pointer" onClick={() => addNode(item)}>
                   {DOMPurify.sanitize(item.title ?? "", { ALLOWED_TAGS: [] })}
                 </div>
-                <div className="flex gap-1 text-xs text-neutral-400 font-medium">
+                <div className="flex flex-wrap gap-1 text-xs text-neutral-400 font-medium">
                   {!spacesLoading && (
                     <>
                       <span>{spaces?.results.find((space) => space.id == item.space)?.title}</span>
@@ -210,7 +213,12 @@ const NodeRepository = ({ className }: NodeProps) => {
                             {item?.parents.length}
                           </span>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="z-70 w-[200px]" align="start">
+                        <DropdownMenuContent
+                          className="z-70 w-[200px]"
+                          align="start"
+                          sideOffset={5}
+                          alignOffset={-5}
+                        >
                           <DropdownMenuLabel>Canvases</DropdownMenuLabel>
                           {item?.parents.map((parent, i) => {
                             if (!spaceNodesMap?.get(parent)?.title) return null;
