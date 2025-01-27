@@ -478,10 +478,15 @@ class Node(BaseNode):
         ]
 
 
-class MethodNode(Node, permissions.models.MembershipModelMixin):  # type: ignore[misc]
+class MethodNode(permissions.models.MembershipModelMixin, Node):  # type: ignore[misc]
     forked_from = models.ForeignKey(
         "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True
     )
+
+    # TODO: These might be better placed in another mixin class that combines membership with
+    #       soft-deletability.
+    available_objects = permissions.managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
+    all_objects = permissions.managers.MembershipModelQueryManager()  # type: ignore[misc]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init__(*args, **kwargs)

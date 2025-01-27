@@ -8,7 +8,7 @@ from rest_framework import request, views
 
 import utils.filters
 from nodes import models
-from permissions.models import READ_ROLES
+from permissions.models import READ
 
 if typing.TYPE_CHECKING:
     import users.models
@@ -19,15 +19,15 @@ def get_document_queryset(request: request.Request) -> QuerySet:
     return models.Document.objects.filter(
         (
             Q(space__isnull=False)
-            & (models.Space.get_user_has_permission_filter("read", user, prefix="space"))
+            & (models.Space.get_user_has_permission_filter(READ, user, prefix="space"))
         )
         | (
             Q(node_editor__isnull=False)
-            & Q(models.Node.get_user_has_permission_filter("read", user, prefix="node_editor"))
+            & Q(models.Node.get_user_has_permission_filter(READ, user, prefix="node_editor"))
         )
         | (
             Q(node_graph__isnull=False)
-            & Q(models.Node.get_user_has_permission_filter("read", user, prefix="node_graph"))
+            & Q(models.Node.get_user_has_permission_filter(READ, user, prefix="node_graph"))
         )
     )
 
@@ -35,14 +35,14 @@ def get_document_queryset(request: request.Request) -> QuerySet:
 def get_space_queryset(request: request.Request) -> QuerySet:
     user = request.user or AnonymousUser()
     return models.Space.available_objects.filter(
-        models.Space.get_user_has_permission_filter(action="read", user=user)
+        models.Space.get_user_has_permission_filter(action=READ, user=user)
     ).distinct()
 
 
 def get_method_queryset(request: request.Request) -> QuerySet:
     user = request.user or AnonymousUser()
     return models.MethodNode.available_objects.filter(
-        models.MethodNode.get_user_has_permission_filter(action="read", user=user)
+        models.MethodNode.get_user_has_permission_filter(action=READ, user=user)
     ).distinct()
 
 
@@ -62,14 +62,9 @@ class NodePermissionFilterBackend(DRYPermissionFiltersBase):
         self, request: request.Request, queryset: QuerySet, view: views.APIView
     ) -> "QuerySet[models.Node]":
         """Only return nodes that the user has access to."""
-        queryset_filters = Q(space__is_public=True, space__is_removed=False)
-        if request.user and request.user.is_authenticated:
-            queryset_filters |= Q(
-                space__members__user=request.user,
-                space__members__role__role__in=READ_ROLES,
-                space__is_removed=False,
-            )
-        return queryset.filter(queryset_filters).distinct()
+        return queryset.filter(
+            models.Node.get_user_has_permission_filter(READ, user=request.user)
+        ).distinct()
 
 
 class NodeFilterSet(filters.FilterSet):
@@ -85,13 +80,9 @@ class SpacePermissionFilterBackend(DRYPermissionFiltersBase):
         self, request: request.Request, queryset: QuerySet, view: views.APIView
     ) -> "QuerySet[models.Space]":
         """Only return spaces that the user has access to."""
-        queryset_filters = Q(is_public=True)
-        if request.user and request.user.is_authenticated:
-            queryset_filters |= Q(
-                members__user=request.user,
-                members__role__role__in=READ_ROLES,
-            )
-        return queryset.filter(queryset_filters).distinct()
+        return queryset.filter(
+            models.Space.get_user_has_permission_filter(READ, user=request.user)
+        ).distinct()
 
 
 class DocumentVersionPermissionFilterBackend(DRYPermissionFiltersBase):
