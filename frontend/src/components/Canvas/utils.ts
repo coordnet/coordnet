@@ -22,6 +22,7 @@ import {
   CanvasEdge,
   CanvasNode,
   ExportNode,
+  NodeType,
   SpaceNode,
 } from "@/types";
 
@@ -246,4 +247,75 @@ export const setNodeTitleAndContent = async (
   const spaceNode = spaceMap.get(id);
   if (spaceNode) spaceMap.set(id, { ...spaceNode, title });
   spaceProvider.destroy();
+};
+
+export const addInputNode = async (
+  nodes: CanvasNode[],
+  nodesMap: Y.Map<CanvasNode> | undefined,
+  edgesMap: Y.Map<CanvasEdge> | undefined,
+  spaceMap: Y.Map<SpaceNode> | undefined,
+  inputNodes: string[]
+) => {
+  const inputNode = nodes.find((n) => n.data?.type === NodeType.Input);
+
+  if (!inputNode) {
+    toast.error("Could not find an Input node");
+    return;
+  }
+
+  if (nodesMap && spaceMap) {
+    const inputs = nodes.filter((n) => inputNodes.includes(n.id));
+
+    // Add the new node
+    const newId = await addNodeToCanvas(
+      nodesMap,
+      spaceMap,
+      "New node",
+      {
+        x: inputNode.position.x,
+        y: inputNode.position.y - 140,
+      },
+      undefined,
+      { editing: true }
+    );
+
+    addEdge(edgesMap, newId, inputNode.id);
+
+    // Include the new node in the list for repositioning
+    const allNodes = [...inputs, { id: newId, position: { x: 0, y: 0 } }];
+
+    // Define widths/gaps
+    const gap = 20;
+    const nodeWidth = 200;
+    const maxNodesPerRow = 4;
+    const rowGap = 100;
+
+    // Split nodes into rows
+    const rows = [];
+    for (let i = 0; i < allNodes.length; i += maxNodesPerRow) {
+      rows.push(allNodes.slice(i, i + maxNodesPerRow));
+    }
+
+    // Iterate over each row to calculate positions
+    rows.forEach((row, rowIndex) => {
+      const rowNodeCount = row.length;
+      const totalWidth = rowNodeCount * nodeWidth + (rowNodeCount - 1) * gap;
+      const startX = inputNode.position.x - totalWidth / 2 + nodeWidth / 2;
+      const newY = inputNode.position.y - 140 - rowIndex * rowGap;
+
+      row.forEach((node, index) => {
+        const existingNode = nodesMap.get(node.id);
+        if (!existingNode) return;
+        nodesMap.set(node.id, {
+          ...existingNode,
+          position: {
+            x: startX + index * (nodeWidth + gap),
+            y: newY,
+          },
+        });
+      });
+    });
+  } else {
+    toast.error("Nodes or space map is not available");
+  }
 };

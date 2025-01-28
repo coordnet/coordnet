@@ -1,13 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useBlocker, useNavigate, useParams } from "react-router-dom";
+import { BlockerFunction, useBlocker, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { createSkillRun } from "@/api";
 import { skillYdocToJson } from "@/components/Skills/utils";
 import { useCanvas, useNodesContext, useYDoc } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { BackendEntityType, Skill } from "@/types";
+import { BackendEntityType, Skill, YDocScope } from "@/types";
 
 import { createTasks } from "./createTasks";
 import { processTasks } from "./executeTasks";
@@ -22,10 +22,12 @@ interface RunResult {
 }
 
 export const useRunSkill = () => {
-  const { runId, pageId } = useParams();
+  const { runId, pageId, versionId } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { parent, scope } = useYDoc();
   const { nodes, edges, nodesMap } = useCanvas();
-  const { parent, nodesMap: skillNodesMap } = useNodesContext();
+  const { nodesMap: skillNodesMap } = useNodesContext();
   const queryClient = useQueryClient();
   const { buddy } = useBuddy();
   const {
@@ -36,7 +38,10 @@ export const useRunSkill = () => {
   const cancelRef = useRef(false);
 
   const skill = parent.type === BackendEntityType.SKILL ? (parent?.data as Skill) : undefined;
-  const isYDocReady = spaceSynced && spaceYDoc?.guid === `method-${skill?.id}-new`;
+  const isYDocReady =
+    spaceSynced &&
+    (spaceYDoc?.guid === `method-${skill?.id}-new` ||
+      spaceYDoc?.guid === `method-${skill?.id}-${versionId}-new`);
 
   const resetRun = useCallback(() => {
     const nodeIds = nodes.map((node) => node.id);
@@ -91,12 +96,16 @@ export const useRunSkill = () => {
       try {
         const skillJson = skillYdocToJson(spaceYDoc!);
         const response = await createSkillRun({
-          skill: skill.id,
-          json: skillJson,
-          isDev: true,
+          method: skill.id,
+          method_data: skillJson,
+          is_dev_run: scope == YDocScope.READ_WRITE,
+          method_version: versionId,
         });
         queryClient.invalidateQueries({ queryKey: ["skills", skill.id, "runs"] });
-        navigate(`/skills/${skill.id}/runs/${response.id}`, { replace: true });
+        navigate(
+          `/skills/${skill.id}${versionId ? `/versions/${versionId}` : ""}/runs/${response.id}`,
+          { replace: true }
+        );
       } catch (error) {
         console.error(error);
         setRunStatus("error");
@@ -110,7 +119,7 @@ export const useRunSkill = () => {
       resetRun();
       toast.error("Failed to complete tasks—check console for details");
     }
-  }, [runStatus, buddy, skill, runAllTasks, queryClient, navigate, resetRun, spaceYDoc]);
+  }, [runStatus, buddy, skill, resetRun, runAllTasks, spaceYDoc, queryClient, navigate, versionId]);
 
   const stopRun = useCallback(() => {
     if (runStatus === "running") {
@@ -132,16 +141,28 @@ export const useRunSkill = () => {
     return processTasks(context, buddy, spaceYDoc, skill, skillNodesMap, nodesMap, cancelRef, true);
   }, [buddy, edges, skill, skillNodesMap, nodes, nodesMap, spaceYDoc]);
 
-  const shouldBlock = useCallback(() => {
-    if (runId === "new" && runStatus === "running") {
-      if (!window.confirm("Are you sure you want to stop the run?")) {
-        return true;
+  const shouldBlock: BlockerFunction = useCallback(
+    ({ historyAction, nextLocation }) => {
+      // Don't block if we're navigating to a node page
+      if (historyAction == "PUSH" && nextLocation.search.startsWith("?nodePage=")) return false;
+
+      // Don't block if we're going to the same page (closing a node page)
+      if (historyAction == "PUSH" && nextLocation.pathname == pathname) return false;
+
+      // If it's a new and running run prompt for confirmation
+      if (runId === "new" && runStatus === "running") {
+        if (!window.confirm("Are you sure you want to stop the run?")) {
+          return true;
+        }
+        stopRun();
+        setRunStatus("idle");
+        return false;
       }
-      stopRun();
+
       return false;
-    }
-    return false;
-  }, [runId, runStatus, stopRun]);
+    },
+    [pathname, runId, runStatus, stopRun]
+  );
 
   useBlocker(shouldBlock);
 
@@ -157,5 +178,5 @@ export const useRunSkill = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId, pageId, isYDocReady, runStatus, nodes]);
 
-  return { runSkill, stopRun, prepareExecutionPlan, resetRun, runStatus };
+  return { runSkill, stopRun, prepareExecutionPlan, resetRun, runStatus, setRunStatus };
 };

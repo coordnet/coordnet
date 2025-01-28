@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 
 import { getNode } from "@/api";
-import { BackendEntityType, CanvasEdge, CanvasNode } from "@/types";
+import { BackendEntityType, CanvasEdge, CanvasNode, NodeType } from "@/types";
 
 import useYDoc from "../useYDoc";
 import { CanvasContext } from "./context";
@@ -25,8 +25,10 @@ export function CanvasProvider({
 }) {
   const {
     parent,
-    canvas: { YDoc, connected, synced, error },
+    canvas: { YDoc },
   } = useYDoc();
+
+  const isSkill = parent.type === BackendEntityType.SKILL;
 
   const [nodesSelection, setNodesSelection] = useState<Set<string>>(new Set());
   const [edgesSelection, setEdgesSelection] = useState<Set<string>>(new Set());
@@ -45,6 +47,7 @@ export function CanvasProvider({
 
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
   const [edges, setEdges] = useState<CanvasEdge[]>([]);
+  const [inputNodes, setInputNodes] = useState<string[]>([]);
 
   useEffect(() => {
     if (!nodesMap) return;
@@ -76,6 +79,19 @@ export function CanvasProvider({
     return () => edgesMap.unobserve(observer);
   }, [edgesMap, setEdges, edgesSelection]);
 
+  useEffect(() => {
+    if (isSkill) {
+      // Find the input node
+      const inputNode = nodes.find((node) => node.data.type === NodeType.Input);
+      const inputEdges = edges.filter((edge) => edge.target === inputNode?.id);
+      const inputNodes = inputEdges
+        .map((edge) => nodes.find((node) => node.id === edge.source))
+        .filter((node) => node !== undefined)
+        .map((n) => n.id);
+      setInputNodes(inputNodes);
+    }
+  }, [isSkill, edges, nodes]);
+
   const nodeFeatures = (id: string) => {
     if (parent.type === BackendEntityType.SPACE) {
       const backendNode = node?.subnodes.find((node) => node.id === id);
@@ -98,19 +114,15 @@ export function CanvasProvider({
 
   const value = {
     id: nodeId ?? skillNodeId ?? skillId,
-    parent,
-    YDoc,
     nodesMap,
     edgesMap,
     nodes,
     edges,
+    inputNodes,
     nodesSelection,
     setNodesSelection,
     edgesSelection,
     setEdgesSelection,
-    error,
-    connected,
-    synced,
     nodeFeatures,
   };
 

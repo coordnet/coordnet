@@ -5,7 +5,7 @@ import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { getPermissions } from "@/api";
-import { useCanvas } from "@/hooks";
+import { useYDoc } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { BackendEntityType, PermissionModel } from "@/types";
 
@@ -23,7 +23,7 @@ const SkillPermissions = ({
   // setOpen: Dispatch<SetStateAction<boolean>>;
   className?: string;
 }) => {
-  const { parent } = useCanvas();
+  const { parent } = useYDoc();
   const [memberOpen, setMemberOpen] = useState<boolean>(false);
   // const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();

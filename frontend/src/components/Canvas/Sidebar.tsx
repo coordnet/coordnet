@@ -3,13 +3,13 @@ import { LayoutDashboard, Plus, Search } from "lucide-react";
 import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { useOnViewportChange, useReactFlow } from "reactflow";
-import * as Y from "yjs";
+import { toast } from "sonner";
 
-import { useFocus, useYDoc } from "@/hooks";
-import { BackendEntityType, CanvasNode, SpaceNode, YDocScope } from "@/types";
+import { useCanvas, useFocus, useNodesContext, useYDoc } from "@/hooks";
+import { BackendEntityType, YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
-import { addNodeToCanvas } from "./utils";
+import { addInputNode, addNodeToCanvas } from "./utils";
 
 const onDragStart = (event: DragEvent, nodeType: string) => {
   event.dataTransfer.setData("application/reactflow", nodeType);
@@ -17,19 +17,17 @@ const onDragStart = (event: DragEvent, nodeType: string) => {
 };
 
 const Sidebar = ({
-  nodesMap,
-  spaceMap,
   takeSnapshot,
   className,
   onLayoutNodes,
 }: {
-  nodesMap: Y.Map<CanvasNode>;
-  spaceMap: Y.Map<SpaceNode>;
   takeSnapshot: () => void;
   className?: string;
   onLayoutNodes: () => Promise<void>;
 }) => {
   const { parent, scope } = useYDoc();
+  const { nodes, nodesMap, edgesMap, inputNodes } = useCanvas();
+  const { nodesMap: spaceMap } = useNodesContext();
 
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
@@ -47,6 +45,11 @@ const Sidebar = ({
 
   const onClick = (event: MouseEvent) => {
     event.preventDefault();
+
+    // If we are in a skill then add an input node
+    if (isSkill) return addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes);
+
+    if (!nodesMap || !spaceMap) return toast.error("Nodes not loaded");
 
     const currentTime = Date.now();
     let currentClickCount = clickCount;
@@ -76,11 +79,14 @@ const Sidebar = ({
           variant="outline"
           className="size-9 p-0 shadow"
           onClick={onClick}
-          onDragStart={(event: DragEvent) => onDragStart(event, "node-1")}
-          draggable
+          onDragStart={(event: DragEvent) => {
+            if (scope !== YDocScope.READ_WRITE || isSkill) return;
+            onDragStart(event, "node-1");
+          }}
+          draggable={scope === YDocScope.READ_WRITE}
           data-tooltip-id="add-node"
           data-tooltip-place="right"
-          disabled={scope !== YDocScope.READ_WRITE}
+          disabled={scope !== YDocScope.READ_WRITE && !isSkill}
         >
           <Plus strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>

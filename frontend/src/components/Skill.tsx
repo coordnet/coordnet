@@ -5,23 +5,25 @@ import clsx from "clsx";
 import { useParams } from "react-router-dom";
 import { ReactFlowProvider } from "reactflow";
 
-import { CanvasProvider, useCanvas, useNodesContext } from "@/hooks";
+import { useYDoc } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { BackendEntityType } from "@/types";
 
 import { Canvas, Loader } from "./";
 import ErrorPage from "./ErrorPage";
 
-type SkillProps = { id?: string; isSkillRun?: boolean; className?: string };
+type SkillProps = { className?: string };
 
 const Skill = ({ className }: SkillProps) => {
   const { runId } = useParams();
-  const { parent } = useNodesContext();
+  const {
+    parent,
+    canvas: { error, connected, synced },
+  } = useYDoc();
   const { isGuest } = useUser();
-  const { error, connected, synced, parent: canvasParent } = useCanvas();
 
   if (error) return <ErrorPage error={error} />;
-  if (!runId && (!synced || canvasParent.isLoading)) return <Loader message="Loading canvas..." />;
+  if (!runId && (!synced || parent.isLoading)) return <Loader message="Loading canvas..." />;
   if (!runId && !connected) return <Loader message="Obtaining connection to canvas..." />;
 
   const skill = parent.type === BackendEntityType.SKILL ? parent.data : undefined;
@@ -53,15 +55,11 @@ const Skill = ({ className }: SkillProps) => {
   );
 };
 
-const SkillOuter = ({ id, ...props }: SkillProps) => {
-  const { pageId } = useParams();
-
+const SkillOuter = ({ ...props }: SkillProps) => {
   return (
-    <CanvasProvider skillId={id} skillNodeId={pageId}>
-      <ReactFlowProvider>
-        <Skill {...props} />
-      </ReactFlowProvider>
-    </CanvasProvider>
+    <ReactFlowProvider>
+      <Skill {...props} />
+    </ReactFlowProvider>
   );
 };
 

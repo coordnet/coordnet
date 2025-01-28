@@ -20,7 +20,7 @@ export const NodesContextProvider = ({ children }: { children: React.ReactNode }
 
   const {
     parent,
-    space: { YDoc, connected, provider, synced, error },
+    space: { YDoc, connected },
   } = useYDoc();
 
   const [nodes, setNodes] = useState<SpaceNode[]>([]);
@@ -28,10 +28,6 @@ export const NodesContextProvider = ({ children }: { children: React.ReactNode }
     `coordnet:breadcrumbs-${spaceId ?? skillId}`,
     { defaultValue: [] }
   );
-
-  useEffect(() => {
-    console.log("space document changed", YDoc);
-  }, [YDoc]);
 
   const nodesMap = YDoc?.getMap<SpaceNode>("nodes");
 
@@ -77,14 +73,8 @@ export const NodesContextProvider = ({ children }: { children: React.ReactNode }
   }, [nodesMap, setNodes]);
 
   const value = {
-    parent,
-    YDoc,
-    error,
     nodes,
     nodesMap,
-    synced,
-    connected,
-    provider,
     breadcrumbs,
     setBreadcrumbs,
   };

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { saveAs } from "file-saver";
-import { Loader2, LoaderIcon } from "lucide-react";
+import { Loader2, LoaderIcon, PlusCircle } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
@@ -14,13 +14,14 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { useCanvas, useNodesContext, useQuickView } from "@/hooks";
+import { useCanvas, useNodesContext, useQuickView, useUser, useYDoc } from "@/hooks";
 import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
 import { BackendEntityType, CanvasNode, NodeType, nodeTypeMap } from "@/types";
 
 import { EditableNode } from "../";
 import Footer from "./Footer";
 import HoverMenu from "./HoverMenu";
+import { addInputNode } from "./utils";
 
 const handleStyle: CSSProperties = {
   borderWidth: "3px",
@@ -36,8 +37,10 @@ interface CanvasNodeComponentProps {
 }
 
 const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) => {
+  const { isGuest } = useUser();
+  const { parent } = useYDoc();
   const { nodesMap: spaceMap } = useNodesContext();
-  const { nodesMap, nodeFeatures, parent } = useCanvas();
+  const { nodesMap, edgesMap, nodeFeatures, inputNodes, nodes } = useCanvas();
   const { showQuickView } = useQuickView();
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
@@ -51,6 +54,9 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
   const { hasPage, hasCanvas } = nodeFeatures(id);
 
   const isSkill = parent.type === BackendEntityType.SKILL;
+  const isSkillWriter = parent.data?.allowed_actions.includes("write");
+  const isInputNode = data?.type === NodeType.Input;
+  const canInput = isSkill && isInputNode && !isSkillWriter && !isGuest;
 
   useEffect(() => {
     if (!nodeRef.current) return;
@@ -58,7 +64,7 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
       setLineClamp(Math.floor((nodeRef?.current?.clientHeight ?? 0) / 20) - 1);
     });
     resizeObserver.observe(nodeRef.current);
-    return () => resizeObserver.disconnect(); // clean up
+    return () => resizeObserver.disconnect();
   }, []);
 
   useEffect(() => {
@@ -83,7 +89,7 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
   };
 
   const onDoubleClick = (e: MouseEvent) => {
-    if (isEditing || data?.syncing) return;
+    if (isEditing || data?.syncing || isInputNode) return;
     e.preventDefault();
     if (!hasPage && hasCanvas) showQuickView(id);
     else setNodePage(id);
@@ -116,6 +122,15 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
     } ${data?.progress}%, white ${data?.progress}%)`;
   if (data?.loading) nodeStyle.opacity = 0.5;
 
+  if (data?.type === NodeType.Input) {
+    nodeStyle.borderColor = "rgb(96 165 250)";
+    nodeStyle.borderWidth = "2px";
+  }
+  if (data?.type === NodeType.Output) {
+    nodeStyle.borderColor = "rgb(73 222 128)";
+    nodeStyle.borderWidth = "2px";
+  }
+
   return (
     <>
       <NodeToolbar
@@ -141,12 +156,26 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
               `CanvasNode flex size-full items-center justify-center overflow-hidden rounded-lg
               border border-gray-1 bg-white p-3 text-center text-sm`,
               Boolean(data.borderColor) && "border-2",
-              selected && "shadow-node-selected"
+              selected && "shadow-node-selected",
+              canInput && "border-2 !border-blue-light"
             )}
             style={nodeStyle}
             ref={nodeRef}
             onDoubleClick={onDoubleClick}
           >
+            {canInput && (
+              <>
+                <div
+                  className="absolute -top-[11px] size-6 cursor-pointer rounded-full bg-white"
+                  data-tooltip-id="add-node"
+                  data-tooltip-place="top"
+                  onClick={() => addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes)}
+                >
+                  <PlusCircle className="size-6 text-blue-light" />
+                </div>
+                <Tooltip id="add-node">Add input</Tooltip>
+              </>
+            )}
             {data?.syncing && (
               <>
                 <div
@@ -188,22 +217,28 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
               </div>
             )}
 
-            <EditableNode
-              id={id}
-              ref={inputRef}
-              onBlur={() => {
-                setIsEditing(false);
-                inputRef?.current?.scrollTo(0, 0);
-                const node = nodesMap?.get(id);
-                if (node) nodesMap?.set(id, { ...node, data: { ...node.data, editing: false } });
-              }}
-              contentEditable={isEditing}
-              className={clsx(
-                "w-full items-center justify-center",
-                isEditing && "nodrag h-full cursor-text overflow-hidden",
-                !isEditing && `line-clamp-${lineClamp}`
-              )}
-            />
+            {data?.type === NodeType.Input ? (
+              "Input"
+            ) : data?.type === NodeType.Output ? (
+              "Output"
+            ) : (
+              <EditableNode
+                id={id}
+                ref={inputRef}
+                onBlur={() => {
+                  setIsEditing(false);
+                  inputRef?.current?.scrollTo(0, 0);
+                  const node = nodesMap?.get(id);
+                  if (node) nodesMap?.set(id, { ...node, data: { ...node.data, editing: false } });
+                }}
+                contentEditable={isEditing}
+                className={clsx(
+                  "w-full items-center justify-center",
+                  isEditing && "nodrag h-full cursor-text overflow-hidden",
+                  !isEditing && `line-clamp-${lineClamp}`
+                )}
+              />
+            )}
             <Footer id={id} nodeStyle={nodeStyle} />
           </div>
         </ContextMenuTrigger>

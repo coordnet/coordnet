@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useNodesContext } from "@/hooks";
+import { useNodesContext, useYDoc } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { cleanNodeTitle } from "@/lib/nodes";
 import { BackendEntityType } from "@/types";
@@ -16,7 +16,8 @@ import { Button } from "./ui/button";
 
 const Header = ({ id, className }: { id: string; className?: string }) => {
   const { isGuest } = useUser();
-  const { parent, nodes, breadcrumbs } = useNodesContext();
+  const { parent } = useYDoc();
+  const { nodes, breadcrumbs } = useNodesContext();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   const parentSpace = parent.type === BackendEntityType.SPACE ? parent.data : undefined;
@@ -27,15 +28,19 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
   return (
     <>
       <div className={clsx("flex h-6 items-center gap-2 px-3 text-sm", className)}>
-        <div className="max-w-[220px] truncate">
-          <Link
-            to="/"
-            className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
-          >
-            <Home className="size-3" />
-          </Link>
-        </div>
-        <div className="">&raquo;</div>
+        {!isGuest && (
+          <>
+            <div className="max-w-[220px] truncate">
+              <Link
+                to="/"
+                className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
+              >
+                <Home className="size-3" />
+              </Link>
+            </div>
+            <div className="">&raquo;</div>
+          </>
+        )}
         <div className="max-w-[220px] truncate">
           <Link
             to={`/${parent.type}s/${parent?.data?.id}`}

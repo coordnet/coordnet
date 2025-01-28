@@ -13,7 +13,7 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useFocus, useUser, useYDoc } from "@/hooks";
+import { useCanvas, useFocus, useUser, useYDoc } from "@/hooks";
 import { rgbToHex } from "@/lib/utils";
 import { BackendEntityType, YDocScope } from "@/types";
 
@@ -37,6 +37,9 @@ const Editor = ({ id, className }: EditorProps) => {
   const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
 
+  const { inputNodes } = useCanvas();
+  const isSkillInput = inputNodes.includes(id);
+
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
@@ -58,7 +61,7 @@ const Editor = ({ id, className }: EditorProps) => {
       extensions: loadExtensions(provider, YDoc, field, parent.type == BackendEntityType.SKILL),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: Boolean(!runId && scope == YDocScope.READ_WRITE),
+      editable: Boolean((!runId && scope == YDocScope.READ_WRITE) || isSkillInput),
     },
     [id, scope, synced]
   );
@@ -94,7 +97,7 @@ const Editor = ({ id, className }: EditorProps) => {
       <div className="mr-24 p-3 text-lg font-medium">
         <EditableNode id={id} className="w-full" />
       </div>
-      <div className="absolute right-2 top-2 flex gap-2">
+      <div className="absolute right-2 top-2 z-10 flex gap-2">
         <Button
           variant="outline"
           className="size-9 p-0 shadow"
@@ -109,17 +112,19 @@ const Editor = ({ id, className }: EditorProps) => {
           <Table strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="insert-table">Insert Table</Tooltip>
-        <Button
-          variant="outline"
-          className="size-9 p-0 shadow"
-          onClick={() => setNodeRepositoryVisible(true)}
-          draggable
-          data-tooltip-id="node-page-repo"
-          data-tooltip-place="bottom-end"
-          disabled={focus !== "editor"}
-        >
-          <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
-        </Button>
+        {parent.type === BackendEntityType.SPACE && (
+          <Button
+            variant="outline"
+            className="size-9 p-0 shadow"
+            onClick={() => setNodeRepositoryVisible(true)}
+            draggable
+            data-tooltip-id="node-page-repo"
+            data-tooltip-place="bottom-end"
+            disabled={focus !== "editor"}
+          >
+            <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
+          </Button>
+        )}
         <Tooltip id="node-page-repo">Node Repository</Tooltip>
         <Button
           variant="outline"
@@ -131,7 +136,7 @@ const Editor = ({ id, className }: EditorProps) => {
         >
           <X strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
-        <Tooltip id="node-page-close">Add Node</Tooltip>
+        <Tooltip id="node-page-close">Close Node Page</Tooltip>
       </div>
       <div className="mb-12 overflow-auto">
         <MenuBar editor={editor} />

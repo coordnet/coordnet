@@ -38,6 +38,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
     setNodesSelection,
     edgesSelection,
     setEdgesSelection,
+    inputNodes,
   } = useCanvas();
 
   // The onNodesChange callback updates nodesMap.
@@ -60,9 +61,16 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
             } else {
               newSelection.delete(change.id);
             }
-          } else if (node && change.type !== "remove" && scope == YDocScope.READ_WRITE) {
+          } else if (
+            node &&
+            change.type !== "remove" &&
+            (scope == YDocScope.READ_WRITE || inputNodes.includes(change.id))
+          ) {
             nodesMap.set(change.id, node);
-          } else if (change.type === "remove" && scope == YDocScope.READ_WRITE) {
+          } else if (
+            change.type === "remove" &&
+            (scope == YDocScope.READ_WRITE || inputNodes.includes(change.id))
+          ) {
             const deletedNode = nodesMap.get(change.id);
             nodesMap.delete(change.id);
             // when a node is removed, we also need to remove the connected edges
@@ -72,9 +80,16 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
           }
         }
       });
-      setNodesSelection(newSelection);
+      if (
+        !(
+          nodesSelection.size === newSelection.size &&
+          [...nodesSelection].every((x) => newSelection.has(x))
+        )
+      ) {
+        setNodesSelection(newSelection);
+      }
     },
-    [edgesMap, nodesMap, nodesSelection, parent.data]
+    [edgesMap, nodesMap, nodesSelection, scope, setNodesSelection]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(

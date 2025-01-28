@@ -94,7 +94,6 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
         }
         if (isResponseNode(canvas.nodes[key])) {
           baseTask.outputNode = canvas.nodes[key];
-          console.log("Found output node", baseTask.outputNode);
         } else {
           toast.error("The output node of a prompt must be a response node.");
           throw new Error("Output node must be a response node");

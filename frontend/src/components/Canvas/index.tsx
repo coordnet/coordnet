@@ -141,8 +141,6 @@ const Canvas = ({ className }: { className?: string }) => {
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("canvas")}>
       <Sidebar
         className="absolute top-1/2 z-40 -translate-y-1/2"
-        nodesMap={nodesMap!}
-        spaceMap={spaceMap!}
         takeSnapshot={takeSnapshot}
         onLayoutNodes={onLayoutNodes}
       />

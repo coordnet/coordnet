@@ -15,6 +15,7 @@ import useUser from "@/hooks/useUser";
 
 import ProfileDropdownButton from "./components/Profiles/ProfileDropdownButton";
 import SkillCard from "./components/Skills/SkillCard";
+import { title } from "./lib/utils";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -35,6 +36,10 @@ function Dashboard() {
   useEffect(() => {
     if (!userLoading && isGuest) window.location.href = "/auth/login";
   }, [isGuest, userLoading]);
+
+  useEffect(() => {
+    title("Dashboard");
+  }, []);
 
   const onCreateSkill = async () => {
     const response = await createSkill({});

@@ -378,7 +378,7 @@ export const SkillRunSchema = z.object({
   id: z.string(),
   space: z.null(),
   method: z.string(),
-  method_version: z.null(),
+  method_version: z.string().nullable(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
   method_data: z.record(z.string(), z.unknown()),
@@ -403,6 +403,7 @@ export const SkillVersionSchema = SkillSchema.pick({
 }).extend({
   method: z.string(),
   version: z.number(),
+  method_data: z.record(z.string(), z.unknown()),
 });
 export type SkillVersion = z.infer<typeof SkillVersionSchema>;
 

@@ -69,13 +69,13 @@ export const router = createBrowserRouter([
   },
   {
     // View a skill version (not owner)
-    path: "/skills/:skillId/version/:versionId/:pageId?",
+    path: "/skills/:skillId/versions/:versionId/:pageId?",
     element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },
   {
     // View a skill version run (not owner)
-    path: "/skills/:skillId/version/:versionId/:pageId?/runs/:runId?",
+    path: "/skills/:skillId/versions/:versionId/:pageId?/runs/:runId?",
     element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },

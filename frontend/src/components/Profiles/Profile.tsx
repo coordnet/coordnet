@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
 import { ChevronsRight, CircleUserRound, Edit, Orbit, Plus, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useUser from "@/hooks/useUser";
+import { title } from "@/lib/utils";
 
 import Loader from "../Loader";
 import SpaceSidebar from "../Spaces/Sidebar";
@@ -65,6 +66,10 @@ const Profile = ({ className }: { className?: string }) => {
     refetchInterval: false,
     retry: false,
   });
+
+  useEffect(() => {
+    if (username) title(`@${username}`);
+  }, [username]);
 
   const isSpace = Boolean(profile?.space);
   // const isUser = Boolean(profile?.user);

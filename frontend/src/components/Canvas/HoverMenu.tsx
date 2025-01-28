@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/menubar";
 import { nodeColors } from "@/constants";
 import { useCanvas, useQuickView, useYDoc } from "@/hooks";
-import { CanvasNode, NodeType, nodeTypeMap, YDocScope } from "@/types";
+import { BackendEntityType, CanvasNode, NodeType, nodeTypeMap, YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
 
@@ -34,6 +34,7 @@ const HoverMenu = ({
   const navigate = useNavigate();
 
   const canWrite = scope == YDocScope.READ_WRITE;
+  const isSkill = parent.type === BackendEntityType.SKILL;
   const { hasPage, hasCanvas } = nodeFeatures(id);
   const CanvasIcon = hasCanvas ? Share2 : GitBranchPlus;
 
@@ -156,29 +157,33 @@ const HoverMenu = ({
         </MenubarMenu>
       </Menubar>
       <Tooltip id="node-progress">Progress</Tooltip>
-      <div className="border-gray h-5 border-r"></div>
-      <Menubar unstyled>
-        <MenubarMenu>
-          <MenubarTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-auto p-0"
-              data-tooltip-id="node-type"
-              disabled={!canWrite}
-            >
-              <Tag className="size-4 cursor-pointer" />
-            </Button>
-          </MenubarTrigger>
-          <MenubarContent className="min-w-20">
-            {Object.values(NodeType).map((value) => (
-              <MenubarItem key={value} className="capitalize" onClick={() => setType(value)}>
-                {nodeTypeMap[value]}
-              </MenubarItem>
-            ))}
-          </MenubarContent>
-        </MenubarMenu>
-      </Menubar>
-      <Tooltip id="node-type">Type</Tooltip>
+      {isSkill && (
+        <>
+          <div className="border-gray h-5 border-r"></div>
+          <Menubar unstyled>
+            <MenubarMenu>
+              <MenubarTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-auto p-0"
+                  data-tooltip-id="node-type"
+                  disabled={!canWrite}
+                >
+                  <Tag className="size-4 cursor-pointer" />
+                </Button>
+              </MenubarTrigger>
+              <MenubarContent className="min-w-20">
+                {Object.values(NodeType).map((value) => (
+                  <MenubarItem key={value} className="capitalize" onClick={() => setType(value)}>
+                    {nodeTypeMap[value]}
+                  </MenubarItem>
+                ))}
+              </MenubarContent>
+            </MenubarMenu>
+          </Menubar>
+          <Tooltip id="node-type">Type</Tooltip>
+        </>
+      )}
     </div>
   );
 };

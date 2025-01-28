@@ -532,16 +532,8 @@ export const getSkillRuns = async (
   return response.data;
 };
 
-export const createSkillRun = async (data: {
-  skill: string;
-  json: SkillJson;
-  isDev: boolean;
-}): Promise<SkillRun> => {
-  const response = await api.post("api/nodes/method-runs/", {
-    method: data.skill,
-    method_data: data.json,
-    is_dev_run: data.isDev,
-  });
+export const createSkillRun = async (data: Partial<SkillRun>): Promise<SkillRun> => {
+  const response = await api.post("api/nodes/method-runs/", data);
   return response.data;
 };
 
@@ -558,6 +550,11 @@ export const getSkillVersions = async (
     signal,
     params: { method: id, limit: 10000 },
   });
+  return response.data;
+};
+
+export const getSkillVersion = async (id?: string): Promise<SkillVersion> => {
+  const response = await api.get(`api/nodes/method-versions/${id}/`);
   return response.data;
 };
 

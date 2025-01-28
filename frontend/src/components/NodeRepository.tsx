@@ -16,7 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFocus, useNodesContext, useQuickView } from "@/hooks";
+import { useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
 import { CanvasNode, NodeSearchResult } from "@/types";
 
 import { addNodeToCanvas } from "./Canvas/utils";
@@ -25,7 +25,8 @@ import { Button } from "./ui/button";
 type NodeProps = { className?: string };
 
 const NodeRepository = ({ className }: NodeProps) => {
-  const { parent, nodesMap: spaceNodesMap } = useNodesContext();
+  const { parent } = useYDoc();
+  const { nodesMap: spaceNodesMap } = useNodesContext();
   const { isQuickViewOpen, showQuickView } = useQuickView();
   const navigate = useNavigate();
   const { data: spaces, isLoading: spacesLoading } = useQuery({

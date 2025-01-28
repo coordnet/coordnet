@@ -43,16 +43,19 @@ const server = Server.configure({
   async onAuthenticate(data: onAuthenticatePayload) {
     const { documentName, token } = data;
 
-    const document_type = getDocumentType(documentName);
+    const documentType = getDocumentType(documentName);
+    if (!documentType) {
+      throw new Error(`Invalid document type for document '${documentName}'`);
+    }
     const public_id = cleanDocumentName(documentName);
 
     if (
-      document_type === "SPACE" ||
-      document_type === "CANVAS" ||
-      document_type === "EDITOR" ||
-      document_type === "SKILL"
+      documentType === "SPACE" ||
+      documentType === "CANVAS" ||
+      documentType === "EDITOR" ||
+      documentType === "SKILL"
     ) {
-      const model = modelMap[document_type];
+      const model = modelMap[documentType];
       const request = await backendRequest(
         `api/nodes/${model.endpoint}/${public_id}/?show_permissions=true`,
         token == "public" ? undefined : token,
@@ -91,24 +94,25 @@ const server = Server.configure({
   async onStoreDocument({ documentName, document }: onStoreDocumentPayload) {
     const data = Buffer.from(Y.encodeStateAsUpdate(document));
 
-    const document_type = getDocumentType(documentName);
+    const documentType = getDocumentType(documentName);
+    if (!documentType) {
+      throw new Error(`Invalid document type for document '${documentName}'`);
+    }
     const public_id = cleanDocumentName(documentName);
 
-    console.log("Storing document", documentName, document_type, public_id);
-
     let json: { [key: string]: { [key: string]: unknown } } = {};
-    if (document_type === "SPACE") {
+    if (documentType === "SPACE") {
       json = {
         nodes: document.getMap("nodes").toJSON(),
       };
-    } else if (document_type === "CANVAS") {
+    } else if (documentType === "CANVAS") {
       json = {
         nodes: document.getMap("nodes").toJSON(),
         edges: document.getMap("edges").toJSON(),
       };
-    } else if (document_type === "EDITOR") {
+    } else if (documentType === "EDITOR") {
       json = transformer.fromYdoc(document, "default");
-    } else if (document_type === "SKILL") {
+    } else if (documentType === "SKILL") {
       // Add all the maps and documents from the skill
       for (const key of document.share.keys()) {
         if (key.endsWith("-document")) {
@@ -118,7 +122,10 @@ const server = Server.configure({
         }
       }
     }
+
+    const document_type = modelMap[documentType].type;
     const columns = { data, json, updated_at: db.fn.now() };
+    console.log("Storing document", documentName, document_type, public_id);
     await db("nodes_document")
       .insert({
         public_id,

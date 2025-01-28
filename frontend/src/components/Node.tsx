@@ -3,13 +3,13 @@ import "./Editor/styles.css";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { FileText } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { ReactFlowProvider } from "reactflow";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { getSpaceProfile } from "@/api";
-import { CanvasProvider, useCanvas, useNodesContext } from "@/hooks";
+import { useYDoc } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { BackendEntityType } from "@/types";
 
@@ -21,22 +21,24 @@ import { Button } from "./ui/button";
 type NodeProps = { id: string; className?: string };
 
 const Node = ({ id, className }: NodeProps) => {
-  const { parent: spaceParent } = useNodesContext();
+  const {
+    parent,
+    canvas: { error, connected, synced },
+  } = useYDoc();
   const { isGuest } = useUser();
-  const { parent: canvasParent, error, connected, synced } = useCanvas();
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", spaceParent?.id],
-    queryFn: ({ signal }) => getSpaceProfile(signal, spaceParent?.id ?? ""),
-    enabled: !!spaceParent?.id,
+    queryKey: ["profile", parent?.id],
+    queryFn: ({ signal }) => getSpaceProfile(signal, parent?.id ?? ""),
+    enabled: !!parent?.id,
     retry: false,
   });
 
   if (error) return <ErrorPage error={error} />;
-  if (!synced || canvasParent.isLoading) return <Loader message="Loading canvas..." />;
+  if (!synced || parent.isLoading) return <Loader message="Loading canvas..." />;
   if (!connected) return <Loader message="Obtaining connection to canvas..." />;
 
   return (
@@ -61,10 +63,10 @@ const Node = ({ id, className }: NodeProps) => {
             data-tooltip-class-name="text-xs py-1"
           >
             {/* <EditableNode id={id} /> */}
-            {spaceParent.type === BackendEntityType.SPACE && (
+            {parent.type === BackendEntityType.SPACE && (
               <>
                 <img src={getProfileImage(profile)} className="mr-2 size-4 rounded-full" />
-                {spaceParent.data?.title}
+                {parent.data?.title}
               </>
             )}
           </Button>
@@ -87,14 +89,10 @@ const Node = ({ id, className }: NodeProps) => {
 };
 
 const NodeOuter = ({ id, ...props }: NodeProps) => {
-  const { spaceId } = useParams();
-
   return (
-    <CanvasProvider nodeId={id} spaceId={spaceId}>
-      <ReactFlowProvider>
-        <Node id={id} {...props} />
-      </ReactFlowProvider>
-    </CanvasProvider>
+    <ReactFlowProvider>
+      <Node id={id} {...props} />
+    </ReactFlowProvider>
   );
 };
 

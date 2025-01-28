@@ -12,14 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCanvas } from "@/hooks";
+import { useYDoc } from "@/hooks";
 import { BackendEntityType } from "@/types";
 
 import { formatSkillRunId } from "./utils";
 
 const SkillRunHistory = () => {
   const { runId } = useParams();
-  const { parent } = useCanvas();
+  const { parent } = useYDoc();
   const [open, setOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
 
@@ -52,7 +52,11 @@ const SkillRunHistory = () => {
           className="flex max-h-[125px] flex-col overflow-auto"
         >
           {[...runs.results].reverse().map((run) => (
-            <Link to={`/skills/${parent.id}/runs/${run.id}`} key={run.id} className="block">
+            <Link
+              to={`/skills/${parent.id}/${run.method_version ? `versions/${run.method_version}/` : ""}runs/${run.id}`}
+              key={run.id}
+              className="block"
+            >
               <DropdownMenuItem
                 key={run.id}
                 className={clsx(

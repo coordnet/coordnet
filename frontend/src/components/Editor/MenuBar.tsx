@@ -99,7 +99,7 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
           <Strikethrough className="size-4" strokeWidth={editor.isActive("strike") ? 3 : 2.5} />
         </button>
 
-        <div className="text-slate-400 px-1">|</div>
+        <div className="px-1 text-slate-400">|</div>
 
         <button
           onClick={() =>
@@ -109,7 +109,7 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
           {editor.isActive("link") ? <Link2Off className="size-4" /> : <Link2 className="size-4" />}
         </button>
 
-        <div className="text-slate-400 px-1">|</div>
+        <div className="px-1 text-slate-400">|</div>
 
         <button onClick={() => editor?.chain().focus().setParagraph().run()}>
           <RemoveFormatting className="size-4" />
@@ -130,7 +130,7 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
 
       {/* Conditionally Render Table Manipulation buttons */}
       {isInTable && (
-        <div className="flex flex-wrap gap-3 mt-0 border-t pt-2">
+        <div className="mt-0 flex flex-wrap gap-3 border-t pt-2">
           <button
             onClick={() => editor.chain().focus().addColumnBefore().run()}
             disabled={!editor.can().addColumnBefore()}
@@ -158,7 +158,7 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
             <TableColumnsSplit className="size-4" />
           </button>
           <Tooltip id="delete-column">Delete Column</Tooltip>
-          <div className="text-slate-400 px-1">|</div>
+          <div className="px-1 text-slate-400">|</div>
           <button
             onClick={() => editor.chain().focus().addRowBefore().run()}
             disabled={!editor.can().addRowBefore()}
@@ -186,7 +186,7 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
             <TableRowsSplit className="size-4" />
           </button>
           <Tooltip id="delete-row">Delete Row</Tooltip>
-          <div className="text-slate-400 px-1">|</div>
+          <div className="px-1 text-slate-400">|</div>
           <button
             onClick={() => editor.chain().focus().mergeOrSplit().run()}
             disabled={!editor.can().mergeOrSplit()}

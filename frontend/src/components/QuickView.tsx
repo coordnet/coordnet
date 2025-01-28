@@ -3,12 +3,12 @@ import { useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { Link, useParams } from "react-router-dom";
 
-import { useNodesContext } from "@/hooks";
+import { useYDoc } from "@/hooks";
 import useQuickView from "@/hooks/useQuickView";
 
 const QuickView = () => {
-  const { runId } = useParams();
-  const { parent } = useNodesContext();
+  const { runId, versionId } = useParams();
+  const { parent } = useYDoc();
   const { isQuickViewOpen, nodeId, closeQuickView } = useQuickView();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -46,7 +46,12 @@ const QuickView = () => {
           <iframe
             ref={iframeRef}
             className="size-full"
-            src={`/${parent.type}s/${parent.data?.id}/${nodeId}` + (runId ? `/runs/${runId}/` : "")}
+            src={
+              `/${parent.type}s/${parent.data?.id}/` +
+              (versionId ? `versions/${versionId}/` : "") +
+              nodeId +
+              (runId ? `/runs/${runId}/` : "")
+            }
           ></iframe>
         )}
 

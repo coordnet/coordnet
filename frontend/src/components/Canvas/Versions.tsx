@@ -9,7 +9,7 @@ import { format as formatTimeAgo } from "timeago.js";
 import * as Y from "yjs";
 
 import { api, getNodeVersions } from "@/api";
-import { useCanvas } from "@/hooks";
+import { useCanvas, useYDoc } from "@/hooks";
 import { CanvasEdge, CanvasNode, NodeVersion } from "@/types";
 
 import { Button } from "../ui/button";
@@ -20,7 +20,8 @@ const nodeTypes = { GraphNode: CanvasNodeComponent };
 const LIMIT = 10;
 
 const Versions = ({ className }: { className?: string }) => {
-  const { parent, nodesMap, edgesMap } = useCanvas();
+  const { parent } = useYDoc();
+  const { nodesMap, edgesMap } = useCanvas();
   const [currentPage, setCurrentPage] = useState(0);
   const [currentVersion, setCurrentVersion] = useState<NodeVersion>();
   const [currentVersionYdoc, setCurrentVersionYdoc] = useState<Y.Doc>();

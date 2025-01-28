@@ -46,7 +46,6 @@ const useConnectedDocument = (): YDocProviderReturn => {
       token,
       preserveConnection: false,
       onAuthenticationFailed(data) {
-        console.log(name, "data", data);
         setError(
           new CustomError({
             code: "ERR_PERMISSION_DENIED",

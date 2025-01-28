@@ -4,7 +4,7 @@ import { FocusEventHandler, forwardRef, useCallback, useEffect, useRef, useState
 import { mergeRefs } from "react-merge-refs";
 
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
-import { useNodesContext, useYDoc } from "@/hooks";
+import { useCanvas, useNodesContext, useYDoc } from "@/hooks";
 import { YDocScope } from "@/types";
 
 interface EditableNodeProps {
@@ -24,6 +24,9 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
     const inputRef = useRef<HTMLDivElement>(null);
 
     const node = nodes?.find((n) => n.id === id);
+
+    const { inputNodes } = useCanvas();
+    const isSkillInput = inputNodes.includes(id);
 
     useEffect(() => {
       if (!inputRef.current || isFocused) return;
@@ -77,7 +80,7 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
     return (
       <div
         ref={mergeRefs([inputRef, ref])}
-        contentEditable={scope == YDocScope.READ_WRITE && contentEditable}
+        contentEditable={(scope == YDocScope.READ_WRITE || isSkillInput) && contentEditable}
         onInput={onInput}
         onPaste={handlePaste}
         onKeyDown={(e) => {
