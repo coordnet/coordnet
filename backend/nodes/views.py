@@ -346,7 +346,7 @@ class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVers
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeVersion]":
-        if self.action == "retrieve":
+        if self.action == "list":
             return self.queryset.defer("method_data")
         return self.queryset
 

@@ -22,9 +22,10 @@ class MethodNodeVersionsTestCase(BaseTransactionTestCase):
         method = factories.MethodNodeFactory.create(owner=self.owner_user)
         method_version = factories.MethodNodeVersionFactory.create(method=method)
 
-        response = self.owner_client.get(
-            reverse("nodes:method-versions-detail", args=[method_version.public_id])
-        )
+        with self.assertNumQueries(3):
+            response = self.owner_client.get(
+                reverse("nodes:method-versions-detail", args=[method_version.public_id])
+            )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], str(method_version.public_id))
 
