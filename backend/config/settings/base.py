@@ -459,7 +459,7 @@ AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT", default=None)
 AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-preview")
 
 # Needed because the API is different for the these models.
-O1_MODELS = {"o1-preview", "o1-mini"}
+O1_MODELS = {"o1-preview", "o1-mini", "o1"}
 
 # API settings
 # ------------------------------------------------------------------------------
