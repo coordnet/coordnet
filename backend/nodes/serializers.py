@@ -172,6 +172,7 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
     image_thumbnail = serializers.ImageField(read_only=True)
     image_thumbnail_2x = serializers.ImageField(read_only=True)
     buddy = buddies.serializers.AvailableBuddyField(required=False, allow_null=True)
+    run_count = serializers.IntegerField(read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNode
@@ -182,6 +183,7 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
             "description_token_count",
             "has_subnodes",
             "creator",
+            "run_count",
         ]
 
         exclude = (utils.serializers.BaseSoftDeletableSerializer.Meta.exclude or []) + [
@@ -253,6 +255,7 @@ class MethodNodeVersionListSerializer(
 ):
     method_data = serializers.JSONField(required=True, write_only=True)
     method = AvailableMethodField(required=True)
+    run_count = serializers.IntegerField(read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNodeVersion
@@ -278,6 +281,7 @@ class MethodNodeVersionListSerializer(
             "search_vector",
             "version",
             "buddy",
+            "run_count",
         ]
 
     def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNodeVersion:

@@ -135,6 +135,9 @@ class MethodNodeModelViewSet(
                     "authors", queryset=users.models.User.objects.select_related("profile")
                 ),
             )
+            .annotate(
+                run_count=django_models.Count("runs", distinct=True),
+            )
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
 
@@ -351,9 +354,14 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
 class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVersion]):
     """API endpoint that allows method node versions to be viewed or edited."""
 
-    queryset = models.MethodNodeVersion.available_objects.select_related(
-        "method", "creator"
-    ).prefetch_related("authors")
+    queryset = (
+        models.MethodNodeVersion.available_objects.select_related("method", "creator")
+        .prefetch_related("authors")
+        .annotate(
+            run_count=django_models.Count("runs", distinct=True),
+        )
+    )
+
     serializer_class = serializers.MethodNodeVersionListSerializer
     filterset_class = filters.MethodNodeVersionFilterSet
     filter_backends = (
