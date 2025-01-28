@@ -137,6 +137,23 @@ class MethodNodeModelViewSet(
             )
         )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
+
+        if self.action == "retrieve":
+            latest_version_subquery = (
+                models.MethodNodeVersion.objects.filter(method=django_models.OuterRef("pk"))
+                .order_by("-version")
+                .values("public_id", "version")[:1]
+            )
+
+            return queryset.annotate(
+                latest_version__id=django_models.Subquery(
+                    latest_version_subquery.values("public_id")
+                ),
+                latest_version__version=django_models.Subquery(
+                    latest_version_subquery.values("version")
+                ),
+            )
+
         return queryset
 
     def get_serializer_class(self) -> type[serializers.MethodNodeListSerializer]:

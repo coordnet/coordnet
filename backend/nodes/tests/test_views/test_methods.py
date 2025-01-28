@@ -20,7 +20,8 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
     def test_retrieve(self) -> None:
         node = factories.MethodNodeFactory.create(creator=self.owner_user, owner=self.owner_user)
 
-        response = self.owner_client.get(reverse("nodes:methods-detail", args=[node.public_id]))
+        with self.assertNumQueries(2):
+            response = self.owner_client.get(reverse("nodes:methods-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], str(node.public_id))
 
@@ -92,7 +93,7 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
         response = self.viewer_client.get(reverse("nodes:methods-detail", args=[node.public_id]))
         self.assertEqual(response.status_code, 404)
 
-    def test_requesting_node_permissions(self):
+    def test_requesting_node_permissions(self) -> None:
         node = factories.MethodNodeFactory.create(owner=self.owner_user, viewer=self.viewer_user)
 
         response = self.owner_client.get(

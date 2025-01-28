@@ -208,7 +208,14 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
         return obj
 
 
+class MethodNodeDetailMethodNodeVersionSerializer(serializers.Serializer):
+    version = serializers.IntegerField(source="latest_version__version")
+    id = serializers.UUIDField(source="latest_version__id")
+
+
 class MethodNodeDetailSerializer(MethodNodeListSerializer):
+    latest_version = MethodNodeDetailMethodNodeVersionSerializer(read_only=True, source="*")
+
     def get_fields(self) -> dict[str, serializers.Field]:
         fields = super().get_fields()
         if self.context.get("request") and self.context["request"].query_params.get(
