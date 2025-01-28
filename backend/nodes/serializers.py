@@ -4,6 +4,7 @@ import uuid
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+import buddies.serializers
 import permissions.models
 import permissions.utils
 import profiles.serializers
@@ -170,6 +171,7 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
     image_2x = serializers.ImageField(read_only=True)
     image_thumbnail = serializers.ImageField(read_only=True)
     image_thumbnail_2x = serializers.ImageField(read_only=True)
+    buddy = buddies.serializers.AvailableBuddyField(required=False, allow_null=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNode
@@ -268,6 +270,7 @@ class MethodNodeVersionListSerializer(
             "image_original",
             "search_vector",
             "version",
+            "buddy",
         ]
 
     def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNodeVersion:
@@ -293,6 +296,7 @@ class MethodNodeVersionListSerializer(
         validated_data["space"] = method.space
         validated_data["image_original"] = method.image_original
         validated_data["search_vector"] = method.search_vector
+        validated_data["buddy"] = method.buddy
         return super().create(validated_data)
 
 

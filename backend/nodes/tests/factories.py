@@ -1,9 +1,9 @@
 import typing
 
-import factory
 import factory.fuzzy
 from factory.django import DjangoModelFactory
 
+import buddies.tests.factories as buddies_factories
 from nodes import models
 from permissions.tests.factories import BaseMembershipModelMixinFactory
 
@@ -96,6 +96,8 @@ class DocumentVersionFactory(DjangoModelFactory):
 
 
 class MethodeNodeFactory(NodeFactory):
+    buddy = factory.SubFactory(buddies_factories.BuddyFactory)
+
     class Meta:
         model = "nodes.MethodNode"
 

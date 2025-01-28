@@ -482,6 +482,7 @@ class MethodNode(permissions.models.MembershipModelMixin, Node):  # type: ignore
     forked_from = models.ForeignKey(
         "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True
     )
+    buddy = models.ForeignKey("buddies.Buddy", on_delete=models.SET_NULL, null=True, blank=True)
 
     # TODO: These might be better placed in another mixin class that combines membership with
     #       soft-deletability.
@@ -922,6 +923,7 @@ class MethodNodeVersion(BaseNode):
     method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="versions")
     version = models.PositiveSmallIntegerField()
     method_data = models.JSONField()
+    buddy = models.ForeignKey("buddies.Buddy", on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.method.public_id} - {self.version}"
