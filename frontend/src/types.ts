@@ -361,6 +361,12 @@ export const SkillSchema = z.object({
   subnodes: z.array(z.any()),
   authors: z.array(SubProfile),
   allowed_actions: z.array(AllowedActionsSchema),
+  latest_version: z.object({
+    version: z.number(),
+    id: z.string(),
+  }),
+  buddy: z.string(),
+  run_count: z.number(),
 });
 export type Skill = z.infer<typeof SkillSchema>;
 
@@ -371,6 +377,7 @@ export const SkillUpdateFormSchema = SkillSchema.pick({
   description: true,
   text: true,
   is_public: true,
+  buddy: true,
 });
 export type SkillUpdateForm = z.infer<typeof SkillUpdateFormSchema>;
 
@@ -400,6 +407,7 @@ export const SkillVersionSchema = SkillSchema.pick({
   creator: true,
   space: true,
   authors: true,
+  buddy: true,
 }).extend({
   method: z.string(),
   version: z.number(),

@@ -20,9 +20,9 @@ import useUser from "@/hooks/useUser";
 import { readOnlyEditor } from "@/lib/readOnlyEditor";
 import { LLMTokenCount } from "@/types";
 
+import Buddies from "../Buddies";
 import { addNodeToCanvas } from "../Canvas/utils";
 import { Button } from "../ui/button";
-import Buddies from "./Buddies";
 import Depth from "./Depth";
 import usePosition from "./usePosition";
 
@@ -224,7 +224,7 @@ const LLM = ({ id }: { id: string }) => {
                       border-blue-500"
                   ></div>
                 </div>
-                {buddy?.model == "o1-preview" && (
+                {buddy?.model == "o1" && (
                   <div className="mt-2 text-sm italic text-gray-3">
                     (o1 currently can&apos;t stream responses so it may take a moment to appear)
                   </div>
@@ -293,7 +293,15 @@ const LLM = ({ id }: { id: string }) => {
               <div className="line-clamp-1">{buddy?.name ?? "No Buddy"}</div>
             </div>
             <div className="mt-auto flex gap-3">
-              <Buddies className="mt-auto" />
+              <Buddies className="mt-auto">
+                <Button
+                  className="size-9 p-0 shadow-md"
+                  variant="outline"
+                  data-tooltip-id="llm-buddy"
+                >
+                  <Bot className="size-4" />
+                </Button>
+              </Buddies>
               <Button
                 className={clsx("size-9 p-0 shadow-md", llmSettingsOpen && "border-lilac")}
                 variant="outline"

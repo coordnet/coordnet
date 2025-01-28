@@ -144,7 +144,7 @@ const CreateBuddy = ({
               </FormItem>
             )}
           />
-          <div className="flex justify-between items-center pt-4">
+          <div className="flex items-center justify-between pt-4">
             <PopoverClose asChild>
               <Button variant="outline" className="text-sm font-bold">
                 Cancel
@@ -154,7 +154,7 @@ const CreateBuddy = ({
               <Button
                 variant="destructive"
                 size="sm"
-                className="text-sm font-bold ml-auto mr-4"
+                className="ml-auto mr-4 text-sm font-bold"
                 onClick={onBuddyDelete}
               >
                 Delete
@@ -162,9 +162,9 @@ const CreateBuddy = ({
             )}
             <Button
               type="submit"
-              className="text-sm font-bold bg-purple text-white hover:bg-purple/90"
+              className="bg-purple text-sm font-bold text-white hover:bg-purple/90"
             >
-              <Bot className="size-4 mr-1" /> {buddy ? "Update" : "Create"} Buddy
+              <Bot className="mr-1 size-4" /> {buddy ? "Update" : "Create"} Buddy
             </Button>
           </div>
         </form>

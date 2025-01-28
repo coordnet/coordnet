@@ -2,13 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Globe, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createSkillVersion, handleApiError, updateSkill, updateSkillImage } from "@/api";
 import { SheetClose, SheetContent } from "@/components/ui/sheet";
 import { useCanvas, useWindowDrag, useYDoc } from "@/hooks";
+import useBuddy from "@/hooks/useBuddy";
 import { BackendEntityType, NodeType, SkillUpdateForm, SkillUpdateFormSchema } from "@/types";
 
 import ImageUpload from "../Profiles/ImageUpload";
@@ -29,6 +30,7 @@ const SkillCanvasUpdate = ({
     parent,
     canvas: { YDoc },
   } = useYDoc();
+  const { buddyId } = useBuddy();
   const { nodes, inputNodes } = useCanvas();
   const isSkill = parent.type === BackendEntityType.SKILL;
 
@@ -46,16 +48,22 @@ const SkillCanvasUpdate = ({
     register,
     control,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<SkillUpdateForm>({
     resolver: zodResolver(SkillUpdateFormSchema),
     defaultValues: isSkill ? parent.data : {},
   });
 
+  useEffect(() => {
+    if (buddyId) setValue("buddy", buddyId);
+  }, [buddyId, setValue]);
+
   const onSubmit = async (data: SkillUpdateForm) => {
     const inputNode = nodes.find((n) => n.data?.type === NodeType.Input);
     const outputNode = nodes.find((n) => n.data?.type === NodeType.Output);
 
+    // TODO: Check the input and output nodes are attached to something
     if (!inputNode)
       return toast.error(
         "An Input node is required, please add to guide where the inputs should be attached to"

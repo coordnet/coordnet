@@ -21,7 +21,7 @@ import useBuddy from "@/hooks/useBuddy";
 
 import BuddyForm from "./BuddyForm";
 
-const Buddies = ({ className }: { className?: string }) => {
+const Buddies = ({ className, children }: { className?: string; children: React.ReactNode }) => {
   const [open, setOpen] = useState(false);
   const [buddyFormOpen, setBuddyFormOpen] = useState(false);
 
@@ -50,16 +50,15 @@ const Buddies = ({ className }: { className?: string }) => {
 
   return (
     <div className={clsx("", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button className="size-9 p-0 shadow-md" variant="outline" data-tooltip-id="llm-buddy">
-            <Bot className="size-4" />
-          </Button>
-        </PopoverTrigger>
+      <Popover open={open} onOpenChange={setOpen} modal={true}>
+        <PopoverTrigger asChild>{children}</PopoverTrigger>
         <PopoverContent align="end" className="p-0">
           <Command>
             {isLoading && (
-              <CommandPrimitive.Loading className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-white/60 z-50">
+              <CommandPrimitive.Loading
+                className="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center
+                  justify-center bg-white/60"
+              >
                 Loading…
               </CommandPrimitive.Loading>
             )}
@@ -81,10 +80,10 @@ const Buddies = ({ className }: { className?: string }) => {
                       setBuddyId(buddy.id);
                       setOpen(false);
                     }}
-                    className="text-gray-2"
+                    className="cursor-pointer text-gray-2"
                   >
                     <span className="font-medium">{buddy.name}</span>
-                    <span className="text-xs ml-1">
+                    <span className="ml-1 text-xs">
                       {buddy.model in buddyModels ? buddyModels[buddy.model] : "Unknown"}
                     </span>
                     <Button

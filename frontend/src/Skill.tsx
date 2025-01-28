@@ -7,7 +7,8 @@ import { Editor, Header, Loader, QuickView, Skill as SkillCanvas } from "@/compo
 import ErrorPage from "@/components/ErrorPage";
 import { CanvasProvider, NodesContextProvider, useNodesContext, useYDoc } from "@/hooks";
 
-import { getSkillVersions } from "./api";
+import { getSkillVersion } from "./api";
+import useBuddy from "./hooks/useBuddy";
 import { title } from "./lib/utils";
 import { BackendEntityType, YDocScope } from "./types";
 
@@ -20,17 +21,25 @@ const Skill = () => {
     space: { connected, synced, error },
   } = useYDoc();
   const { breadcrumbs, setBreadcrumbs } = useNodesContext();
+  const { setBuddyId } = useBuddy();
   const [nodePage] = useQueryParam<string>("nodePage");
 
   const skill = parent.type === BackendEntityType.SKILL ? parent?.data : undefined;
   const nodeId = pageId ?? skill?.id ?? "";
 
-  const { data: versions, isLoading: versionsLoading } = useQuery({
-    queryKey: ["skills", parent.id, "versions"],
-    queryFn: ({ signal }) => getSkillVersions(signal, parent?.id ?? ""),
-    enabled: Boolean(skill && scope == YDocScope.READ_ONLY),
-    initialData: { count: 0, next: "", previous: "", results: [] },
+  const { data: version } = useQuery({
+    queryKey: ["skills", parent.id, "versions", versionId],
+    queryFn: () => getSkillVersion(versionId ?? ""),
+    enabled: Boolean(versionId),
   });
+
+  useEffect(() => {
+    if (skill && !versionId && scope !== YDocScope.READ_WRITE) {
+      setBuddyId(skill.buddy);
+    } else if (skill && versionId && version) {
+      setBuddyId(version.buddy);
+    }
+  }, [skill, version, versionId, setBuddyId, scope]);
 
   useEffect(() => {
     if (skill) title(skill.title ?? "Untitled");
@@ -38,13 +47,10 @@ const Skill = () => {
 
   // Redirect to the latest version if no versionId is provided and the skill is read-only
   useEffect(() => {
-    if (scope == YDocScope.READ_ONLY && versions.count > 0 && !versionId && !runId) {
-      const latestVersion = versions.results.reduce((latest, current) =>
-        new Date(latest.updated_at) >= new Date(current.updated_at) ? latest : current
-      );
-      navigate(`/skills/${skillId}/versions/${latestVersion.id}`, { replace: true });
+    if (scope == YDocScope.READ_ONLY && skill?.latest_version.id && !versionId && !runId) {
+      navigate(`/skills/${skillId}/versions/${skill?.latest_version.id}`, { replace: true });
     }
-  }, [scope, versions, versionId, navigate, skillId, runId]);
+  }, [scope, skill, versionId, navigate, skillId, runId]);
 
   useEffect(() => {
     if (!skill) return;
@@ -81,7 +87,7 @@ const Skill = () => {
 
   return (
     <>
-      {(parent.isLoading || versionsLoading) && !error ? (
+      {parent.isLoading && !error ? (
         <Loader message="Loading skill..." className="z-60" />
       ) : !connected && !runId && !error ? (
         <Loader message="Obtaining connection for skill..." className="z-60" />

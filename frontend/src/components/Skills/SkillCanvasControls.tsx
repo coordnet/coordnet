@@ -1,8 +1,10 @@
+import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import { ArrowRight, Play, Settings, Settings2 } from "lucide-react";
+import { ArrowRight, Bot, ChevronRight, Cpu, Play, Settings, Settings2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
+import { toast } from "sonner";
 
 import { useRunSkill } from "@/components/Skills/running/useRunSkill";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,9 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
-import { useUser, useYDoc } from "@/hooks";
+import { useCanvas, useUser, useYDoc } from "@/hooks";
+import useBuddy from "@/hooks/useBuddy";
 import { BackendEntityType, YDocScope } from "@/types";
 
+import Buddies from "../Buddies";
 import ExecutionPlanRenderer from "../Canvas/ExecutionPlan";
 import { Button } from "../ui/button";
 import SkillCanvasUpdate from "./SkillCanvasUpdate";
@@ -26,9 +30,11 @@ import { formatSkillRunId } from "./utils";
 
 const SkillCanvasControls = () => {
   const { parent, scope } = useYDoc();
+  const { inputNodes } = useCanvas();
   const { isGuest } = useUser();
   const { runId, versionId } = useParams();
   const { runStatus, setRunStatus } = useRunSkill();
+  const { buddy } = useBuddy();
   const [planOpen, setPlanOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
@@ -95,13 +101,36 @@ const SkillCanvasControls = () => {
                   <Settings className="size-6" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => setPlanOpen(true)}>
+              <DropdownMenuContent align="end" className="text-neutral-700" sideOffset={8}>
+                <DropdownMenuLabel className="border-b border-b-neutral-100 p-2 text-sm font-medium">
+                  Skill Settings
+                </DropdownMenuLabel>
+                <DropdownMenuItem className="p-0" asChild>
+                  <Buddies>
+                    <button
+                      className="flex w-[180px] cursor-pointer items-center px-2 py-1.5 text-sm
+                        font-medium hover:bg-slate-50"
+                    >
+                      <Bot className="mr-2 size-4 flex-shrink-0 text-neutral-600" />
+                      Buddy
+                      <div
+                        className="ml-1 mr-1 overflow-hidden text-ellipsis whitespace-nowrap
+                          text-neutral-400"
+                        title={buddy?.name}
+                      >
+                        {buddy?.name}
+                      </div>
+                      <ChevronRight className="ml-auto size-4 flex-shrink-0 text-neutral-700" />
+                    </button>
+                  </Buddies>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex cursor-pointer items-center text-sm font-medium"
+                  onClick={() => setPlanOpen(true)}
+                >
+                  <Cpu className="mr-2 size-4 text-neutral-600" />
                   Show Analysis
                 </DropdownMenuItem>
-                <Tooltip id="run-canvas">
-                  Use this to remove highlighted state from nodes if processing was interrupted
-                </Tooltip>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
@@ -109,7 +138,15 @@ const SkillCanvasControls = () => {
 
         <div className="flex flex-col items-center gap-2">
           <SkillRunHistory />
-          <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/new`}>
+          <Link
+            to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/new`}
+            onClick={(e) => {
+              if (inputNodes.length === 0) {
+                e.preventDefault();
+                toast.error("Please add at least one input node to run the skill");
+              }
+            }}
+          >
             <Button
               className={clsx(
                 `flex h-16 items-center justify-center gap-2.5 rounded-full border py-4 pl-8 pr-6

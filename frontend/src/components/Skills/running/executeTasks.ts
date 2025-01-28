@@ -137,7 +137,7 @@ export const processTasks = async (
           try {
             // setNodesState(selectedIds, nodesMap, "executing");
             setNodesState([task.promptNode.id], nodesMap, "executing");
-            await executePromptTask(task, messages, skillDoc, cancelRef, skillNodesMap);
+            await executePromptTask(task, messages, skillDoc, cancelRef, skillNodesMap, buddy);
           } catch (e) {
             toast.error(`Failed to execute prompt task`);
             console.error(e);
@@ -156,10 +156,11 @@ export const executePromptTask = async (
   messages: ChatCompletionMessageParam[],
   skillDoc: Y.Doc,
   cancelRef: React.RefObject<boolean | null>,
-  spaceNodesMap: Y.Map<SpaceNode>
+  spaceNodesMap: Y.Map<SpaceNode>,
+  buddy: Buddy
 ) => {
   if (isTableResponseType(task.outputNode)) {
-    await executeTableTask(task, messages, skillDoc, cancelRef, spaceNodesMap);
+    await executeTableTask(task, messages, skillDoc, cancelRef, spaceNodesMap, buddy);
     return;
   }
 
@@ -174,7 +175,7 @@ export const executePromptTask = async (
     }
     const response = await client.chat.completions.create({
       messages,
-      model: "gpt-4o",
+      model: buddy.model,
       stream: false,
       response_model,
     });

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Play } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getProfileCardImage, getProfileImage } from "@/components/Profiles/utils";
@@ -48,11 +49,11 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
           <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
             @{skill.creator?.profile_slug}
           </span>
-          {/* <span>&middot;</span>
-                  <div className="flex items-center">
-                    <Play className="size-4 text-neutral-500 mr-1" />
-                    102k
-                  </div> */}
+          <span>&middot;</span>
+          <div className="mr-1 flex items-center">
+            <Play className="mr-0.5 size-3 text-neutral-500" />
+            {skill.run_count}
+          </div>
         </Link>
       )}
     </div>

@@ -5,7 +5,7 @@ import * as Y from "yjs";
 import { z, ZodString } from "zod";
 
 import { getSkillNodePageContent } from "@/lib/nodes";
-import { SpaceNode } from "@/types";
+import { Buddy, SpaceNode } from "@/types";
 
 import { client } from "./executeTasks";
 import { TableResponse, Task } from "./types";
@@ -16,7 +16,8 @@ export const executeTableTask = async (
   messages: ChatCompletionMessageParam[],
   skillDoc: Y.Doc,
   cancelRef: React.RefObject<boolean | null>,
-  spaceNodesMap: Y.Map<SpaceNode>
+  spaceNodesMap: Y.Map<SpaceNode>,
+  buddy: Buddy
 ) => {
   try {
     if (!task?.outputNode?.id) {
@@ -54,7 +55,7 @@ export const executeTableTask = async (
 
     const response = await client.chat.completions.create({
       messages,
-      model: "gpt-4o",
+      model: buddy.model,
       stream: false,
       response_model: { schema: TableSchema, name: "TableSchema" },
     });
