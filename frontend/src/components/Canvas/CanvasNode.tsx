@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { saveAs } from "file-saver";
-import { Loader2, LoaderIcon, PlusCircle } from "lucide-react";
+import { Check, ChevronDown, Loader2, LoaderIcon, PlusCircle } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
@@ -14,6 +14,13 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCanvas, useNodesContext, useQuickView, useUser, useYDoc } from "@/hooks";
 import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
 import { BackendEntityType, CanvasNode, NodeType, nodeTypeMap } from "@/types";
@@ -95,6 +102,11 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
     else setNodePage(id);
   };
 
+  const setType = (type: NodeType) => {
+    const node = nodesMap?.get(id);
+    if (node) nodesMap?.set(id, { ...node, data: { ...node?.data, type } });
+  };
+
   const onExportNode = async (includeSubNodes = false) => {
     toast.promise(exportNode(id, nodesMap, spaceMap, includeSubNodes), {
       loading: "Exporting...",
@@ -163,6 +175,53 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
             ref={nodeRef}
             onDoubleClick={onDoubleClick}
           >
+            {isSkill && isSkillWriter ? (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <div
+                    className="nodrag absolute left-0 top-0 m-1 flex h-3 max-w-[90px] cursor-pointer
+                      items-center rounded-full bg-violet-200 px-1.5 text-[8px] font-bold
+                      text-neutral-600"
+                  >
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                      {nodeTypeMap[data.type as NodeType] || "Default"}
+                    </div>
+                    <ChevronDown
+                      className="size-2 flex-shrink-0 pl-0.5 text-black"
+                      strokeWidth={4}
+                    />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="text-neutral-700" sideOffset={8}>
+                  <DropdownMenuLabel
+                    className="border-b border-b-neutral-100 p-2 text-sm font-semibold"
+                  >
+                    Node Type
+                  </DropdownMenuLabel>
+                  {Object.values(NodeType).map((value) => (
+                    <DropdownMenuItem
+                      key={value}
+                      className="flex cursor-pointer items-center text-sm font-medium capitalize
+                        text-neutral-700"
+                      onClick={() => setType(value)}
+                    >
+                      <div className="mr-1 size-5">
+                        {value == data.type ||
+                          (!data.type && value == "default" && <Check className="size-4" />)}
+                      </div>
+                      {nodeTypeMap[value]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              data?.type &&
+              data?.type !== NodeType.Default && (
+                <div className="absolute left-2 top-0 text-[10px]">
+                  {nodeTypeMap[data.type as NodeType]}
+                </div>
+              )
+            )}
             {canInput && (
               <>
                 <div
@@ -196,11 +255,6 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
                   </div>
                 </Tooltip>
               </>
-            )}
-            {data?.type && data?.type !== NodeType.Default && (
-              <div className="absolute left-2 top-0 text-[10px]">
-                {nodeTypeMap[data.type as NodeType]}
-              </div>
             )}
             {/* if domain is localhost show the id */}
             {window.location.hostname === "localhost" && (

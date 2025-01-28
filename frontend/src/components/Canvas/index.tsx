@@ -135,7 +135,7 @@ const Canvas = ({ className }: { className?: string }) => {
 
     document.addEventListener("keydown", keyDownHandler);
     return () => document.removeEventListener("keydown", keyDownHandler);
-  }, [focus]);
+  }, [focus, nodes, setNodesSelection]);
 
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("canvas")}>

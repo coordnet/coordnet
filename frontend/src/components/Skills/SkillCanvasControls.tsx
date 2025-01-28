@@ -1,9 +1,8 @@
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import { ArrowRight, Bot, ChevronRight, Cpu, Play, Settings, Settings2 } from "lucide-react";
+import { ArrowRight, Bot, ChevronRight, Cpu, Loader, Play, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Tooltip } from "react-tooltip";
 import { toast } from "sonner";
 
 import { useRunSkill } from "@/components/Skills/running/useRunSkill";
@@ -23,7 +22,6 @@ import Buddies from "../Buddies";
 import ExecutionPlanRenderer from "../Canvas/ExecutionPlan";
 import { Button } from "../ui/button";
 import SkillCanvasUpdate from "./SkillCanvasUpdate";
-import SkillPermissions from "./SkillPermissions";
 import SkillRunHistory from "./SkillRunHistory";
 import SkillVersions from "./SkillVersions";
 import { formatSkillRunId } from "./utils";
@@ -45,7 +43,24 @@ const SkillCanvasControls = () => {
     if (runId === "new")
       return (
         <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
-          Skill is running
+          <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
+            <Button
+              className={clsx(
+                `group h-16 w-[180px] rounded-full border border-neutral-200 bg-white py-4 pl-8 pr-6
+                text-xl font-medium text-violet-600 hover:bg-red-400 hover:text-white`
+              )}
+              variant="secondary"
+            >
+              <div className="flex items-center justify-center gap-2.5 group-hover:hidden">
+                Running
+                <Loader className="size-8 animate-spin-slow" />
+              </div>
+              <div className="hidden items-center justify-center gap-2.5 group-hover:flex">
+                Stop
+                <div className="ml-1 size-6 rounded-md border-2 border-white" />
+              </div>
+            </Button>
+          </Link>
         </div>
       );
     else
@@ -73,24 +88,6 @@ const SkillCanvasControls = () => {
       <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
         {scope == YDocScope.READ_WRITE && (
           <>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  className="flex h-16 items-center justify-center gap-2.5 rounded-full border
-                    border-neutral-200 bg-white px-5 py-4 text-xl font-medium text-neutral-500"
-                  variant="secondary"
-                  data-tooltip-id="permissions"
-                >
-                  <Settings2 className="size-6" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[430px] p-0">
-                {parent?.data?.id && (
-                  <SkillPermissions id={parent?.data?.id} key={parent?.data.id} />
-                )}
-              </DialogContent>
-            </Dialog>
-            <Tooltip id="permissions">Manage permissions</Tooltip>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -159,9 +156,7 @@ const SkillCanvasControls = () => {
               variant="secondary"
               disabled={runStatus === "running"}
             >
-              <div className="flex flex-col">
-                <span>Run</span>
-              </div>
+              Run
               <Play className="size-6" />
             </Button>
           </Link>

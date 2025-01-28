@@ -22,6 +22,7 @@ import {
   ProfileForm,
   SemanticScholarPaper,
   Skill,
+  SkillCreateForm,
   SkillJson,
   SkillRun,
   SkillUpdateForm,
@@ -499,13 +500,18 @@ export const getSkill = async (signal: AbortSignal | undefined, id?: string): Pr
   return response.data;
 };
 
-export const createSkill = async (data: Partial<Skill>): Promise<Skill> => {
+export const createSkill = async (data: Partial<SkillCreateForm>): Promise<Skill> => {
   const response = await api.post("api/nodes/methods/", data);
   return response.data;
 };
 
 export const updateSkill = async (id: string, data: SkillUpdateForm): Promise<Skill> => {
   const response = await api.patch(`api/nodes/methods/${id}/`, data);
+  return response.data;
+};
+
+export const deleteSkill = async (id: string): Promise<Skill> => {
+  const response = await api.delete(`api/nodes/methods/${id}/`);
   return response.data;
 };
 

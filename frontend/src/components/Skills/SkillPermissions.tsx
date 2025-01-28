@@ -4,38 +4,25 @@ import clsx from "clsx";
 import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 
-import { getPermissions } from "@/api";
-import { useYDoc } from "@/hooks";
+import { getPermissions, getSkill } from "@/api";
 import useUser from "@/hooks/useUser";
-import { BackendEntityType, PermissionModel } from "@/types";
+import { PermissionModel } from "@/types";
 
 import PermissionsList from "../Permissions/List";
 import Member from "../Permissions/Member";
 import { Button } from "../ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "../ui/dialog";
 
-const SkillPermissions = ({
-  id,
-  // setOpen,
-  className,
-}: {
-  id: string;
-  // setOpen: Dispatch<SetStateAction<boolean>>;
-  className?: string;
-}) => {
-  const { parent } = useYDoc();
-  const [memberOpen, setMemberOpen] = useState<boolean>(false);
-  // const queryClient = useQueryClient();
-  const { user, isLoading: userLoading } = useUser();
+const SkillPermissions = ({ id, className }: { id: string; className?: string }) => {
+  const { data: skill, isLoading } = useQuery({
+    queryKey: ["skills", id],
+    queryFn: ({ signal }: { signal: AbortSignal }) => getSkill(signal, id),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
-  // const {
-  //   data: space,
-  //   isLoading: spaceLoading,
-  //   isFetching,
-  // } = useQuery({
-  //   queryKey: ["spaces", id],
-  //   queryFn: ({ signal }) => getSpace(signal, id ?? ""),
-  // });
+  const [memberOpen, setMemberOpen] = useState<boolean>(false);
+  const { user, isLoading: userLoading } = useUser();
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: ["skills", id, "permissions"],
@@ -44,10 +31,7 @@ const SkillPermissions = ({
     initialData: [],
   });
 
-  if (!parent?.data || parent.type != BackendEntityType.SKILL) return null;
-  const skill = parent.data;
-
-  if (!id || !skill || permissionsLoading || userLoading)
+  if (!id || !skill || permissionsLoading || userLoading || isLoading)
     return (
       <div className="flex items-center justify-center p-8">
         Loading <Loader2 className="ml-3 size-4 animate-spin text-neutral-500" />

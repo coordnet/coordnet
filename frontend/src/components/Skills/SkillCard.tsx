@@ -1,22 +1,103 @@
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Play } from "lucide-react";
+import { Ellipsis, Play, Settings2, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { deleteSkill } from "@/api";
 import { getProfileCardImage, getProfileImage } from "@/components/Profiles/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skill } from "@/types";
 
+import SkillPermissions from "./SkillPermissions";
+
 const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) => {
+  const queryClient = useQueryClient();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const onDelete = async (id: string) => {
+    if (
+      window.confirm("Are you sure you want to delete this skill? This cannot be undone.") &&
+      id
+    ) {
+      await deleteSkill(id);
+      queryClient.invalidateQueries({ queryKey: ["skills"] });
+    }
+  };
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      setIsHovered(false);
+    }
+  }, [isDialogOpen, isMenuOpen]);
+
   return (
     <div
       className={clsx(
-        `relative flex h-full flex-col overflow-hidden rounded-lg border border-neutral-200
+        `group relative flex h-full flex-col overflow-hidden rounded-lg border border-neutral-200
         bg-white`,
         className
       )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
+      <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} modal={false}>
+        <DropdownMenuTrigger asChild>
+          <div
+            className={clsx(
+              `absolute right-2 top-2 size-5 cursor-pointer items-center justify-center rounded-md
+              bg-white`,
+              {
+                hidden: !(isHovered || isMenuOpen),
+                flex: isHovered || isMenuOpen,
+              }
+            )}
+          >
+            <Ellipsis className="size-3" />
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          className={clsx("rounded-md border border-neutral-200 bg-white shadow-lg", {
+            hidden: !(isHovered || isMenuOpen),
+            block: isHovered || isMenuOpen,
+          })}
+        >
+          <DropdownMenuItem
+            className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
+              hover:bg-gray-100"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <Settings2 className="mr-2 size-4" /> Manage Permissions
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="flex cursor-pointer items-center px-4 py-2 font-medium text-red-500
+              hover:bg-gray-100"
+            onClick={() => onDelete(skill.id)}
+          >
+            <Trash2 className="mr-2 size-4" /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="w-[430px] p-0">
+          {skill.id && <SkillPermissions id={skill.id} key={skill.id} />}
+        </DialogContent>
+      </Dialog>
+
       <Link to={`/skills/${skill.id}`}>
         <div
-          className={clsx("h-20 w-full bg-cover bg-center")}
+          className="h-20 w-full bg-cover bg-center"
           style={{ backgroundImage: `url("${getProfileCardImage(skill, true, true)}")` }}
         ></div>
         <div className="relative z-10 flex flex-1 flex-col gap-1 p-2">
@@ -34,6 +115,7 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
           </div>
         </div>
       </Link>
+
       {Boolean(skill.creator) && (
         <Link
           to={`/profiles/${skill.creator?.profile_slug}`}

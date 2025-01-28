@@ -154,8 +154,8 @@ export const useRunSkill = () => {
         if (!window.confirm("Are you sure you want to stop the run?")) {
           return true;
         }
+        cancelRef.current = true;
         stopRun();
-        setRunStatus("idle");
         return false;
       }
 
@@ -175,7 +175,6 @@ export const useRunSkill = () => {
     if (runId === "new" && !pageId && runStatus === "idle" && isYDocReady && nodes.length > 0) {
       runSkill();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId, pageId, isYDocReady, runStatus, nodes]);
 
   return { runSkill, stopRun, prepareExecutionPlan, resetRun, runStatus, setRunStatus };

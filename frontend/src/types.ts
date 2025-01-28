@@ -381,6 +381,11 @@ export const SkillUpdateFormSchema = SkillSchema.pick({
 });
 export type SkillUpdateForm = z.infer<typeof SkillUpdateFormSchema>;
 
+export const SkillCreateFormSchema = SkillSchema.pick({}).extend({
+  authors: z.array(z.string()),
+});
+export type SkillCreateForm = z.infer<typeof SkillCreateFormSchema>;
+
 export const SkillRunSchema = z.object({
   id: z.string(),
   space: z.null(),

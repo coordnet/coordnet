@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { ChevronsRight, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import { createSkill, getSkills, getSpaces } from "@/api";
 import { Loader } from "@/components";
@@ -21,6 +22,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const { user, isGuest, isLoading: userLoading, profile } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+
   const { data: spaces, isLoading: spacesLoading } = useQuery({
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
@@ -42,17 +44,17 @@ function Dashboard() {
   }, []);
 
   const onCreateSkill = async () => {
-    const response = await createSkill({});
+    if (!profile) return toast.error("Profile not found");
+    const response = await createSkill({ authors: [profile.id] });
     navigate(`/skills/${response.id}`);
+  };
+
+  const placeholderCount = (itemsCount: number) => {
+    return itemsCount < 3 ? 3 - itemsCount : 0;
   };
 
   if (userLoading || spacesLoading || skillsLoading || !profile)
     return <Loader message="Loading" />;
-
-  // if (!spaces || spaces.count === 0)
-  //   return <ErrorPage error={new CustomError({ code: "NO_SPACES", name: "", message: "" })} />;
-
-  // return <Navigate to={`/spaces/${spaces?.results[0].id}`} replace />;
 
   return (
     <div className={clsx("flex h-full w-full overflow-auto bg-profile-gradient pt-10")}>
@@ -69,17 +71,21 @@ function Dashboard() {
         </Sheet>
         <ProfileDropdownButton className="shadow-node-repo" />
       </div>
+
       <div
         className="absolute left-1/2 top-[211px] z-10 w-[60%] -translate-x-1/2 transform
           select-none"
       >
         <img src={shadowsBg} className="select-none" draggable="false" />
       </div>
+
       <div className="z-30 mx-auto mt-10 w-[90%] max-w-[640px] rounded-lg">
         <img src="/static/coordination-network-logo-bw.png" className="m-auto h-9" />
         <div className="my-16 text-center text-3xl font-normal">
-          Welcome back{profile?.title?.length ? ", " + profile?.title?.split(" ")[0] : ""}!
+          Welcome back
+          {profile?.title?.length ? ", " + profile?.title?.split(" ")[0] : ""}!
         </div>
+
         <div className="mb-3 flex items-center justify-between">
           <div className="text-xl font-medium leading-7 text-black">Skills</div>
           <Button
@@ -87,67 +93,76 @@ function Dashboard() {
             className="h-8 bg-violet-600 px-2 hover:bg-violet-700"
             onClick={onCreateSkill}
           >
-            <Plus className="mr-1 size-5" /> Create Skill
+            <Plus className="mr-1 size-5" /> Create a Skill
           </Button>
         </div>
-        {skills?.count === 0 ? (
-          <div className="py-5 text-center">No skills yet</div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
-            {skills?.results.map((skill) => (
-              <SkillCard key={`dashboard-skill-${skill.id}`} skill={skill} />
-            ))}
-          </div>
-        )}
+
+        <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
+          {skills?.results.map((skill) => (
+            <SkillCard key={`dashboard-skill-${skill.id}`} skill={skill} />
+          ))}
+
+          {Array.from({ length: placeholderCount(skills?.results.length ?? 0) }).map((_, idx) => (
+            <div
+              key={`skill-placeholder-${idx}`}
+              className="flex h-full min-h-[180px] rounded-lg border border-dashed
+                border-neutral-300"
+            ></div>
+          ))}
+        </div>
 
         <div className="mb-3 mt-14 flex items-center justify-between">
           <div className="text-xl font-medium leading-7 text-black">Spaces</div>
         </div>
-        {spaces?.count === 0 ? (
-          <div className="py-5 pb-20 text-center">No spaces yet</div>
-        ) : (
-          <div
-            className="grid grid-cols-1 gap-4 pb-20 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3"
-          >
-            {spaces?.results.map((space, i) => {
-              const spaceIcon = blockies
-                .create({ seed: space?.id, size: 10, scale: 20 })
-                .toDataURL();
 
-              return (
-                <Link to={`/spaces/${space.id}`} key={i}>
+        <div
+          className="grid grid-cols-1 gap-4 pb-20 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3"
+        >
+          {spaces?.results.map((space, i) => {
+            const spaceIcon = blockies.create({ seed: space?.id, size: 10, scale: 20 }).toDataURL();
+
+            return (
+              <Link to={`/spaces/${space.id}`} key={i}>
+                <div
+                  className={clsx(
+                    `relative flex h-full flex-col overflow-hidden rounded-lg border
+                    border-neutral-200 bg-white`
+                  )}
+                >
                   <div
-                    className={clsx(
-                      `relative flex h-full flex-col overflow-hidden rounded-lg border
-                        border-neutral-200 bg-white`
-                    )}
-                  >
+                    className={clsx("h-20 w-full bg-cover bg-center opacity-75")}
+                    style={{ backgroundImage: `url("${spaceIcon}")` }}
+                  ></div>
+                  <div className="relative z-10 flex flex-1 flex-col gap-1 p-2">
                     <div
-                      className={clsx("h-20 w-full bg-cover bg-center opacity-75")}
-                      style={{ backgroundImage: `url("${spaceIcon}")` }}
-                    ></div>
-                    <div className="relative z-10 flex flex-1 flex-col gap-1 p-2">
-                      <div
-                        className="inline-block w-fit rounded-[4px] bg-blue-50 px-2 py-1 text-[11px]
-                          font-medium leading-none text-neutral-500"
-                      >
-                        Space
-                      </div>
-                      <h2 className="line-clamp-2 text-sm font-bold leading-tight text-black">
-                        {space.title ?? "Untitled"}
-                      </h2>
-                      <div
-                        className="mt-auto line-clamp-2 py-0.5 text-xs font-normal text-neutral-500"
-                      >
-                        {space.node_count.toLocaleString()} node{space.node_count == 1 ? "" : "s"}
-                      </div>
+                      className="inline-block w-fit rounded-[4px] bg-blue-50 px-2 py-1 text-[11px]
+                        font-medium leading-none text-neutral-500"
+                    >
+                      Space
+                    </div>
+                    <h2 className="line-clamp-2 text-sm font-bold leading-tight text-black">
+                      {space.title ?? "Untitled"}
+                    </h2>
+                    <div
+                      className="mt-auto line-clamp-2 py-0.5 text-xs font-normal text-neutral-500"
+                    >
+                      {space.node_count.toLocaleString()} node
+                      {space.node_count === 1 ? "" : "s"}
                     </div>
                   </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+                </div>
+              </Link>
+            );
+          })}
+
+          {Array.from({ length: placeholderCount(spaces?.results.length ?? 0) }).map((_, idx) => (
+            <div
+              key={`skill-placeholder-${idx}`}
+              className="flex h-full min-h-[180px] rounded-lg border border-dashed
+                border-neutral-300"
+            ></div>
+          ))}
+        </div>
       </div>
     </div>
   );
