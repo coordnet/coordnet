@@ -137,7 +137,16 @@ export const processTasks = async (
           try {
             // setNodesState(selectedIds, nodesMap, "executing");
             setNodesState([task.promptNode.id], nodesMap, "executing");
-            await executePromptTask(task, messages, skillDoc, cancelRef, skillNodesMap, buddy);
+            await executePromptTask(
+              task,
+              messages,
+              skillDoc,
+              cancelRef,
+              skillNodesMap,
+              buddy,
+              context.outputNode,
+              task === tasks[tasks.length - 1]
+            );
           } catch (e) {
             toast.error(`Failed to execute prompt task`);
             console.error(e);
@@ -157,10 +166,21 @@ export const executePromptTask = async (
   skillDoc: Y.Doc,
   cancelRef: React.RefObject<boolean | null>,
   spaceNodesMap: Y.Map<SpaceNode>,
-  buddy: Buddy
+  buddy: Buddy,
+  outputNode: CanvasNode,
+  isLastTask: boolean
 ) => {
   if (isTableResponseType(task.outputNode)) {
-    await executeTableTask(task, messages, skillDoc, cancelRef, spaceNodesMap, buddy);
+    await executeTableTask(
+      task,
+      messages,
+      skillDoc,
+      cancelRef,
+      spaceNodesMap,
+      buddy,
+      outputNode,
+      isLastTask
+    );
     return;
   }
 
@@ -208,14 +228,13 @@ export const executePromptTask = async (
     if (cancelRef.current) return;
 
     if (isMultipleResponseNode(task.outputNode)) {
-      await addToSkillCanvas({ canvasId: task?.outputNode?.id ?? "", document: skillDoc, nodes });
+      [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
+        if (canvasId) await addToSkillCanvas({ canvasId, document: skillDoc, nodes });
+      });
     } else {
-      setSkillNodeTitleAndContent(
-        skillDoc,
-        task?.outputNode?.id ?? "",
-        nodes[0].title,
-        nodes[0].markdown
-      );
+      [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
+        if (id) await setSkillNodeTitleAndContent(skillDoc, id, nodes[0].title, nodes[0].markdown);
+      });
     }
   } catch (e) {
     console.error(e);

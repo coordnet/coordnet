@@ -273,7 +273,7 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
 
             {data?.type === NodeType.Input ? (
               "Input"
-            ) : data?.type === NodeType.Output ? (
+            ) : data?.type === NodeType.Output && spaceMap?.get(id)?.title == "New node" ? (
               "Output"
             ) : (
               <EditableNode

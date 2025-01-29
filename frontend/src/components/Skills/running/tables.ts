@@ -5,7 +5,7 @@ import * as Y from "yjs";
 import { z, ZodString } from "zod";
 
 import { getSkillNodePageContent } from "@/lib/nodes";
-import { Buddy, SpaceNode } from "@/types";
+import { Buddy, CanvasNode, SpaceNode } from "@/types";
 
 import { client } from "./executeTasks";
 import { TableResponse, Task } from "./types";
@@ -17,7 +17,9 @@ export const executeTableTask = async (
   skillDoc: Y.Doc,
   cancelRef: React.RefObject<boolean | null>,
   spaceNodesMap: Y.Map<SpaceNode>,
-  buddy: Buddy
+  buddy: Buddy,
+  outputNode: CanvasNode,
+  isLastTask: boolean
 ) => {
   try {
     if (!task?.outputNode?.id) {
@@ -125,10 +127,7 @@ export const executeTableTask = async (
         };
         headerCells.push(headerCell);
       }
-      const headerRow: JSONContent = {
-        type: "tableRow",
-        content: headerCells,
-      };
+      const headerRow: JSONContent = { type: "tableRow", content: headerCells };
       newTable.content?.push(headerRow);
       // Add data rows
       for (const rowData of extractedTableData.data || []) {
@@ -140,7 +139,9 @@ export const executeTableTask = async (
     }
 
     // Set the updated document as the node content
-    await setSkillNodePageContent(pageContent, task?.outputNode?.id ?? "", skillDoc);
+    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
+      if (id) await setSkillNodePageContent(pageContent, id, skillDoc);
+    });
   } catch (e) {
     console.error(e);
     toast.error("Error when calling LLM, check console for details");

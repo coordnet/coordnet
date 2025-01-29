@@ -1,7 +1,7 @@
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
 import { ArrowRight, Bot, ChevronRight, Cpu, Loader, Play, Settings } from "lucide-react";
-import { useState } from "react";
+import { MouseEvent, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -16,7 +16,7 @@ import {
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { useCanvas, useUser, useYDoc } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { BackendEntityType, YDocScope } from "@/types";
+import { BackendEntityType, NodeType, YDocScope } from "@/types";
 
 import Buddies from "../Buddies";
 import ExecutionPlanRenderer from "../Canvas/ExecutionPlan";
@@ -27,7 +27,7 @@ import SkillVersions from "./SkillVersions";
 
 const SkillCanvasControls = () => {
   const { parent, scope } = useYDoc();
-  const { inputNodes } = useCanvas();
+  const { inputNodes, nodes } = useCanvas();
   const { isGuest } = useUser();
   const { runId, versionId } = useParams();
   const { runStatus, setRunStatus } = useRunSkill();
@@ -35,6 +35,27 @@ const SkillCanvasControls = () => {
   const [planOpen, setPlanOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
+
+  const checkSkill = (e: MouseEvent) => {
+    const inputNode = nodes.find((node) => node.data.type === NodeType.Input);
+    const outputNode = nodes.find((node) => node.data.type === NodeType.Output);
+    if (!inputNode) {
+      e.preventDefault();
+      toast.error(
+        "This skill is missing an input node. Please add one to indicate where the input data should be added."
+      );
+    }
+    if (!outputNode) {
+      e.preventDefault();
+      toast.error(
+        "This skill is missing an output node. Please add one to indicate where the output should be written to."
+      );
+    }
+    if (inputNodes.length === 0) {
+      e.preventDefault();
+      toast.error("Please add at least one input node to run the skill");
+    }
+  };
 
   if (!isSkill || isGuest) return <></>;
 
@@ -151,12 +172,7 @@ const SkillCanvasControls = () => {
           <SkillRunHistory />
           <Link
             to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/new`}
-            onClick={(e) => {
-              if (inputNodes.length === 0) {
-                e.preventDefault();
-                toast.error("Please add at least one input node to run the skill");
-              }
-            }}
+            onClick={checkSkill}
           >
             <Button
               className={clsx(

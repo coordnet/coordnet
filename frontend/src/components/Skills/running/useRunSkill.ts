@@ -7,7 +7,7 @@ import { createSkillRun } from "@/api";
 import { skillYdocToJson } from "@/components/Skills/utils";
 import { useCanvas, useNodesContext, useYDoc } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { BackendEntityType, Skill, YDocScope } from "@/types";
+import { BackendEntityType, NodeType, Skill, YDocScope } from "@/types";
 
 import { createTasks } from "./createTasks";
 import { processTasks } from "./executeTasks";
@@ -57,9 +57,15 @@ export const useRunSkill = () => {
         return { status: "error" };
       }
 
+      const outputNode = nodes.find((node) => node.data.type === NodeType.Output);
+      if (!outputNode) {
+        console.error("Output node not found");
+        return { status: "error" };
+      }
+
       // Prepare the canvas + context
       const canvas = createCanvas(nodes, edges);
-      const context: ExecutionContext = { taskList: [], responses: {} };
+      const context: ExecutionContext = { taskList: [], responses: {}, outputNode };
       createTasks(canvas, context);
 
       // Process the tasks
@@ -138,8 +144,14 @@ export const useRunSkill = () => {
       toast.error("Buddy not set, cannot prepare plan");
       return;
     }
+    const outputNode = nodes.find((node) => node.data.type === NodeType.Output);
+    if (!outputNode) {
+      toast.error("Output node not found");
+      return;
+    }
+
     const canvas = createCanvas(nodes, edges);
-    const context: ExecutionContext = { taskList: [], responses: {} };
+    const context: ExecutionContext = { taskList: [], responses: {}, outputNode };
     createTasks(canvas, context);
 
     return processTasks(context, buddy, spaceYDoc, skill, skillNodesMap, nodesMap, cancelRef, true);

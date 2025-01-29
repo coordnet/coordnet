@@ -21,6 +21,7 @@ export interface Task {
 export interface ExecutionContext {
   taskList: Task[];
   responses: { [nodeId: string]: string };
+  outputNode: CanvasNode;
 }
 
 export const SingleNodeSchema = z
