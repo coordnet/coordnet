@@ -226,13 +226,13 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
               <>
                 <div
                   className="absolute -top-[11px] size-6 cursor-pointer rounded-full bg-white"
-                  data-tooltip-id="add-node"
+                  data-tooltip-id="skill-add-input"
                   data-tooltip-place="top"
                   onClick={() => addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes)}
                 >
                   <PlusCircle className="size-6 text-blue-light" />
                 </div>
-                <Tooltip id="add-node">Add input</Tooltip>
+                <Tooltip id="skill-add-input">Add input</Tooltip>
               </>
             )}
             {data?.syncing && (

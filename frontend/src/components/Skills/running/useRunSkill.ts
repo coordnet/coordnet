@@ -22,7 +22,7 @@ interface RunResult {
 }
 
 export const useRunSkill = () => {
-  const { runId, pageId, versionId } = useParams();
+  const { skillId, runId, pageId, versionId } = useParams();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { parent, scope } = useYDoc();
@@ -80,8 +80,12 @@ export const useRunSkill = () => {
   const runSkill = useCallback(async () => {
     if (runStatus === "running") return;
 
-    if (!buddy) return toast.error("You need to set a Buddy to run a skill");
-    if (!skill) return toast.error("Skill not found");
+    if (!buddy || !skill) {
+      if (!buddy) toast.error("You need to set a Buddy to run a skill");
+      if (!skill) toast.error("Skill not found");
+      navigate(`/skills/${skillId}${versionId ? `/versions/${versionId}` : ""}`);
+      return;
+    }
 
     setRunStatus("running");
     cancelRef.current = false;
@@ -172,10 +176,17 @@ export const useRunSkill = () => {
   }, [resetRun]);
 
   useEffect(() => {
-    if (runId === "new" && !pageId && runStatus === "idle" && isYDocReady && nodes.length > 0) {
+    if (
+      runId === "new" &&
+      !pageId &&
+      runStatus === "idle" &&
+      isYDocReady &&
+      nodes.length > 0 &&
+      buddy
+    ) {
       runSkill();
     }
-  }, [runId, pageId, isYDocReady, runStatus, nodes]);
+  }, [runId, pageId, isYDocReady, runStatus, nodes, buddy]);
 
   return { runSkill, stopRun, prepareExecutionPlan, resetRun, runStatus, setRunStatus };
 };

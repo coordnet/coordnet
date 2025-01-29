@@ -24,7 +24,6 @@ import { Button } from "../ui/button";
 import SkillCanvasUpdate from "./SkillCanvasUpdate";
 import SkillRunHistory from "./SkillRunHistory";
 import SkillVersions from "./SkillVersions";
-import { formatSkillRunId } from "./utils";
 
 const SkillCanvasControls = () => {
   const { parent, scope } = useYDoc();
@@ -70,9 +69,24 @@ const SkillCanvasControls = () => {
             <SkillVersions readOnly />
           </div>
           <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
-            Viewing run {formatSkillRunId(runId)} - go back to{" "}
-            <Link to={`/skills/${parent.id}`}>edit</Link>?
-            <SkillRunHistory />
+            <div className="flex flex-col items-center gap-2">
+              <SkillRunHistory />
+              <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
+                <Button
+                  className={clsx(
+                    `flex h-16 items-center justify-center gap-2.5 rounded-full border py-4 pl-8
+                    pr-6 text-xl font-medium`,
+                    scope == YDocScope.READ_ONLY &&
+                      "border-violet-600 bg-violet-600 text-white hover:bg-violet-700",
+                    scope == YDocScope.READ_WRITE && "border-neutral-200 bg-white text-neutral-500"
+                  )}
+                  variant="secondary"
+                >
+                  New Run
+                  <Play className="size-6" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </>
       );

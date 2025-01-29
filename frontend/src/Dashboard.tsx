@@ -111,58 +111,68 @@ function Dashboard() {
           ))}
         </div>
 
-        <div className="mb-3 mt-14 flex items-center justify-between">
-          <div className="text-xl font-medium leading-7 text-black">Spaces</div>
-        </div>
+        {Boolean(spaces?.count && spaces?.count > 0) && (
+          <>
+            <div className="mb-3 mt-14 flex items-center justify-between">
+              <div className="text-xl font-medium leading-7 text-black">Spaces</div>
+            </div>
 
-        <div
-          className="grid grid-cols-1 gap-4 pb-20 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3"
-        >
-          {spaces?.results.map((space, i) => {
-            const spaceIcon = blockies.create({ seed: space?.id, size: 10, scale: 20 }).toDataURL();
-
-            return (
-              <Link to={`/spaces/${space.id}`} key={i}>
-                <div
-                  className={clsx(
-                    `relative flex h-full flex-col overflow-hidden rounded-lg border
-                    border-neutral-200 bg-white`
-                  )}
-                >
-                  <div
-                    className={clsx("h-20 w-full bg-cover bg-center opacity-75")}
-                    style={{ backgroundImage: `url("${spaceIcon}")` }}
-                  ></div>
-                  <div className="relative z-10 flex flex-1 flex-col gap-1 p-2">
-                    <div
-                      className="inline-block w-fit rounded-[4px] bg-blue-50 px-2 py-1 text-[11px]
-                        font-medium leading-none text-neutral-500"
-                    >
-                      Space
-                    </div>
-                    <h2 className="line-clamp-2 text-sm font-bold leading-tight text-black">
-                      {space.title ?? "Untitled"}
-                    </h2>
-                    <div
-                      className="mt-auto line-clamp-2 py-0.5 text-xs font-normal text-neutral-500"
-                    >
-                      {space.node_count.toLocaleString()} node
-                      {space.node_count === 1 ? "" : "s"}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-
-          {Array.from({ length: placeholderCount(spaces?.results.length ?? 0) }).map((_, idx) => (
             <div
-              key={`skill-placeholder-${idx}`}
-              className="flex h-full min-h-[180px] rounded-lg border border-dashed
-                border-neutral-300"
-            ></div>
-          ))}
-        </div>
+              className="grid grid-cols-1 gap-4 pb-20 min-[480px]:grid-cols-2
+                min-[640px]:grid-cols-3"
+            >
+              {spaces?.results.map((space, i) => {
+                const spaceIcon = blockies
+                  .create({ seed: space?.id, size: 10, scale: 20 })
+                  .toDataURL();
+
+                return (
+                  <Link to={`/spaces/${space.id}`} key={i}>
+                    <div
+                      className={clsx(
+                        `relative flex h-full flex-col overflow-hidden rounded-lg border
+                        border-neutral-200 bg-white`
+                      )}
+                    >
+                      <div
+                        className={clsx("h-20 w-full bg-cover bg-center opacity-75")}
+                        style={{ backgroundImage: `url("${spaceIcon}")` }}
+                      ></div>
+                      <div className="relative z-10 flex flex-1 flex-col gap-1 p-2">
+                        <div
+                          className="inline-block w-fit rounded-[4px] bg-blue-50 px-2 py-1
+                            text-[11px] font-medium leading-none text-neutral-500"
+                        >
+                          Space
+                        </div>
+                        <h2 className="line-clamp-2 text-sm font-bold leading-tight text-black">
+                          {space.title ?? "Untitled"}
+                        </h2>
+                        <div
+                          className="mt-auto line-clamp-2 py-0.5 text-xs font-normal
+                            text-neutral-500"
+                        >
+                          {space.node_count.toLocaleString()} node
+                          {space.node_count === 1 ? "" : "s"}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+
+              {Array.from({ length: placeholderCount(spaces?.results.length ?? 0) }).map(
+                (_, idx) => (
+                  <div
+                    key={`skill-placeholder-${idx}`}
+                    className="flex h-full min-h-[180px] rounded-lg border border-dashed
+                      border-neutral-300"
+                  ></div>
+                )
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
