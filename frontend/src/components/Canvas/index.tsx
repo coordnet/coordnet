@@ -99,9 +99,17 @@ const Canvas = ({ className }: { className?: string }) => {
   const onConnectWithUndo: OnConnect = useCallback(
     (params) => {
       takeSnapshot();
-      onConnect(params);
+      const selectedNodes = nodes.filter((node) => node.selected);
+
+      if (selectedNodes.length > 0) {
+        selectedNodes.forEach((node) => {
+          onConnect({ ...params, source: node.id });
+        });
+      } else {
+        onConnect(params);
+      }
     },
-    [onConnect, takeSnapshot]
+    [nodes, onConnect, takeSnapshot]
   );
 
   const onLayoutNodes = useCallback(async () => {
