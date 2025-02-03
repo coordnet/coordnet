@@ -8,7 +8,6 @@ from django import http
 from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, parsers, response
-from rest_framework.decorators import action
 
 import permissions.managers
 import permissions.models
@@ -26,9 +25,7 @@ if typing.TYPE_CHECKING:
     from rest_framework import request
 
 
-@extend_schema(
-    tags=["Nodes"],
-)
+@extend_schema(tags=["Nodes"])
 @extend_schema_view(
     list=extend_schema(
         description="List available nodes.",
@@ -93,7 +90,11 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
             return serializers.NodeDetailSerializer
         return self.serializer_class
 
-    @action(
+    @extend_schema(
+        description="Upload one or more images for a node.",
+        summary="Upload images",
+    )
+    @decorators.action(
         detail=True,
         methods=["post"],
         url_path="upload-images",
@@ -109,6 +110,20 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
         return response.Response({"status": "success"})
 
 
+@extend_schema(tags=["Skills"])
+@extend_schema_view(
+    create=extend_schema(description="Create a new skill.", summary="Create skill"),
+    list=extend_schema(
+        description="List available skills.",
+        summary="List skills",
+    ),
+    retrieve=extend_schema(description="Retrieve a single skill.", summary="Retrieve a skill"),
+    update=extend_schema(description="Update a skill.", summary="Update skill"),
+    partial_update=extend_schema(
+        description="Partially update a skill.", summary="Partial update skill"
+    ),
+    destroy=extend_schema(description="Delete a skill.", summary="Delete skill"),
+)
 class MethodNodeModelViewSet(
     views.BaseModelViewSet[models.MethodNode],
     permissions.views.PermissionViewSetMixin[models.MethodNode],
@@ -164,7 +179,11 @@ class MethodNodeModelViewSet(
             return serializers.MethodNodeDetailSerializer
         return self.serializer_class
 
-    @action(
+    @extend_schema(
+        description="Upload one or more images for a skill.",
+        summary="Upload images",
+    )
+    @decorators.action(
         detail=True,
         methods=["post"],
         url_path="upload-images",
@@ -180,9 +199,7 @@ class MethodNodeModelViewSet(
         return response.Response({"status": "success"})
 
 
-@extend_schema(
-    tags=["Spaces"],
-)
+@extend_schema(tags=["Spaces"])
 @extend_schema_view(
     create=extend_schema(description="Create a new space.", summary="Create space"),
     list=extend_schema(description="List available spaces.", summary="List spaces"),
@@ -217,9 +234,7 @@ class SpaceModelViewSet(
         space.members.create(user=self.request.user, role=permissions.utils.get_owner_role())
 
 
-@extend_schema(
-    tags=["Nodes"],
-)
+@extend_schema(tags=["Nodes"])
 @extend_schema_view(
     list=extend_schema(description="List available node versions.", summary="List node versions"),
     retrieve=extend_schema(
@@ -251,9 +266,7 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
         return http.HttpResponse(document_version.data, content_type="application/octet-stream")
 
 
-@extend_schema(
-    tags=["Nodes"],
-)
+@extend_schema(tags=["Nodes"])
 class SearchView(generics.ListAPIView):
     """API endpoint that allows searching for nodes."""
 
@@ -326,6 +339,23 @@ class SearchView(generics.ListAPIView):
         return response.Response(serializer.data)
 
 
+@extend_schema(tags=["Skills"])
+@extend_schema_view(
+    create=extend_schema(description="Create a new skill run.", summary="Create skill run"),
+    list=extend_schema(
+        description="List available skill runs.",
+        summary="List skill runs",
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a single skill run.",
+        summary="Retrieve a skill run",
+    ),
+    update=extend_schema(description="Update a skill run.", summary="Update skill run"),
+    partial_update=extend_schema(
+        description="Partially update a skill run.", summary="Partial update skill run"
+    ),
+    destroy=extend_schema(description="Delete a skill run.", summary="Delete skill run"),
+)
 class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
     """API endpoint that allows method node runs to be viewed or edited."""
 
@@ -351,6 +381,23 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         return self.serializer_class
 
 
+@extend_schema(tags=["Skills"])
+@extend_schema_view(
+    create=extend_schema(description="Create a new skill version.", summary="Create skill version"),
+    list=extend_schema(
+        description="List available skill versions.",
+        summary="List skill versions",
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a single skill version.",
+        summary="Retrieve a skill version",
+    ),
+    update=extend_schema(description="Update a skill version.", summary="Update skill version"),
+    partial_update=extend_schema(
+        description="Partially update a skill version.", summary="Partial update skill version"
+    ),
+    destroy=extend_schema(description="Delete a skill version.", summary="Delete skill version"),
+)
 class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVersion]):
     """API endpoint that allows method node versions to be viewed or edited."""
 

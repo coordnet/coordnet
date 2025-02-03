@@ -545,6 +545,662 @@ paths:
           description: No response body
         '500':
           description: No response body
+  /api/nodes/method-runs/:
+    get:
+      operationId: nodes_method_runs_list
+      description: List available skill runs.
+      summary: List skill runs
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: method
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: space
+        schema:
+          type: integer
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMethodNodeRunListList'
+          description: ''
+    post:
+      operationId: nodes_method_runs_create
+      description: Create a new skill run.
+      summary: Create skill run
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeRunList'
+          description: ''
+  /api/nodes/method-runs/{public_id}/:
+    get:
+      operationId: nodes_method_runs_retrieve
+      description: Retrieve a single skill run.
+      summary: Retrieve a skill run
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeRunDetail'
+          description: ''
+    put:
+      operationId: nodes_method_runs_update
+      description: Update a skill run.
+      summary: Update skill run
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeRunList'
+          description: ''
+    patch:
+      operationId: nodes_method_runs_partial_update
+      description: Partially update a skill run.
+      summary: Partial update skill run
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeRunList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeRunList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeRunList'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeRunList'
+          description: ''
+    delete:
+      operationId: nodes_method_runs_destroy
+      description: Delete a skill run.
+      summary: Delete skill run
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/nodes/method-versions/:
+    get:
+      operationId: nodes_method_versions_list
+      description: List available skill versions.
+      summary: List skill versions
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: method
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMethodNodeVersionListList'
+          description: ''
+    post:
+      operationId: nodes_method_versions_create
+      description: Create a new skill version.
+      summary: Create skill version
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeVersionList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeVersionList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeVersionList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeVersionList'
+          description: ''
+  /api/nodes/method-versions/{public_id}/:
+    get:
+      operationId: nodes_method_versions_retrieve
+      description: Retrieve a single skill version.
+      summary: Retrieve a skill version
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeVersionDetail'
+          description: ''
+    put:
+      operationId: nodes_method_versions_update
+      description: Update a skill version.
+      summary: Update skill version
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeVersionList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeVersionList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeVersionList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeVersionList'
+          description: ''
+    patch:
+      operationId: nodes_method_versions_partial_update
+      description: Partially update a skill version.
+      summary: Partial update skill version
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeVersionList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeVersionList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeVersionList'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeVersionList'
+          description: ''
+    delete:
+      operationId: nodes_method_versions_destroy
+      description: Delete a skill version.
+      summary: Delete skill version
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/nodes/methods/:
+    get:
+      operationId: nodes_methods_list
+      description: List available skills.
+      summary: List skills
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMethodNodeListList'
+          description: ''
+    post:
+      operationId: nodes_methods_create
+      description: Create a new skill.
+      summary: Create skill
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeList'
+          description: ''
+  /api/nodes/methods/{public_id}/:
+    get:
+      operationId: nodes_methods_retrieve
+      description: Retrieve a single skill.
+      summary: Retrieve a skill
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeDetail'
+          description: ''
+    put:
+      operationId: nodes_methods_update
+      description: Update a skill.
+      summary: Update skill
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeList'
+          description: ''
+    patch:
+      operationId: nodes_methods_partial_update
+      description: Partially update a skill.
+      summary: Partial update skill
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMethodNodeList'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeList'
+          description: ''
+    delete:
+      operationId: nodes_methods_destroy
+      description: Delete a skill.
+      summary: Delete skill
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/nodes/methods/{public_id}/permissions/:
+    get:
+      operationId: nodes_methods_permissions_list
+      description: List all object permissions
+      summary: List object permissions
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedObjectPermissionModelList'
+          description: ''
+        '404':
+          description: No response body
+    post:
+      operationId: nodes_methods_permissions_create
+      description: Create a new object permission
+      summary: Create object permission
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectPermissionModel'
+          description: ''
+        '404':
+          description: No response body
+  /api/nodes/methods/{public_id}/permissions/{permission_uuid}/:
+    delete:
+      operationId: nodes_methods_permissions_destroy
+      description: Delete an object permission
+      summary: Delete object permission
+      parameters:
+      - in: path
+        name: permission_uuid
+        schema:
+          type: string
+          format: uuid
+        description: UUID of the permission to delete
+        required: true
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          description: No response body
+  /api/nodes/methods/{public_id}/upload-images/:
+    post:
+      operationId: nodes_methods_upload_images_create
+      description: Upload one or more images for a skill.
+      summary: Upload images
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeList'
+          description: ''
   /api/nodes/nodes/:
     get:
       operationId: nodes_nodes_list
@@ -611,6 +1267,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/NodeDetail'
           description: ''
+  /api/nodes/nodes/{public_id}/upload-images/:
+    post:
+      operationId: nodes_nodes_upload_images_create
+      description: Upload one or more images for a node.
+      summary: Upload images
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NodeList'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeList'
+          description: ''
   /api/nodes/search/:
     get:
       operationId: nodes_search_list
@@ -623,6 +1308,17 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: node_type
+        schema:
+          enum:
+          - METHOD
+          - DEFAULT
+          type: string
+          minLength: 1
+        description: |-
+          * `METHOD` - Method
+          * `DEFAULT` - Default
       - name: offset
         required: false
         in: query
@@ -949,11 +1645,13 @@ paths:
           enum:
           - EDITOR
           - GRAPH
+          - METHOD
           - SPACE
         description: |-
           * `EDITOR` - Editor
           * `SPACE` - Space
           * `GRAPH` - Graph
+          * `METHOD` - Method Graph
       - name: limit
         required: false
         in: query
@@ -1031,6 +1729,397 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DocumentVersion'
+          description: ''
+  /api/profiles/profile-cards/:
+    get:
+      operationId: profiles_profile_cards_list
+      description: List available profile cards.
+      summary: List profile cards
+      parameters:
+      - in: query
+        name: draft
+        schema:
+          type: boolean
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: profiles
+        schema:
+          type: integer
+      tags:
+      - Profiles
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProfileCardList'
+          description: ''
+    post:
+      operationId: profiles_profile_cards_create
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCard'
+          description: ''
+  /api/profiles/profile-cards/{public_id}/:
+    get:
+      operationId: profiles_profile_cards_retrieve
+      description: Retrieve a single profile card.
+      summary: Retrieve a profile card
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCard'
+          description: ''
+    put:
+      operationId: profiles_profile_cards_update
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCard'
+          description: ''
+    patch:
+      operationId: profiles_profile_cards_partial_update
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileCard'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCard'
+          description: ''
+    delete:
+      operationId: profiles_profile_cards_destroy
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/profiles/profile-cards/{public_id}/upload-images/:
+    post:
+      operationId: profiles_profile_cards_upload_images_create
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfileCard'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCard'
+          description: ''
+  /api/profiles/profiles/:
+    get:
+      operationId: profiles_profiles_list
+      description: List available profiles.
+      summary: List profiles
+      parameters:
+      - in: query
+        name: draft
+        schema:
+          type: boolean
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: member_of
+        schema:
+          type: string
+        description: Member of Space
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: profile_type
+        schema:
+          type: string
+          enum:
+          - space
+          - user
+        description: |-
+          Profile Type
+
+          * `space` - Space
+          * `user` - User
+      - in: query
+        name: slug
+        schema:
+          type: string
+        description: Slug
+      - in: query
+        name: space
+        schema:
+          type: integer
+      - in: query
+        name: user
+        schema:
+          type: integer
+      tags:
+      - Profiles
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProfileList'
+          description: ''
+  /api/profiles/profiles/{public_id}/:
+    get:
+      operationId: profiles_profiles_retrieve
+      description: Retrieve a single profile.
+      summary: Retrieve a profile
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    put:
+      operationId: profiles_profiles_update
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Profile'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    patch:
+      operationId: profiles_profiles_partial_update
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/profiles/profiles/{public_id}/upload-images/:
+    post:
+      operationId: profiles_profiles_upload_images_create
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Profile'
+        required: true
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
           description: ''
   /api/schema/:
     get:
@@ -1398,11 +2487,13 @@ components:
       - EDITOR
       - SPACE
       - GRAPH
+      - METHOD
       type: string
       description: |-
         * `EDITOR` - Editor
         * `SPACE` - Space
         * `GRAPH` - Graph
+        * `METHOD` - Method Graph
     DocumentVersion:
       type: object
       description: |-
@@ -1440,6 +2531,484 @@ components:
           format: email
       required:
       - email
+    MethodNodeDetail:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        creator:
+          type: string
+          format: uuid
+          readOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
+        buddy:
+          type: string
+          format: uuid
+          nullable: true
+        run_count:
+          type: integer
+          readOnly: true
+        latest_version:
+          allOf:
+          - $ref: '#/components/schemas/MethodNodeDetailMethodNodeVersion'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          nullable: true
+        title_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        description_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        text_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        node_type:
+          allOf:
+          - $ref: '#/components/schemas/NodeTypeEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
+        space:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - authors
+      - created_at
+      - creator
+      - description_token_count
+      - id
+      - image
+      - image_2x
+      - image_thumbnail
+      - image_thumbnail_2x
+      - latest_version
+      - node_type
+      - run_count
+      - text_token_count
+      - title_token_count
+      - updated_at
+    MethodNodeDetailMethodNodeVersion:
+      type: object
+      properties:
+        version:
+          type: integer
+        id:
+          type: string
+          format: uuid
+      required:
+      - id
+      - version
+    MethodNodeList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        creator:
+          type: string
+          format: uuid
+          readOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
+        buddy:
+          type: string
+          format: uuid
+          nullable: true
+        run_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          nullable: true
+        title_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        description_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        text_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        node_type:
+          allOf:
+          - $ref: '#/components/schemas/NodeTypeEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
+        space:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - authors
+      - created_at
+      - creator
+      - description_token_count
+      - id
+      - image
+      - image_2x
+      - image_thumbnail
+      - image_thumbnail_2x
+      - node_type
+      - run_count
+      - text_token_count
+      - title_token_count
+      - updated_at
+    MethodNodeRunDetail:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        space:
+          type: string
+          format: uuid
+          nullable: true
+        method:
+          type: string
+          format: uuid
+        method_version:
+          type: string
+          format: uuid
+          nullable: true
+        method_data: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_dev_run:
+          type: boolean
+      required:
+      - created_at
+      - id
+      - method
+      - method_data
+      - updated_at
+    MethodNodeRunList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        space:
+          type: string
+          format: uuid
+          nullable: true
+        method:
+          type: string
+          format: uuid
+        method_version:
+          type: string
+          format: uuid
+          nullable: true
+        method_data:
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_dev_run:
+          type: boolean
+      required:
+      - created_at
+      - id
+      - method
+      - method_data
+      - updated_at
+    MethodNodeVersionDetail:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        method_data: {}
+        method:
+          type: string
+          format: uuid
+        run_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          nullable: true
+        title_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        description:
+          type: string
+          readOnly: true
+          nullable: true
+        description_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        content:
+          readOnly: true
+          nullable: true
+        text:
+          type: string
+          readOnly: true
+          nullable: true
+        text_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        creator:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        space:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        buddy:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+      required:
+      - authors
+      - buddy
+      - content
+      - created_at
+      - creator
+      - description
+      - description_token_count
+      - id
+      - method
+      - method_data
+      - run_count
+      - space
+      - text
+      - text_token_count
+      - title
+      - title_token_count
+      - updated_at
+      - version
+    MethodNodeVersionList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        method_data:
+          writeOnly: true
+        method:
+          type: string
+          format: uuid
+        run_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          nullable: true
+        title_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        description:
+          type: string
+          readOnly: true
+          nullable: true
+        description_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        content:
+          readOnly: true
+          nullable: true
+        text:
+          type: string
+          readOnly: true
+          nullable: true
+        text_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        creator:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        space:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        buddy:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+      required:
+      - authors
+      - buddy
+      - content
+      - created_at
+      - creator
+      - description
+      - description_token_count
+      - id
+      - method
+      - method_data
+      - run_count
+      - space
+      - text
+      - text_token_count
+      - title
+      - title_token_count
+      - updated_at
+      - version
     NodeDetail:
       type: object
       description: |-
@@ -1463,6 +3032,22 @@ components:
         has_subnodes:
           type: boolean
           readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
         subnodes:
           type: array
           items:
@@ -1471,6 +3056,10 @@ components:
       required:
       - has_subnodes
       - id
+      - image
+      - image_2x
+      - image_thumbnail
+      - image_thumbnail_2x
       - subnodes
     NodeList:
       type: object
@@ -1495,9 +3084,29 @@ components:
         has_subnodes:
           type: boolean
           readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
       required:
       - has_subnodes
       - id
+      - image
+      - image_2x
+      - image_thumbnail
+      - image_thumbnail_2x
     NodeSearchResult:
       type: object
       description: |-
@@ -1518,6 +3127,22 @@ components:
             type: string
             format: uuid
           readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -1534,22 +3159,53 @@ components:
           maximum: 2147483647
           minimum: 0
           nullable: true
+        description:
+          type: string
+          nullable: true
+        description_token_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
         text_token_count:
           type: integer
           maximum: 2147483647
           minimum: 0
           nullable: true
+        node_type:
+          $ref: '#/components/schemas/NodeTypeEnum'
         search_vector:
           type: string
           readOnly: true
           nullable: true
+        creator:
+          type: string
+          format: uuid
+          nullable: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
       required:
       - created_at
       - id
+      - image
+      - image_2x
+      - image_thumbnail
+      - image_thumbnail_2x
       - parents
       - search_vector
       - space
       - updated_at
+    NodeTypeEnum:
+      enum:
+      - METHOD
+      - DEFAULT
+      type: string
+      description: |-
+        * `METHOD` - Method
+        * `DEFAULT` - Default
     ObjectPermissionModel:
       type: object
       description: |-
@@ -1656,6 +3312,75 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentVersion'
+    PaginatedMethodNodeListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodNodeList'
+    PaginatedMethodNodeRunListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodNodeRunList'
+    PaginatedMethodNodeVersionListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodNodeVersionList'
     PaginatedNodeListList:
       type: object
       required:
@@ -1721,6 +3446,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ObjectPermissionModel'
+    PaginatedProfileCardList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileCard'
+    PaginatedProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
     PaginatedSpaceList:
       type: object
       required:
@@ -1812,6 +3583,350 @@ components:
         system_message:
           type: string
           description: The message sent to the LLM before the user's query.
+    PatchedMethodNodeList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        creator:
+          type: string
+          format: uuid
+          readOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
+        buddy:
+          type: string
+          format: uuid
+          nullable: true
+        run_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          nullable: true
+        title_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        description_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        text_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        node_type:
+          allOf:
+          - $ref: '#/components/schemas/NodeTypeEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
+        space:
+          type: string
+          format: uuid
+          nullable: true
+    PatchedMethodNodeRunList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        space:
+          type: string
+          format: uuid
+          nullable: true
+        method:
+          type: string
+          format: uuid
+        method_version:
+          type: string
+          format: uuid
+          nullable: true
+        method_data:
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_dev_run:
+          type: boolean
+    PatchedMethodNodeVersionList:
+      type: object
+      description: |-
+        Base serializer for all soft-deletable serializers in the project.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        method_data:
+          writeOnly: true
+        method:
+          type: string
+          format: uuid
+        run_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+          nullable: true
+        title_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        description:
+          type: string
+          readOnly: true
+          nullable: true
+        description_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        content:
+          readOnly: true
+          nullable: true
+        text:
+          type: string
+          readOnly: true
+          nullable: true
+        text_token_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        creator:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        space:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        buddy:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        authors:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+    PatchedProfile:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        space:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        object_created:
+          type: string
+          format: date-time
+          readOnly: true
+        profile_image:
+          type: string
+          format: uri
+          readOnly: true
+        profile_image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        banner_image:
+          type: string
+          format: uri
+          readOnly: true
+        banner_image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        cards:
+          type: array
+          items: {}
+        members:
+          type: array
+          items: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        profile_slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 512
+        description:
+          type: string
+        draft:
+          type: boolean
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        telegram_url:
+          type: string
+          nullable: true
+          maxLength: 255
+        twitter_url:
+          type: string
+          nullable: true
+          maxLength: 255
+        bluesky_url:
+          type: string
+          nullable: true
+          maxLength: 255
+        eth_address:
+          type: string
+          nullable: true
+          pattern: ^0x[a-fA-F0-9]{40}$
+          maxLength: 255
+    PatchedProfileCard:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
+        space_profile:
+          type: string
+          format: uuid
+          nullable: true
+        author_profile:
+          type: string
+          format: uuid
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 512
+        description:
+          type: string
+        status_message:
+          type: string
+        draft:
+          type: boolean
+        url:
+          type: string
+          nullable: true
+          pattern: ^\/[a-zA-Z0-9_\-\/]*$
+          maxLength: 200
+        video_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
     PatchedSpace:
       type: object
       description: |-
@@ -1852,9 +3967,6 @@ components:
         title:
           type: string
           maxLength: 255
-        profile:
-          type: string
-          format: uuid
     PatchedUser:
       type: object
       description: |-
@@ -1875,10 +3987,186 @@ components:
           type: string
           format: uuid
           readOnly: true
-        url:
+        profile:
+          type: string
+          format: uuid
+          readOnly: true
+    Profile:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        space:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        object_created:
+          type: string
+          format: date-time
+          readOnly: true
+        profile_image:
           type: string
           format: uri
           readOnly: true
+        profile_image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        banner_image:
+          type: string
+          format: uri
+          readOnly: true
+        banner_image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        cards:
+          type: array
+          items: {}
+        members:
+          type: array
+          items: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        profile_slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 512
+        description:
+          type: string
+        draft:
+          type: boolean
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        telegram_url:
+          type: string
+          nullable: true
+          maxLength: 255
+        twitter_url:
+          type: string
+          nullable: true
+          maxLength: 255
+        bluesky_url:
+          type: string
+          nullable: true
+          maxLength: 255
+        eth_address:
+          type: string
+          nullable: true
+          pattern: ^0x[a-fA-F0-9]{40}$
+          maxLength: 255
+      required:
+      - banner_image
+      - banner_image_2x
+      - created_at
+      - id
+      - object_created
+      - profile_image
+      - profile_image_2x
+      - profile_slug
+      - space
+      - title
+      - updated_at
+      - user
+    ProfileCard:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          readOnly: true
+        image_2x:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail:
+          type: string
+          format: uri
+          readOnly: true
+        image_thumbnail_2x:
+          type: string
+          format: uri
+          readOnly: true
+        space_profile:
+          type: string
+          format: uuid
+          nullable: true
+        author_profile:
+          type: string
+          format: uuid
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          maxLength: 512
+        description:
+          type: string
+        status_message:
+          type: string
+        draft:
+          type: boolean
+        url:
+          type: string
+          nullable: true
+          pattern: ^\/[a-zA-Z0-9_\-\/]*$
+          maxLength: 200
+        video_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+      required:
+      - created_at
+      - created_by
+      - description
+      - id
+      - image
+      - image_2x
+      - image_thumbnail
+      - image_thumbnail_2x
+      - title
+      - updated_at
     Register:
       type: object
       properties:
@@ -1952,15 +4240,11 @@ components:
         title:
           type: string
           maxLength: 255
-        profile:
-          type: string
-          format: uuid
       required:
       - allowed_actions
       - created_at
       - id
       - node_count
-      - profile
       - title
       - updated_at
     User:
@@ -1983,14 +4267,14 @@ components:
           type: string
           format: uuid
           readOnly: true
-        url:
+        profile:
           type: string
-          format: uri
+          format: uuid
           readOnly: true
       required:
       - email
       - id
-      - url
+      - profile
   securitySchemes:
     basicAuth:
       type: http
