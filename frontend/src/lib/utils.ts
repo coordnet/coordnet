@@ -87,7 +87,7 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
 
 export const createConnectedYDoc = async (
   name: string,
-  token: string,
+  token: string
 ): Promise<[Y.Doc, HocuspocusProvider]> => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return new Promise((resolve, _reject) => {

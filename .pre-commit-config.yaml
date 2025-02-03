@@ -120,7 +120,7 @@ repos:
         language: node
         files: ^frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh frontend pnpm prettier --write
+        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/.prettierrc
       - id: tsc-frontend
         name: tsc (frontend)
         pass_filenames: false

@@ -23,9 +23,9 @@ export default {
       colors: {
         purple: "#650CD7",
         blue: { DEFAULT: "#286AFF", light: "#0DBFFF" },
-        green: "#52CE2A",
+        green: { DEFAULT: "#52CE2A" },
         aqua: "#69E2CC",
-        // red: "#FF5A34",
+        red: { DEFAULT: "#FF5A34" },
         orange: "#FFA100",
         yellow: "#FFDF00",
         pink: "#FF3CE0",
@@ -66,6 +66,7 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "spin-slow": "spin 3s linear infinite",
       },
       ringWidth: {
         DEFAULT: "1px",

@@ -2,7 +2,6 @@ import logging
 import typing
 import uuid
 
-import django.contrib.auth
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -10,12 +9,12 @@ from rest_framework import serializers
 import nodes.models
 import permissions.models
 import profiles.models
+import users.models
 import utils.serializers
+from utils.serializers import AvailableUserField
 
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
-
-    import users.models
 
 
 logger = logging.getLogger(__name__)
@@ -111,13 +110,42 @@ class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
 
 
 @extend_schema_field(uuid.UUID)
-class AvailableUserField(utils.serializers.PublicIdRelatedField):
+class AvailableUserProfileForUserField(utils.serializers.PublicIdRelatedField):
+    """
+    This is used on methods, where the relation is a User, but the rendered return content is a
+    Profile.
+    """
+
     def get_queryset(self) -> "django_models.QuerySet[users.models.User]":
-        user = self.context["request"].user
-        filter_expression = Q(profile__draft=False)
-        if user.is_authenticated:
-            filter_expression |= Q(pk=user.pk)
-        return django.contrib.auth.get_user_model().objects.filter(filter_expression)
+        return users.models.User.objects.filter(profile__draft=False)
+
+    def get_choices(self, cutoff: int | None = None) -> dict[str, str]:
+        queryset = self.get_queryset()
+        if queryset is None:
+            # Ensure that field.choices returns something sensible
+            # even when accessed with a read-only field.
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return {str(item.public_id): self.display_value(item) for item in queryset}
+
+    def to_representation(self, value: "users.models.User") -> dict:  # type: ignore[override]
+        return ReducedProfileSerializer(value.profile).data
+
+    def to_internal_value(self, data: str) -> "users.models.User":
+        try:
+            user_profile_id = uuid.UUID(data)
+        except ValueError as exc:
+            raise serializers.ValidationError("Invalid UUID format") from exc
+
+        try:
+            return users.models.User.objects.get(
+                profile__public_id=user_profile_id, profile__draft=False
+            )
+        except users.models.User.DoesNotExist as exc:
+            raise serializers.ValidationError("User profile not found") from exc
 
 
 class ProfileCardSerializer(utils.serializers.BaseSerializer[profiles.models.ProfileCard]):

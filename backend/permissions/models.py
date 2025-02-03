@@ -148,6 +148,8 @@ class MembershipModelMixin(utils.typing.ModelBase):
         "Public write access, if public read access is enabled", default=False
     )
 
+    objects = managers.MembershipModelQueryManager()
+
     class Meta(TypedModelMeta):
         abstract = True
 
@@ -276,9 +278,12 @@ class MembershipBaseModel(MembershipModelMixin, utils.models.SoftDeletableBaseMo
     Base model for models that can have members.
     """
 
-    objects = managers.SoftDeletableMembershipModelUnfilteredManager()  # type: ignore[misc]
+    objects = managers.SoftDeletableMembershipModelUnfilteredManager()  # type: ignore[assignment,misc]
     available_objects = managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
     all_objects = managers.MembershipModelQueryManager()  # type: ignore[misc]
+
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def __permission_manager(self) -> models.Manager:

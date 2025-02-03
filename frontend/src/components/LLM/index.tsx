@@ -4,7 +4,7 @@ import clsx from "clsx";
 import DOMPurify from "dompurify";
 import { Bot, GripIcon, Plus, SendHorizonal, Settings2, StopCircle, X } from "lucide-react";
 import { marked } from "marked";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { Tooltip } from "react-tooltip";
 import { toast } from "sonner";
@@ -14,15 +14,15 @@ import { useDebounceValue } from "usehooks-ts";
 
 import { getLLMTokenCount } from "@/api";
 import { websocketUrl } from "@/constants";
-import { useFocus, useSpace } from "@/hooks";
+import { useFocus, useNodesContext } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
 import useUser from "@/hooks/useUser";
 import { readOnlyEditor } from "@/lib/readOnlyEditor";
 import { LLMTokenCount } from "@/types";
 
-import { addNodeToGraph } from "../Graph/utils";
+import Buddies from "../Buddies";
+import { addNodeToCanvas } from "../Canvas/utils";
 import { Button } from "../ui/button";
-import Buddies from "./Buddies";
 import Depth from "./Depth";
 import usePosition from "./usePosition";
 
@@ -44,7 +44,7 @@ const getTokenCountForDepth = (tokenCount: LLMTokenCount, depth: string | number
 };
 
 const LLM = ({ id }: { id: string }) => {
-  const { nodesMap: spaceNodesMap } = useSpace();
+  const { nodesMap: spaceNodesMap } = useNodesContext();
   const { buddy, buddyId } = useBuddy();
   const { isGuest } = useUser();
   const { position, dragItem, handleDragStart } = usePosition(WIDTH);
@@ -60,7 +60,7 @@ const LLM = ({ id }: { id: string }) => {
   const [autoScroll, setAutoScroll] = useState(true);
   const [llmSettingsOpen, setLlmSettingsOpen] = useLocalStorageState<boolean>(
     `coordnet:llmSettingsOpen`,
-    { defaultValue: false },
+    { defaultValue: false }
   );
   const [depth, setDepth] = useLocalStorageState<number>(`coordnet:llmDepth`, {
     defaultValue: 2,
@@ -110,7 +110,8 @@ const LLM = ({ id }: { id: string }) => {
 
   const { data: tokenCount, isLoading: isTokenCountLoading } = useQuery({
     queryKey: ["token_count", buddyId, debouncedInput, queryNodes, depth],
-    queryFn: ({ signal }) => getLLMTokenCount(buddyId, debouncedInput, queryNodes, depth, signal),
+    queryFn: ({ signal }: { signal: AbortSignal }) =>
+      getLLMTokenCount(buddyId, debouncedInput, queryNodes, depth, signal),
     enabled: Boolean(buddyId && id),
     initialData: {},
   });
@@ -159,12 +160,12 @@ const LLM = ({ id }: { id: string }) => {
   };
 
   const addNode = () => {
-    if (focus === "graph") {
+    if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
       if (!spaceNodesMap) return alert("spaceNodesMap not found");
       const position = reactFlowInstance.screenToFlowPosition({ x: 200, y: 100 });
-      addNodeToGraph(nodesMap, spaceNodesMap, "New node", position, response);
+      addNodeToCanvas(nodesMap, spaceNodesMap, "New node", position, response);
     } else if (focus === "editor") {
       editor?.commands.insertContent(response);
     } else {
@@ -178,17 +179,17 @@ const LLM = ({ id }: { id: string }) => {
 
   if (!isOpen)
     return (
-      <div className="absolute z-60 bottom-2 left-1/2 -translate-x-1/2" tabIndex={0}>
+      <div className="absolute bottom-2 left-1/2 z-60 -translate-x-1/2" tabIndex={0}>
         <Button
           variant="outline"
-          className="h-9 pr-[3px] pl-2"
+          className="h-9 pl-2 pr-[3px]"
           onClick={(e) => {
             setIsOpen(true);
             e.stopPropagation();
           }}
         >
           Message AI
-          <div className="size-7 bg-bg flex items-center justify-center rounded ml-3">
+          <div className="ml-3 flex size-7 items-center justify-center rounded bg-bg">
             <SendHorizonal className="size-4 text-lilac" strokeWidth={3} />
           </div>
         </Button>
@@ -197,47 +198,50 @@ const LLM = ({ id }: { id: string }) => {
 
   return (
     <div
-      className="absolute z-60 bottom-0"
+      className="absolute bottom-0 z-60"
       style={{ left: `${position}%` }}
       ref={dragItem}
       tabIndex={0}
     >
-      <div className="bg-bg py-2 px-3 rounded-t-lg rounded-r-lg" style={{ width: WIDTH }}>
+      <div className="rounded-r-lg rounded-t-lg bg-bg px-3 py-2" style={{ width: WIDTH }}>
         <div
-          className="absolute top-2 left-2 cursor-grab select-none"
+          className="absolute left-2 top-2 cursor-grab select-none"
           onMouseDown={handleDragStart}
         >
           <GripIcon className="size-4 text-gray-4" />
         </div>
-        <div className="absolute top-2 right-2 cursor-pointer" onClick={() => setIsOpen(false)}>
+        <div className="absolute right-2 top-2 cursor-pointer" onClick={() => setIsOpen(false)}>
           <X className="size-4 text-gray-4" />
         </div>
         {hasResponse && (
-          <div className="p-1 mt-5 mb-2">
+          <div className="mb-2 mt-5 p-1">
             {response === "Loading..." ? (
-              <div className="px-2 pt-0 pb-4 text-sm">
+              <div className="px-2 pb-4 pt-0 text-sm">
                 <div className="flex items-center">
                   Loading
-                  <div className="animate-spin rounded-full size-3 border-t-2 border-b-2 border-blue-500 ml-3"></div>
+                  <div
+                    className="ml-3 size-3 animate-spin rounded-full border-b-2 border-t-2
+                      border-blue-500"
+                  ></div>
                 </div>
-                {buddy?.model == "o1-preview" && (
+                {buddy?.model == "o1" && (
                   <div className="mt-2 text-sm italic text-gray-3">
                     (o1 currently can&apos;t stream responses so it may take a moment to appear)
                   </div>
                 )}
               </div>
             ) : (
-              <div className="leading-6 pb-3 max-h-96 overflow-auto -mt-2" ref={scrollRef}>
+              <div className="-mt-2 max-h-96 overflow-auto pb-3 leading-6" ref={scrollRef}>
                 <EditorContent editor={readOnlyEditor} />
               </div>
             )}
             {loading ? (
               <Button variant="outline" onClick={() => abortController?.abort()}>
-                <StopCircle className="size-4 mr-2" /> Stop
+                <StopCircle className="mr-2 size-4" /> Stop
               </Button>
             ) : !isGuest ? (
               <Button variant="outline" onClick={() => addNode()}>
-                <Plus className="size-4 mr-1" /> Add to {focus === "graph" ? "Graph" : "Editor"}
+                <Plus className="mr-1 size-4" /> Add to {focus === "canvas" ? "Canvas" : "Editor"}
               </Button>
             ) : (
               <></>
@@ -246,29 +250,30 @@ const LLM = ({ id }: { id: string }) => {
         )}
         <div className="flex px-1">
           <div className="grow">
-            <div className={clsx("text-xs text-gray-3 h-5 mb-1", !hasResponse && "pl-3")}>
+            <div className={clsx("mb-1 h-5 text-xs text-gray-3", !hasResponse && "pl-3")}>
               {isTokenCountLoading || Object.keys(tokenCount).length === 0
                 ? "Counting..."
                 : `${getTokenCountForDepth(tokenCount, depth)} Tokens`}
             </div>
-            <div className="rounded border border-gray-6 bg-white p-1 flex items-center shadow-md">
+            <div className="flex items-center rounded border border-gray-6 bg-white p-1 shadow-md">
               <TextareaAutosize
                 autoFocus
-                onChange={(e) => setInput(e.target?.value)}
-                onKeyDown={(e) => {
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInput(e.target?.value)}
+                onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
                   if (e.key == "Enter" && e.shiftKey == false) {
                     e.preventDefault();
                     onSubmit();
                   }
                 }}
-                className="bg-transparent text-sm text-gray-1 placeholder:text-gray-4 px-2 focus:outline-none grow resize-none border-0"
+                className="grow resize-none border-0 bg-transparent px-2 text-sm text-gray-1
+                  placeholder:text-gray-4 focus:outline-none"
                 placeholder="Send a message"
                 value={input}
                 maxRows={7}
               />
               <Button
                 variant="secondary"
-                className="size-7 bg-bg text-lilac p-0 mt-auto"
+                className="mt-auto size-7 bg-bg p-0 text-lilac"
                 disabled={input.length == 0}
                 onClick={() => onSubmit()}
               >
@@ -280,15 +285,23 @@ const LLM = ({ id }: { id: string }) => {
           <div className={clsx("ml-3 flex flex-col", llmSettingsOpen && "mb-12")}>
             <div
               className={clsx(
-                "text-xs text-gray-3 h-5 flex items-center max-w-[125px] mb-1",
-                !hasResponse && "pr-3",
+                "mb-1 flex h-5 max-w-[125px] items-center text-xs text-gray-3",
+                !hasResponse && "pr-3"
               )}
             >
-              <Bot className="size-3 mr-1 shrink-0" />
+              <Bot className="mr-1 size-3 shrink-0" />
               <div className="line-clamp-1">{buddy?.name ?? "No Buddy"}</div>
             </div>
-            <div className="flex gap-3 mt-auto">
-              <Buddies className="mt-auto" />
+            <div className="mt-auto flex gap-3">
+              <Buddies className="mt-auto">
+                <Button
+                  className="size-9 p-0 shadow-md"
+                  variant="outline"
+                  data-tooltip-id="llm-buddy"
+                >
+                  <Bot className="size-4" />
+                </Button>
+              </Buddies>
               <Button
                 className={clsx("size-9 p-0 shadow-md", llmSettingsOpen && "border-lilac")}
                 variant="outline"

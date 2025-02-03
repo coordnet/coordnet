@@ -7,7 +7,7 @@ import { buddyModels } from "./constants";
 
 // https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
 export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>,
+  obj: Record<K, unknown>
 ): z.ZodEnum<[K, ...K[]]> => {
   const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
   return z.enum([firstKey, ...otherKeys]);
@@ -31,8 +31,8 @@ export const PermissionSchema = z.object({
 export type Permission = z.infer<typeof PermissionSchema>;
 
 export enum PermissionModel {
-  Node = "node",
   Space = "space",
+  Skill = "skill",
 }
 
 export interface ApiError {
@@ -72,8 +72,8 @@ export type SpaceNode = {
   title: string;
 };
 
-export type GraphNode = ReactFlowNode;
-export type GraphEdge = Edge;
+export type CanvasNode = ReactFlowNode;
+export type CanvasEdge = Edge;
 
 export type ExportNodeSingle = {
   id: string;
@@ -94,7 +94,7 @@ export type ExportNodeSingle = {
 
 export type ExportNode = ExportNodeSingle & {
   nodes: ExportNodeSingle[];
-  edges: GraphEdge[];
+  edges: CanvasEdge[];
 };
 
 export const BackendNodeSchema = z.object({
@@ -160,6 +160,7 @@ export interface NodeVersion {
 export enum NodeType {
   Default = "default",
   Loop = "loop",
+  Input = "input",
   Output = "output",
   Prompt = "prompt",
   ResponseCombined = "response_combined",
@@ -172,6 +173,7 @@ export enum NodeType {
 export const nodeTypeMap = {
   [NodeType.Default]: "Default",
   [NodeType.Loop]: "Loop",
+  [NodeType.Input]: "Input",
   [NodeType.Output]: "Output",
   [NodeType.Prompt]: "Prompt",
   [NodeType.ResponseCombined]: "Response (combined)",
@@ -192,7 +194,7 @@ export interface SemanticScholarPaper {
   isOpenAccess: boolean;
 }
 
-const ProfileCardSubProfileSchema = z.object({
+const SubProfile = z.object({
   id: z.string().uuid(),
   profile_image: z.union([z.null(), z.string().url()]),
   profile_image_2x: z.union([z.null(), z.string().url()]),
@@ -208,12 +210,12 @@ const ProfileCardSubProfileSchema = z.object({
   user: z.union([z.string().uuid(), z.null()]),
 });
 
-export type ProfileCardSubProfile = z.infer<typeof ProfileCardSubProfileSchema>;
+export type ProfileCardSubProfile = z.infer<typeof SubProfile>;
 
 export const ProfileCardSchema = z.object({
   id: z.string().uuid(),
-  space_profile: ProfileCardSubProfileSchema.nullable(),
-  author_profile: ProfileCardSubProfileSchema.nullable(),
+  space_profile: SubProfile.nullable(),
+  author_profile: SubProfile.nullable(),
   created_by: z.string().uuid(),
   image: z.union([z.null(), z.string().url()]),
   image_2x: z.union([z.null(), z.string().url()]),
@@ -245,7 +247,7 @@ export const ProfileCardFormSchema = ProfileCardSchema.pick({
   z.object({
     author_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
     space_profile: z.union([z.string().uuid(), z.null(), z.literal("")]),
-  }),
+  })
 );
 export type ProfileCardForm = z.infer<typeof ProfileCardFormSchema>;
 
@@ -259,7 +261,7 @@ export const ProfileSchema = z.object({
   profile_image_2x: z.union([z.null(), z.string().url()]),
   banner_image: z.union([z.null(), z.string().url()]),
   banner_image_2x: z.union([z.null(), z.string().url()]),
-  members: z.array(ProfileCardSubProfileSchema),
+  members: z.array(SubProfile),
   object_created: z.coerce.date(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
@@ -299,3 +301,127 @@ export const ProfileFormSchema = ProfileSchema.pick({
   members: z.array(z.string().uuid()),
 });
 export type ProfileForm = z.infer<typeof ProfileFormSchema>;
+
+// Types for the canvas or editor parent which can be a node or a skill
+export enum BackendEntityType {
+  SKILL = "skill",
+  SPACE = "space",
+}
+
+// export type BackendParent = {
+//   id: string;
+//   type: BackendEntityType;
+//   data?: BackendNodeDetail | Skill | Space;
+//   error: Error | null;
+//   isLoading: boolean;
+// };
+
+export type BackendParent =
+  | {
+      id: string;
+      type: BackendEntityType.SKILL;
+      data?: Skill;
+      error: Error | null;
+      isLoading: boolean;
+    }
+  | {
+      id: string;
+      type: BackendEntityType.SPACE;
+      data?: Space;
+      error: Error | null;
+      isLoading: boolean;
+    };
+
+export const SkillSchema = z.object({
+  id: z.string(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  title: z.string().min(1, "Skill name is required"),
+  title_token_count: z.null(),
+  description: z
+    .string()
+    .min(1, "Short description is required")
+    .max(255, "Short description must be less than 100 characters"),
+  description_token_count: z.null(),
+  content: z.null(),
+  text: z.string().nullish(),
+  text_token_count: z.null(),
+  image: z.union([z.null(), z.string().url()]),
+  image_2x: z.union([z.null(), z.string().url()]),
+  image_thumbnail: z.union([z.null(), z.string().url()]),
+  image_thumbnail_2x: z.union([z.null(), z.string().url()]),
+  node_type: z.string(),
+  search_vector: z.null(),
+  is_public: z.boolean(),
+  is_public_writable: z.boolean(),
+  creator: SubProfile.nullable(),
+  space: z.null(),
+  editor_document: z.null(),
+  graph_document: z.null(),
+  subnodes: z.array(z.any()),
+  authors: z.array(SubProfile),
+  allowed_actions: z.array(AllowedActionsSchema),
+  latest_version: z.object({
+    version: z.number(),
+    id: z.string(),
+  }),
+  buddy: z.string(),
+  run_count: z.number(),
+});
+export type Skill = z.infer<typeof SkillSchema>;
+
+export type SkillJson = { [key: string]: unknown };
+
+export const SkillUpdateFormSchema = SkillSchema.pick({
+  title: true,
+  description: true,
+  text: true,
+  is_public: true,
+  buddy: true,
+});
+export type SkillUpdateForm = z.infer<typeof SkillUpdateFormSchema>;
+
+export const SkillCreateFormSchema = SkillSchema.pick({}).extend({
+  authors: z.array(z.string()),
+});
+export type SkillCreateForm = z.infer<typeof SkillCreateFormSchema>;
+
+export const SkillRunSchema = z.object({
+  id: z.string(),
+  space: z.null(),
+  method: z.string(),
+  method_version: z.string().nullable(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  method_data: z.record(z.string(), z.unknown()),
+  is_dev_run: z.boolean(),
+});
+export type SkillRun = z.infer<typeof SkillRunSchema>;
+
+export const SkillVersionSchema = SkillSchema.pick({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  title: true,
+  title_token_count: true,
+  description: true,
+  description_token_count: true,
+  content: true,
+  text: true,
+  text_token_count: true,
+  creator: true,
+  space: true,
+  authors: true,
+  buddy: true,
+}).extend({
+  method: z.string(),
+  version: z.number(),
+  method_data: z.record(z.string(), z.unknown()),
+});
+export type SkillVersion = z.infer<typeof SkillVersionSchema>;
+
+// Using the same scopes as HocusPocus here for simplicity
+export enum YDocScope {
+  READ_ONLY = "readonly",
+  READ_WRITE = "read-write",
+}

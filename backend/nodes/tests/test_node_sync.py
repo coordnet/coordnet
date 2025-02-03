@@ -190,3 +190,26 @@ class NodeEventTestCase(BaseTransactionTestCase):
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
         space.refresh_from_db()
         self.assertListEqual(list(space.nodes.all()), [])
+
+    def test_method_node_creation(self) -> None:
+        self.assertEqual(models.Node.all_objects.count(), 0)
+        self.assertEqual(models.DocumentEvent.objects.count(), 0)
+
+        public_id = str(uuid.uuid4())
+        factories.DocumentEventFactory.create(
+            public_id=public_id,
+            action="INSERT",
+            # TODO: Change this to a method graph once we have a fixture for it.
+            new_data=fixtures.GRAPH,
+            document_type=models.DocumentType.METHOD_GRAPH,
+        )
+
+        tasks.process_document_events(raise_exception=True)
+
+        self.assertEqual(models.Node.all_objects.count(), 1)
+        self.assertEqual(models.DocumentEvent.objects.count(), 0)
+
+        node = models.Node.all_objects.first()
+        self.assertIsNotNone(node)
+        assert node is not None
+        self.assertEqual(node.node_type, models.NodeType.METHOD)

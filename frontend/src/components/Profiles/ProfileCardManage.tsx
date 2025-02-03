@@ -120,33 +120,39 @@ const ProfileCardManage = ({
       showCloseButton={false}
       aria-describedby={undefined}
       className={clsx(
-        "bg-profile-modal-gradient py-5 px-3 max-w-[580px] w-[90%] !rounded-2xl h-fit max-h-[90%] flex flex-col",
-        className,
+        `flex h-fit max-h-[90%] w-[90%] max-w-[580px] flex-col !rounded-2xl
+        bg-profile-modal-gradient px-3 py-5`,
+        className
       )}
     >
       {isLoading && (
-        <div className="absolute top-0 right-0 bottom-0 left-0 bg-profile-modal-gradient opacity-40 z-90 rounded-2xl flex items-center justify-center gap-3">
+        <div
+          className="absolute bottom-0 left-0 right-0 top-0 z-90 flex items-center justify-center
+            gap-3 rounded-2xl bg-profile-modal-gradient opacity-40"
+        >
           Loading...
-          <div className="animate-spin rounded-full size-4 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="size-4 animate-spin rounded-full border-b-2 border-t-2 border-blue-500"></div>
         </div>
       )}
-      <form onSubmit={handleSubmit(onSubmit)} className="h-fit flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between mb-3 px-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex h-fit flex-col overflow-hidden">
+        <div className="mb-3 flex items-center justify-between px-2">
           <DialogTitle asChild>
-            <div className="text-neutral-600 text-lg font-semibold leading-tight">Method</div>
+            <div className="text-lg font-semibold leading-tight text-neutral-600">Skill</div>
           </DialogTitle>
           <button
             type="submit"
-            className="h-9 px-3 py-1.5 bg-violet-700 rounded flex justify-center items-center text-white text-sm font-medium"
+            className="flex h-9 items-center justify-center rounded bg-violet-700 px-3 py-1.5
+              text-sm font-medium text-white"
           >
             Save
           </button>
         </div>
 
-        <div className="overflow-scroll flex flex-col gap-4 px-2">
+        <div className="flex flex-col gap-4 overflow-scroll px-2">
           <ImageUpload
             type="banner"
-            className="relative flex-shrink-0 w-full aspect-[850/370] rounded-lg flex items-center justify-center mb-0 mt-1"
+            className="relative mb-0 mt-1 flex aspect-[850/370] w-full flex-shrink-0 items-center
+              justify-center rounded-lg"
             image={banner}
             onImageChange={setCroppedBanner}
             editorOptions={{
@@ -159,7 +165,7 @@ const ProfileCardManage = ({
           />
 
           <div>
-            <div className="text-neutral-800 text-sm font-medium mb-1">Method Name</div>
+            <div className="mb-1 text-sm font-medium text-neutral-800">Skill Name</div>
             <Input
               {...register("title")}
               className={clsx(errors.title && "border-red-500")}
@@ -173,7 +179,7 @@ const ProfileCardManage = ({
           </div>
 
           <div>
-            <div className="text-neutral-800 text-sm font-medium mb-1">Description</div>
+            <div className="mb-1 text-sm font-medium text-neutral-800">Description</div>
             <Textarea
               {...register("description")}
               className={clsx(errors.description && "border-red-500")}
@@ -187,7 +193,7 @@ const ProfileCardManage = ({
           </div>
 
           <div>
-            <div className="text-neutral-800 text-sm font-medium mb-1">Status</div>
+            <div className="mb-1 text-sm font-medium text-neutral-800">Status</div>
             <Textarea
               {...register("status_message")}
               className={clsx(errors.status_message && "border-red-500")}
@@ -201,7 +207,7 @@ const ProfileCardManage = ({
           </div>
 
           <div className="relative">
-            <div className="text-neutral-800 text-sm font-medium mb-1">Author</div>
+            <div className="mb-1 text-sm font-medium text-neutral-800">Author</div>
             <Controller
               control={control}
               name="author_profile"
@@ -229,7 +235,7 @@ const ProfileCardManage = ({
           </div>
 
           <div className="relative">
-            <div className="text-neutral-800 text-sm font-medium mb-1">Space</div>
+            <div className="mb-1 text-sm font-medium text-neutral-800">Space</div>
             <Controller
               control={control}
               name="space_profile"
@@ -257,7 +263,7 @@ const ProfileCardManage = ({
           </div>
 
           <div>
-            <div className="text-neutral-800 text-sm font-medium mb-1">Links</div>
+            <div className="mb-1 text-sm font-medium text-neutral-800">Links</div>
             <div className="flex flex-col gap-1.5">
               {Object.entries(profileCardLinksMap).map(
                 ([key, { component: Icon, title, note }]) => {
@@ -268,20 +274,22 @@ const ProfileCardManage = ({
                     <div key={key}>
                       <div
                         className={clsx(
-                          "flex items-center h-10 w-full rounded-md border bg-white px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2",
-                          error && "border-red-500",
+                          `flex h-10 w-full items-center rounded-md border bg-white px-3 py-2
+                          text-sm focus-within:ring-2 focus-within:ring-slate-400
+                          focus-within:ring-offset-2`,
+                          error && "border-red-500"
                         )}
                       >
-                        <Icon className="size-4 mr-3" color="#A3A3A3" />
+                        <Icon className="mr-3 size-4" color="#A3A3A3" />
                         <input
                           placeholder={title}
-                          className="w-full h-full py-4 focus:outline-none"
+                          className="h-full w-full py-4 focus:outline-none"
                           {...register(field, { required: false })}
                           aria-invalid={error ? "true" : "false"}
                         />
                       </div>
                       {note && (
-                        <p className="text-[11px] text-neutral-500 -mt-0.5 italic">{note}</p>
+                        <p className="-mt-0.5 text-[11px] italic text-neutral-500">{note}</p>
                       )}
                       {error && (
                         <p key={key} className="mt-1 text-xs text-red-600" role="alert">
@@ -290,7 +298,7 @@ const ProfileCardManage = ({
                       )}
                     </div>
                   );
-                },
+                }
               )}
             </div>
           </div>
@@ -310,7 +318,7 @@ const ProfileCardManage = ({
               />
               <label
                 htmlFor="public"
-                className="ml-2 text-neutral-800 text-sm font-medium cursor-pointer"
+                className="ml-2 cursor-pointer text-sm font-medium text-neutral-800"
               >
                 Public
               </label>

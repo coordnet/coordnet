@@ -21,6 +21,12 @@ import {
   ProfileCardForm,
   ProfileForm,
   SemanticScholarPaper,
+  Skill,
+  SkillCreateForm,
+  SkillJson,
+  SkillRun,
+  SkillUpdateForm,
+  SkillVersion,
   Space,
 } from "./types";
 
@@ -65,14 +71,14 @@ api.interceptors.response.use(
       window.location.href = loginUrl;
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 export const handleApiError = (
   e: unknown,
   formData: { [key: string]: unknown },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setError: any,
+  setError: any
 ): void => {
   const error = isAxiosError(e);
   if (error) {
@@ -99,7 +105,7 @@ export const getMe: () => Promise<Me> = async () => {
 };
 
 export const getSpaces = async (
-  signal: AbortSignal | undefined,
+  signal: AbortSignal | undefined
 ): Promise<PaginatedApiResponse<Space>> => {
   const response = await api.get("api/nodes/spaces/", { signal, params: { limit: 10000 } });
   return response.data;
@@ -115,54 +121,49 @@ export const updateSpace = async (id: string, data: Partial<Space>): Promise<Spa
   return response.data;
 };
 
-export const getSpacePermissions = async (
+export const getPermissions = async (
   signal: AbortSignal | undefined,
-  id?: string,
-): Promise<Permission[]> => {
-  const response = await api.get(`api/nodes/spaces/${id}/permissions/`, { signal });
-  return response.data;
-};
-
-export const createPermission = async (
   type: PermissionModel,
-  spaceId: string,
-  data: Pick<Permission, "role" | "user">,
+  id?: string
 ): Promise<Permission[]> => {
   if (type == PermissionModel.Space) {
-    const response = await api.post(`api/nodes/spaces/${spaceId}/permissions/`, data);
+    const response = await api.get(`api/nodes/spaces/${id}/permissions/`, { signal });
+    return response.data;
+  }
+  if (type == PermissionModel.Skill) {
+    const response = await api.get(`api/nodes/methods/${id}/permissions/`, { signal });
     return response.data;
   }
   return [];
 };
 
-export const getNodePermissions = async (
-  signal: AbortSignal | undefined,
-  id?: string,
+export const createPermission = async (
+  type: PermissionModel,
+  id: string,
+  data: Pick<Permission, "role" | "user">
 ): Promise<Permission[]> => {
-  const response = await api.get(`api/nodes/nodes/${id}/permissions/`, { signal });
-  return response.data;
+  if (type == PermissionModel.Space) {
+    const response = await api.post(`api/nodes/spaces/${id}/permissions/`, data);
+    return response.data;
+  }
+  if (type == PermissionModel.Skill) {
+    const response = await api.post(`api/nodes/methods/${id}/permissions/`, data);
+    return response.data;
+  }
+  return [];
 };
-
-// export const updatePermission = async (
-//   type: PermissionModel,
-//   spaceId: string,
-//   id: string,
-//   data: Pick<Permission, "role" | "user">,
-// ): Promise<Permission[]> => {
-//   if (type == PermissionModel.Space) {
-//     const response = await api.patch(`api/nodes/spaces/${spaceId}/permissions/${id}`, data);
-//     return response.data;
-//   }
-//   return [];
-// };
 
 export const deletePermission = async (
   type: PermissionModel,
-  spaceId?: string,
-  id?: string,
+  modelId: string,
+  id: string
 ): Promise<Permission[]> => {
   if (type == PermissionModel.Space) {
-    const response = await api.delete(`api/nodes/spaces/${spaceId}/permissions/${id}/`);
+    const response = await api.delete(`api/nodes/spaces/${modelId}/permissions/${id}/`);
+    return response.data;
+  }
+  if (type == PermissionModel.Skill) {
+    const response = await api.delete(`api/nodes/methods/${modelId}/permissions/${id}/`);
     return response.data;
   }
   return [];
@@ -170,7 +171,7 @@ export const deletePermission = async (
 
 export const getNode = async (
   signal: AbortSignal | undefined,
-  id?: string,
+  id?: string
 ): Promise<BackendNodeDetail> => {
   const response = await api.get(`api/nodes/nodes/${id}/`, { signal });
   return response.data;
@@ -178,7 +179,7 @@ export const getNode = async (
 
 export const getSpaceNodes = async (
   signal: AbortSignal | undefined,
-  spaceId?: string,
+  spaceId?: string
 ): Promise<PaginatedApiResponse<BackendNode>> => {
   const response = await api.get("api/nodes/nodes/", {
     params: { space: spaceId, limit: 10000 },
@@ -190,7 +191,7 @@ export const getSpaceNodes = async (
 export const searchNodes = async (
   signal: AbortSignal | undefined,
   q: string,
-  space: string,
+  space: string
 ): Promise<PaginatedApiResponse<NodeSearchResult>> => {
   const response = await api.get("api/nodes/search/", {
     params: { q, space, limit: 25 },
@@ -205,7 +206,7 @@ export const getNodeVersions = async (
   document_type: string = "GRAPH",
   offset: number = 0,
   limit: number = 10,
-  ordering: string = "-created_at",
+  ordering: string = "-created_at"
 ): Promise<PaginatedApiResponse<NodeVersion>> => {
   const response = await api.get("api/nodes/versions/", {
     params: { document, document_type, offset, limit, ordering },
@@ -215,14 +216,14 @@ export const getNodeVersions = async (
 };
 
 export const getBuddies = async (
-  signal: AbortSignal | undefined,
+  signal: AbortSignal | undefined
 ): Promise<PaginatedApiResponse<Buddy>> => {
   const response = await api.get("api/buddies/", { signal });
   return response.data;
 };
 
 export const createBuddy = async (
-  data: Pick<Buddy, "name" | "model" | "system_message" | "description">,
+  data: Pick<Buddy, "name" | "model" | "system_message" | "description">
 ): Promise<Buddy> => {
   const response = await api.post("api/buddies/", data);
   return response.data;
@@ -230,7 +231,7 @@ export const createBuddy = async (
 
 export const updateBuddy = async (
   id: string,
-  data: Pick<Buddy, "name" | "model" | "system_message" | "description">,
+  data: Pick<Buddy, "name" | "model" | "system_message" | "description">
 ): Promise<Buddy> => {
   const response = await api.patch(`api/buddies/${id}/`, data);
   return response.data;
@@ -246,12 +247,12 @@ export const getLLMTokenCount = async (
   message: string,
   nodes: string[],
   level: number,
-  signal: AbortSignal | undefined,
+  signal: AbortSignal | undefined
 ): Promise<LLMTokenCount> => {
   const response = await api.post(
     `api/buddies/${buddyId}/token_counts/`,
     { message, nodes, level },
-    { signal },
+    { signal }
   );
 
   return response.data;
@@ -269,7 +270,7 @@ export const querySemanticScholar = async (
     "abstract",
     "isOpenAccess",
   ],
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<SemanticScholarPaper[]> => {
   const response = await api.get<SemanticScholarPaper[]>("api/buddies/semantic/", {
     signal,
@@ -289,7 +290,7 @@ export const querySemanticScholar = async (
 export const getProfiles = async (
   signal: AbortSignal | undefined,
   filter?: "user" | "space",
-  memberOf?: string | null,
+  memberOf?: string | null
 ): Promise<Profile[]> => {
   let params = {};
   if (filter) {
@@ -312,7 +313,7 @@ export const getProfiles = async (
  */
 export const getProfileFromUsername = async (
   signal: AbortSignal | undefined,
-  username: string,
+  username: string
 ): Promise<Profile> => {
   try {
     const response = await api.get("api/profiles/profiles/", {
@@ -336,7 +337,7 @@ export const getProfileFromUsername = async (
  */
 export const getSpaceProfile = async (
   signal: AbortSignal | undefined,
-  spaceId: string,
+  spaceId: string
 ): Promise<Profile> => {
   try {
     const response = await api.get("api/profiles/profiles/", {
@@ -399,7 +400,7 @@ export const updateProfileCards = async (id: string, cards: string[]): Promise<P
 export const updateProfileImages = async (
   id: string,
   profileImage: string | null,
-  bannerImage: string | null,
+  bannerImage: string | null
 ): Promise<Profile> => {
   const formData = new FormData();
   if (profileImage) {
@@ -448,7 +449,7 @@ export const createProfileCard = async (data: Partial<ProfileCardForm>): Promise
  */
 export const updateProfileCard = async (
   id: string,
-  data: Partial<ProfileCardForm>,
+  data: Partial<ProfileCardForm>
 ): Promise<ProfileCard> => {
   const response = await api.patch(`api/profiles/profile-cards/${id}/`, data);
   return response.data;
@@ -474,7 +475,7 @@ export const deleteProfileCard = async (id: string): Promise<ProfileCard> => {
  */
 export const updateProfileCardImage = async (
   id: string,
-  banner: string | null,
+  banner: string | null
 ): Promise<Profile> => {
   const formData = new FormData();
   if (banner) {
@@ -483,6 +484,90 @@ export const updateProfileCardImage = async (
 
   const response = await api.post(`/api/profiles/profile-cards/${id}/upload-images/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const getSkills = async (
+  signal: AbortSignal | undefined
+): Promise<PaginatedApiResponse<Skill>> => {
+  const response = await api.get(`api/nodes/methods/`, { signal });
+  return response.data;
+};
+
+export const getSkill = async (signal: AbortSignal | undefined, id?: string): Promise<Skill> => {
+  const response = await api.get(`api/nodes/methods/${id}/?show_permissions=1`, { signal });
+  return response.data;
+};
+
+export const createSkill = async (data: Partial<SkillCreateForm>): Promise<Skill> => {
+  const response = await api.post("api/nodes/methods/", data);
+  return response.data;
+};
+
+export const updateSkill = async (id: string, data: SkillUpdateForm): Promise<Skill> => {
+  const response = await api.patch(`api/nodes/methods/${id}/`, data);
+  return response.data;
+};
+
+export const deleteSkill = async (id: string): Promise<Skill> => {
+  const response = await api.delete(`api/nodes/methods/${id}/`);
+  return response.data;
+};
+
+export const updateSkillImage = async (id: string, banner: string | null): Promise<Profile> => {
+  const formData = new FormData();
+  if (banner) {
+    formData.append("image", dataURItoBlob(banner));
+  }
+
+  const response = await api.post(`/api/nodes/methods/${id}/upload-images/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const getSkillRuns = async (
+  signal: AbortSignal | undefined,
+  id?: string
+): Promise<PaginatedApiResponse<SkillRun>> => {
+  const response = await api.get("api/nodes/method-runs/", {
+    signal,
+    params: { method: id, limit: 10000 },
+  });
+  return response.data;
+};
+
+export const createSkillRun = async (data: Partial<SkillRun>): Promise<SkillRun> => {
+  const response = await api.post("api/nodes/method-runs/", data);
+  return response.data;
+};
+
+export const getSkillRun = async (id?: string): Promise<SkillRun> => {
+  const response = await api.get(`api/nodes/method-runs/${id}/`);
+  return response.data;
+};
+
+export const getSkillVersions = async (
+  signal: AbortSignal | undefined,
+  id?: string
+): Promise<PaginatedApiResponse<SkillVersion>> => {
+  const response = await api.get("api/nodes/method-versions/", {
+    signal,
+    params: { method: id, limit: 10000 },
+  });
+  return response.data;
+};
+
+export const getSkillVersion = async (id?: string): Promise<SkillVersion> => {
+  const response = await api.get(`api/nodes/method-versions/${id}/`);
+  return response.data;
+};
+
+export const createSkillVersion = async (skill: string, data: SkillJson): Promise<SkillVersion> => {
+  const response = await api.post("api/nodes/method-versions/", {
+    method: skill,
+    method_data: data,
   });
   return response.data;
 };

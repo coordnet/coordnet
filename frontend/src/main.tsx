@@ -10,9 +10,8 @@ import { Toaster } from "sonner";
 import { QueryParamProvider } from "use-query-params";
 import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 
-import { FocusProvider, QuickViewProvider, SpaceProvider } from "@/hooks";
+import { FocusProvider, QuickViewProvider, YDocProvider } from "@/hooks";
 
-import App from "./App";
 import Login from "./auth/Login";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
@@ -21,17 +20,21 @@ import VerifyEmail from "./auth/VerifyEmail";
 import { Profile } from "./components";
 import ErrorPage from "./components/ErrorPage";
 import Dashboard from "./Dashboard";
+import Skill from "./Skill";
+import Space from "./Space";
 
 const queryClient = new QueryClient();
 
 const addProviders = (element: ReactNode) => {
   return (
     <QueryParamProvider adapter={ReactRouter6Adapter}>
-      <SpaceProvider>
+      {/* <SpaceProvider> */}
+      <YDocProvider>
         <FocusProvider>
           <QuickViewProvider>{element}</QuickViewProvider>
         </FocusProvider>
-      </SpaceProvider>
+      </YDocProvider>
+      {/* </SpaceProvider> */}
     </QueryParamProvider>
   );
 };
@@ -49,7 +52,31 @@ export const router = createBrowserRouter([
   },
   {
     path: "/spaces/:spaceId/:pageId?",
-    element: addProviders(<App />),
+    element: addProviders(<Space />),
+    errorElement: <ErrorPage />,
+  },
+  {
+    // Edit view
+    path: "/skills/:skillId/:pageId?",
+    element: addProviders(<Skill />),
+    errorElement: <ErrorPage />,
+  },
+  {
+    // View a run from a skill without a version (own skill)
+    path: "/skills/:skillId/:pageId?/runs/:runId?",
+    element: addProviders(<Skill />),
+    errorElement: <ErrorPage />,
+  },
+  {
+    // View a skill version (not owner)
+    path: "/skills/:skillId/versions/:versionId/:pageId?",
+    element: addProviders(<Skill />),
+    errorElement: <ErrorPage />,
+  },
+  {
+    // View a skill version run (not owner)
+    path: "/skills/:skillId/versions/:versionId/:pageId?/runs/:runId?",
+    element: addProviders(<Skill />),
     errorElement: <ErrorPage />,
   },
   {
@@ -104,5 +131,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <RouterProvider router={router} />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

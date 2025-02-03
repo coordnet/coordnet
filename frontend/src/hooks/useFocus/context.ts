@@ -4,19 +4,19 @@ import { ReactFlowInstance } from "reactflow";
 import * as Y from "yjs";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GraphNode } from "@/types";
+import { CanvasNode } from "@/types";
 
 type FocusContextType = {
   reactFlowInstance: ReactFlowInstance<any, any> | undefined;
   setReactFlowInstance: React.Dispatch<
     React.SetStateAction<ReactFlowInstance<any, any> | undefined>
   >;
-  focus: "graph" | "editor";
-  setFocus: React.Dispatch<React.SetStateAction<"graph" | "editor">>;
-  nodesMap: Y.Map<GraphNode> | undefined;
-  setNodesMap: React.Dispatch<React.SetStateAction<Y.Map<GraphNode> | undefined>>;
-  nodes: GraphNode[];
-  setNodes: React.Dispatch<React.SetStateAction<GraphNode[]>>;
+  focus: "canvas" | "editor";
+  setFocus: React.Dispatch<React.SetStateAction<"canvas" | "editor">>;
+  nodesMap: Y.Map<CanvasNode> | undefined;
+  setNodesMap: React.Dispatch<React.SetStateAction<Y.Map<CanvasNode> | undefined>>;
+  nodes: CanvasNode[];
+  setNodes: React.Dispatch<React.SetStateAction<CanvasNode[]>>;
   nodeRepositoryVisible: boolean;
   setNodeRepositoryVisible: React.Dispatch<React.SetStateAction<boolean>>;
   editor: Editor | undefined;
