@@ -38,7 +38,7 @@
     "@tiptap/extension-table-header": "^2.11.2",
     "@tiptap/extension-table-row": "^2.11.2",
     "@tiptap/pm": "^2.11.2",
-    "@tiptap/react": "^2.11.2",
+    "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.2",
     "axios": "^1.7.9",
     "blockies-ts": "^1.0.0",
