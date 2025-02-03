@@ -14,11 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add method node type to backend and API.
 - Add method runs to backend and API.
 - Add methode node versioning.
+- Add UI for skills.
 
 ### Fixed
 
 - Bug in node repository search accessing old spaces list.
 - Filter choices in interactive API for Nodes showed unfiltered choices.
+- Fix a N+1 query in the spaces list view.
 
 ### Removed
 
