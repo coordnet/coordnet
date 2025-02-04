@@ -1,4 +1,4 @@
-FROM node:23-slim
+FROM node:22-slim
 
 RUN npm install -g pnpm
 
