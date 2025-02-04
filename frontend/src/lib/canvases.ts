@@ -12,7 +12,7 @@ export const getCanvas = async (
   let nodes: CanvasNode[] = [];
   let edges: CanvasEdge[] = [];
   const token = store("coordnet-auth");
-  let docName = `node-canvas-${id}`;
+  let docName = `node-graph-${id}`;
   if (skillId) {
     docName = `method-${skillId}`;
   }

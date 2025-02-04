@@ -1,6 +1,6 @@
 import { Editor } from "@tiptap/react";
+import { ReactFlowInstance } from "@xyflow/react";
 import React, { createContext } from "react";
-import { ReactFlowInstance } from "reactflow";
 import * as Y from "yjs";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

@@ -1,5 +1,5 @@
 import { Hocuspocus } from "@hocuspocus/server";
-import { Edge, Node as ReactFlowNode } from "@xyflow/react";
+import { Edge, Node as XYFlowNode } from "@xyflow/react";
 import { Request, Response } from "express";
 import * as Y from "yjs";
 import { z } from "zod";
@@ -44,7 +44,7 @@ export const addToCanvas = async (server: Hocuspocus, req: Request, res: Respons
   try {
     await spaceConnection.transact(async (spaceDoc: Y.Doc) => {
       await docConnection.transact(async (doc: Y.Doc) => {
-        const nodesMap: Y.Map<ReactFlowNode> = doc.getMap("nodes");
+        const nodesMap: Y.Map<XYFlowNode> = doc.getMap("nodes");
         const edgesMap: Y.Map<Edge> = doc.getMap("edges");
         const spaceMap = spaceDoc.getMap("nodes");
 
@@ -60,7 +60,7 @@ export const addToCanvas = async (server: Hocuspocus, req: Request, res: Respons
         for (let i = 0; i < incomingNodes.length; i++) {
           const incomingNode: CanvasNode = incomingNodes[i];
 
-          const node: ReactFlowNode = {
+          const node: XYFlowNode = {
             id: incomingNode.id,
             type: "GraphNode",
             position: {

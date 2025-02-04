@@ -1,6 +1,6 @@
+import { Panel } from "@xyflow/react";
 import clsx from "clsx";
 import { Redo2, Undo2 } from "lucide-react";
-import { Panel } from "reactflow";
 
 import { Button } from "../ui/button";
 

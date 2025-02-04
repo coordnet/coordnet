@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import {
   applyEdgeChanges,
   applyNodeChanges,
@@ -6,30 +5,25 @@ import {
   EdgeAddChange,
   EdgeChange,
   EdgeRemoveChange,
-  EdgeResetChange,
   getConnectedEdges,
   NodeAddChange,
   NodeChange,
-  NodeResetChange,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
-} from "reactflow";
+} from "@xyflow/react";
+import { useCallback } from "react";
 
 import { useCanvas, useYDoc } from "@/hooks";
-import { CanvasEdge, YDocScope } from "@/types";
+import { CanvasEdge, CanvasNode, YDocScope } from "@/types";
 
 const isNodeAddChange = (change: NodeChange): change is NodeAddChange => change.type === "add";
-const isNodeResetChange = (change: NodeChange): change is NodeResetChange =>
-  change.type === "reset";
 
 const isEdgeAddChange = (change: EdgeChange): change is EdgeAddChange => change.type === "add";
-const isEdgeResetChange = (change: EdgeChange): change is EdgeResetChange =>
-  change.type === "reset";
 const isEdgeRemoveChange = (change: EdgeChange): change is EdgeRemoveChange =>
   change.type === "remove";
 
-function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
+function useYdocState(): [OnNodesChange<CanvasNode>, OnEdgesChange<CanvasEdge>, OnConnect] {
   const { parent, scope } = useYDoc();
   const {
     nodesMap,
@@ -43,7 +37,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
 
   // The onNodesChange callback updates nodesMap.
   // When the changes are applied to the map, the observer will be triggered and updates the nodes state.
-  const onNodesChanges: OnNodesChange = useCallback(
+  const onNodesChanges: OnNodesChange<CanvasNode> = useCallback(
     (changes) => {
       if (!nodesMap) return console.error("Nodes map is not initialized");
       if (!edgesMap) return console.error("Edges map is not initialized");
@@ -52,7 +46,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       const nextNodes = applyNodeChanges(changes, nodes);
       const newSelection = new Set([...nodesSelection]);
       changes.forEach((change: NodeChange) => {
-        if (!isNodeAddChange(change) && !isNodeResetChange(change)) {
+        if (!isNodeAddChange(change)) {
           const node = nextNodes.find((n) => n.id === change.id);
 
           if (change.type == "select") {
@@ -92,7 +86,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
     [edgesMap, nodesMap, nodesSelection, scope, setNodesSelection]
   );
 
-  const onEdgesChange: OnEdgesChange = useCallback(
+  const onEdgesChange: OnEdgesChange<CanvasEdge> = useCallback(
     (changes) => {
       if (scope !== YDocScope.READ_WRITE) return;
       if (!edgesMap) return console.error("Edges map is not initialized");
@@ -102,7 +96,7 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
       changes.forEach((change: EdgeChange) => {
         if (isEdgeRemoveChange(change)) {
           edgesMap.delete(change.id);
-        } else if (!isEdgeAddChange(change) && !isEdgeResetChange(change)) {
+        } else if (!isEdgeAddChange(change)) {
           if (change.type == "select") {
             if (change.selected == true) {
               newSelection.add(change.id);
@@ -110,7 +104,6 @@ function useYdocState(): [OnNodesChange, OnEdgesChange, OnConnect] {
               newSelection.delete(change.id);
             }
           } else {
-            // @ts-expect-error change id is not never in this context
             edgesMap.set(change.id, nextEdges.find((n) => n.id === change.id) as CanvasEdge);
           }
         }

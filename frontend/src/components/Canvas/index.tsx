@@ -1,18 +1,19 @@
-import "reactflow/dist/style.css";
+import "@xyflow/react/dist/style.css";
 import "./react-flow.css";
 
-import clsx from "clsx";
-import { DragEvent, useCallback, useEffect, useRef } from "react";
-import ReactFlow, {
+import {
   Background,
-  NodeDragHandler,
   OnConnect,
   OnEdgesDelete,
+  OnNodeDrag,
   OnNodesDelete,
+  ReactFlow,
   SelectionDragHandler,
   useReactFlow,
   XYPosition,
-} from "reactflow";
+} from "@xyflow/react";
+import clsx from "clsx";
+import { DragEvent, useCallback, useEffect, useRef } from "react";
 
 import { useCanvas, useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
 import { YDocScope } from "@/types";
@@ -80,7 +81,7 @@ const Canvas = ({ className }: { className?: string }) => {
     handleCanvasDrop(event.dataTransfer, takeSnapshot, parent, nodesMap, spaceMap, position);
   };
 
-  const onNodeDragStart: NodeDragHandler = useCallback(() => {
+  const onNodeDragStart: OnNodeDrag = useCallback(() => {
     takeSnapshot();
   }, [takeSnapshot]);
 

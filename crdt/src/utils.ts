@@ -2,7 +2,7 @@ import { DirectConnection } from "@hocuspocus/server";
 import { getSchema } from "@tiptap/core";
 import { generateJSON } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
-import { Node as ReactFlowNode } from "@xyflow/react";
+import { Node as XYFlowNode } from "@xyflow/react";
 import { Request } from "express";
 import showdown from "showdown";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
@@ -59,8 +59,8 @@ export const appendTextToNodePage = async (connection: DirectConnection, text: s
   });
 };
 
-export const findCentralNode = (ids: string[], nodesMap: Y.Map<ReactFlowNode>) => {
-  const sourceNodes = ids.map((id) => nodesMap.get(id) as ReactFlowNode);
+export const findCentralNode = (ids: string[], nodesMap: Y.Map<XYFlowNode>) => {
+  const sourceNodes = ids.map((id) => nodesMap.get(id) as XYFlowNode);
   const averageX = sourceNodes.reduce((acc, node) => acc + node.position.x, 0) / sourceNodes.length;
   const averageY = sourceNodes.reduce((acc, node) => acc + node.position.y, 0) / sourceNodes.length;
   const centralTargetNode = sourceNodes.reduce(

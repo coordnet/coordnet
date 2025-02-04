@@ -1,7 +1,7 @@
 import { generateJSON, JSONContent } from "@tiptap/core";
+import { Edge } from "@xyflow/react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
-import { Edge } from "reactflow";
 import { toast } from "sonner";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";

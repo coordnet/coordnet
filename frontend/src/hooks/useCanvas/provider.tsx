@@ -53,11 +53,12 @@ export function CanvasProvider({
     if (!nodesMap) return;
 
     const observer = () => {
-      const nodesArr = Array.from(nodesMap.values());
-      nodesArr.forEach((node) => {
-        node.selected = nodesSelection.has(node.id);
-      });
-      setNodes(nodesArr);
+      setNodes(() =>
+        Array.from(nodesMap.values()).map((node) => ({
+          ...node,
+          selected: nodesSelection.has(node.id),
+        }))
+      );
     };
     observer();
     nodesMap.observe(observer);
@@ -68,11 +69,12 @@ export function CanvasProvider({
     if (!edgesMap) return;
 
     const observer = () => {
-      const edgesArr = Array.from(edgesMap.values());
-      edgesArr.forEach((edge) => {
-        edge.selected = edgesSelection.has(edge.id);
-      });
-      setEdges(edgesArr);
+      setEdges(() =>
+        Array.from(edgesMap.values()).map((edge) => ({
+          ...edge,
+          selected: edgesSelection.has(edge.id),
+        }))
+      );
     };
     observer();
     edgesMap.observe(observer);

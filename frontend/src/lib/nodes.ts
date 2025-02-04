@@ -124,8 +124,8 @@ export const getNodeExport = async (
 ): Promise<ExportNode> => {
   const exportNode: ExportNode = {
     id: node.id,
-    width: node.width,
-    height: node.height,
+    width: node.measured?.width,
+    height: node.measured?.height,
     type: node.type,
     title: spaceNode.title,
     position: node.position,

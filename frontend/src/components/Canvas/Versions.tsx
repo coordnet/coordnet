@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { Background, ReactFlow, useEdgesState, useNodesState, useReactFlow } from "@xyflow/react";
 import clsx from "clsx";
 import { format, parseISO } from "date-fns";
 import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
-import ReactFlow, { Background, useEdgesState, useNodesState, useReactFlow } from "reactflow";
 import { toast } from "sonner";
 import { format as formatTimeAgo } from "timeago.js";
 import * as Y from "yjs";
@@ -26,8 +26,8 @@ const Versions = ({ className }: { className?: string }) => {
   const [currentVersion, setCurrentVersion] = useState<NodeVersion>();
   const [currentVersionYdoc, setCurrentVersionYdoc] = useState<Y.Doc>();
   const [detailLoading, setDetailLoading] = useState(false);
-  const [nodes, setNodesCanvas, onNodesChange] = useNodesState([]);
-  const [edges, setEdgesCanvas, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodesCanvas, onNodesChange] = useNodesState<CanvasNode>([]);
+  const [edges, setEdgesCanvas, onEdgesChange] = useEdgesState<CanvasEdge>([]);
   const reactFlowInstance = useReactFlow();
 
   const {

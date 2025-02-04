@@ -1,6 +1,6 @@
 import { generateJSON, JSONContent } from "@tiptap/core";
+import { Node, XYPosition } from "@xyflow/react";
 import DOMPurify from "dompurify";
-import { Node, XYPosition } from "reactflow";
 import { toast } from "sonner";
 import store from "store2";
 import * as Y from "yjs";

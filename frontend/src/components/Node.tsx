@@ -1,11 +1,11 @@
 import "./Editor/styles.css";
 
 import { useQuery } from "@tanstack/react-query";
+import { ReactFlowProvider } from "@xyflow/react";
 import clsx from "clsx";
 import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
-import { ReactFlowProvider } from "reactflow";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { getSpaceProfile } from "@/api";

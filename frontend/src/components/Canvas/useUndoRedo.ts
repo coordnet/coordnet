@@ -1,5 +1,5 @@
+import { Edge } from "@xyflow/react";
 import { useCallback, useEffect, useState } from "react";
-import { Edge } from "reactflow";
 
 import { useCanvas, useFocus } from "@/hooks";
 import { CanvasNode } from "@/types";

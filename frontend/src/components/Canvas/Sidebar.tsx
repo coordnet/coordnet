@@ -1,8 +1,8 @@
+import { useOnViewportChange, useReactFlow } from "@xyflow/react";
 import clsx from "clsx";
 import { LayoutDashboard, Plus, Search } from "lucide-react";
 import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { useOnViewportChange, useReactFlow } from "reactflow";
 import { toast } from "sonner";
 
 import { useCanvas, useFocus, useNodesContext, useYDoc } from "@/hooks";
@@ -47,7 +47,8 @@ const Sidebar = ({
     event.preventDefault();
 
     // If we are in a skill then add an input node
-    if (isSkill) return addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes);
+    if (isSkill && scope != YDocScope.READ_WRITE)
+      return addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes);
 
     if (!nodesMap || !spaceMap) return toast.error("Nodes not loaded");
 

@@ -1,9 +1,9 @@
+import { Edge } from "@xyflow/react";
 import ELK, {
   ElkExtendedEdge,
   ElkPort,
   ElkShape,
 } from "https://cdn.jsdelivr.net/npm/elkjs@0.9.3/+esm";
-import { Edge } from "reactflow";
 
 import { CanvasNode } from "@/types";
 
@@ -44,8 +44,8 @@ export const getLayoutedNodes = async (
       ...node,
       targetPosition: isHorizontal ? "left" : "top",
       sourcePosition: isHorizontal ? "right" : "bottom",
-      width: node.width ?? 200,
-      height: node.height ?? 80,
+      width: node.measured?.width ?? 200,
+      height: node.measured?.height ?? 80,
     })),
     edges: filteredEdges.map((edge) => ({
       id: edge.id,

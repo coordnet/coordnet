@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Background, ReactFlow } from "@xyflow/react";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import ReactFlow, { Background } from "reactflow";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -60,12 +60,12 @@ function ResetPasswordConfirm() {
 
   return (
     <>
-      <div className="size-full flex items-center justify-center absolute z-10">
-        <div className="bg-white min-w-[35vw] max-w-[500px] shadow-lg rounded-md border p-5">
+      <div className="absolute z-10 flex size-full items-center justify-center">
+        <div className="min-w-[35vw] max-w-[500px] rounded-md border bg-white p-5 shadow-lg">
           <Form {...form}>
             <img
               src="/static/coordination-network-logo.png"
-              className="max-w-[250px] w-full m-auto mb-4"
+              className="m-auto mb-4 w-full max-w-[250px]"
             />
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-y-2">
               <FormField
@@ -98,7 +98,7 @@ function ResetPasswordConfirm() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-violet-600 rounded my-2">
+              <Button type="submit" className="my-2 w-full rounded bg-violet-600">
                 Reset password
               </Button>
               <Link to="/auth/login">

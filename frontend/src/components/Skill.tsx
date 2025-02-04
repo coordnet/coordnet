@@ -1,11 +1,11 @@
 import "./Editor/styles.css";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { ReactFlowProvider } from "@xyflow/react";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import { Settings2, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ReactFlowProvider } from "reactflow";
 
 import { deleteSkill } from "@/api";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";

@@ -1,20 +1,20 @@
-import clsx from "clsx";
-import { ReactNode } from "react";
-import { createPortal } from "react-dom";
-import { useParams } from "react-router-dom";
-import { Tooltip } from "react-tooltip";
 import {
   Align,
-  getNodesBounds,
   Node,
   NodeToolbarProps,
   Position,
   ReactFlowState,
   Rect,
   Transform,
+  useReactFlow,
   useStore,
   useViewport,
-} from "reactflow";
+} from "@xyflow/react";
+import clsx from "clsx";
+import { ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { useParams } from "react-router-dom";
+import { Tooltip } from "react-tooltip";
 
 import {
   Menubar,
@@ -85,7 +85,7 @@ function getTransform(
 }
 
 const selectedNodesSelector = (state: ReactFlowState) =>
-  state.getNodes().filter((node) => node.selected).length;
+  state.nodes.filter((node) => node.selected).map((node) => node.id);
 
 function NodeToolbar({
   className,
@@ -96,15 +96,16 @@ function NodeToolbar({
 }: NodeToolbarProps) {
   const { runId } = useParams();
   const { x, y, zoom } = useViewport();
+  const { getNodesBounds } = useReactFlow();
   const { nodes, nodesMap } = useCanvas();
-  const selectedNodesCount = useStore(selectedNodesSelector);
+  const selectedNodeIds = useStore(selectedNodesSelector);
 
-  if (selectedNodesCount < 2 || runId) {
+  if (selectedNodeIds.length < 2 || runId) {
     return null;
   }
 
   const selectedNodes = nodes.filter((n) => n?.selected);
-  const nodeRect: Rect = getNodesBounds(selectedNodes as Node[], [0, 0]);
+  const nodeRect: Rect = getNodesBounds(selectedNodes as Node[]);
 
   const setProgress = (progress: number) => {
     selectedNodes.forEach((n) => {

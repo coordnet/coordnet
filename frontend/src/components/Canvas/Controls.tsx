@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { MiniMap, Panel, ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { History, Map, Maximize, ZoomIn, ZoomOut } from "lucide-react";
-import { MiniMap, Panel, ReactFlowProvider, useReactFlow } from "reactflow";
 import { format as formatTimeAgo } from "timeago.js";
 import useLocalStorageState from "use-local-storage-state";
 

@@ -1,5 +1,5 @@
 import { JSONContent } from "@tiptap/core";
-import { Edge, Node as ReactFlowNode } from "reactflow";
+import { Edge, Node as XYFlowNode, Position } from "@xyflow/react";
 import { z } from "zod";
 
 import { Profile } from "./components";
@@ -72,7 +72,20 @@ export type SpaceNode = {
   title: string;
 };
 
-export type CanvasNode = ReactFlowNode;
+export type CanvasNode = XYFlowNode<
+  {
+    borderColor?: string;
+    type?: NodeType;
+    toolbarPosition?: Position;
+    forceToolbarVisible?: boolean;
+    syncing?: boolean;
+    progress?: number;
+    editing?: boolean;
+    state?: string;
+    loading?: boolean;
+  },
+  "GraphNode"
+>;
 export type CanvasEdge = Edge;
 
 export type ExportNodeSingle = {
@@ -87,7 +100,7 @@ export type ExportNodeSingle = {
   };
   data?: {
     borderColor?: string;
-    type?: string;
+    type?: NodeType;
   };
   content?: JSONContent;
 };

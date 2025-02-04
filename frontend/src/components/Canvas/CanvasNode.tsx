@@ -1,9 +1,9 @@
+import { Handle, NodeResizer, NodeToolbar, Position } from "@xyflow/react";
 import clsx from "clsx";
 import { saveAs } from "file-saver";
 import { Check, ChevronDown, Loader2, LoaderIcon, PlusCircle } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { Handle, NodeResizer, NodeToolbar, Position } from "reactflow";
 import pSBC from "shade-blend-color";
 import { toast } from "sonner";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
@@ -258,9 +258,10 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
             )}
             {/* if domain is localhost show the id */}
             {window.location.hostname === "localhost" && (
-              <div className="absolute right-2 top-0 text-[10px]">{id.slice(0, 8)}</div>
+              <div className="absolute right-2 top-0 text-[10px]">{String(id).slice(0, 8)}</div>
             )}
-            {data?.state && data?.state == "executing" && (
+
+            {Boolean(data?.state && data?.state == "executing") && (
               <div
                 className={clsx(
                   `nodrag absolute right-2 top-[-7px] flex size-4 cursor-pointer items-center
