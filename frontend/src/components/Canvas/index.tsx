@@ -20,6 +20,7 @@ import { YDocScope } from "@/types";
 
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
 import CanvasNodeComponent from "./CanvasNode";
+import ConnectionLine from "./ConnectionLine";
 import Controls from "./Controls";
 import { getLayoutedNodes } from "./getLayoutedNodes";
 import MultiNodeToolbar from "./MultiNodeToolbar";
@@ -102,7 +103,7 @@ const Canvas = ({ className }: { className?: string }) => {
       takeSnapshot();
       const selectedNodes = nodes.filter((node) => node.selected);
 
-      if (selectedNodes.length > 0) {
+      if (selectedNodes.length > 1) {
         selectedNodes.forEach((node) => {
           onConnect({ ...params, source: node.id });
         });
@@ -163,6 +164,7 @@ const Canvas = ({ className }: { className?: string }) => {
           onConnect={onConnectWithUndo}
           onDrop={onDrop}
           onDragOver={onDragOver}
+          connectionLineComponent={ConnectionLine}
           nodeTypes={nodeTypes}
           onNodeDragStart={onNodeDragStart}
           onSelectionDragStart={onSelectionDragStart}
