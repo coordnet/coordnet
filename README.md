@@ -35,8 +35,8 @@ cp .envs/.local/.secrets.example .envs/.local/.secrets
 
 Replace the values in the `.secrets` file with your own. `OPENAI_API_KEY` is the
 [OpenAI Key](https://platform.openai.com/api-keys), `SEMANTIC_API_KEY` is the
-[Semantic Scholar API key](https://www.semanticscholar.org/product/api#api-key-form). Replace
-`WEBSOCKET_API_KEY` with a secure password specific to your deployment.
+[Semantic Scholar API key](https://www.semanticscholar.org/product/api#api-key-form).
+Replace `WEBSOCKET_API_KEY` with a secure password specific to your deployment.
 
 ### Docker Compose
 
@@ -56,47 +56,11 @@ To run the app for development, use this command:
 docker compose up --watch
 ```
 
-You can then access the front-end at: http://localhost:5173/
-
-## Initial Set-up
-
-If you have a fresh install, you will need to set up a user and a space in order to use the app.
-
-1. Get a shell to the django container:
-
-   ```sh
-   docker compose run --rm django bash
-   ```
-
-   Or with Kubernetes it would be:
-
-   ```sh
-   kubectl exec -it <DJANGO_POD_NAME> -n coordnet -- /bin/bash
-   ```
-
-   Then create an admin:
-
-   ```sh
-   python manage.py createsuperuser
-   ```
-
-2. Set the email address and password. Now you need to go to the Django Admin - if you're using
-   Docker Compose that's http://localhost:8000/admin for production it will be the URL to the django
-   container and the value of `DJANGO_ADMIN_URL`. Log in to the Django Admin using the credentials
-   you just created.
-
-3. Find "Spaces" and click "+ Add". Enter a title and then where it says "Object Memberships",
-   choose the user(s) who should have access to the space and set a role. Then click "Save".
-
-4. Now if you visit http://localhost:5173/ (for Docker Compose) you can log in to access the space.
-   You can repeat this to add more spaces and also create users.
-
 ## Deployment
 
-The project is currently deployed as Docker containers to fly.io. The corresponding `fly.*.toml`
+The project is currently deployed as docker containers to fly.io. The corresponding `fly.*.toml`
 files are in the root of the project.
-
-In theory the project can be deployed to any Docker compatible environment, however the process
+In theory the project can be deployed to any docker compatible environment, however the process
 isn't tested or documented yet.
 
 ## Settings
@@ -110,10 +74,10 @@ the `config/settings/*.py` files. Please note that all settings files inherit fr
 In addition to the keys mentioned in the [Environment](#environment) section, the following settings
 are required:
 
-- PostgreSQL database settings: When not using the Docker Compose file, these must be either set by
+- PostgreSQL database settings: When not using the docker compose file, these must be either set by
   using the `DATABASE_URL` environment variable or by setting the individual settings
   (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT`).
-- Message queue settings: The project uses Celery for asynchronous tasks. When not using Docker
+- Message queue settings: The project uses Celery for asynchronous tasks. When not using docker
   compose the message broker settings must be set using the `CELERY_BROKER_URL` environment
   variable or the default `REDIS_URL` setting is being used. See the
   [celery docs](https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url)
@@ -135,11 +99,9 @@ The API is documented using OpenAPI. The documentation is available in `docs/red
 
 ## Contributing
 
-Please check the [repo issues](https://github.com/coordnet/coordnet/issues) for ideas for
-contributions and read the [documentation about contributing](CONTRIBUTING.md) for more information.
+Please check the [repo issues](https://github.com/coordnet/coordnet/issues) for ideas for contributions and read the [documentation about contributing](CONTRIBUTING.md) for more information.
 
-Any contribution intentionally submitted for inclusion in this repository, shall be dual licensed as
-below, without any additional terms or conditions.
+Any contribution intentionally submitted for inclusion in this repository, shall be dual licensed as below, without any additional terms or conditions.
 
 ## License
 
