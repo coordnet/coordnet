@@ -18,6 +18,21 @@ jobs:
 
     - name: Create .secrets file
       run: touch .envs/.local/.secrets
+    
+    # Just pull the images using the cache, don't rebuild
+    - name: Set up Docker layer caching
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./compose/django/Dockerfile
+        load: true
+        pull: true  # Pull existing images
+        push: false
+        cache-from: |
+          type=gha,scope=backend-linux/amd64
+          type=gha,scope=frontend-linux/amd64
+          type=gha,scope=backend-linux/amd64,ref=refs/heads/main
+          type=gha,scope=frontend-linux/amd64,ref=refs/heads/main
 
     - name: Run unit tests
       run: docker compose run -e DJANGO_SETTINGS_MODULE=config.settings.test --rm django ./manage.py test --noinput
