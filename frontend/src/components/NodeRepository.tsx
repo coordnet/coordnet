@@ -16,16 +16,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFocus, useQuickView, useSpace } from "@/hooks";
-import { GraphNode, NodeSearchResult } from "@/types";
+import { useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
+import { CanvasNode, NodeSearchResult } from "@/types";
 
-import { addNodeToGraph } from "./Graph/utils";
+import { addNodeToCanvas } from "./Canvas/utils";
 import { Button } from "./ui/button";
 
 type NodeProps = { className?: string };
 
 const NodeRepository = ({ className }: NodeProps) => {
-  const { space, nodesMap: spaceNodesMap } = useSpace();
+  const { parent } = useYDoc();
+  const { nodesMap: spaceNodesMap } = useNodesContext();
   const { isQuickViewOpen, showQuickView } = useQuickView();
   const navigate = useNavigate();
   const { data: spaces, isLoading: spacesLoading } = useQuery({
@@ -52,7 +53,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         setVisible(false);
       }
     },
-    [visible, setVisible, isQuickViewOpen],
+    [visible, setVisible, isQuickViewOpen]
   );
 
   useEffect(() => {
@@ -63,13 +64,13 @@ const NodeRepository = ({ className }: NodeProps) => {
   }, [handleKeyPress]);
 
   const addNode = (node: NodeSearchResult) => {
-    if (focus === "graph") {
+    if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
       const flowPosition = reactFlowInstance.screenToFlowPosition({ x: 100, y: 100 });
       if (!flowPosition) alert("Failed to add node");
       const id = node.id;
-      const newNode: GraphNode = {
+      const newNode: CanvasNode = {
         id,
         type: "GraphNode",
         position: flowPosition,
@@ -85,10 +86,10 @@ const NodeRepository = ({ className }: NodeProps) => {
   };
 
   const addNewNode = (text: string) => {
-    if (focus === "graph") {
+    if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap || !spaceNodesMap) return alert("nodesMap not found");
-      addNodeToGraph(nodesMap, spaceNodesMap, text, { x: 100, y: 100 });
+      addNodeToCanvas(nodesMap, spaceNodesMap, text, { x: 100, y: 100 });
     }
   };
 
@@ -96,8 +97,8 @@ const NodeRepository = ({ className }: NodeProps) => {
   const [debouncedInputvalue] = useDebounceValue(inputValue, 300);
   const { data, isLoading } = useQuery({
     queryKey: ["searchNodes", debouncedInputvalue],
-    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, space?.id ?? ""),
-    enabled: Boolean(debouncedInputvalue && space),
+    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, parent.data?.id ?? ""),
+    enabled: Boolean(debouncedInputvalue && parent.data),
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,7 +130,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         }
       }
     },
-    [results, selectedIndex, createNodeSelected, inputValue],
+    [results, selectedIndex, createNodeSelected, inputValue]
   );
 
   useEffect(() => {
@@ -143,10 +144,12 @@ const NodeRepository = ({ className }: NodeProps) => {
 
   return visible && !isQuickViewOpen ? (
     <div
+
       className={clsx(
         "fixed inset-0 z-60 flex items-start justify-center p-4 bg-black/20",
         className,
       )}
+
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           e.stopPropagation();
@@ -157,9 +160,11 @@ const NodeRepository = ({ className }: NodeProps) => {
       <div className="w-full max-w-[600px] mt-16 rounded-md border border-neutral-200 shadow-node-repo bg-white pointer-events-auto">
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-b-neutral-100">
           <Search className="size-4 text-neutral-400/50 flex-shrink-0" strokeWidth={3} />
+
           <input
             placeholder="Search Content"
-            className="w-full text-base font-medium focus:outline-none px-0 placeholder:text-neutral-400/50"
+            className="w-full px-0 text-base font-medium placeholder:text-neutral-400/50
+              focus:outline-none"
             autoFocus
             value={inputValue}
             onChange={handleInputChange}
@@ -168,6 +173,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         </div>
         <ul
           ref={nodeListRef}
+
           className={clsx(
             "px-2 py-1.5 max-h-[50vh] overflow-y-auto -webkit-overflow-scrolling-touch",
             {
@@ -179,17 +185,21 @@ const NodeRepository = ({ className }: NodeProps) => {
           {results.map((item, index) => (
             <li
               className={clsx(
+
                 "text-sm px-2 py-1.5 rounded flex items-start flex-wrap",
+
                 "hover:bg-neutral-100",
-                { "bg-neutral-100": index === selectedIndex },
+                { "bg-neutral-100": index === selectedIndex }
               )}
               key={item.id + index}
             >
+
               <div className="flex flex-col w-full">
                 <div className="cursor-pointer" onClick={() => addNode(item)}>
                   {DOMPurify.sanitize(item.title ?? "", { ALLOWED_TAGS: [] })}
                 </div>
                 <div className="flex flex-wrap gap-1 text-xs text-neutral-400 font-medium">
+
                   {!spacesLoading && (
                     <>
                       <span>{spaces?.results.find((space) => space.id == item.space)?.title}</span>
@@ -198,7 +208,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                   )}
                   <span>
                     {numeral((item.title_token_count ?? 0) + (item.text_token_count ?? 0)).format(
-                      "0a",
+                      "0a"
                     )}{" "}
                     token
                     {(item.title_token_count ?? 0) + (item.text_token_count ?? 0) > 1 ? "s" : ""}
@@ -208,7 +218,7 @@ const NodeRepository = ({ className }: NodeProps) => {
                       <span>·</span>
                       <DropdownMenu>
                         <DropdownMenuTrigger>
-                          <span className="flex items-center underline cursor-pointer">
+                          <span className="flex cursor-pointer items-center underline">
                             <RefreshCcw className="size-2.5" />
                             {item?.parents.length}
                           </span>
@@ -220,27 +230,27 @@ const NodeRepository = ({ className }: NodeProps) => {
                           alignOffset={-5}
                         >
                           <DropdownMenuLabel>Canvases</DropdownMenuLabel>
-                          {item?.parents.map((parent, i) => {
-                            if (!spaceNodesMap?.get(parent)?.title) return null;
+                          {item?.parents.map((parentId, i) => {
+                            if (!spaceNodesMap?.get(parentId)?.title) return null;
                             return (
                               <DropdownMenuItem
                                 key={`${item?.id}-${i}`}
-                                className="flex items-center cursor-pointer"
+                                className="flex cursor-pointer items-center"
                                 onClick={() => {
-                                  navigate(`/spaces/${space?.id}/${parent}`);
+                                  navigate(`/spaces/${parent.data?.id}/${parentId}`);
                                   setVisible(false);
                                 }}
                               >
-                                {DOMPurify.sanitize(spaceNodesMap?.get(parent)?.title ?? "", {
+                                {DOMPurify.sanitize(spaceNodesMap?.get(parentId)?.title ?? "", {
                                   ALLOWED_TAGS: [],
                                 })}
 
                                 <Button
                                   variant="ghost"
-                                  className="p-0 h-auto flex items-center ml-auto"
+                                  className="ml-auto flex h-auto items-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    showQuickView(parent);
+                                    showQuickView(parentId);
                                   }}
                                 >
                                   <View className="size-4 text-neutral-600" />
@@ -260,7 +270,7 @@ const NodeRepository = ({ className }: NodeProps) => {
               <div className="ml-auto flex items-center gap-2">
                 <Button
                   variant="ghost"
-                  className="p-0 h-auto flex items-center"
+                  className="flex h-auto items-center p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     showQuickView(item.id);
@@ -271,16 +281,16 @@ const NodeRepository = ({ className }: NodeProps) => {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="p-0 h-auto flex items-center">
+                    <Button variant="ghost" className="flex h-auto items-center p-0">
                       <Ellipsis className="size-4 text-neutral-600" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="z-70 w-[200px]" align="start">
                     <DropdownMenuItem
-                      className="font-normal flex items-center cursor-pointer"
+                      className="flex cursor-pointer items-center font-normal"
                       onClick={() => addNode(item)}
                     >
-                      <Plus className="size-3 mr-1" /> Add to Canvas
+                      <Plus className="mr-1 size-3" /> Add to Canvas
                       <div className="ml-auto text-xs text-neutral-500">⏎</div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -290,24 +300,24 @@ const NodeRepository = ({ className }: NodeProps) => {
           ))}
         </ul>
         {isLoading && (
-          <div className="px-4 py-3 flex items-center justify-center">
-            Loading <Loader2 className="animate-spin size-3 ml-2" />
+          <div className="flex items-center justify-center px-4 py-3">
+            Loading <Loader2 className="ml-2 size-3 animate-spin" />
           </div>
         )}
         {Boolean(!isLoading && results?.length == 0 && inputValue.length) && (
-          <div className="px-4 py-3 flex items-center justify-center">No results</div>
+          <div className="flex items-center justify-center px-4 py-3">No results</div>
         )}
         {Boolean(inputValue.length) && (
           <div
             className={clsx(
-              "px-2 py-1.5 text-neutral-700 font-medium cursor-pointer",
-              "border-t border-t-neutral-100 px-2 py-1.5 flex items-center",
+              "cursor-pointer px-2 py-1.5 font-medium text-neutral-700",
+              "flex items-center border-t border-t-neutral-100 px-2 py-1.5",
               "hover:bg-neutral-100",
-              { "bg-neutral-100": createNodeSelected },
+              { "bg-neutral-100": createNodeSelected }
             )}
             onClick={() => addNewNode(inputValue)}
           >
-            <Plus className="size-4 mr-2" strokeWidth={2.5} /> Create {inputValue}
+            <Plus className="mr-2 size-4" strokeWidth={2.5} /> Create {inputValue}
           </div>
         )}
       </div>

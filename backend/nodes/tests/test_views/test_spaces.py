@@ -11,7 +11,10 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
-        space = factories.SpaceFactory.create(owner=self.owner_user)
+        space = factories.SpaceFactory.create(
+            owner=self.owner_user, default_node=factories.NodeFactory()
+        )
+
         with self.assertNumQueries(2):
             response = self.owner_client.get(reverse("nodes:spaces-list"))
         self.assertEqual(response.status_code, 200)
@@ -32,7 +35,9 @@ class SpacesViewTestCase(BaseTransactionTestCase):
         self.assertEqual(response.data["count"], 0)
 
     def test_retrieve(self) -> None:
-        space = factories.SpaceFactory.create(owner=self.owner_user)
+        space = factories.SpaceFactory.create(
+            owner=self.owner_user, default_node=factories.NodeFactory()
+        )
         response = self.owner_client.get(reverse("nodes:spaces-detail", args=[space.public_id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], str(space.public_id))

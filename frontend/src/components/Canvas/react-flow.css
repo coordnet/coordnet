@@ -1,0 +1,15 @@
+.react-flow__nodesselection {
+  pointer-events: none;
+}
+
+.react-flow__nodesselection-rect {
+  padding-bottom: 8px;
+  box-sizing: content-box !important;
+  pointer-events: none;
+}
+
+.Canvas .react-flow__attribution {
+  left: auto !important;
+  right: 170px !important;
+  bottom: 1px;
+}

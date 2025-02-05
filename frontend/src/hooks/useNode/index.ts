@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { NodeContext } from "./context";
 
 /**
- * Hook for sharing editor between components
+ * Hook for sharing a node between components
  */
 export default function useNode() {
   const context = useContext(NodeContext);

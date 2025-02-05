@@ -7,9 +7,9 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { getSpace, getSpacePermissions, handleApiError, updateSpace } from "@/api";
+import { getPermissions, getSpace, handleApiError, updateSpace } from "@/api";
 import useUser from "@/hooks/useUser";
-import { SpaceSchema } from "@/types";
+import { PermissionModel, SpaceSchema } from "@/types";
 
 import PermissionsList from "../Permissions/List";
 import Member from "../Permissions/Member";
@@ -45,7 +45,7 @@ const Manage = ({
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: ["spaces", id, "permissions"],
-    queryFn: ({ signal }) => getSpacePermissions(signal, id ?? ""),
+    queryFn: ({ signal }) => getPermissions(signal, PermissionModel.Space, id),
     enabled: Boolean(id),
     initialData: [],
   });
@@ -71,7 +71,7 @@ const Manage = ({
   if (!id || !space || spaceLoading || isFetching || permissionsLoading || userLoading)
     return (
       <div className="flex items-center justify-center p-8">
-        Loading <Loader2 className="size-4 text-neutral-500 animate-spin ml-3" />
+        Loading <Loader2 className="ml-3 size-4 animate-spin text-neutral-500" />
       </div>
     );
 
@@ -82,11 +82,11 @@ const Manage = ({
   return (
     <div className={clsx("flex flex-col gap-8 p-6", className)}>
       <div className="flex">
-        <div className="p-1 border border-neutral-200 rounded-sm mr-4 self-start">
+        <div className="mr-4 self-start rounded-sm border border-neutral-200 p-1">
           <img src={icon} className="size-12 rounded-full" />
         </div>
         <div>
-          <div className="text-lg font-semibold mb-2">{space?.title}</div>
+          <div className="mb-2 text-lg font-semibold">{space?.title}</div>
           <div className="text-sm text-neutral-500">
             A Space for all your canvases and nodes.
             {/* <br />
@@ -104,19 +104,20 @@ const Manage = ({
                 <DialogTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="text-sm font-semibold flex items-center text-violet-600 underline px-2 py-1 h-auto"
+                    className="flex h-auto items-center px-2 py-1 text-sm font-semibold
+                      text-violet-600 underline"
                   >
                     Invite <Plus strokeWidth={3} className="ml-2 size-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="p-0 w-[400px]">
+                <DialogContent className="w-[400px] p-0">
                   <Member space={space} setOpen={setMemberOpen} />
                 </DialogContent>
               </Dialog>
             )}
           </div>
 
-          <PermissionsList model="space" space={space} id={id} />
+          <PermissionsList space={space} />
         </div>
       )}
 
@@ -131,12 +132,12 @@ const Manage = ({
               name="title"
               render={({ field }) => (
                 <FormItem className="flex items-center">
-                  <FormLabel className="text-sm font-semibold w-20">Name</FormLabel>
+                  <FormLabel className="w-20 text-sm font-semibold">Name</FormLabel>
                   <div className="flex-grow">
                     <FormControl>
                       <Input placeholder="Space name" {...field} />
                     </FormControl>
-                    <FormMessage className="mt-1 ml-1" />
+                    <FormMessage className="ml-1 mt-1" />
                   </div>
                 </FormItem>
               )}
@@ -154,7 +155,7 @@ const Manage = ({
             >
               {form.formState.isSubmitting ? (
                 <>
-                  Saving <Loader2 className="animate-spin size-3 ml-2" />
+                  Saving <Loader2 className="ml-2 size-3 animate-spin" />
                 </>
               ) : (
                 "Save Changes"

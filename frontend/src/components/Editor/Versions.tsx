@@ -75,27 +75,27 @@ const Versions = ({ editor, className }: { editor: Editor | null; className?: st
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        Loading... <Loader2Icon className="animate-spin size-4 ml-3" />
+      <div className="flex h-full w-full items-center justify-center">
+        Loading... <Loader2Icon className="ml-3 size-4 animate-spin" />
       </div>
     );
   }
   if (isFetched && versions?.count == 0) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center">
         No versions saved yet, they are saved every 5 minutes...
       </div>
     );
   }
 
   return (
-    <div className={clsx("h-full overflow-auto flex", className)}>
+    <div className={clsx("flex h-full overflow-auto", className)}>
       {detailLoading ? (
-        <div className="flex-grow flex items-center justify-center">
-          Loading... <Loader2Icon className="animate-spin size-4 ml-3" />
+        <div className="flex flex-grow items-center justify-center">
+          Loading... <Loader2Icon className="ml-3 size-4 animate-spin" />
         </div>
       ) : (
-        <div className="flex-grow Versions flex flex-col">
+        <div className="Versions flex flex-grow flex-col">
           <div className="flex-grow overflow-auto">
             <EditorContent editor={readOnlyEditor} />
           </div>
@@ -106,19 +106,21 @@ const Versions = ({ editor, className }: { editor: Editor | null; className?: st
           </div>
         </div>
       )}
-      <div className="flex flex-col relative" key={`versions-graph-${currentPage}`}>
+      <div className="relative flex flex-col" key={`versions-editor-${currentPage}`}>
         {(isFetching || isLoading) && (
-          <div className="w-[200px] absolute bg-white/50 h-full flex items-center justify-center z-10">
-            Loading <Loader2Icon className="animate-spin size-4 ml-3" />
+          <div
+            className="absolute z-10 flex h-full w-[200px] items-center justify-center bg-white/50"
+          >
+            Loading <Loader2Icon className="ml-3 size-4 animate-spin" />
           </div>
         )}
         {versions?.results && (
           <>
-            <div className="w-[200px] overflow-auto flex-grow">
+            <div className="w-[200px] flex-grow overflow-auto">
               {versions.results.map((v) => (
                 <div
                   key={v.id}
-                  className={clsx("border-b p-4 cursor-pointer hover:bg-slate-50", {
+                  className={clsx("cursor-pointer border-b p-4 hover:bg-slate-50", {
                     "bg-neutral-100": currentVersion?.id === v.id,
                   })}
                   onClick={() => setCurrentVersion(v)}
@@ -128,7 +130,7 @@ const Versions = ({ editor, className }: { editor: Editor | null; className?: st
                 </div>
               ))}
             </div>
-            <div className="flex ml-auto select-none">
+            <div className="ml-auto flex select-none">
               <Button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}

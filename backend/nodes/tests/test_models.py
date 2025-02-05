@@ -1,5 +1,6 @@
 from itertools import chain
 
+import permissions.models
 from nodes import models
 from nodes.tests import factories
 from utils.testcases import BaseTestCase
@@ -173,3 +174,21 @@ class NodeModelTestCase(BaseTestCase):
         # The third-level subnode should only appear three times, twice for the connections and once
         # to specify its content.
         self.assertEqual(context.count(str(third_level_subnode.public_id)), 3)
+
+
+class MethodNodeModelTestCase(BaseTestCase):
+    def test_role_annotation_query_owner(self) -> None:
+        node = factories.MethodNodeFactory.create(owner=self.owner_user)
+
+        method_qs = models.MethodNode.objects.annotate_user_permissions(user=self.owner_user)
+        self.assertEqual(method_qs.count(), 1)
+        self.assertEqual(method_qs.first(), node)
+        self.assertEqual(method_qs.first().user_roles, [permissions.models.OWNER])
+
+    def test_role_annotation_query_viewer(self):
+        node = factories.MethodNodeFactory.create(viewer=self.viewer_user)
+
+        method_qs = models.MethodNode.objects.annotate_user_permissions(user=self.viewer_user)
+        self.assertEqual(method_qs.count(), 1)
+        self.assertEqual(method_qs.first(), node)
+        self.assertEqual(method_qs.first().user_roles, [permissions.models.VIEWER])

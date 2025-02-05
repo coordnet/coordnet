@@ -4,7 +4,8 @@ import { FocusEventHandler, forwardRef, useCallback, useEffect, useRef, useState
 import { mergeRefs } from "react-merge-refs";
 
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
-import useSpace from "@/hooks/useSpace";
+import { useCanvas, useNodesContext, useYDoc } from "@/hooks";
+import { YDocScope } from "@/types";
 
 interface EditableNodeProps {
   id: string;
@@ -16,12 +17,16 @@ interface EditableNodeProps {
 
 const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
   ({ id, contentEditable = true, className = "", onFocus, onBlur, ...props }, ref) => {
-    const { nodes, nodesMap, scope } = useSpace();
+    const { nodes, nodesMap } = useNodesContext();
+    const { scope } = useYDoc();
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const inputRef = useRef<HTMLDivElement>(null);
 
     const node = nodes?.find((n) => n.id === id);
+
+    const { inputNodes } = useCanvas();
+    const isSkillInput = inputNodes.includes(id);
 
     useEffect(() => {
       if (!inputRef.current || isFocused) return;
@@ -45,7 +50,7 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
         });
         nodesMap?.set(id, { id: id, title: cleaned });
       },
-      [nodesMap, id],
+      [nodesMap, id]
     );
 
     function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
@@ -75,7 +80,7 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
     return (
       <div
         ref={mergeRefs([inputRef, ref])}
-        contentEditable={scope == "read-write" && contentEditable}
+        contentEditable={(scope == YDocScope.READ_WRITE || isSkillInput) && contentEditable}
         onInput={onInput}
         onPaste={handlePaste}
         onKeyDown={(e) => {
@@ -95,7 +100,7 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
         }}
       ></div>
     );
-  },
+  }
 );
 
 EditableNode.displayName = "EditableNode";

@@ -7,12 +7,13 @@ import rest_framework.filters
 from django import http
 from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import decorators, generics, response
+from rest_framework import decorators, generics, parsers, response
 
 import permissions.managers
 import permissions.models
 import permissions.utils
 import permissions.views
+import users.models
 import utils.managers
 import utils.pagination
 import utils.parsers
@@ -24,9 +25,7 @@ if typing.TYPE_CHECKING:
     from rest_framework import request
 
 
-@extend_schema(
-    tags=["Nodes"],
-)
+@extend_schema(tags=["Nodes"])
 @extend_schema_view(
     list=extend_schema(
         description="List available nodes.",
@@ -48,16 +47,25 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
     """API endpoint that allows nodes to be viewed."""
 
     serializer_class = serializers.NodeListSerializer
-    filterset_fields = ("space",)
+    filterset_class = filters.NodeFilterSet
     filter_backends = (filters.NodePermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(
         self,
     ) -> "utils.managers.SoftDeletableQuerySet[models.Node]":
-        queryset = models.Node.available_objects.only(
-            "id", "public_id", "title_token_count", "text_token_count", "space"
-        ).select_related("space")
+        queryset = (
+            models.Node.available_objects.filter(node_type=models.NodeType.DEFAULT)
+            .only(
+                "id",
+                "public_id",
+                "title_token_count",
+                "text_token_count",
+                "space",
+                "image_original",
+            )
+            .select_related("space")
+        )
 
         if self.action == "retrieve":
             queryset = queryset.prefetch_related(
@@ -82,10 +90,116 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
             return serializers.NodeDetailSerializer
         return self.serializer_class
 
+    @extend_schema(
+        description="Upload one or more images for a node.",
+        summary="Upload images",
+    )
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="upload-images",
+        parser_classes=(parsers.MultiPartParser,),
+    )
+    def upload_images(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        node = self.get_object()
+        if "image" in request.FILES:
+            node.image_original = request.FILES["image"]
+            node.save()
+        return response.Response({"status": "success"})
 
-@extend_schema(
-    tags=["Spaces"],
+
+@extend_schema(tags=["Skills"])
+@extend_schema_view(
+    create=extend_schema(description="Create a new skill.", summary="Create skill"),
+    list=extend_schema(
+        description="List available skills.",
+        summary="List skills",
+    ),
+    retrieve=extend_schema(description="Retrieve a single skill.", summary="Retrieve a skill"),
+    update=extend_schema(description="Update a skill.", summary="Update skill"),
+    partial_update=extend_schema(
+        description="Partially update a skill.", summary="Partial update skill"
+    ),
+    destroy=extend_schema(description="Delete a skill.", summary="Delete skill"),
 )
+class MethodNodeModelViewSet(
+    views.BaseModelViewSet[models.MethodNode],
+    permissions.views.PermissionViewSetMixin[models.MethodNode],
+):
+    """API endpoint that allows methods to be viewed or edited."""
+
+    queryset = models.MethodNode.available_objects.all()
+    serializer_class = serializers.MethodNodeListSerializer
+    filter_backends = (filters.MethodNodePermissionFilterBackend, base_filters.BaseFilterBackend)
+    permission_classes = (dry_permissions.DRYPermissions,)
+    allowed_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+
+    def get_queryset(
+        self,
+    ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.MethodNode]":
+        queryset = (
+            self.queryset.annotate_user_permissions(  # type: ignore[attr-defined]
+                request=self.request
+            )
+            .defer("content", "text", "graph_document", "editor_document", "search_vector")
+            .select_related("space__profile", "creator__profile")
+            .prefetch_related(
+                django_models.Prefetch(
+                    "authors", queryset=users.models.User.objects.select_related("profile")
+                ),
+            )
+            .annotate(
+                run_count=django_models.Count("runs", distinct=True),
+            )
+        )
+        assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
+
+        if self.action == "retrieve":
+            latest_version_subquery = (
+                models.MethodNodeVersion.objects.filter(method=django_models.OuterRef("pk"))
+                .order_by("-version")
+                .values("public_id", "version")[:1]
+            )
+
+            return queryset.annotate(
+                latest_version__id=django_models.Subquery(
+                    latest_version_subquery.values("public_id")
+                ),
+                latest_version__version=django_models.Subquery(
+                    latest_version_subquery.values("version")
+                ),
+            )
+
+        return queryset
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeListSerializer]:
+        if self.action == "retrieve":
+            return serializers.MethodNodeDetailSerializer
+        return self.serializer_class
+
+    @extend_schema(
+        description="Upload one or more images for a skill.",
+        summary="Upload images",
+    )
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="upload-images",
+        parser_classes=(parsers.MultiPartParser,),
+    )
+    def upload_images(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        node = self.get_object()
+        if "image" in request.FILES:
+            node.image_original = request.FILES["image"]
+            node.save()
+        return response.Response({"status": "success"})
+
+
+@extend_schema(tags=["Spaces"])
 @extend_schema_view(
     create=extend_schema(description="Create a new space.", summary="Create space"),
     list=extend_schema(description="List available spaces.", summary="List spaces"),
@@ -101,7 +215,7 @@ class SpaceModelViewSet(
 ):
     """API endpoint that allows projects to be viewed or edited."""
 
-    queryset = models.Space.available_objects.prefetch_related("nodes").all()
+    queryset = models.Space.available_objects.all()
     serializer_class = serializers.SpaceSerializer
     filter_backends = (filters.SpacePermissionFilterBackend, base_filters.BaseFilterBackend)
     permission_classes = (dry_permissions.DRYPermissions,)
@@ -111,7 +225,7 @@ class SpaceModelViewSet(
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.Space]":
         queryset = models.Space.available_objects.annotate(
             node_count=django_models.Count("nodes", filter=~django_models.Q(nodes__is_removed=True))
-        )
+        ).select_related("default_node")
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset.annotate_user_permissions(request=self.request)
 
@@ -120,9 +234,7 @@ class SpaceModelViewSet(
         space.members.create(user=self.request.user, role=permissions.utils.get_owner_role())
 
 
-@extend_schema(
-    tags=["Nodes"],
-)
+@extend_schema(tags=["Nodes"])
 @extend_schema_view(
     list=extend_schema(description="List available node versions.", summary="List node versions"),
     retrieve=extend_schema(
@@ -154,9 +266,7 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
         return http.HttpResponse(document_version.data, content_type="application/octet-stream")
 
 
-@extend_schema(
-    tags=["Nodes"],
-)
+@extend_schema(tags=["Nodes"])
 class SearchView(generics.ListAPIView):
     """API endpoint that allows searching for nodes."""
 
@@ -179,7 +289,17 @@ class SearchView(generics.ListAPIView):
 
         nodes = (
             models.Node.available_objects.filter(
-                models.Node.get_user_has_permission_filter(permissions.models.READ, request.user)
+                django_models.Q(
+                    models.Node.get_user_has_permission_filter(
+                        permissions.models.READ, request.user
+                    ),
+                    node_type=models.NodeType.DEFAULT,
+                )
+                | django_models.Q(
+                    models.MethodNode.get_user_has_permission_filter(
+                        permissions.models.READ, request.user, prefix="methodnode"
+                    ),
+                ),
             )
             .select_related("space")
             .prefetch_related(
@@ -203,6 +323,9 @@ class SearchView(generics.ListAPIView):
         if "space" in search_query_serializer.validated_data:
             nodes = nodes.filter(space=search_query_serializer.validated_data["space"])
 
+        if "node_type" in search_query_serializer.validated_data:
+            nodes = nodes.filter(node_type=search_query_serializer.validated_data["node_type"])
+
         page = self.paginate_queryset(nodes)
         if page is not None:
             serializer = serializers.NodeSearchResultSerializer(
@@ -214,3 +337,92 @@ class SearchView(generics.ListAPIView):
             nodes, many=True, context={"request": request}
         )
         return response.Response(serializer.data)
+
+
+@extend_schema(tags=["Skills"])
+@extend_schema_view(
+    create=extend_schema(description="Create a new skill run.", summary="Create skill run"),
+    list=extend_schema(
+        description="List available skill runs.",
+        summary="List skill runs",
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a single skill run.",
+        summary="Retrieve a skill run",
+    ),
+    update=extend_schema(description="Update a skill run.", summary="Update skill run"),
+    partial_update=extend_schema(
+        description="Partially update a skill run.", summary="Partial update skill run"
+    ),
+    destroy=extend_schema(description="Delete a skill run.", summary="Delete skill run"),
+)
+class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
+    """API endpoint that allows method node runs to be viewed or edited."""
+
+    allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]
+    queryset = models.MethodNodeRun.available_objects.select_related(
+        "method_version",
+        "method",
+        "space",
+    ).defer("method_version__method_data", "method__content")
+    serializer_class = serializers.MethodNodeRunListSerializer
+    filterset_class = filters.MethodNodeRunFilterSet
+    filter_backends = (filters.MethodNodeRunPermissionFilterBackend, base_filters.BaseFilterBackend)
+    permission_classes = (dry_permissions.DRYObjectPermissions,)
+
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeRun]":
+        if self.action == "list":
+            return self.queryset.defer("method_data")
+        return self.queryset
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeRunListSerializer]:
+        if self.action == "retrieve":
+            return serializers.MethodNodeRunDetailSerializer
+        return self.serializer_class
+
+
+@extend_schema(tags=["Skills"])
+@extend_schema_view(
+    create=extend_schema(description="Create a new skill version.", summary="Create skill version"),
+    list=extend_schema(
+        description="List available skill versions.",
+        summary="List skill versions",
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a single skill version.",
+        summary="Retrieve a skill version",
+    ),
+    update=extend_schema(description="Update a skill version.", summary="Update skill version"),
+    partial_update=extend_schema(
+        description="Partially update a skill version.", summary="Partial update skill version"
+    ),
+    destroy=extend_schema(description="Delete a skill version.", summary="Delete skill version"),
+)
+class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVersion]):
+    """API endpoint that allows method node versions to be viewed or edited."""
+
+    queryset = (
+        models.MethodNodeVersion.available_objects.select_related("method", "creator")
+        .prefetch_related("authors")
+        .annotate(
+            run_count=django_models.Count("runs", distinct=True),
+        )
+    )
+
+    serializer_class = serializers.MethodNodeVersionListSerializer
+    filterset_class = filters.MethodNodeVersionFilterSet
+    filter_backends = (
+        filters.MethodNodeVersionPermissionFilterBackend,
+        base_filters.BaseFilterBackend,
+    )
+    permission_classes = (dry_permissions.DRYObjectPermissions,)
+
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeVersion]":
+        if self.action == "list":
+            return self.queryset.defer("method_data")
+        return self.queryset
+
+    def get_serializer_class(self) -> type[serializers.MethodNodeVersionListSerializer]:
+        if self.action == "retrieve":
+            return serializers.MethodNodeVersionDetailSerializer
+        return self.serializer_class

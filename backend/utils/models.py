@@ -1,3 +1,4 @@
+import typing
 import uuid
 
 from django.db import models
@@ -12,6 +13,9 @@ except ImportError:
     TypedModelMeta = object  # type: ignore[misc,assignment]
 
 SOFT_DELETION_FIELD_NAME = "is_removed"
+
+T_co = typing.TypeVar("T_co", bound="SoftDeletableBaseModel", covariant=True)
+T2_co = typing.TypeVar("T2_co", bound="BaseModel", covariant=True)
 
 
 class BaseModel(models.Model):

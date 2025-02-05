@@ -28,7 +28,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   });
 
   const filteredSpaces = spaces?.results.filter(
-    (space) => !(space.is_public && !space.allowed_actions.includes("manage")),
+    (space) => !(space.is_public && !space.allowed_actions.includes("manage"))
   );
 
   useEffect(() => {
@@ -54,17 +54,17 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   }, [open, navigate, filteredSpaces]);
 
   return (
-    <div className="h-full flex flex-col p-2">
-      <div className="flex items-center gap-2 text-sm font-medium px-1 pb-2">
+    <div className="flex h-full flex-col p-2">
+      <div className="flex items-center gap-2 px-1 pb-2 text-sm font-medium">
         <Link
           to={`/profiles/${profile?.profile_slug}`}
-          className="text-black flex items-center gap-2 hover:text-black"
+          className="flex items-center gap-2 text-black hover:text-black"
           data-tooltip-id="sidebar-user-profile"
           data-tooltip-place="bottom"
           data-tooltip-content="Your Profile"
           data-tooltip-class-name="text-xs py-1"
         >
-          {profile && <img src={getProfileImage(profile)} className="rounded-full size-5" />}
+          {profile && <img src={getProfileImage(profile)} className="size-5 rounded-full" />}
           {user?.name || user?.email}
           {/* <Button variant="ghost" className="p-1 h-auto">
           <Settings2 className="size-4" />
@@ -72,16 +72,21 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
         </Link>
         <Tooltip id="sidebar-user-profile" />
         <SheetClose asChild>
-          <Button variant="ghost" className="p-1 h-auto ml-auto">
+          <Button variant="ghost" className="ml-auto h-auto p-1">
             <ChevronsLeft className="size-4" />
           </Button>
         </SheetClose>
       </div>
-      <h3 className="border-t text-sm font-semibold pb-1 pt-3 px-2">Spaces</h3>
-      <div className="overflow-auto flex-grow">
+      <h3 className="border-t px-1 pb-2 pt-3 text-sm">
+        <Link to="/" className="flex p-1 text-black hover:bg-neutral-100 hover:text-black">
+          Your Dashboard
+        </Link>
+      </h3>
+      <h3 className="border-t px-2 pb-1 pt-3 text-sm font-semibold">Spaces</h3>
+      <div className="flex-grow overflow-auto">
         {isLoading ? (
-          <div className="p-4 flex justify-center items-center">
-            Loading <Loader2 className="size-4 ml-3 animate-spin" />
+          <div className="flex items-center justify-center p-4">
+            Loading <Loader2 className="ml-3 size-4 animate-spin" />
           </div>
         ) : (
           <ul>
@@ -91,8 +96,8 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
                 <li
                   key={`spaces-${space?.id}`}
                   className={clsx(
-                    "text-sm font-medium rounded p-2 hover:bg-neutral-100 cursor-pointer group",
-                    { "bg-violet-100": space?.id == spaceId },
+                    "group cursor-pointer rounded p-2 text-sm font-medium hover:bg-neutral-100",
+                    { "bg-violet-100": space?.id == spaceId }
                   )}
                 >
                   <Link
@@ -111,7 +116,8 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
                     {space?.allowed_actions?.includes("write") && (
                       <Button
                         variant="ghost"
-                        className="ml-auto text-sm text-neutral-700 group-hover:block hidden p-0 pl-3 h-auto"
+                        className="ml-auto hidden h-auto p-0 pl-3 text-sm text-neutral-700
+                          group-hover:block"
                         onClick={(e) => {
                           e.preventDefault();
                           setManageSpaceOpen(true);
@@ -129,7 +135,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
         )}
       </div>
       <Dialog open={manageSpaceOpen} onOpenChange={setManageSpaceOpen}>
-        <DialogContent className="p-0 w-[430px]">
+        <DialogContent className="w-[430px] p-0">
           {manageSpaceId && (
             <Manage id={manageSpaceId} setOpen={setManageSpaceOpen} key={manageSpaceId} />
           )}

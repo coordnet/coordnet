@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor as useEditorTipTap } from "@tiptap/react";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import ColorThief from "colorthief";
 import { History, Search, Table, X } from "lucide-react";
 import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { format as formatTimeAgo } from "timeago.js";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
@@ -12,10 +13,9 @@ import { StringParam, useQueryParam, withDefault } from "use-query-params";
 import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useFocus, useSpace } from "@/hooks";
-import useNode from "@/hooks/useNode";
-import useUser from "@/hooks/useUser";
+import { useCanvas, useFocus, useUser, useYDoc } from "@/hooks";
 import { rgbToHex } from "@/lib/utils";
+import { BackendEntityType, YDocScope } from "@/types";
 
 import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
@@ -28,10 +28,17 @@ const colorThief = new ColorThief();
 type EditorProps = { id: string; className?: string };
 
 const Editor = ({ id, className }: EditorProps) => {
-  const { space } = useSpace();
-  const { editorError, editorSynced, editorYdoc, editorProvider } = useNode();
+  const { runId } = useParams();
+  const {
+    parent,
+    scope,
+    editor: { error, synced, YDoc, provider },
+  } = useYDoc();
   const { user, isGuest } = useUser();
   const { setEditor, setFocus, focus, setNodeRepositoryVisible } = useFocus();
+
+  const { inputNodes } = useCanvas();
+  const isSkillInput = inputNodes.includes(id);
 
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
@@ -40,28 +47,30 @@ const Editor = ({ id, className }: EditorProps) => {
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "EDITOR", "latest"],
     queryFn: ({ signal }) => getNodeVersions(signal, id, "EDITOR", 0, 1),
-    enabled: Boolean(id),
+    enabled: Boolean(id && parent.type === BackendEntityType.SPACE),
     initialData: { count: 0, next: "", previous: "", results: [] },
     refetchInterval: 1000 * 60,
     retry: false,
   });
 
-  const editor = useEditor(
+  const field = parent.type === BackendEntityType.SPACE ? "default" : `${id}-document`;
+
+  const editor = useEditorTipTap(
     {
       immediatelyRender: false,
-      extensions: loadExtensions(editorProvider, editorYdoc),
+      extensions: loadExtensions(provider, YDoc, field, parent.type == BackendEntityType.SKILL),
       onFocus: () => setFocus("editor"),
       editorProps: { attributes: { class: "prose focus:outline-none" } },
-      editable: Boolean(space?.allowed_actions.includes("write")),
+      editable: Boolean((!runId && scope == YDocScope.READ_WRITE) || isSkillInput),
     },
-    [id, space?.allowed_actions, editorSynced],
+    [id, scope, synced]
   );
 
   useEffect(() => {
-    if (!editor || !editorSynced || !editorYdoc) return;
+    if (!editor || !synced || !YDoc) return;
     // editor.commands.setContent(`<coord-node id="node-2"></coord-node><br/>Hey`);
     setEditor(editor);
-  }, [editor, editorSynced, editorYdoc, setEditor]);
+  }, [editor, synced, YDoc, setEditor]);
 
   useEffect(() => {
     if (user && editor && editor.commands.updateUser) {
@@ -82,13 +91,13 @@ const Editor = ({ id, className }: EditorProps) => {
   if (!id) return <></>;
 
   return (
-    <div className={clsx("border-gray-300 border-l overflow-hidden flex flex-col", className)}>
-      {editorError && <ErrorPage error={editorError} className="absolute z-40 bg-white" />}
-      {!editorSynced && <Loader message="Loading editor..." className="absolute z-30" />}
-      <div className="p-3 font-medium text-lg mr-24">
+    <div className={clsx("flex flex-col overflow-hidden border-l border-gray-300", className)}>
+      {error && <ErrorPage error={error} className="absolute z-40 bg-white" />}
+      {!synced && <Loader message="Loading editor..." className="absolute z-30" />}
+      <div className="mr-24 p-3 text-lg font-medium">
         <EditableNode id={id} className="w-full" />
       </div>
-      <div className="absolute top-2 right-2 flex gap-2">
+      <div className="absolute right-2 top-2 z-10 flex gap-2">
         <Button
           variant="outline"
           className="size-9 p-0 shadow"
@@ -100,32 +109,34 @@ const Editor = ({ id, className }: EditorProps) => {
           data-tooltip-place="bottom-end"
           disabled={focus !== "editor"}
         >
-          <Table strokeWidth={2.8} className="text-neutral-600 size-4" />
+          <Table strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="insert-table">Insert Table</Tooltip>
-        <Button
-          variant="outline"
-          className="size-9 p-0 shadow"
-          onClick={() => setNodeRepositoryVisible(true)}
-          draggable
-          data-tooltip-id="node-page-repo"
-          data-tooltip-place="bottom-end"
-          disabled={focus !== "editor"}
-        >
-          <Search strokeWidth={2.8} className="text-neutral-600 size-4" />
-        </Button>
+        {parent.type === BackendEntityType.SPACE && (
+          <Button
+            variant="outline"
+            className="size-9 p-0 shadow"
+            onClick={() => setNodeRepositoryVisible(true)}
+            draggable
+            data-tooltip-id="node-page-repo"
+            data-tooltip-place="bottom-end"
+            disabled={focus !== "editor"}
+          >
+            <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
+          </Button>
+        )}
         <Tooltip id="node-page-repo">Node Repository</Tooltip>
         <Button
           variant="outline"
-          className="size-9 p-0 shadow z-40"
+          className="z-40 size-9 p-0 shadow"
           onClick={() => setNodePage("")}
           draggable
           data-tooltip-id="node-page-close"
           data-tooltip-place="bottom-end"
         >
-          <X strokeWidth={2.8} className="text-neutral-600 size-4" />
+          <X strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
-        <Tooltip id="node-page-close">Add Node</Tooltip>
+        <Tooltip id="node-page-close">Close Node Page</Tooltip>
       </div>
       <div className="mb-12 overflow-auto">
         <MenuBar editor={editor} />
@@ -134,7 +145,7 @@ const Editor = ({ id, className }: EditorProps) => {
       </div>
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
         {Boolean(versions?.results?.length) && (
-          <div className="text-xs text-gray-700 ml-2">
+          <div className="ml-2 text-xs text-gray-700">
             Saved {formatTimeAgo(versions.results[0].created_at)}
           </div>
         )}
@@ -145,7 +156,7 @@ const Editor = ({ id, className }: EditorProps) => {
                 <History className="size-5" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-4/5 max-w-4/5 h-4/5 max-h-4/5 overflow-hidden">
+            <DialogContent className="max-w-4/5 max-h-4/5 h-4/5 w-4/5 overflow-hidden">
               <Versions editor={editor} />
             </DialogContent>
           </Dialog>

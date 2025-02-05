@@ -1,6 +1,11 @@
 import typing
+import uuid
 from collections import OrderedDict
 
+import django.core.validators
+import dry_rest_permissions.generics
+import imagekit.models
+import imagekit.processors
 import model_utils
 import pgtrigger
 from django.contrib.auth.models import AnonymousUser
@@ -14,13 +19,13 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 import nodes.utils
+import permissions.managers
 import permissions.models
+import permissions.utils
 import utils.models
 from utils import tokens
 
 if typing.TYPE_CHECKING:
-    import uuid
-
     from django import http
     from django.db.models.fields.related_descriptors import RelatedManager
 
@@ -33,10 +38,25 @@ class DocumentType(models.TextChoices):
     EDITOR = "EDITOR", "Editor"
     SPACE = "SPACE", "Space"
     GRAPH = "GRAPH", "Graph"
+    METHOD_GRAPH = "METHOD", "Method Graph"
+
+
+class NodeType(models.TextChoices):
+    METHOD = "METHOD", "Method"
+    DEFAULT = "DEFAULT", "Default"
 
 
 def prefix_field(field: str, prefix: str | None = None) -> str:
     return f"{prefix}__{field}" if prefix else field
+
+
+def unique_node_image_filename(instance: utils.models.BaseModel, filename: str) -> str:
+    file_components = filename.split(".")
+
+    path = f"nodes/node_images/{instance.public_id}/{uuid.uuid4()}"
+    if len(file_components) > 1:
+        path += f".{file_components[-1]}"
+    return path
 
 
 class DocumentEvent(models.Model):
@@ -56,7 +76,71 @@ class DocumentEvent(models.Model):
         return f"{self.public_id} - {self.action.title()}"
 
 
-class Node(utils.models.SoftDeletableBaseModel):
+class BaseNode(utils.models.SoftDeletableBaseModel):
+    title = models.TextField(null=True, default=None)
+    title_token_count = models.PositiveIntegerField(null=True)
+
+    description = models.TextField(null=True, default=None)
+    description_token_count = models.PositiveIntegerField(null=True)
+
+    content = models.JSONField(null=True)
+
+    text = models.TextField(null=True, default=None)
+    text_token_count = models.PositiveIntegerField(null=True)
+
+    node_type = models.CharField(max_length=255, choices=NodeType.choices, default=NodeType.DEFAULT)
+
+    creator = models.ForeignKey(
+        "users.User",
+        related_name="creator_%(class)ss",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    authors = models.ManyToManyField("users.User", related_name="author_%(class)ss", blank=True)
+
+    image_original = models.ImageField(
+        upload_to=unique_node_image_filename,
+        null=True,
+        blank=True,
+        validators=[django.core.validators.validate_image_file_extension],
+    )
+    image = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(800, 320)],
+    )
+    image_2x = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(1600, 640)],
+    )
+    image_thumbnail = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(200, 80)],
+    )
+    image_thumbnail_2x = imagekit.models.ImageSpecField(
+        source="image_original",
+        format="JPEG",
+        options={"quality": 90, "optimize": True},
+        processors=[imagekit.processors.ResizeToFill(400, 160)],
+    )
+
+    space = models.ForeignKey(
+        "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="%(class)ss"
+    )
+
+    search_vector = pg_search.SearchVectorField(editable=False, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class Node(BaseNode):
     """
     A node in the graph.
 
@@ -68,22 +152,18 @@ class Node(utils.models.SoftDeletableBaseModel):
         directly. The `save` method is overridden to handle these updates.
     """
 
-    title = models.TextField(null=True, default=None)
-    title_token_count = models.PositiveIntegerField(null=True)
-    content = models.JSONField(null=True)
-    text = models.TextField(null=True, default=None)
-    text_token_count = models.PositiveIntegerField(null=True)
     subnodes = models.ManyToManyField("self", related_name="parents", symmetrical=False, blank=True)
-    space = models.ForeignKey(
-        "Space", on_delete=models.CASCADE, null=True, blank=True, related_name="nodes"
-    )
+
     editor_document = models.OneToOneField(
-        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_editor"
+        "Document",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(class)s_editor",
     )
     graph_document = models.OneToOneField(
-        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="node_graph"
+        "Document", on_delete=models.SET_NULL, null=True, blank=True, related_name="%(class)s_graph"
     )
-    search_vector = pg_search.SearchVectorField(editable=False, null=True)
 
     tracker = model_utils.FieldTracker()
 
@@ -251,6 +331,11 @@ class Node(utils.models.SoftDeletableBaseModel):
         if self.tracker.has_changed("title") and self.__is_updated(update_fields, "title"):
             self.title_token_count = tokens.token_count(self.title)
             add_to_update_fields.append("title_token_count")
+        if self.tracker.has_changed("description") and self.__is_updated(
+            update_fields, "description"
+        ):
+            self.description_token_count = tokens.token_count(self.description)
+            add_to_update_fields.append("description_token_count")
 
         update_fields = self.__add_to_update_fields(update_fields, *add_to_update_fields)
 
@@ -260,9 +345,15 @@ class Node(utils.models.SoftDeletableBaseModel):
         """Return a string representation of the node."""
         single_line_title = self.title.replace("\n", " ").replace("\r", " ") if self.title else ""
         single_line_text = self.text.replace("\n", " ").replace("\r", " ") if self.text else ""
+        single_line_description = (
+            self.description.replace("\n", " ").replace("\r", " ") if self.description else ""
+        )
         node_str = f"({str(self.public_id)})\n - Title: {single_line_title}"
         if include_content:
-            node_str += f"\n - Content: {single_line_text}"
+            if single_line_text:
+                node_str += f"\n - Content: {single_line_text}"
+            if single_line_description:
+                node_str += f"\n - Description: {single_line_description}"
         if include_connections:
             if subnode_ids := self.subnodes.values_list("public_id", flat=True):
                 node_str += f"\n - Connects to: {', '.join(map(str, subnode_ids))}"
@@ -385,6 +476,159 @@ class Node(utils.models.SoftDeletableBaseModel):
                 ),
             )
         ]
+
+
+class MethodNode(permissions.models.MembershipModelMixin, Node):  # type: ignore[misc]
+    forked_from = models.ForeignKey(
+        "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    buddy = models.ForeignKey("buddies.Buddy", on_delete=models.SET_NULL, null=True, blank=True)
+
+    # TODO: These might be better placed in another mixin class that combines membership with
+    #       soft-deletability.
+    available_objects = permissions.managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
+    all_objects = permissions.managers.MembershipModelQueryManager()  # type: ignore[misc]
+
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        super().__init__(*args, **kwargs)
+
+    def save(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        self.node_type = NodeType.METHOD
+        super().save(*args, **kwargs)
+
+    class Meta(Node.Meta):
+        indexes = []
+        triggers = []
+
+    @property
+    def __permission_manager(self) -> models.Manager:
+        return self.__class__.available_objects
+
+    @staticmethod
+    def get_user_has_permission_filter(
+        action: permissions.models.Action,
+        user: "user_typing.AnyUserType | None" = None,
+        prefix: str | None = None,
+    ) -> Q:
+        """
+        Return a Q object that filters whether the user has permission to do <action> on this
+        object.
+        Note: We're not filtering out whether the object itself is deleted, this should be done
+              before calling this method, but we're checking whether memberships are deleted.
+              Roles are not soft-deletable, so those aren't checked either.
+        """
+        user = user or AnonymousUser()
+
+        def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
+            return Q(
+                **{
+                    prefix_field("members__user", prefix): user,
+                    prefix_field("members__role__role__in", prefix): roles,
+                }
+            )
+
+        if action == permissions.models.READ:
+            queryset_filters = Q(**{prefix_field("is_public", prefix): True})
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions.models.READ_ROLES)
+            return queryset_filters
+        if action in (permissions.models.WRITE, permissions.models.DELETE):
+            queryset_filters = Q(
+                **{
+                    prefix_field("is_public", prefix): True,
+                    prefix_field("is_public_writable", prefix): True,
+                }
+            )
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
+            return queryset_filters
+        if action == permissions.models.MANAGE:
+            if user.is_authenticated:
+                return permissions_for_role(permissions.models.ADMIN_ROLES)
+            return Q(pk=None)  # That is a false statement, so it will return False.
+
+        raise ValueError("Invalid action type.")
+
+    @staticmethod
+    def get_role_annotation_query(user: "user_typing.AnyUserType") -> Coalesce | models.Case:
+        # TODO: This can probably be simplified more, since the roles for methods are much simpler,
+        #       and there are no parents to consider.
+        public_subquery = models.Case(
+            models.When(
+                Q(is_public=True, is_public_writable=True, is_removed=False),
+                then=models.Value(
+                    ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                ),
+            ),
+            models.When(
+                Q(is_public=True, is_removed=False),
+                then=models.Value(["viewer"], output_field=ArrayField(models.CharField())),
+            ),
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+        if not user.is_authenticated:
+            return public_subquery
+
+        method_public_subquery = MethodNode.objects.filter(
+            pk=models.OuterRef("object_id"), is_removed=False, is_public=True
+        )
+        method_public_writable_subquery = MethodNode.objects.filter(
+            pk=models.OuterRef("object_id"),
+            is_removed=False,
+            is_public=True,
+            is_public_writable=True,
+        )
+        method_content_type = content_type_models.ContentType.objects.get_for_model(MethodNode)
+
+        role_aggregation_stmt = ArrayAgg(
+            "role__role",
+            distinct=True,
+            default=models.Value([], output_field=ArrayField(models.CharField())),
+        )
+
+        role_subquery = (
+            permissions.models.ObjectMembership.objects.filter(
+                content_type=method_content_type,
+                object_id=models.OuterRef("pk"),
+                user=user,
+            )
+            # This is to group the roles by the related object, so we can aggregate them later, we
+            # shouldn't need it for spaces, but it's here for consistency and future-proofing.
+            .annotate(related_object=models.OuterRef("pk"))
+            .values("related_object")
+            .annotate(
+                roles=models.Func(
+                    role_aggregation_stmt,
+                    models.Case(
+                        models.When(
+                            Q(content_type=method_content_type)
+                            & models.Exists(method_public_writable_subquery),
+                            then=models.Value(
+                                ["viewer", "writer"], output_field=ArrayField(models.CharField())
+                            ),
+                        ),
+                        models.When(
+                            Q(content_type=method_content_type)
+                            & models.Exists(method_public_subquery),
+                            then=models.Value(
+                                ["viewer"],
+                                output_field=ArrayField(models.CharField()),
+                            ),
+                        ),
+                        default=models.Value([], output_field=ArrayField(models.CharField())),
+                    ),
+                    function="array_cat",
+                    output_field=ArrayField(models.CharField()),
+                    default=role_aggregation_stmt,
+                ),
+            )
+        )
+
+        return Coalesce(
+            role_subquery.values("roles"),
+            public_subquery,
+            output_field=ArrayField(models.CharField()),
+        )
 
 
 class DocumentVersion(utils.models.SoftDeletableBaseModel):
@@ -673,3 +917,83 @@ class Document(models.Model):
         # happen before the corresponding object is created.
         # No permissions apply.
         return False
+
+
+class MethodNodeVersion(BaseNode):
+    method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="versions")
+    version = models.PositiveSmallIntegerField()
+    method_data = models.JSONField()
+    buddy = models.ForeignKey("buddies.Buddy", on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.method.public_id} - {self.version}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["method", "version"], name="unique_method_version")
+        ]
+
+    @staticmethod
+    @dry_rest_permissions.generics.authenticated_users
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        """
+        return True
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.method.has_object_write_permission(request)
+
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.method.has_object_read_permission(request)
+
+
+class MethodNodeRun(utils.models.SoftDeletableBaseModel):
+    method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="runs")
+    method_version = models.ForeignKey(
+        "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True, related_name="runs"
+    )
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    space = models.ForeignKey(
+        "Space", on_delete=models.SET_NULL, related_name="runs", null=True, blank=True
+    )
+
+    method_data = models.JSONField()
+    is_dev_run = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"{self.method.public_id} - {self.created_at}"
+
+    @staticmethod
+    @dry_rest_permissions.generics.authenticated_users
+    def has_write_permission(request: "http.HttpRequest") -> bool:
+        """
+        Write permission on a global level.
+        The actual ownership check is handled on the object level.
+        However, this allows any authenticated user to create a new object.
+        """
+        return False
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_create_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True for any user that is logged in."""
+        return True
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
+        """Return False since there is no reason to edit these after creating them."""
+        return False
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_destroy_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.user == request.user
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.user == request.user

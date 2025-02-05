@@ -1,6 +1,6 @@
 import * as blockies from "blockies-ts";
 
-import { Profile, ProfileCard, ProfileCardSubProfile } from "@/types";
+import { Profile, ProfileCard, ProfileCardSubProfile, Skill } from "@/types";
 
 import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 
@@ -22,7 +22,7 @@ const imageUrlCache: Record<string, string> = {};
 
 export const getProfileImage = (
   profile: Profile | ProfileCardSubProfile | null | undefined,
-  retina: boolean = false,
+  retina: boolean = false
 ) => {
   let imageUrl: string;
 
@@ -46,7 +46,7 @@ export const getProfileImage = (
 
 export const getProfileBannerImage = (
   profile: Profile | null | undefined,
-  retina: boolean = false,
+  retina: boolean = false
 ) => {
   let imageUrl: string;
 
@@ -67,9 +67,9 @@ export const getProfileBannerImage = (
 };
 
 export const getProfileCardImage = (
-  card: ProfileCard | null | undefined,
+  card: ProfileCard | Skill | null | undefined,
   retina: boolean = false,
-  thumbnail: boolean = false,
+  thumbnail: boolean = false
 ) => {
   let imageUrl: string;
 

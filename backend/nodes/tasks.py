@@ -39,13 +39,18 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                             models.DocumentEvent.EventType.INSERT,
                             models.DocumentEvent.EventType.UPDATE,
                         ):
+                            # Fetch the node, or create it.
                             try:
                                 node = models.Node.all_objects.select_for_update(no_key=True).get(
                                     public_id=document_event.public_id
                                 )
                             except models.Node.DoesNotExist:
-                                node = models.Node(public_id=document_event.public_id)
+                                node = models.Node(
+                                    public_id=document_event.public_id,
+                                    node_type=models.NodeType.DEFAULT,
+                                )
 
+                            # Try setting the graph and editor documents.
                             if not node.graph_document:
                                 try:
                                     node.graph_document = models.Document.objects.only("id").get(
@@ -144,10 +149,11 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
 
                             # 3. Create new nodes that didn't get their content synced yet
                             for node_id in nodes_in_space - nodes_existing:
-                                node = models.Node.objects.create(
+                                node = models.Node(
                                     public_id=node_id,
                                     title=node_titles[node_id],
                                     space=space,
+                                    node_type=models.NodeType.DEFAULT,
                                 )
 
                                 # This is in case the node was synced meanwhile.
@@ -167,7 +173,6 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 except models.Document.DoesNotExist:
                                     pass
 
-                                # TODO: This should be conditional on the documents being added.
                                 node.save()
 
                         elif document_event.action == models.DocumentEvent.EventType.DELETE:
@@ -198,23 +203,23 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 node = models.Node.all_objects.select_for_update(no_key=True).get(
                                     public_id=document_event.public_id
                                 )
-                                if not node.graph_document:
-                                    try:
-                                        node.graph_document = models.Document.objects.only(
-                                            "id"
-                                        ).get(
-                                            public_id=document_event.public_id,
-                                            document_type=models.DocumentType.GRAPH,
-                                        )
-                                    except models.Document.DoesNotExist:
-                                        pass
-                                    else:
-                                        node.save(update_fields=["graph_document"])
-
                             except models.Node.DoesNotExist:
                                 node = models.Node.objects.create(
-                                    public_id=document_event.public_id
+                                    public_id=document_event.public_id,
+                                    node_type=models.NodeType.DEFAULT,
                                 )
+
+                            if not node.graph_document:
+                                try:
+                                    node.graph_document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id,
+                                        document_type=models.DocumentType.GRAPH,
+                                    )
+                                except models.Document.DoesNotExist:
+                                    pass
+                                else:
+                                    # TODO: Remove duplicate save
+                                    node.save(update_fields=["graph_document"])
 
                             # 2. Set subnodes
 
@@ -224,7 +229,9 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                         no_key=True
                                     ).get(public_id=node_id)
                                 except models.Node.DoesNotExist:
-                                    subnode = models.Node.objects.create(public_id=node_id)
+                                    subnode = models.Node.objects.create(
+                                        public_id=node_id, node_type=models.NodeType.DEFAULT
+                                    )
                                 node.subnodes.add(subnode)
 
                         elif document_event.action == models.DocumentEvent.EventType.DELETE:
@@ -237,7 +244,44 @@ def process_document_events(raise_exception: bool = False) -> None:  # noqa: PLR
                                 f"Unknown action {document_event.action} for "
                                 f"{document_event.public_id} received. ignoring..."
                             )
+                    elif document_event.document_type == models.DocumentType.METHOD_GRAPH:
+                        if document_event.action in (
+                            models.DocumentEvent.EventType.INSERT,
+                            models.DocumentEvent.EventType.UPDATE,
+                        ):
+                            # 1. Get or create the parent node
+                            try:
+                                node = models.Node.all_objects.select_for_update(no_key=True).get(
+                                    public_id=document_event.public_id
+                                )
+                            except models.Node.DoesNotExist:
+                                node = models.Node.objects.create(
+                                    public_id=document_event.public_id,
+                                    node_type=models.NodeType.METHOD,
+                                )
 
+                            if not node.graph_document:
+                                try:
+                                    node.graph_document = models.Document.objects.only("id").get(
+                                        public_id=document_event.public_id,
+                                        document_type=models.DocumentType.METHOD_GRAPH,
+                                    )
+                                except models.Document.DoesNotExist:
+                                    pass
+                                else:
+                                    # TODO: Remove duplicate save
+                                    node.save(update_fields=["graph_document"])
+
+                        elif document_event.action == models.DocumentEvent.EventType.DELETE:
+                            logger.warning(
+                                f"Deletion event for {document_event.public_id} received. "
+                                "Ignoring..."
+                            )
+                        else:
+                            logger.warning(
+                                f"Unknown action {document_event.action} for "
+                                f"{document_event.public_id} received. ignoring..."
+                            )
             except Exception as e:
                 logger.exception(f"Error processing event {document_event.pk}: {e}")
                 if raise_exception:

@@ -38,25 +38,21 @@ class ProfileModelViewSet(utils.views.BaseNoCreateDeleteModelViewSet[profiles.mo
     ordering_fields = ("created",)
 
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
-        queryset = (
-            profiles.models.Profile.objects.defer("profile_image_original", "banner_image_original")
-            .select_related("user", "space")
-            .prefetch_related(
-                models.Prefetch(
-                    "cards",
-                    queryset=profiles.models.ProfileCard.objects.filter(
-                        profiles.models.Profile.get_visible_cards_filter_expression(
-                            user=self.request.user
-                        )
-                    ).distinct(),
+        queryset = profiles.models.Profile.objects.select_related("user", "space").prefetch_related(
+            models.Prefetch(
+                "cards",
+                queryset=profiles.models.ProfileCard.objects.filter(
+                    profiles.models.Profile.get_visible_cards_filter_expression(
+                        user=self.request.user
+                    )
+                ).distinct(),
+            ),
+            models.Prefetch(
+                "members",
+                queryset=profiles.models.Profile.objects.filter(
+                    profiles.models.Profile.get_visible_members_filter_expression()
                 ),
-                models.Prefetch(
-                    "members",
-                    queryset=profiles.models.Profile.objects.filter(
-                        profiles.models.Profile.get_visible_members_filter_expression()
-                    ),
-                ),
-            )
+            ),
         )
         return queryset
 
@@ -96,8 +92,12 @@ class ProfileCardModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profi
     ordering_fields = ("created",)
 
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.ProfileCard]":
-        return profiles.models.ProfileCard.objects.defer("image_original").prefetch_related(
-            "profiles"
+        return profiles.models.ProfileCard.objects.select_related(
+            "created_by", "author_profile__user", "space_profile__space"
+        ).prefetch_related(
+            models.Prefetch(
+                "profiles", queryset=profiles.models.Profile.objects.select_related("user", "space")
+            )
         )
 
     @action(

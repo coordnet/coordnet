@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Background, ReactFlow } from "@xyflow/react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import ReactFlow, { Background } from "reactflow";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -59,17 +59,17 @@ function VerifyEmail() {
 
   return (
     <>
-      <div className="size-full flex items-center justify-center absolute z-10">
-        <div className="bg-white min-w-[35vw] max-w-[500px] shadow-lg rounded-md border p-5">
+      <div className="absolute z-10 flex size-full items-center justify-center">
+        <div className="min-w-[35vw] max-w-[500px] rounded-md border bg-white p-5 shadow-lg">
           <Form {...form}>
             <img
               src="/static/coordination-network-logo.png"
-              className="max-w-[250px] w-full m-auto mb-4"
+              className="m-auto mb-4 w-full max-w-[250px]"
             />
-            <h1 className="text-lg flex items-center justify-center font-medium">
+            <h1 className="flex items-center justify-center text-lg font-medium">
               Verify your email address
             </h1>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-y-2 mt-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 flex flex-col gap-y-2">
               <FormField
                 control={form.control}
                 name="token"
@@ -85,7 +85,7 @@ function VerifyEmail() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-violet-600 rounded my-2">
+              <Button type="submit" className="my-2 w-full rounded bg-violet-600">
                 Verify Email
               </Button>
               <Link to="/auth/login">

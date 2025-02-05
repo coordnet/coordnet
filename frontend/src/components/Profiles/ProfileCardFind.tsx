@@ -12,7 +12,7 @@ import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import ProfileCard from "./ProfileCard";
+import ProfileSkillCard from "./ProfileSkillCard";
 
 const searchCards = (data: ProfileCardType[], searchString: string): ProfileCardType[] => {
   // Trim the search string and convert to lowercase for case-insensitive search
@@ -70,7 +70,7 @@ const ProfileCardFind = ({
   const onChange = useCallback(
     async (value: string) => {
       const availableCards = data?.filter(
-        (card) => !profile.cards.map((c) => c.id).includes(card.id),
+        (card) => !profile.cards.map((c) => c.id).includes(card.id)
       );
       if (value === "") {
         setCards([]);
@@ -78,7 +78,7 @@ const ProfileCardFind = ({
         setCards(searchCards(availableCards, value));
       }
     },
-    [profile, data],
+    [profile, data]
   );
 
   useEffect(() => {
@@ -90,14 +90,15 @@ const ProfileCardFind = ({
       showCloseButton={false}
       aria-describedby={undefined}
       className={clsx(
-        "bg-profile-modal-gradient p-0 max-w-[580px] w-[90%] !rounded-2xl h-fit max-h-[90%] flex flex-col outline-none",
-        className,
+        `flex h-fit max-h-[90%] w-[90%] max-w-[580px] flex-col !rounded-2xl
+        bg-profile-modal-gradient p-0 outline-none`,
+        className
       )}
     >
       {isLoading ? (
         <div className="flex items-center justify-center p-3">Loading...</div>
       ) : (
-        <div className="overflow-scroll flex flex-col gap-4 p-3">
+        <div className="flex flex-col gap-4 overflow-scroll p-3">
           <Input
             placeholder="Search for a card"
             autoFocus
@@ -108,18 +109,18 @@ const ProfileCardFind = ({
           {input !== "" && cards.length === 0 ? (
             <div className="flex items-center justify-center p-2 text-gray-500">No results</div>
           ) : cards.length ? (
-            <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-4 min-[640px]:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
               {cards.map((card, i) => (
                 <div className="relative" key={`${i}-${card.id}`}>
                   <Button
-                    className="absolute top-2 right-2 z-10 bg-violet-700 hover:bg-violet-800"
+                    className="absolute right-2 top-2 z-10 bg-violet-700 hover:bg-violet-800"
                     size="sm"
                     onClick={() => onAddCard(card.id)}
                   >
-                    <Plus className="size-4 mr-1" />
+                    <Plus className="mr-1 size-4" />
                     Add
                   </Button>
-                  <ProfileCard card={card} />
+                  <ProfileSkillCard card={card} />
                 </div>
               ))}
             </div>

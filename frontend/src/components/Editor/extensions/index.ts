@@ -14,14 +14,19 @@ import { CollaborationCursor } from "./CollaborationCursor";
 import { ListItem } from "./ListItem";
 import { Node } from "./Node";
 
-export const loadExtensions = (provider?: HocuspocusProvider, ydoc?: Y.Doc, readOnly = false) => {
+export const loadExtensions = (
+  provider?: HocuspocusProvider,
+  ydoc?: Y.Doc,
+  field = "default",
+  readOnly = false
+) => {
   const extensions: Extensions = [Link];
 
   // Register collaboration if set
-  if (ydoc && provider) {
+  if (ydoc) {
     extensions.push(StarterKit.configure({ history: false, bulletList: false, listItem: false }));
-    extensions.push(Collaboration.configure({ document: ydoc }));
-    if (!readOnly) extensions.push(CollaborationCursor.configure({ provider }));
+    extensions.push(Collaboration.configure({ document: ydoc, field }));
+    if (!readOnly && provider) extensions.push(CollaborationCursor.configure({ provider }));
 
     // Otherwise just add starter kit
   } else {

@@ -11,10 +11,11 @@ class NodesViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
-        factories.NodeFactory.create(space=space)
-        response = self.owner_client.get(reverse("nodes:nodes-list"))
+        factories.NodeFactory.create_batch(10, space=space)
+        with self.assertNumQueries(2):
+            response = self.owner_client.get(reverse("nodes:nodes-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["count"], 10)
 
     def test_retrieve(self) -> None:
         space = factories.SpaceFactory.create(owner=self.owner_user)
