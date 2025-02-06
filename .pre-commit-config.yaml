@@ -68,14 +68,16 @@ repos:
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.4.1
     hooks:
-      - id: pip-compile
-        name: pip-compile local.in
-        args: [ requirements/local.in ]
-        files: ^requirements/(base|local)\.(in|txt)$
-      - id: pip-compile
-        name: pip-compile production.in
-        args: [ requirements/production.in ]
-        files: ^requirements/(base|production)\.(in|txt)$
+      - id: pip-compile-local
+        name: pip-compile local
+        entry: bash -c 'pip-compile --generate-hashes --allow-unsafe --output-file=requirements/local.txt requirements/local.in && git add requirements/local.txt'
+        language: system
+        files: ^requirements/local\.in$
+      - id: pip-compile-production
+        name: pip-compile production
+        entry: bash -c 'pip-compile --generate-hashes --allow-unsafe --output-file=requirements/production.txt requirements/production.in && git add requirements/production.txt'
+        language: system
+        files: ^requirements/production\.in$
   - repo: local
     hooks:
       - id: ruff
