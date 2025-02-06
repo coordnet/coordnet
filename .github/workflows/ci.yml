@@ -19,5 +19,17 @@ jobs:
     - name: Create .secrets file
       run: touch .envs/.local/.secrets
 
+        # Add GitHub Actions cache for dependencies
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.local/share/pnpm/store
+          node_modules
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/pnpm-lock.yaml', '**/requirements/*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+
     - name: Run unit tests
       run: docker compose run -e DJANGO_SETTINGS_MODULE=config.settings.test --rm django ./manage.py test --noinput
