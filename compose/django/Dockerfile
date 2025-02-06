@@ -9,7 +9,8 @@ FROM python AS python-build-stage
 ARG BUILD_ENVIRONMENT=local
 
 # Install apt packages
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN --mount=type=cache,target=/var/cache/apt \
+  apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
@@ -18,8 +19,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
-RUN pip wheel --wheel-dir /usr/src/app/wheels  \
-  -r ${BUILD_ENVIRONMENT}.txt
+RUN pip wheel --wheel-dir /usr/src/app/wheels \
+  --cache-dir /usr/src/app/pip-cache \
+  -r /usr/src/app/${BUILD_ENVIRONMENT}.txt
 
 
 # Python 'run' stage
@@ -33,7 +35,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 WORKDIR ${APP_HOME}
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN --mount=type=cache,target=/var/cache/apt \
+  apt-get update && apt-get install --no-install-recommends -y \
   # devcontainer dependencies and utils
   sudo git bash-completion nano ssh gnupg2 wget vim-nox \
   # psycopg2 dependencies and psql client
@@ -67,7 +70,8 @@ RUN mkdir /opt/tiktoken_cache \
 COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
 
 # use wheels to install python dependencies
-RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
+RUN --mount=type=cache,target=/root/.cache/pip \
+  pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
   && rm -rf /wheels/
 
 COPY ./compose/django/entrypoint /entrypoint
