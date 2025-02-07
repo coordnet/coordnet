@@ -67,15 +67,18 @@ const Space = () => {
           <ErrorPage error={error} />
         ) : (
           <>
-            <NodeRepository />
-            <LLM id={nodeId} />
-            <Node key={nodeId} id={nodeId} className="flex-grow w-full" />
-            <NodeProvider id={nodePage}>
-              <Editor
-                id={nodePage}
-                key={nodePage}
-                className="absolute md:top-6 top-4 right-0 bottom-0 md:w-1/2 w-full z-20 bg-white shadow-md"
-              />
+            <NodeProvider id={nodeId}>
+              <NodeRepository />
+              <LLM id={nodeId} />
+              <CanvasProvider nodeId={nodeId} spaceId={spaceId}>
+                <Node key={nodeId} id={nodeId} className="w-full flex-grow" />
+                <Editor
+                  id={nodePage}
+                  key={nodePage}
+                  className="absolute md:top-6 top-4 right-0 bottom-0 md:w-1/2 w-full z-20 bg-white shadow-md"
+                />
+              </CanvasProvider>
+              <QuickView />
             </NodeProvider>
           </>
         )}
