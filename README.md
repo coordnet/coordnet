@@ -112,7 +112,6 @@ python manage.py createsuperuser
 3. Follow the prompts to set:
    - Email address
    - Password
-   - Additional required information
 
 ### Space Creation
 1. Log in to the Django Admin (http://localhost:8000/admin) using your superuser credentials
