@@ -8,6 +8,7 @@ import imagekit.models
 import imagekit.processors
 import model_utils
 import pgtrigger
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes import models as content_type_models
 from django.contrib.postgres import indexes as pg_indexes
@@ -23,6 +24,7 @@ import permissions.managers
 import permissions.models
 import permissions.utils
 import utils.models
+from config.celery_app import app
 from utils import tokens
 
 if typing.TYPE_CHECKING:
@@ -488,6 +490,14 @@ class MethodNode(permissions.models.MembershipModelMixin, Node):  # type: ignore
     #       soft-deletability.
     available_objects = permissions.managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
     all_objects = permissions.managers.MembershipModelQueryManager()  # type: ignore[misc]
+
+    def execute(self, method_run_id: int) -> None:
+        """Execute the method."""
+        app.send_task(
+            "execute_method",
+            queue=settings.CELERY_NODE_EXECUTION_QUEUE,
+            kwargs={"method_id": self.pk, "method_run_id": method_run_id},
+        )
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init__(*args, **kwargs)
@@ -995,5 +1005,10 @@ class MethodNodeRun(utils.models.SoftDeletableBaseModel):
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.user == request.user
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_execute_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user is the owner of the object."""
         return self.user == request.user

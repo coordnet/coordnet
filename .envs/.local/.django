@@ -9,6 +9,7 @@ REDIS_URL=redis://redis:6379/0
 
 # Celery
 # ------------------------------------------------------------------------------
+CELERY_NODE_EXECUTION_QUEUE=node_execution
 
 # Flower
 CELERY_FLOWER_USER=aezeod7OhheiGa0vaefoma1ooqua8zoo

@@ -380,6 +380,14 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
             return serializers.MethodNodeRunDetailSerializer
         return self.serializer_class
 
+    @decorators.action(detail=True, methods=["post"])
+    def execute(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        run = self.get_object()
+        run.method.execute(method_run_id=run.id)
+        return response.Response(status=204)
+
 
 @extend_schema(tags=["Skills"])
 @extend_schema_view(

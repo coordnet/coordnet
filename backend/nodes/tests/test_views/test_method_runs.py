@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.urls import reverse
 
 from nodes.tests import factories
@@ -67,3 +69,12 @@ class MethodNodeRunTestCase(BaseTransactionTestCase):
             reverse("nodes:method-runs-detail", args=[method_run.public_id])
         )
         self.assertEqual(response.status_code, 204)
+
+    @mock.patch("config.celery_app.app.send_task")
+    def test_execution(self, mock_send_task: mock.Mock) -> None:
+        method_run = factories.MethodNodeRunFactory.create(user=self.owner_user)
+        response = self.owner_client.post(
+            reverse("nodes:method-runs-execute", args=[method_run.public_id])
+        )
+        self.assertEqual(response.status_code, 204)
+        mock_send_task.assert_called_once()
