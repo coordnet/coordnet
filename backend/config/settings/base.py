@@ -382,6 +382,8 @@ CELERY_TASK_SEND_SENT_EVENT = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_acks_late
 CELERY_ACKS_LATE = True
 
+CELERY_NODE_EXECUTION_QUEUE = env.str("CELERY_NODE_EXECUTION_QUEUE", "node_execution")
+
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
