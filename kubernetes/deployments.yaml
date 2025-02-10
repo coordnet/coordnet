@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+  namespace: coordnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+        - name: django
+          image: ghcr.io/coordnet/coordnet_backend:latest
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: coordnet-secrets
+          command: ["/start-production"]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: coordnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:6
+          ports:
+            - containerPort: 6379
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celeryworker
+  namespace: coordnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celeryworker
+  template:
+    metadata:
+      labels:
+        app: celeryworker
+    spec:
+      containers:
+        - name: celeryworker
+          image: ghcr.io/coordnet/coordnet_backend:latest
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: coordnet-secrets
+          command: ["/start-celeryworker"]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celerybeat
+  namespace: coordnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celerybeat
+  template:
+    metadata:
+      labels:
+        app: celerybeat
+    spec:
+      containers:
+        - name: celerybeat
+          image: ghcr.io/coordnet/coordnet_backend:latest
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: coordnet-secrets
+          command: ["/start-celerybeat"]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pubsub
+  namespace: coordnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pubsub
+  template:
+    metadata:
+      labels:
+        app: pubsub
+    spec:
+      containers:
+        - name: pubsub
+          image: ghcr.io/coordnet/coordnet_backend:latest
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: coordnet-secrets
+          command: ["/start-pubsub-listener"]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crdt
+  namespace: coordnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crdt
+  template:
+    metadata:
+      labels:
+        app: crdt
+    spec:
+      containers:
+        - name: crdt
+          image: ghcr.io/coordnet/coordnet_crdt:latest
+          ports:
+            - containerPort: 8010
+          envFrom:
+            - configMapRef:
+                name: crdt-config
+            - secretRef:
+                name: coordnet-secrets
