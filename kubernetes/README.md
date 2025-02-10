@@ -2,6 +2,8 @@
 
 This is an example of how to run Coordination Network in Kubernetes.
 
+> **Note:** This configuration is not yet Production ready. Production deployments should use PgBouncer for database connection pooling and RabbitMQ instead of Redis for message queuing.
+
 ## Setting it up
 
 1. Copy the secrets template and replace the values:
