@@ -188,10 +188,12 @@ The API is documented using OpenAPI. Access the documentation:
 2. Read the [contributing documentation](CONTRIBUTING.md) for detailed guidelines
 3. Submit your contributions through pull requests
 
-All contributions intentionally submitted for inclusion in this repository will be dual licensed as specified below, without additional terms or conditions.
+Any contribution intentionally submitted for inclusion in this repository, shall be dual licensed as below, without any additional terms or conditions.
 
 ## License
 
-This project is dual-licensed under:
-- [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
+Licensed under either of:
+
+- [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
 - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](LICENSE-MIT))
+
