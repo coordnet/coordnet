@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add dashboard as default landing page after login.
 - Upgrade to @xyflow/react.
 - Add connection line for displaying and creating multi‑edge connections.
+- Kubernetes configuration and documentation, GitHub action for testing.
 
 
 ### Fixed
