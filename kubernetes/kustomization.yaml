@@ -1,0 +1,6 @@
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - configmaps.yaml
+  - deployments.yaml
+  - services.yaml

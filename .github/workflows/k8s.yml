@@ -1,0 +1,116 @@
+name: Test Kubernetes config
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+jobs:
+  test-kubernetes-config:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: coordnet-test-cluster
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.16.2
+
+      - name: Deploy PostgreSQL Helm chart
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm install postgres bitnami/postgresql \
+            --namespace coordnet --create-namespace \
+            --set auth.username=coordnet \
+            --set auth.password=coordnet \
+            --set auth.database=coordnet
+
+      - name: Wait for PostgreSQL
+        run: |
+          kubectl wait --namespace coordnet \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/name=postgresql \
+            --timeout=120s
+
+      - name: Create secrets
+        run: |
+          # Create a blank secrets file first to prevent errors then create with kubectl
+          > kubernetes/secrets.yaml
+          kubectl create secret generic coordnet-secrets \
+            --namespace coordnet \
+            --from-literal=DATABASE_URL=postgres://coordnet:coordnet@postgres-postgresql.coordnet.svc.cluster.local:5432/coordnet \
+            --from-literal=DJANGO_SECRET_KEY=$(openssl rand -base64 32) \
+            --from-literal=DJANGO_ADMIN_URL=/admin/ \
+            --from-literal=OPENAI_API_KEY=test-openai-key \
+            --from-literal=WEBSOCKET_API_KEY=$(openssl rand -hex 16) \
+            --from-literal=SEMANTIC_API_KEY=test-semantic-key \
+            --from-literal=MAILGUN_API_KEY=test-mailgun-key
+
+      - name: Apply Kubernetes manifests
+        run: |
+          # Patch the value of REDIS_URL to the cluster redis
+          sed -i 's|^  REDIS_URL:.*|  REDIS_URL: "redis://redis.coordnet.svc.cluster.local:6379/0"|' kubernetes/configmaps.yaml
+
+          # Apply config and secrets for migration job
+          kubectl apply -f kubernetes/configmaps.yaml
+
+          # First run the migration job and wait
+          kubectl apply -f kubernetes/jobs-django-migrate.yaml
+          kubectl wait --for=condition=complete job/django-migrate -n coordnet --timeout=120s
+
+          # Apply the rest of the manifests
+          kubectl apply -k kubernetes
+
+      - name: Wait for deployments
+        run: |
+          kubectl rollout status deployment/django -n coordnet --timeout=120s
+          kubectl rollout status deployment/redis -n coordnet --timeout=120s
+          kubectl rollout status deployment/celeryworker -n coordnet --timeout=120s
+          kubectl rollout status deployment/celerybeat -n coordnet --timeout=120s
+          kubectl rollout status deployment/pubsub -n coordnet --timeout=120s
+          kubectl rollout status deployment/crdt -n coordnet --timeout=120s
+
+      - name: Collect deployment logs on failure
+        if: failure()
+        run: |
+          echo "Collecting logs for all pods in the 'coordnet' namespace..."
+          kubectl get pods -n coordnet
+          echo "Describing deployments..."
+          kubectl describe deployments -n coordnet
+          echo "Fetching logs from pods..."
+          for pod in $(kubectl get pods -n coordnet -o name); do
+            echo "Logs for $pod:"
+            kubectl logs $pod -n coordnet || echo "No logs available for $pod"
+            echo "-----------------------------"
+          done
+
+      - name: Test Django endpoint
+        run: |
+          kubectl port-forward svc/django 30100:5000 -n coordnet &
+          DJANGO_PID=$!
+          sleep 5
+
+          # Test the Django API endpoint
+          curl -f http://localhost:30100/api/nodes/spaces/ | grep 'results":\[\]' || { echo "Django API health check failed"; kill $DJANGO_PID; exit 1; }
+
+          # Test the front-end endpoint
+          curl -f http://localhost:30100/ | grep '__COORDNET_CONFIG_' || { echo "Front-end health check failed"; kill $DJANGO_PID; exit 1; }
+
+          kill $DJANGO_PID
+
+      - name: Test CRDT endpoint
+        run: |
+          kubectl port-forward svc/crdt 30200:8010 -n coordnet &
+          CRDT_PID=$!
+          sleep 5
+          curl -f http://localhost:30200/ | grep "OK" || { echo "CRDT health check failed"; kill $CRDT_PID; exit 1; }
+          kill $CRDT_PID

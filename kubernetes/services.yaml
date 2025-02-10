@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: django
+  namespace: coordnet
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30000
+  selector:
+    app: django
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: coordnet
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: redis
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: celeryworker
+  namespace: coordnet
+spec:
+  ports:
+    - port: 8001
+      targetPort: 8001
+  selector:
+    app: celeryworker
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: celerybeat
+  namespace: coordnet
+spec:
+  ports:
+    - port: 8002
+      targetPort: 8002
+  selector:
+    app: celerybeat
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pubsub
+  namespace: coordnet
+spec:
+  ports:
+    - port: 8010
+      targetPort: 8010
+  selector:
+    app: pubsub
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crdt
+  namespace: coordnet
+spec:
+  type: NodePort
+  ports:
+    - port: 8010
+      targetPort: 8010
+      nodePort: 30001
+  selector:
+    app: crdt
