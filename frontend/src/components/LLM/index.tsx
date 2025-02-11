@@ -327,6 +327,7 @@ const LLM = ({ id }: { id: string }) => {
                 <Tooltip id="llm-settings" openEvents={{ mouseenter: true }}>
                   Settings
                 </Tooltip>
+                {/* <History /> */}
               </div>
             </div>
           </div>
