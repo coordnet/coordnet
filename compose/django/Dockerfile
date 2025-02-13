@@ -8,8 +8,12 @@ FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=local
 
+# Standardize cache directories across stages
+ENV PIP_CACHE_DIR=/root/.cache/pip
+ENV APT_CACHE_DIR=/var/cache/apt
+
 # Install apt packages
-RUN --mount=type=cache,target=/var/cache/apt \
+RUN --mount=type=cache,target=APT_CACHE_DIR \
   apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
@@ -20,7 +24,7 @@ COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
 RUN pip wheel --wheel-dir /usr/src/app/wheels \
-  --cache-dir /usr/src/app/pip-cache \
+  --cache-dir PIP_CACHE_DIR \
   -r /usr/src/app/${BUILD_ENVIRONMENT}.txt
 
 
@@ -35,7 +39,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 WORKDIR ${APP_HOME}
 
-RUN --mount=type=cache,target=/var/cache/apt \
+RUN --mount=type=cache,target=APT_CACHE_DIR \
   apt-get update && apt-get install --no-install-recommends -y \
   # devcontainer dependencies and utils
   sudo git bash-completion nano ssh gnupg2 wget vim-nox \
@@ -70,7 +74,7 @@ RUN mkdir /opt/tiktoken_cache \
 COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
 
 # use wheels to install python dependencies
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=PIP_CACHE_DIR \
   pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
   && rm -rf /wheels/
 
