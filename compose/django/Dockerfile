@@ -12,20 +12,25 @@ ARG BUILD_ENVIRONMENT=local
 ENV PIP_CACHE_DIR=/root/.cache/pip
 ENV APT_CACHE_DIR=/var/cache/apt
 
-# Install apt packages
+# Install apt packages and clean up in the same layer
 RUN --mount=type=cache,target=APT_CACHE_DIR \
   apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev
+  libpq-dev \
+  # Clean up apt cache
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
+
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
 
-# Create Python Dependency and Sub-Dependency Wheels.
+# Create Python Dependency and Sub-Dependency Wheels and clean up pip cache
 RUN pip wheel --wheel-dir /usr/src/app/wheels \
   --cache-dir PIP_CACHE_DIR \
-  -r /usr/src/app/${BUILD_ENVIRONMENT}.txt
+  -r /usr/src/app/${BUILD_ENVIRONMENT}.txt \
+  && rm -rf ${PIP_CACHE_DIR}/*
 
 
 # Python 'run' stage
@@ -39,6 +44,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 WORKDIR ${APP_HOME}
 
+# Install packages and clean up in the same layer
 RUN --mount=type=cache,target=APT_CACHE_DIR \
   apt-get update && apt-get install --no-install-recommends -y \
   # devcontainer dependencies and utils
@@ -50,7 +56,8 @@ RUN --mount=type=cache,target=APT_CACHE_DIR \
   gettext \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
 
 # Create devcontainer user and add it to sudoers
 RUN groupadd --gid 1000 dev-user \
@@ -73,10 +80,13 @@ RUN mkdir /opt/tiktoken_cache \
 # copy python dependency wheels from python-build-stage
 COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
 
-# use wheels to install python dependencies
+# use wheels to install python dependencies and clean up
 RUN --mount=type=cache,target=PIP_CACHE_DIR \
   pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
-  && rm -rf /wheels/
+  && rm -rf /wheels/ \
+  && rm -rf ${PIP_CACHE_DIR}/* \
+  && find /usr/local/lib/python3.11/site-packages -name "*.pyc" -delete \
+  && find /usr/local/lib/python3.11/site-packages -name "__pycache__" -delete
 
 COPY ./compose/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint \
