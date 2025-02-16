@@ -1776,10 +1776,8 @@ typing-extensions==4.12.2 \
     #   django-stubs-ext
     #   djangorestframework-stubs
     #   faker
-    #   ipython
     #   mypy
     #   openai
-    #   psycopg
     #   pydantic
     #   pydantic-core
 tzdata==2024.2 \
@@ -2064,7 +2062,7 @@ werkzeug[watchdog]==3.1.3 \
     # via
     #   -r requirements/local.in
     #   werkzeug
-whitenoise==6.8.2 \
-    --hash=sha256:486bd7267a375fa9650b136daaec156ac572971acc8bf99add90817a530dd1d4 \
-    --hash=sha256:df12dce147a043d1956d81d288c6f0044147c6d2ab9726e5772ac50fb45d2280
+whitenoise==6.9.0 \
+    --hash=sha256:8c4a7c9d384694990c26f3047e118c691557481d624f069b7f7752a2f735d609 \
+    --hash=sha256:c8a489049b7ee9889617bb4c274a153f3d979e8f51d2efd0f5b403caf41c57df
     # via -r requirements/base.in
