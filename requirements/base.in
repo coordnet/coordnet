@@ -48,3 +48,12 @@ django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 # ------------------------------------------------------------------------------
 tiktoken==0.9.0  # https://github.com/openai/tiktoken
 openai==1.66.3  # https://github.com/openai/openai-python
+
+# External APIs
+# ------------------------------------------------------------------------------
+pqapi==7.2.0  # Closed Source
+# This is necessary because the paper-qa library didn't actually work with the pqapi lbrary when we were testing it.
+https://github.com/JannKleen/paper-qa/releases/download/v5.11.2/paper_qa-5.11.2.tar.gz#egg=paper_qa
+# This is required for the pqapi dependency paper-qa, which seems to requiring it (that's normally not needed)
+# Once this is resolved, this can be removed and also the --allow-unsafe for the pip-compile command
+setuptools==75.8.0  # https://github.com/pypa/setuptools
