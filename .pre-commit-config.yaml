@@ -71,11 +71,11 @@ repos:
     hooks:
       - id: pip-compile
         name: pip-compile local.in
-        args: [ requirements/local.in ]
+        args: [ --allow-unsafe, requirements/local.in ]
         files: ^requirements/(base|local)\.(in|txt)$
       - id: pip-compile
         name: pip-compile production.in
-        args: [ requirements/production.in ]
+        args: [ --allow-unsafe, requirements/production.in ]
         files: ^requirements/(base|production)\.(in|txt)$
   - repo: local
     hooks:
