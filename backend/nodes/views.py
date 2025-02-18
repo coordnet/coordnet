@@ -385,7 +385,10 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         self, request: "request.Request", public_id: str | None = None
     ) -> response.Response:
         run = self.get_object()
-        run.method.execute(method_run_id=run.id)
+        serializer = serializers.MethodNodeRunExecutionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        run.method.execute(method_run_id=run.id, **serializer.validated_data)
         return response.Response(status=204)
 
 
