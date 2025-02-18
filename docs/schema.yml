@@ -3,6 +3,8 @@ info:
   title: coordnet API
   version: 1.0.0
   description: Documentation of API endpoints of coordnet
+servers:
+  - url: https://app.coord.dev/
 paths:
   /api/auth/change-password/:
     post:
