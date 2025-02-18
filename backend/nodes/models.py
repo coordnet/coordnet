@@ -491,12 +491,12 @@ class MethodNode(permissions.models.MembershipModelMixin, Node):  # type: ignore
     available_objects = permissions.managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
     all_objects = permissions.managers.MembershipModelQueryManager()  # type: ignore[misc]
 
-    def execute(self, method_run_id: int) -> None:
+    def execute(self, method_run_id: int, **kwargs: typing.Any) -> None:
         """Execute the method."""
         app.send_task(
             "execute_method",
             queue=settings.CELERY_NODE_EXECUTION_QUEUE,
-            kwargs={"method_id": self.pk, "method_run_id": method_run_id},
+            kwargs={"method_id": self.pk, "method_run_id": method_run_id} | kwargs,
         )
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
