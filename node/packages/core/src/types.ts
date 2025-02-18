@@ -7,7 +7,7 @@ import { buddyModels } from "./constants";
 
 // https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
 export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>,
+  obj: Record<K, unknown>
 ): z.ZodEnum<[K, ...K[]]> => {
   const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
   return z.enum([firstKey, ...otherKeys]);
@@ -24,7 +24,7 @@ export enum NodeType {
   ResponseMultiple = "response_multiple",
   ResponseTable = "response_table",
   PaperFinder = "paper_finder",
-  Context = "context",
+  PaperQA = "paper_qa",
 }
 
 export const nodeTypeMap = {
@@ -38,7 +38,7 @@ export const nodeTypeMap = {
   [NodeType.ResponseSingle]: "Responses (one node)",
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
   [NodeType.PaperFinder]: "Paper Finder",
-  [NodeType.Context]: "Context",
+  [NodeType.PaperQA]: "Paper QA",
 };
 
 export type SpaceNode = {
@@ -114,7 +114,7 @@ export type ExecutionPlan = {
     task: Task;
     messages?: ChatCompletionMessageParam[];
     query?: string;
-    type: "PROMPT" | "PAPERS";
+    type: "PROMPT" | "PAPERS" | "PAPERQA";
   }[];
 };
 

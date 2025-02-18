@@ -20,6 +20,7 @@ import {
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import { querySemanticScholar } from "./api";
+import { executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
@@ -49,7 +50,7 @@ export const processTasks = async (
   skillNodesMap: Y.Map<SpaceNode> | undefined,
   nodesMap: Y.Map<CanvasNode> | undefined,
   cancelRef: { current: boolean },
-  dryRun: boolean = false,
+  dryRun: boolean = false
 ) => {
   if (!buddy) {
     console.error("Buddy not found");
@@ -97,24 +98,27 @@ export const processTasks = async (
     }
 
     for await (const task of tasks) {
+      const isLast = task === tasks[tasks.length - 1];
+
       if (cancelRef.current) {
         setNodesState(selectedIds, nodesMap, "inactive");
         break; // Exit the loop if cancellation is requested
       }
 
       if (task.promptNode.data.type === NodeType.PaperFinder) {
-        const query = await generateKeywords(task, skillDoc, skillNodesMap);
+        const query = await collectInputTitles(task, skillDoc, skillNodesMap);
         if (dryRun) {
           executionPlan.tasks.push({ task, query, type: "PAPERS" });
         } else {
-          try {
-            // setNodesState(selectedIds, nodesMap, "executing");
-            setNodesState([task.promptNode.id], nodesMap, "executing");
-            await executeKeywordTask(task, skillDoc, query, cancelRef);
-          } catch (e) {
-            console.error(`Failed to execute keyword task`);
-            console.error(e);
-          }
+          setNodesState([task.promptNode.id], nodesMap, "executing");
+          await executeKeywordTask(task, skillDoc, query, cancelRef);
+        }
+      } else if (task.promptNode.data.type === NodeType.PaperQA) {
+        const query = await collectInputTitles(task, skillDoc, skillNodesMap);
+        if (dryRun) {
+          executionPlan.tasks.push({ task, query, type: "PAPERQA" });
+        } else {
+          await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
         }
       } else {
         const messages = await generatePrompt(task, buddy, skillDoc, skillNodesMap);
@@ -133,7 +137,7 @@ export const processTasks = async (
               skillNodesMap,
               buddy,
               context.outputNode,
-              task === tasks[tasks.length - 1],
+              isLast
             );
           } catch (e) {
             console.error(`Failed to execute prompt task`);
@@ -156,7 +160,7 @@ export const executePromptTask = async (
   spaceNodesMap: Y.Map<SpaceNode>,
   buddy: Buddy,
   outputNode: CanvasNode,
-  isLastTask: boolean,
+  isLastTask: boolean
 ) => {
   if (isTableResponseType(task.outputNode)) {
     await executeTableTask(
@@ -167,7 +171,7 @@ export const executePromptTask = async (
       spaceNodesMap,
       buddy,
       outputNode,
-      isLastTask,
+      isLastTask
     );
     return;
   }
@@ -234,7 +238,7 @@ export const generatePrompt = async (
   task: Task,
   buddy: Buddy,
   skillDoc: Y.Doc,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  spaceNodesMap: Y.Map<SpaceNode>
 ): Promise<ChatCompletionMessageParam[]> => {
   const getNode = (nodeId: string) => {
     return {
@@ -267,7 +271,7 @@ export const executeKeywordTask = async (
   task: Task,
   skillDoc: Y.Doc,
   query: string,
-  cancelRef: React.RefObject<boolean | null>,
+  cancelRef: React.RefObject<boolean | null>
 ) => {
   try {
     if (cancelRef.current) return;
@@ -295,10 +299,10 @@ ${paper.abstract}`,
   }
 };
 
-export const generateKeywords = async (
+export const collectInputTitles = async (
   task: Task,
   skillDoc: Y.Doc,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  spaceNodesMap: Y.Map<SpaceNode>
 ): Promise<string> => {
   let query = "";
 
