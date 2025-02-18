@@ -7,7 +7,7 @@ const isInputNode = (node: CanvasNode) => {
 
 const preprocessInputNode = (canvas: Canvas) => {
   const inputNodeId = Object.keys(canvas.nodes).find(
-    (id) => canvas.nodes[id].data.type === NodeType.Input,
+    (id) => canvas.nodes[id].data.type === NodeType.Input
   );
   if (!inputNodeId) return;
 
@@ -72,7 +72,11 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
   Object.values(canvas.topologicallySortedNodes).forEach((nodeId) => {
     const node = canvas.nodes[nodeId];
 
-    if (node.data.type !== NodeType.Prompt && node.data.type !== NodeType.PaperFinder) {
+    if (
+      node.data.type !== NodeType.Prompt &&
+      node.data.type !== NodeType.PaperFinder &&
+      node.data.type !== NodeType.PaperQA
+    ) {
       return;
     }
 
@@ -115,9 +119,13 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
         } else if (targetNode?.data?.type === NodeType.Loop) {
           loopItems.push(handleLoopNode(targetNode));
         }
-      } else if (node.data.type === NodeType.PaperFinder) {
+      } else if (node.data.type === NodeType.PaperFinder || node.data.type === NodeType.PaperQA) {
         // For PaperFinder nodes, only allow response nodes as input
-        if (baseTask.outputNode && baseTask.outputNode?.data.type !== NodeType.ResponseMultiple) {
+        if (
+          node.data.type === NodeType.PaperFinder &&
+          baseTask.outputNode &&
+          baseTask.outputNode?.data.type !== NodeType.ResponseMultiple
+        ) {
           // toast.error("Paper Finder nodes can only have Responses (Many nodes) as output.");
           throw new Error("Paper Finder output must be Responses (Many nodes)");
         } else {
@@ -134,7 +142,7 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
     if (loopItems.length > 0) {
       // Check if any loop items contain response nodes
       const containsResponseNode = loopItems.some((items) =>
-        items.some((item) => isResponseNode(item)),
+        items.some((item) => isResponseNode(item))
       );
 
       if (containsResponseNode) {
