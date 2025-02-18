@@ -1,23 +1,29 @@
 FROM node:22-slim
+RUN apt-get update && apt-get install -y procps
 
+# Setup pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g pnpm
 
 WORKDIR /app
 
-COPY ./frontend/package.json ./frontend/pnpm-lock.yaml .
+# First copy the package files
+COPY ./node/package.json ./node/pnpm-lock.yaml ./node/pnpm-workspace.yaml .
+WORKDIR /app/frontend
+COPY ./node/frontend/package.json ./node/frontend/pnpm-lock.yaml ./
+WORKDIR /app/packages/core
+COPY ./node/packages/core/package.json ./node/packages/core/pnpm-lock.yaml ./
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+# Now install dependencies
+WORKDIR /app
+RUN pnpm install
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-  ca-certificates \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
+# Copy the rest of the source code
+COPY ./node ./
 
-
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-
-COPY ./frontend .
+# Run the server
+WORKDIR /app/frontend
 
 ARG SENTRY_AUTH_TOKEN
 ARG GIT_REVISION
@@ -27,5 +33,3 @@ ENV SENTRY_RELEASE=${GIT_REVISION}
 ENV VITE_SENTRY_DSN=${SENTRY_DSN}
 
 RUN pnpm build
-
-CMD ["pnpm", "run", "dev", "--host"]
