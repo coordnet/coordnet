@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 
 import { SemanticScholarPaper } from "../types";
+import { PaperQAResponse } from "./paperQA";
 import { baseURL } from "./utils";
 
 const headers: { [key: string]: string } = {
@@ -28,12 +29,17 @@ export const querySemanticScholar = async (
     "abstract",
     "isOpenAccess",
   ],
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<SemanticScholarPaper[]> => {
   const response = await api.get<SemanticScholarPaper[]>("api/buddies/semantic/", {
     signal,
     params: { query, fields },
     paramsSerializer: { indexes: null },
   });
+  return response.data;
+};
+
+export const queryPaperQA = async (question: string): Promise<PaperQAResponse> => {
+  const response = await api.post<PaperQAResponse>("api/tools/paperqa/", { question });
   return response.data;
 };

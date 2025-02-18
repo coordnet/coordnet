@@ -67,7 +67,6 @@ worker.register(
     if (!buddy) {
       throw new Error("Buddy not found");
     }
-    console.log("found buddy", buddy);
 
     // Get information from the skill document
     const nodesMap: Y.Map<CanvasNode> = doc.getMap(`${skillId}-canvas-nodes`);
