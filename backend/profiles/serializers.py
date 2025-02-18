@@ -77,7 +77,9 @@ class AvailableSpaceProfileField(utils.serializers.PublicIdRelatedField):
 @extend_schema_field(uuid.UUID)
 class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[profiles.models.Profile]":
-        return profiles.models.Profile.objects.filter(draft=False, user__isnull=False)
+        return profiles.models.Profile.objects.filter(
+            Q(draft=False) | Q(user=self.context["request"].user), user__isnull=False
+        )
 
     def get_choices(self, cutoff: int | None = None) -> dict[str, str]:
         queryset = self.get_queryset()
@@ -103,7 +105,12 @@ class AvailableUserProfileField(utils.serializers.PublicIdRelatedField):
 
         try:
             return profiles.models.Profile.objects.get(
-                public_id=user_profile_id, draft=False, user__isnull=False
+                Q(
+                    draft=False,
+                    user__pk=self.context["request"].user.pk,
+                    public_id=user_profile_id,
+                    user__isnull=False,
+                )
             )
         except profiles.models.Profile.DoesNotExist as exc:
             raise serializers.ValidationError("User profile not found") from exc
@@ -117,7 +124,9 @@ class AvailableUserProfileForUserField(utils.serializers.PublicIdRelatedField):
     """
 
     def get_queryset(self) -> "django_models.QuerySet[users.models.User]":
-        return users.models.User.objects.filter(profile__draft=False)
+        return users.models.User.objects.filter(
+            Q(profile__draft=False) | Q(pk=self.context["request"].user.pk)
+        )
 
     def get_choices(self, cutoff: int | None = None) -> dict[str, str]:
         queryset = self.get_queryset()
@@ -142,7 +151,8 @@ class AvailableUserProfileForUserField(utils.serializers.PublicIdRelatedField):
 
         try:
             return users.models.User.objects.get(
-                profile__public_id=user_profile_id, profile__draft=False
+                Q(profile__draft=False) | Q(pk=self.context["request"].user.pk),
+                profile__public_id=user_profile_id,
             )
         except users.models.User.DoesNotExist as exc:
             raise serializers.ValidationError("User profile not found") from exc

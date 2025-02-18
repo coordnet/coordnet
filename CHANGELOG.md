@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Filter choices in interactive API for Nodes showed unfiltered choices.
 - Fix a N+1 query in the spaces list view.
 - Add o1 model to allowed models and disable streaming on skills.
+- Allow users with non-public profiles to create methods.
 
 ### Removed
 

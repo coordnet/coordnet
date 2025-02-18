@@ -75,7 +75,7 @@ const Space = () => {
                 <Editor
                   id={nodePage}
                   key={nodePage}
-                  className="absolute bottom-0 right-0 top-6 z-20 w-1/2 bg-white shadow-md"
+                  className="absolute md:top-6 top-4 right-0 bottom-0 md:w-1/2 w-full z-20 bg-white shadow-md"
                 />
               </CanvasProvider>
               <QuickView />

@@ -1,7 +1,7 @@
 python-slugify==8.0.4  # https://github.com/un33k/python-slugify
 Pillow==11.0.0  # https://github.com/python-pillow/Pillow
 argon2-cffi==23.1.0  # https://github.com/hynek/argon2_cffi
-whitenoise==6.8.2  # https://github.com/evansd/whitenoise
+whitenoise==6.9.0  # https://github.com/evansd/whitenoise
 redis==5.2.1  # https://github.com/redis/redis-py
 hiredis==3.1.0  # https://github.com/redis/hiredis-py
 django-celery-beat==2.7.0  # https://github.com/celery/django-celery-beat
@@ -14,7 +14,7 @@ uvicorn-worker==0.3.0  # https://github.com/Kludex/uvicorn-worker
 django==5.1.6  # https://www.djangoproject.com/
 django-environ==0.12.0  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth==65.3.1  # https://github.com/pennersr/django-allauth
+django-allauth==65.4.1  # https://github.com/pennersr/django-allauth
 django-crispy-forms==2.3  # https://github.com/django-crispy-forms/django-crispy-forms
 crispy-bootstrap5==2024.10  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
@@ -26,7 +26,7 @@ drf-spectacular==0.28.0  # https://github.com/tfranzel/drf-spectacular
 # DRY REST Permissions for easier permission management
 django-dry-rest-permissions==1.2.0  # https://github.com/FJNR-inc/dry-rest-permissions
 # Django Filter for filtering on api endpoints
-django-filter==24.3  # https://github.com/carltongibson/django-filter
+django-filter==25.1  # https://github.com/carltongibson/django-filter
 # Secure DRF token authentication
 django-rest-knox==5.0.2  # https://github.com/jazzband/django-rest-knox
 # DRF Password Reset for password reset functionality
@@ -40,11 +40,11 @@ adrf==0.1.9  # https://github.com/em1208/adrf
 # Postgres lock support
 django-pglock==1.7.1  # https://github.com/Opus10/django-pglock
 # Storages for S3 support
-django-storages[s3]==1.14.4  # https://github.com/jschneier/django-storages
+django-storages[s3]==1.14.5  # https://github.com/jschneier/django-storages
 # User uploaded images
 django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 
 # LLM
 # ------------------------------------------------------------------------------
-tiktoken==0.8.0  # https://github.com/openai/tiktoken
-openai==1.61.0  # https://github.com/openai/openai-python
+tiktoken==0.9.0  # https://github.com/openai/tiktoken
+openai==1.63.0  # https://github.com/openai/openai-python
