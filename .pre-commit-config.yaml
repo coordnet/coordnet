@@ -63,9 +63,9 @@ repos:
     rev: v1.35.2
     hooks:
       - id: djlint-reformat-django
-        exclude: ^frontend/
+        exclude: ^node/
       - id: djlint-django
-        exclude: ^frontend/
+        exclude: ^node/
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.4.1
     hooks:
@@ -97,36 +97,36 @@ repos:
       - id: eslint-crdt
         name: eslint (crdt)
         language: node
-        files: ^crdt/.*\.[jt]sx?$
+        files: ^node/crdt/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh crdt pnpm eslint
       - id: prettier-crdt
         name: prettier (crdt)
         language: node
-        files: ^crdt/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
+        files: ^node/crdt/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
         entry: bash .pre-commit-run.sh crdt pnpm prettier --write
       - id: tsc-crdt
         name: tsc (crdt)
         pass_filenames: false
         language: node
-        files: ^crdt/.*\.[jt]sx?$
+        files: ^node/crdt/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh crdt pnpm tsc --project tsconfig.json
       - id: eslint-frontend
         name: eslint (frontend)
         language: node
-        files: ^frontend/.*\.[jt]sx?$
+        files: ^node/frontend/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh frontend pnpm eslint
       - id: prettier-frontend
         name: prettier (frontend)
         language: node
-        files: ^frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
+        files: ^node/frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/.prettierrc
+        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/frontend/.prettierrc
       - id: tsc-frontend
         name: tsc (frontend)
         pass_filenames: false
         language: node
-        files: ^frontend/.*\.[jt]sx?$
+        files: ^node/frontend/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh frontend pnpm tsc --project tsconfig.json
 
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date

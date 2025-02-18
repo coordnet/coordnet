@@ -27,8 +27,10 @@ if [ "$CONTAINER" == "django" ]; then
 elif [ "$CONTAINER" == "crdt" ] || [ "$CONTAINER" == "frontend" ]; then
     # Loop through all remaining arguments to adjust file paths
     for ARG in "$@"; do
-        # If the argument starts with '$CONTAINER/', remove it
-        if [[ "$ARG" == "$CONTAINER/"* ]]; then
+        # Check for new structure: if the argument starts with 'node/<container>/', remove that prefix.
+        if [[ "$ARG" == "node/$CONTAINER/"* ]]; then
+            MODIFIED_ARG="${ARG#node/$CONTAINER/}"
+        elif [[ "$ARG" == "$CONTAINER/"* ]]; then
             MODIFIED_ARG="${ARG#$CONTAINER/}"
         else
             MODIFIED_ARG="$ARG"
@@ -47,10 +49,10 @@ if [ "$CONTAINER" == "django" ]; then
     # For the 'django' container, navigate to the parent directory
     docker compose run --rm -T "$CONTAINER" bash -c "cd ..; $FULL_COMMAND"
 else
-    # For 'crdt' and 'frontend' containers, mount the container directory to /app
+    # For 'crdt' and 'frontend' containers, mount the monorepo node directory and cd into the specific package.
     SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
     docker compose run --rm \
-        -v "$SCRIPTPATH/$CONTAINER:/app" \
+        -v "$SCRIPTPATH/node:/app/node" \
         -v "/app/node_modules/" \
-        -T "$CONTAINER" bash -c "cd /app && $FULL_COMMAND"
+        -T "$CONTAINER" bash -c "cd /app/node/$CONTAINER && $FULL_COMMAND"
 fi
