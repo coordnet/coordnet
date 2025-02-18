@@ -46,5 +46,5 @@ django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 
 # LLM
 # ------------------------------------------------------------------------------
-tiktoken==0.8.0  # https://github.com/openai/tiktoken
+tiktoken==0.9.0  # https://github.com/openai/tiktoken
 openai==1.63.0  # https://github.com/openai/openai-python
