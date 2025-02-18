@@ -118,3 +118,15 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
             set(response.data["allowed_actions"]),
             {permissions.models.READ},
         )
+
+    def test_non_public_profile_method_creation(self) -> None:
+        """Regression test to check whether a user without a public profile can create a method."""
+        self.owner_user.profile.draft = True
+        self.owner_user.profile.save()
+
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+        response = self.owner_client.post(
+            reverse("nodes:methods-list"),
+            {"space": str(space.public_id), "authors": [str(self.owner_user.profile.public_id)]},
+        )
+        self.assertEqual(response.status_code, 201, response.data)

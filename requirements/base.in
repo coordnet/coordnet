@@ -14,7 +14,7 @@ uvicorn-worker==0.3.0  # https://github.com/Kludex/uvicorn-worker
 django==5.1.6  # https://www.djangoproject.com/
 django-environ==0.12.0  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth==65.3.1  # https://github.com/pennersr/django-allauth
+django-allauth==65.4.1  # https://github.com/pennersr/django-allauth
 django-crispy-forms==2.3  # https://github.com/django-crispy-forms/django-crispy-forms
 crispy-bootstrap5==2024.10  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
@@ -40,11 +40,11 @@ adrf==0.1.9  # https://github.com/em1208/adrf
 # Postgres lock support
 django-pglock==1.7.1  # https://github.com/Opus10/django-pglock
 # Storages for S3 support
-django-storages[s3]==1.14.4  # https://github.com/jschneier/django-storages
+django-storages[s3]==1.14.5  # https://github.com/jschneier/django-storages
 # User uploaded images
 django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 
 # LLM
 # ------------------------------------------------------------------------------
-tiktoken==0.8.0  # https://github.com/openai/tiktoken
+tiktoken==0.9.0  # https://github.com/openai/tiktoken
 openai==1.63.0  # https://github.com/openai/openai-python
