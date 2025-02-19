@@ -1,25 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
-import { ChevronsRight, Plus } from "lucide-react";
+import { ChevronsRight, Loader as LoaderIcon, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Tooltip } from "react-tooltip";
 
-import { createSkill, getSkills, getSpaces } from "@/api";
-import { Loader } from "@/components";
+import { getSkills, getSpaces } from "@/api";
 import shadowsBg from "@/components/Profiles/assets/shadows.svg";
 import SpaceSidebar from "@/components/Spaces/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import useUser from "@/hooks/useUser";
 
-import ProfileDropdownButton from "./components/Profiles/ProfileDropdownButton";
-import SkillCard from "./components/Skills/SkillCard";
+import { Loader } from "./components";
+import { getProfileImage } from "./components/Profiles/utils";
+import SkillManage from "./components/Skills/SkillManage";
+import SkillsList from "./components/Skills/SkillsList";
+import { Dialog, DialogTrigger } from "./components/ui/dialog";
 import { title } from "./lib/utils";
 
 function Dashboard() {
-  const navigate = useNavigate();
   const { user, isGuest, isLoading: userLoading, profile } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
@@ -29,11 +30,24 @@ function Dashboard() {
     enabled: Boolean(user),
   });
 
+  const filteredSpaces = spaces?.results.filter(
+    (space) => !(space.is_public && !space.allowed_actions.includes("manage"))
+  );
+
   const { data: skills, isLoading: skillsLoading } = useQuery({
     queryKey: ["skills"],
-    queryFn: ({ signal }) => getSkills(signal),
+    queryFn: ({ signal }) => getSkills(signal, { public: true, show_permissions: true }),
     enabled: Boolean(user),
   });
+
+  const usersSkills = skills?.results.filter(
+    (skill) =>
+      skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+      skill?.creator?.id.includes(profile?.id ?? "")
+  );
+  const publicSkills = skills?.results.filter(
+    (skill) => skill.is_public && !usersSkills?.map((s) => s.id).includes(skill.id)
+  );
 
   useEffect(() => {
     if (!userLoading && isGuest) window.location.href = "/auth/login";
@@ -43,17 +57,7 @@ function Dashboard() {
     title("Dashboard");
   }, []);
 
-  const onCreateSkill = async () => {
-    if (!profile) return toast.error("Profile not found");
-    const response = await createSkill({ authors: [profile.id] });
-    navigate(`/skills/${response.id}`);
-  };
-
-  const placeholderCount = (itemsCount: number) => {
-    return itemsCount < 3 ? 3 - itemsCount : 0;
-  };
-
-  if (userLoading || spacesLoading || skillsLoading || !profile)
+  if (userLoading || spacesLoading || skillsLoading || skillsLoading || !profile)
     return <Loader message="Loading" />;
 
   return (
@@ -61,7 +65,7 @@ function Dashboard() {
       <div className="absolute left-3 top-3 z-30 flex items-center">
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" className="mr-2 size-9 p-0 shadow-node-repo">
+            <Button variant="outline" className="mr-2 size-9 flex-shrink-0 p-0 shadow-node-repo">
               <ChevronsRight strokeWidth={2.8} className="size-4 text-neutral-500" />
             </Button>
           </SheetTrigger>
@@ -69,7 +73,24 @@ function Dashboard() {
             <SpaceSidebar open={sidebarOpen} />
           </SheetContent>
         </Sheet>
-        <ProfileDropdownButton className="shadow-node-repo" />
+
+        <Link
+          to={`/profiles/${profile?.profile_slug}`}
+          className="flex w-full items-center font-normal text-black hover:text-black"
+          data-tooltip-id="profile-dropdown-edit"
+          data-tooltip-place="bottom"
+        >
+          <Button variant="outline" className="h-9 gap-2 px-2 py-0 shadow-node-repo">
+            {userLoading || !profile ? (
+              <LoaderIcon className="size-4 animate-spin text-neutral-500" />
+            ) : (
+              <img src={getProfileImage(profile)} className="size-5 rounded-full" />
+            )}
+            Profile
+          </Button>
+        </Link>
+
+        <Tooltip id="profile-dropdown-edit">Edit Profile</Tooltip>
       </div>
 
       <div
@@ -79,39 +100,56 @@ function Dashboard() {
         <img src={shadowsBg} className="select-none" draggable="false" />
       </div>
 
-      <div className="z-30 mx-auto mt-10 w-[90%] max-w-[640px] rounded-lg">
+      <div
+        className={clsx(
+          "z-30 mx-auto mt-10 w-[90%] max-w-[640px] rounded-lg",
+          usersSkills?.length == 0 && publicSkills?.length == 0 && filteredSpaces?.length == 0
+            ? "mt-32"
+            : ""
+        )}
+      >
         <img src="/static/coordination-network-logo-bw.png" className="m-auto h-9" />
-        <div className="my-16 text-center text-3xl font-normal">
+        <div className="my-11 text-center text-3xl font-normal">
           Welcome back
           {profile?.title?.length ? ", " + profile?.title?.split(" ")[0] : ""}!
         </div>
 
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-xl font-medium leading-7 text-black">Skills</div>
-          <Button
-            variant="default"
-            className="h-8 bg-violet-600 px-2 hover:bg-violet-700"
-            onClick={onCreateSkill}
-          >
-            <Plus className="mr-1 size-5" /> Create a Skill
-          </Button>
+        <div className="mb-9 flex items-center justify-center gap-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="default"
+                className="h-9 bg-violet-600 px-3 hover:bg-violet-700"
+                data-tooltip-id="dashboard-create-button"
+                data-tooltip-place="bottom"
+              >
+                <Plus className="mr-1 size-5" /> Create Skill
+              </Button>
+            </DialogTrigger>
+            <SkillManage />
+          </Dialog>
+          {/* <Tooltip id="dashboard-create-button">Build a Skill</Tooltip> */}
+          <a href="/" rel="noreferrer">
+            <Button
+              variant="outline"
+              className="h-9 text-neutral-800"
+              data-tooltip-id="dashboard-request-button"
+              data-tooltip-place="bottom"
+            >
+              <Plus className="mr-1 size-5" /> Request a Skill
+            </Button>
+          </a>
+          {/* <Tooltip id="dashboard-request-button">Request a skill to be made</Tooltip> */}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
-          {skills?.results.map((skill) => (
-            <SkillCard key={`dashboard-skill-${skill.id}`} skill={skill} />
-          ))}
+        {Boolean(usersSkills && usersSkills.length > 0) && (
+          <SkillsList header="Skills" skills={usersSkills} />
+        )}
+        {Boolean(publicSkills && publicSkills.length > 0) && (
+          <SkillsList header="Network Skills" skills={publicSkills} className="mt-14" />
+        )}
 
-          {Array.from({ length: placeholderCount(skills?.results.length ?? 0) }).map((_, idx) => (
-            <div
-              key={`skill-placeholder-${idx}`}
-              className="flex h-full min-h-[180px] rounded-lg border border-dashed
-                border-neutral-300"
-            ></div>
-          ))}
-        </div>
-
-        {Boolean(spaces?.count && spaces?.count > 0) && (
+        {Boolean(filteredSpaces && filteredSpaces.length > 0) && (
           <>
             <div className="mb-3 mt-14 flex items-center justify-between">
               <div className="text-xl font-medium leading-7 text-black">Spaces</div>
@@ -121,7 +159,7 @@ function Dashboard() {
               className="grid grid-cols-1 gap-4 pb-20 min-[480px]:grid-cols-2
                 min-[640px]:grid-cols-3"
             >
-              {spaces?.results.map((space, i) => {
+              {filteredSpaces?.map((space, i) => {
                 const spaceIcon = blockies
                   .create({ seed: space?.id, size: 10, scale: 20 })
                   .toDataURL();
@@ -160,16 +198,6 @@ function Dashboard() {
                   </Link>
                 );
               })}
-
-              {Array.from({ length: placeholderCount(spaces?.results.length ?? 0) }).map(
-                (_, idx) => (
-                  <div
-                    key={`skill-placeholder-${idx}`}
-                    className="flex h-full min-h-[180px] rounded-lg border border-dashed
-                      border-neutral-300"
-                  ></div>
-                )
-              )}
             </div>
           </>
         )}
