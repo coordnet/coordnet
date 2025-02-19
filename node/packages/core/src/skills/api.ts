@@ -1,7 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-import { SemanticScholarPaper } from "../types";
-import { PaperQAResponse } from "./paperQA";
+import { PaperQAResponsePair, SemanticScholarPaper } from "../types";
 import { baseURL } from "./utils";
 
 const headers: { [key: string]: string } = {
@@ -39,7 +38,7 @@ export const querySemanticScholar = async (
   return response.data;
 };
 
-export const queryPaperQA = async (question: string): Promise<PaperQAResponse> => {
-  const response = await api.post<PaperQAResponse>("api/tools/paperqa/", { question });
+export const queryPaperQA = async (question: string): Promise<PaperQAResponsePair[]> => {
+  const response = await api.post<PaperQAResponsePair[]>("api/tools/paperqa/", { question });
   return response.data;
 };

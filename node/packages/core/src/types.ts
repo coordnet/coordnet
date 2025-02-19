@@ -218,3 +218,34 @@ export const SkillRunSchema = z.object({
 export type SkillRun = z.infer<typeof SkillRunSchema>;
 
 export type SkillJson = { [key: string]: unknown };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PaperQAResponsePair = [string, any];
+
+export interface PaperQAResponse {
+  session: {
+    id: string;
+    question: string;
+    answer: string;
+    has_successful_answer: boolean;
+    references: string;
+    formatted_answer: string;
+    graded_answer: null;
+    cost: number;
+    token_counts: { [key: string]: number[] };
+    config_md5: string;
+    tool_history: Array<string[]>;
+  };
+  usage: { [key: string]: number[] };
+  bibtex: { [key: string]: string };
+  status: string;
+  timing_info: {
+    [key: string]: {
+      low: number;
+      mean: number;
+      max: number;
+      total: number;
+    };
+  };
+  duration: number;
+}
