@@ -104,7 +104,7 @@ repos:
         language: node
         files: ^node/crdt/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh crdt pnpm prettier --write
+        entry: bash .pre-commit-run.sh crdt pnpm prettier --write --config /app/crdt/.prettierrc
       - id: tsc-crdt
         name: tsc (crdt)
         pass_filenames: false

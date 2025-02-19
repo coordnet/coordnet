@@ -31,6 +31,7 @@ Scopes should be used to add further detail to area of the project that is being
 - **nodes**
 - **permissions**
 - **search**
+- **skills**
 - **ui**
 - **web3**
 - **crdt**

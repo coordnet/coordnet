@@ -113,7 +113,6 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
       const targetNode = canvas.nodes[targetNodeId];
 
       if (node.data.type === NodeType.Prompt) {
-        // For Prompt nodes, keep the existing logic
         if (isResponseNode(targetNode) || isInputNode(targetNode)) {
           baseTask.inputNodes.push(targetNode);
         } else if (targetNode?.data?.type === NodeType.Loop) {
@@ -126,7 +125,6 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
           baseTask.outputNode &&
           baseTask.outputNode?.data.type !== NodeType.ResponseMultiple
         ) {
-          // toast.error("Paper Finder nodes can only have Responses (Many nodes) as output.");
           throw new Error("Paper Finder output must be Responses (Many nodes)");
         } else {
           if (targetNode?.data?.type === NodeType.Loop) {
