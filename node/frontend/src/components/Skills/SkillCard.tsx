@@ -1,7 +1,7 @@
 import { Skill } from "@coordnet/core";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Ellipsis, Play, Settings2, Trash2 } from "lucide-react";
+import { Edit, Ellipsis, Play, Settings2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -14,14 +14,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUser } from "@/hooks";
 
+import SkillManage from "./SkillManage";
 import SkillPermissions from "./SkillPermissions";
 
 const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) => {
+  const { profile } = useUser();
   const queryClient = useQueryClient();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  const showControls =
+    skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+    skill?.creator?.id.includes(profile?.id ?? "");
 
   const onDelete = async (id: string) => {
     if (
@@ -34,10 +42,10 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
   };
 
   useEffect(() => {
-    if (!isMenuOpen) {
+    if ((permissionsModalOpen || editModalOpen) && isMenuOpen) {
       setIsHovered(false);
     }
-  }, [isDialogOpen, isMenuOpen]);
+  }, [permissionsModalOpen, editModalOpen, isMenuOpen]);
 
   return (
     <div
@@ -49,49 +57,64 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} modal={false}>
-        <DropdownMenuTrigger asChild>
-          <div
-            className={clsx(
-              `absolute right-2 top-2 size-5 cursor-pointer items-center justify-center rounded-md
-              bg-white`,
-              {
-                hidden: !(isHovered || isMenuOpen),
-                flex: isHovered || isMenuOpen,
-              }
-            )}
+      {showControls && (
+        <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} modal={false}>
+          <DropdownMenuTrigger asChild>
+            <div
+              className={clsx(
+                `absolute right-2 top-2 size-5 cursor-pointer items-center justify-center rounded-md
+                bg-white`,
+                {
+                  hidden: !(isHovered || isMenuOpen),
+                  flex: isHovered || isMenuOpen,
+                }
+              )}
+            >
+              <Ellipsis className="size-3" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className={clsx("rounded-md border border-neutral-200 bg-white shadow-lg", {
+              hidden: !(isHovered || isMenuOpen),
+              block: isHovered || isMenuOpen,
+            })}
           >
-            <Ellipsis className="size-3" />
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="start"
-          className={clsx("rounded-md border border-neutral-200 bg-white shadow-lg", {
-            hidden: !(isHovered || isMenuOpen),
-            block: isHovered || isMenuOpen,
-          })}
-        >
-          <DropdownMenuItem
-            className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
-              hover:bg-gray-100"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            <Settings2 className="mr-2 size-4" /> Manage Permissions
-          </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
+                hover:bg-gray-100"
+              onClick={() => setEditModalOpen(true)}
+            >
+              <Edit className="mr-2 size-4" /> Edit Skill
+            </DropdownMenuItem>
 
-          <DropdownMenuItem
-            className="flex cursor-pointer items-center px-4 py-2 font-medium text-red-500
-              hover:bg-gray-100"
-            onClick={() => onDelete(skill.id)}
-          >
-            <Trash2 className="mr-2 size-4" /> Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuItem
+              className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
+                hover:bg-gray-100"
+              onClick={() => setPermissionsModalOpen(true)}
+            >
+              <Settings2 className="mr-2 size-4" /> Manage Permissions
+            </DropdownMenuItem>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DropdownMenuItem
+              className="flex cursor-pointer items-center px-4 py-2 font-medium text-red-500
+                hover:bg-gray-100"
+              onClick={() => onDelete(skill.id)}
+            >
+              <Trash2 className="mr-2 size-4" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      <Dialog onOpenChange={setEditModalOpen} open={editModalOpen}>
         <DialogContent className="w-[430px] p-0">
-          {skill.id && <SkillPermissions id={skill.id} key={skill.id} />}
+          {skill.id && <SkillManage skill={skill} setOpen={setEditModalOpen} />}
+        </DialogContent>
+      </Dialog>
+      <Dialog onOpenChange={setPermissionsModalOpen} open={permissionsModalOpen}>
+        <DialogContent className="w-[430px] p-0">
+          {skill?.id && <SkillPermissions id={skill?.id} key={skill.id} />}
         </DialogContent>
       </Dialog>
 
