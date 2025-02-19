@@ -145,8 +145,8 @@ export const SkillSchema = z.object({
   title_token_count: z.null(),
   description: z
     .string()
-    .min(1, "Short description is required")
-    .max(255, "Short description must be less than 100 characters"),
+    .min(1, "Skill description is required")
+    .max(255, "Skill description must be less than 100 characters"),
   description_token_count: z.null(),
   content: z.null(),
   text: z.string().nullish(),

@@ -1,7 +1,6 @@
 export { default as EditableNode } from "./EditableNode";
 export { default as Editor } from "./Editor";
 export { default as Canvas } from "./Canvas";
-export { default as Header } from "./Header";
 export { default as LLM } from "./LLM";
 export { default as Loader } from "./Loader";
 export { default as Node } from "./Node";

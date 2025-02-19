@@ -3,11 +3,12 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
-import { Editor, Header, Loader, QuickView, Skill as SkillCanvas } from "@/components";
+import { Editor, Loader, QuickView, Skill as SkillCanvas } from "@/components";
 import ErrorPage from "@/components/ErrorPage";
 import { CanvasProvider, NodesContextProvider, useNodesContext, useYDoc } from "@/hooks";
 
 import { getSkillVersion } from "./api";
+import Header from "./components/Skills/Header";
 import useBuddy from "./hooks/useBuddy";
 import { title } from "./lib/utils";
 import { BackendEntityType, YDocScope } from "./types";
@@ -100,7 +101,7 @@ const Skill = () => {
         <Loader message="Creating run..." className="z-60 bg-white/30" />
       )}
       <div className="relative flex h-full flex-col">
-        <Header id={nodeId} />
+        <Header />
         {!skill && error ? (
           <ErrorPage error={error} />
         ) : (

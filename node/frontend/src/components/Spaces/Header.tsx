@@ -9,10 +9,10 @@ import useUser from "@/hooks/useUser";
 import { cleanNodeTitle } from "@/lib/nodes";
 import { BackendEntityType } from "@/types";
 
-import ProfileDropdownButton from "./Profiles/ProfileDropdownButton";
-import { formatSkillRunId } from "./Skills/utils";
-import SpaceSidebar from "./Spaces/Sidebar";
-import { Button } from "./ui/button";
+import ProfileDropdownButton from "../Profiles/ProfileDropdownButton";
+import { formatSkillRunId } from "../Skills/utils";
+import SpaceSidebar from "../Spaces/Sidebar";
+import { Button } from "../ui/button";
 
 const Header = ({ id, className }: { id: string; className?: string }) => {
   const { isGuest } = useUser();

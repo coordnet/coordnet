@@ -13,7 +13,7 @@ import bannerPlaceholder from "./assets/banner-placeholder.svg?url";
 
 interface ImageUploaderProps {
   image: string;
-  type: "avatar" | "banner";
+  type: "avatar" | "banner" | "skill";
   onImageChange: React.Dispatch<React.SetStateAction<string | null>>;
   editorOptions: {
     width: number;
@@ -154,12 +154,14 @@ const ImageUpload: React.FC<ImageUploaderProps> = ({
           <DialogContent
             className={clsx(
               "flex w-[90%] flex-col gap-4 !rounded-2xl bg-profile-modal-gradient p-5",
-              type == "banner" ? "max-w-[900px]" : "max-w-[500px]"
+              type == "banner" || type == "skill" ? "max-w-[900px]" : "max-w-[500px]"
             )}
             showCloseButton={false}
           >
             <div className="flex w-full flex-col items-center">
-              <div className={clsx(type === "banner" && "aspect-[125/37] w-full")}>
+              <div
+                className={clsx((type === "banner" || type == "skill") && "aspect-[125/37] w-full")}
+              >
                 <AvatarEditor
                   ref={editorRef}
                   className="!h-full !w-full"
