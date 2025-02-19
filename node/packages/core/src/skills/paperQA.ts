@@ -1,40 +1,10 @@
 import * as Y from "yjs";
 
-import { CanvasNode, Task } from "../types";
+import { CanvasNode, PaperQAResponse, PaperQAResponsePair, Task } from "../types";
 import { queryPaperQA } from "./api";
 import { setNodesState, setSkillNodeTitleAndContent } from "./utils";
 
-export interface PaperQAResponse {
-  session: {
-    id: string;
-    question: string;
-    answer: string;
-    has_successful_answer: boolean;
-    references: string;
-    formatted_answer: string;
-    graded_answer: null;
-    cost: number;
-    token_counts: { [key: string]: number[] };
-    config_md5: string;
-    tool_history: Array<string[]>;
-  };
-  usage: { [key: string]: number[] };
-  bibtex: { [key: string]: string };
-  status: string;
-  timing_info: {
-    [key: string]: {
-      low: number;
-      mean: number;
-      max: number;
-      total: number;
-    };
-  };
-  duration: number;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const formatPaperQAResponse = (data: any): any => {
-  // Check if 'data' is an array of pairs, i.e. [[key, value], [key, value], ...]
+export const formatPaperQAResponse = (data: unknown): PaperQAResponse => {
   if (
     Array.isArray(data) &&
     data.every((item) => Array.isArray(item) && item.length === 2 && typeof item[0] === "string")
@@ -45,9 +15,9 @@ export const formatPaperQAResponse = (data: any): any => {
       // Recurse on the value, in case it is itself an array of pairs
       obj[key] = formatPaperQAResponse(value);
     }
-    return obj;
+    return obj as PaperQAResponse;
   }
-  return data;
+  throw new Error("Invalid PaperQA response format");
 };
 
 export const paperQAResponseToMd = (data: PaperQAResponse): string => {
@@ -132,7 +102,7 @@ export const executePaperQATask = async (
       markdown = paperQAResponseToMd(formatPaperQAResponse(response));
     } catch {
       try {
-        markdown = response[0][1].find((pair) => pair[0] === "answer")?.[1];
+        markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
       } catch {
         markdown = JSON.stringify(response, null, 2);
       }
