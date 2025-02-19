@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
-import { Editor, Header, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
+import { Editor, LLM, Loader, Node, NodeRepository, QuickView } from "@/components";
 import ErrorPage from "@/components/ErrorPage";
 import {
   CanvasProvider,
@@ -13,6 +13,7 @@ import {
 } from "@/hooks";
 import { title } from "@/lib/utils";
 
+import Header from "./components/Spaces/Header";
 import { BackendEntityType } from "./types";
 
 const Space = () => {
@@ -75,7 +76,8 @@ const Space = () => {
                 <Editor
                   id={nodePage}
                   key={nodePage}
-                  className="absolute md:top-6 top-4 right-0 bottom-0 md:w-1/2 w-full z-20 bg-white shadow-md"
+                  className="absolute bottom-0 right-0 top-4 z-20 w-full bg-white shadow-md md:top-6
+                    md:w-1/2"
                 />
               </CanvasProvider>
               <QuickView />

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ChevronsLeft, Loader2, Settings2 } from "lucide-react";
+import { ChevronsLeft, Loader2, LogOut, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
@@ -20,7 +20,7 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
   const [manageSpaceOpen, setManageSpaceOpen] = useState<boolean>(false);
   const [manageSpaceId, setManageSpaceId] = useState<string | null>(null);
   const { spaceId } = useParams();
-  const { user, profile } = useUser();
+  const { user, profile, logout } = useUser();
   const { data: spaces, isLoading } = useQuery({
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
@@ -134,6 +134,20 @@ const SpaceSidebar = ({ open }: { open: boolean }) => {
           </ul>
         )}
       </div>
+      <div>
+        <h3 className="border-t px-1 pb-2 pt-3 text-sm">
+          <Link
+            to="#"
+            className="flex items-center gap-2 p-1 text-gray-2 hover:bg-neutral-100
+              hover:text-black"
+            onClick={logout}
+          >
+            <LogOut className="size-4" />
+            Logout
+          </Link>
+        </h3>
+      </div>
+
       <Dialog open={manageSpaceOpen} onOpenChange={setManageSpaceOpen}>
         <DialogContent className="w-[430px] p-0">
           {manageSpaceId && (

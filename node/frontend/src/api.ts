@@ -463,9 +463,10 @@ export const updateProfileCardImage = async (
 };
 
 export const getSkills = async (
-  signal: AbortSignal | undefined
+  signal: AbortSignal | undefined,
+  params: { public?: boolean; show_permissions?: boolean } = {}
 ): Promise<PaginatedApiResponse<Skill>> => {
-  const response = await api.get(`api/nodes/methods/`, { signal });
+  const response = await api.get(`api/nodes/methods/`, { signal, params });
   return response.data;
 };
 

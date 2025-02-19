@@ -1,9 +1,13 @@
+import { NodeType, skillYdocToJson } from "@coordnet/core";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { ArrowRight, Bot, ChevronRight, Cpu, Loader, Play, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
+import { createSkillVersion } from "@/api";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -11,8 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetTrigger } from "@/components/ui/sheet";
-import { useUser, useYDoc } from "@/hooks";
+import { useCanvas, useUser, useYDoc } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
 import { useRunSkill } from "@/hooks/useRunSkill";
 import { BackendEntityType, YDocScope } from "@/types";
@@ -20,19 +23,63 @@ import { BackendEntityType, YDocScope } from "@/types";
 import Buddies from "../Buddies";
 import ExecutionPlanRenderer from "../Canvas/ExecutionPlan";
 import { Button } from "../ui/button";
-import SkillCanvasUpdate from "./SkillCanvasUpdate";
 import SkillRunHistory from "./SkillRunHistory";
 import SkillVersions from "./SkillVersions";
+import { removeInputNodesAndEdges } from "./utils";
 
 const SkillCanvasControls = () => {
-  const { parent, scope } = useYDoc();
+  const {
+    parent,
+    scope,
+    canvas: { YDoc },
+  } = useYDoc();
+  const queryClient = useQueryClient();
   const { isGuest } = useUser();
+  const { nodes, inputNodes } = useCanvas();
   const { runId, versionId } = useParams();
   const { runSkill, status, error } = useRunSkill();
   const { buddy } = useBuddy();
   const [planOpen, setPlanOpen] = useState(false);
-  const [publishOpen, setPublishOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
+
+  const publishSkillVersion = async () => {
+    const inputNode = nodes.find((n) => n.data?.type === NodeType.Input);
+    const outputNode = nodes.find((n) => n.data?.type === NodeType.Output);
+
+    // TODO: Check the input and output nodes are attached to something
+    if (!inputNode)
+      return toast.error(
+        "An Input node is required, please add to guide where the inputs should be attached to"
+      );
+
+    if (!outputNode)
+      return toast.error(
+        "An Output node is required, please add one to show where the final output response is"
+      );
+
+    if (
+      inputNodes.length &&
+      !window.confirm(
+        "You have nodes attached as input to the Input node. These will be removed when " +
+          "publishing. If you want to keep the nodes, please attach them directly to the node " +
+          "that they should be the input for.\n\nPress OK to publish or Cancel to continue editing."
+      )
+    ) {
+      return;
+    } else if (!window.confirm("Are you sure you want to publish this version?")) {
+      return;
+    }
+
+    try {
+      const canvasData = skillYdocToJson(YDoc!);
+      const cleanedData = removeInputNodesAndEdges(canvasData);
+      await createSkillVersion(parent.id, cleanedData);
+      queryClient.invalidateQueries({ queryKey: ["skills"] });
+      toast.success("Skill version published");
+    } catch {
+      toast.error("Failed to publish skill version");
+    }
+  };
 
   if (!isSkill || isGuest) return <></>;
 
@@ -105,6 +152,22 @@ const SkillCanvasControls = () => {
           <SkillVersions />
         </div>
       )}
+      {scope == YDocScope.READ_WRITE && (
+        <div
+          className="react-flow__panel absolute right-3 top-3 !m-0 !flex flex-col items-end gap-2"
+        >
+          <Button
+            className="flex h-9 items-center justify-center gap-1.5 font-medium text-neutral-600"
+            variant="outline"
+            disabled={Boolean(versionId)}
+            onClick={publishSkillVersion}
+          >
+            Publish Version
+            <ArrowRight className="size-4" />
+          </Button>
+          <SkillVersions />
+        </div>
+      )}
       <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
         {scope == YDocScope.READ_WRITE && (
           <>
@@ -171,27 +234,6 @@ const SkillCanvasControls = () => {
             <Play className="size-6" />
           </Button>
         </div>
-
-        {scope == YDocScope.READ_WRITE && (
-          <div className="flex flex-col items-center gap-2">
-            <SkillVersions />
-            <Sheet onOpenChange={setPublishOpen} open={publishOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  className="flex h-16 items-center justify-center gap-2.5 rounded-full border
-                    border-violet-600 bg-violet-600 py-4 pl-8 pr-6 text-xl font-medium text-white
-                    hover:bg-violet-700"
-                  variant="default"
-                  disabled={Boolean(versionId)}
-                >
-                  Publish
-                  <ArrowRight className="size-6" />
-                </Button>
-              </SheetTrigger>
-              <SkillCanvasUpdate setOpen={setPublishOpen} />
-            </Sheet>
-          </div>
-        )}
       </div>
 
       <Dialog onOpenChange={(open) => setPlanOpen(open)} open={planOpen}>

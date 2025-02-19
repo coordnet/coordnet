@@ -1,23 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
-import { ChevronsRight, CircleUserRound, Edit, Orbit, Plus, Users } from "lucide-react";
+import { ChevronsRight, CircleUserRound, Edit, Home, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
-import { getProfileCards, getProfileFromUsername, getSpace } from "@/api";
+import { getProfileFromUsername, getSkills, getSpace } from "@/api";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import useUser from "@/hooks/useUser";
 import { title } from "@/lib/utils";
 
 import Loader from "../Loader";
+import SkillsList from "../Skills/SkillsList";
 import SpaceSidebar from "../Spaces/Sidebar";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
@@ -28,8 +23,6 @@ import EditProfile from "./EditProfile";
 import ProfileCardFind from "./ProfileCardFind";
 import ProfileCardManage from "./ProfileCardManage";
 import ProfileLink from "./ProfileLink";
-import ProfileSkillCard from "./ProfileSkillCard";
-import ProfileSkillCardExpanded from "./ProfileSkillCardExpanded";
 import { getProfileBannerImage, getProfileImage } from "./utils";
 
 const Profile = ({ className }: { className?: string }) => {
@@ -57,15 +50,18 @@ const Profile = ({ className }: { className?: string }) => {
     retry: false,
   });
 
-  // @ts-expect-error we just want to load
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: cards } = useQuery({
-    queryKey: ["profile-cards"],
-    queryFn: ({ signal }) => getProfileCards(signal),
-    enabled: Boolean(username),
-    refetchInterval: false,
-    retry: false,
+  const { data: skills, isLoading: skillsLoading } = useQuery({
+    queryKey: ["skills"],
+    queryFn: ({ signal }) => getSkills(signal, { public: true, show_permissions: true }),
+    enabled: Boolean(user),
   });
+
+  const usersPublicSkills = skills?.results.filter(
+    (skill) =>
+      skill.is_public &&
+      (skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+        skill?.creator?.id.includes(profile?.id ?? ""))
+  );
 
   useEffect(() => {
     if (username) title(`@${username}`);
@@ -91,6 +87,7 @@ const Profile = ({ className }: { className?: string }) => {
       >
         <img src={shadowsBg} className="select-none" draggable="false" />
       </div>
+
       <div className="absolute left-3 top-3 z-30">
         {isGuest ? (
           <>
@@ -110,23 +107,34 @@ const Profile = ({ className }: { className?: string }) => {
             <Tooltip id="login" />
           </>
         ) : (
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="size-9 p-0 shadow-node-repo">
-                <ChevronsRight strokeWidth={2.8} className="size-4 text-neutral-500" />
+          <div className="flex items-center gap-2">
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="size-9 flex-shrink-0 p-0 shadow-node-repo">
+                  <ChevronsRight strokeWidth={2.8} className="size-4 text-neutral-500" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[320px] p-0">
+                <SpaceSidebar open={sidebarOpen} />
+              </SheetContent>
+            </Sheet>
+            <Link
+              to={`/`}
+              className="flex w-full items-center font-normal text-black hover:text-black"
+            >
+              <Button variant="outline" className="h-9 gap-2 px-2 py-0 shadow-node-repo">
+                <Home className="size-4" />
+                Dashboard
               </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[320px] p-0">
-              <SpaceSidebar open={sidebarOpen} />
-            </SheetContent>
-          </Sheet>
+            </Link>
+          </div>
         )}
       </div>
-      {profileLoading ? (
+      {profileLoading || skillsLoading ? (
         <Loader message="Loading profile..." />
       ) : (
         <>
-          <div className="relative z-20 m-auto w-[90%] max-w-[1200px] pt-10">
+          <div className="relative z-20 m-auto w-[90%] max-w-[1200px] pt-16">
             <div
               className="flex h-[200px] items-end justify-center rounded-2xl bg-cover bg-center
                 md:h-[320px]"
@@ -252,7 +260,11 @@ const Profile = ({ className }: { className?: string }) => {
               </div>
             )}
 
-            {(Boolean(profile?.cards.length) || isOwner) && (
+            {Boolean(usersPublicSkills && usersPublicSkills.length > 0) && (
+              <SkillsList header="Skills" skills={usersPublicSkills} className="mt-6" />
+            )}
+
+            {/* {(Boolean(profile?.cards.length) || isOwner) && (
               <div className="mx-1 mt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <div
@@ -316,7 +328,7 @@ const Profile = ({ className }: { className?: string }) => {
                   )}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="relative z-20 m-auto w-[90%] max-w-[1200px] py-10">
