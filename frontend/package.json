@@ -107,7 +107,7 @@
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.3",
     "prettier": "^3.5.0",
     "prettier-plugin-classnames": "^0.7.6",
     "prettier-plugin-merge": "^0.7.2",
