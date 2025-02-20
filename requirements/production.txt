@@ -1892,10 +1892,10 @@ s3transfer==0.11.4 \
     --hash=sha256:559f161658e1cf0a911f45940552c696735f5c74e64362e515f333ebed87d679 \
     --hash=sha256:ac265fa68318763a03bf2dc4f39d5cbd6a9e178d81cc9483ad27da33637e320d
     # via boto3
-sentry-sdk[celery,django,openai]==2.23.1 \
-    --hash=sha256:2288320465065f3f056630ce55936426204f96f63f1208edb79e033ed03774db \
-    --hash=sha256:42ef3a6cc1db3d22cb2ab24163d75b23f291ad9892b1a8c44075ce809a32b191
-    # via -r requirements/production.in
+sentry-sdk[celery,django,openai]==2.24.1 \
+    --hash=sha256:36baa6a1128b9d98d2adc5e9b2f887eff0a6af558fc2b96ed51919042413556d \
+    --hash=sha256:8ba3c29990fa48865b908b3b9dc5ae7fa7e72407c7c9e91303e5206b32d7b8b1
+    # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
