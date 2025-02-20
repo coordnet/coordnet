@@ -49,6 +49,10 @@ django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 tiktoken==0.9.0  # https://github.com/openai/tiktoken
 openai==1.66.3  # https://github.com/openai/openai-python
 
+# Error tracking
+# ------------------------------------------------------------------------------
+sentry-sdk[openai,django,celery]==2.22.0  # https://github.com/getsentry/sentry-python
+
 # External APIs
 # ------------------------------------------------------------------------------
 pqapi==7.2.0  # Closed Source
