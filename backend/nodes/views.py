@@ -424,6 +424,8 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
                                 "description": "Whether to include the attachment.",
                             },
                         },
+                        "required": ["method_argument", "include_attachment"],
+                        "additionalProperties": False,
                     },
                 },
             }
