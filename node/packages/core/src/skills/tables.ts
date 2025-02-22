@@ -16,7 +16,7 @@ export const executeTableTask = async (
   spaceNodesMap: Y.Map<SpaceNode>,
   buddy: Buddy,
   outputNode: CanvasNode,
-  isLastTask: boolean,
+  isLastTask: boolean
 ) => {
   try {
     if (!task?.outputNode?.id) {
@@ -52,6 +52,8 @@ export const executeTableTask = async (
       data: z.array(z.object(schemaShape).describe("A list of table columns")),
     });
 
+    console.log(messages);
+    console.log(buddy.model);
     const response = await client.chat.completions.create({
       messages,
       model: buddy.model,
@@ -75,7 +77,7 @@ export const executeTableTask = async (
     let pageContent: JSONContent = (await getSkillNodePageContent(
       task?.outputNode?.id ?? "",
       skillDoc,
-      "json",
+      "json"
     )) as JSONContent;
 
     if (!pageContent) {

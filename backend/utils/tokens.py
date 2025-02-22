@@ -51,7 +51,7 @@ def num_tokens_from_messages(
         return num_tokens_from_messages(messages, model="gpt-4o-2024-08-06")
     elif "gpt-4" in model:
         return num_tokens_from_messages(messages, model="gpt-4-0613")
-    elif "o1-" in model or model == "o1":
+    elif "o1-" in model or model == "o1" or "o3-" in model or model == "o3":
         # Note: This is our addition and I'm not sure if it returns the correct counts.
         return num_tokens_from_messages(messages, model="gpt-4o-2024-08-06")
     else:

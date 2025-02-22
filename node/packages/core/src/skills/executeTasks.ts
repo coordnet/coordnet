@@ -122,7 +122,6 @@ export const processTasks = async (
         }
       } else {
         const messages = await generatePrompt(task, buddy, skillDoc, skillNodesMap);
-        console.log(messages);
         if (dryRun) {
           executionPlan.tasks.push({ task, messages, type: "PROMPT" });
         } else {
@@ -185,6 +184,8 @@ export const executePromptTask = async (
       response_model.schema = SingleNodeSchema;
       response_model.name = "SingleNode";
     }
+    console.log(messages);
+    console.log(buddy.model);
     const response = await client.chat.completions.create({
       messages,
       model: buddy.model,

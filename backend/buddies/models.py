@@ -1,9 +1,8 @@
 import logging
 import typing
 
-from django.conf import settings
 from django.db import models
-from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
+from openai.types.chat import ChatCompletionMessageParam
 
 import utils.llm
 import utils.tokens
@@ -29,11 +28,6 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         help_text="The message sent to the LLM before the user's query."
     )
 
-    @property
-    def is_o1(self) -> bool:
-        """Whether the model is an o1 model or not"""
-        return self.model in settings.O1_MODELS
-
     def query_model(
         self, nodes: list["nodes_models.Node"], level: int, query: str
     ) -> typing.Generator[str | None, None, None]:
@@ -42,32 +36,25 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         response = utils.llm.get_openai_client().chat.completions.create(
             model=self.model,
             messages=self._get_messages(level, nodes, query),
-            stream=not self.is_o1,
+            stream=True,
             timeout=180,
         )
 
         try:
-            if isinstance(response, ChatCompletion):
+            for chunk in response:
                 try:
-                    yield response.choices[0].message.content
-                except (IndexError, AttributeError):
-                    logger.warning("No content in non-streaming response.")
-                    return
-            else:
-                for chunk in response:
-                    try:
-                        if (chunk_content := chunk.choices[0].delta.content) is not None:
-                            yield chunk_content
-                    except IndexError:
-                        # Chunk choices are empty, for example when an Azure endpoint returns
-                        # content moderation information instead.
-                        continue
-                    except AttributeError:
-                        logger.exception(
-                            "Unexpected format from OpenAI API, skipping chunk...",
-                            exc_info=True,
-                        )
-                        continue
+                    if (chunk_content := chunk.choices[0].delta.content) is not None:
+                        yield chunk_content
+                except IndexError:
+                    # Chunk choices are empty, for example when an Azure endpoint returns
+                    # content moderation information instead.
+                    continue
+                except AttributeError:
+                    logger.exception(
+                        "Unexpected format from OpenAI API, skipping chunk...",
+                        exc_info=True,
+                    )
+                    continue
 
         except Exception as exc:
             raise ValueError("Failed to query the model.") from exc
@@ -115,16 +102,10 @@ class Buddy(utils_models.SoftDeletableBaseModel):
             + "\n```",
         )
 
-        if self.is_o1:
-            return [
-                {"role": "user", "content": system_prompt},
-                {"role": "user", "content": query},
-            ]
-        else:
-            return [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": query},
-            ]
+        return [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": query},
+        ]
 
     class Meta(utils_models.SoftDeletableBaseModel.Meta):
         verbose_name_plural = "buddies"

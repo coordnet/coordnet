@@ -1,4 +1,4 @@
-import { BuddySchema } from "@coordnet/core";
+import { buddyModels, BuddySchema } from "@coordnet/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { buddyModels } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
 
 const formSchema = BuddySchema.pick({
