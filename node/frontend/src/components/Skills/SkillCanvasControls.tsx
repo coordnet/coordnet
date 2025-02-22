@@ -2,7 +2,7 @@ import { NodeType, skillYdocToJson } from "@coordnet/core";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ArrowRight, Bot, ChevronRight, Cpu, Loader, Play, Settings } from "lucide-react";
+import { ArrowRight, Bot, ChevronRight, Cpu, Edit, Loader, Play, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -127,16 +127,13 @@ const SkillCanvasControls = () => {
               <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
                 <Button
                   className={clsx(
-                    `flex h-16 items-center justify-center gap-2.5 rounded-full border py-4 pl-8
-                    pr-6 text-xl font-medium`,
-                    scope == YDocScope.READ_ONLY &&
-                      "border-violet-600 bg-violet-600 text-white hover:bg-violet-700",
-                    scope == YDocScope.READ_WRITE && "border-neutral-200 bg-white text-neutral-500"
+                    `flex h-16 items-center justify-center gap-2.5 rounded-full border
+                    border-neutral-200 bg-white py-4 pl-8 pr-6 text-xl font-medium text-neutral-500`
                   )}
                   variant="secondary"
                 >
-                  New Run
-                  <Play className="size-6" />
+                  Edit Skill
+                  <Edit className="size-6" />
                 </Button>
               </Link>
             </div>
