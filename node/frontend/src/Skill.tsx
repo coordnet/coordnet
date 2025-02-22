@@ -111,7 +111,7 @@ const Skill = () => {
               <Editor
                 id={nodePage}
                 key={nodePage}
-                className="absolute bottom-0 right-0 top-6 z-20 w-1/2 bg-white shadow-md"
+                className="absolute bottom-0 right-0 top-0 z-20 w-1/2 bg-white shadow-md"
               />
               <QuickView />
             </CanvasProvider>
