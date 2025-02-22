@@ -109,13 +109,7 @@ export const executePaperQATask = async (
     }
 
     [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
-      if (id)
-        await setSkillNodeTitleAndContent(
-          skillDoc,
-          task?.outputNode?.id ?? "",
-          "PaperQA Response",
-          markdown
-        );
+      if (id) await setSkillNodeTitleAndContent(skillDoc, id, "PaperQA Response", markdown);
     });
 
     // Mark the node as done/inactive
