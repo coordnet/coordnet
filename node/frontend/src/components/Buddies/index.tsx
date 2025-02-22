@@ -1,3 +1,4 @@
+import { buddyModels } from "@coordnet/core";
 import clsx from "clsx";
 import { Command as CommandPrimitive } from "cmdk";
 import { Bot, ChevronRight, Plus } from "lucide-react";
@@ -16,7 +17,6 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { buddyModels } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
 
 import BuddyForm from "./BuddyForm";

@@ -20,15 +20,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add connection line for displaying and creating multi‑edge connections.
 - Kubernetes configuration and documentation, GitHub action for testing.
 - Backend execution of methods/skills.
-
+- Add o1 and o3 models to allowed models.
 
 ### Fixed
 
 - Bug in node repository search accessing old spaces list.
 - Filter choices in interactive API for Nodes showed unfiltered choices.
 - Fix a N+1 query in the spaces list view.
-- Add o1 model to allowed models and disable streaming on skills.
 - Allow users with non-public profiles to create methods.
+- Removed o1 non-streaming logic as streaming is now possible.
 
 ### Removed
 
