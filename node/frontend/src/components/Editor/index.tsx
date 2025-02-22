@@ -4,7 +4,7 @@ import * as blockies from "blockies-ts";
 import clsx from "clsx";
 import ColorThief from "colorthief";
 import { History, Search, Table, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { format as formatTimeAgo } from "timeago.js";
@@ -40,9 +40,10 @@ const Editor = ({ id, className }: EditorProps) => {
   const { inputNodes } = useCanvas();
   const isSkillInput = inputNodes.includes(id);
 
-  const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
+  const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "EDITOR", "latest"],
@@ -88,13 +89,50 @@ const Editor = ({ id, className }: EditorProps) => {
     }
   }, [user, editor]);
 
+  useEffect(() => {
+    if (nodePage) setFocus("editor");
+    else setFocus("canvas");
+  }, [nodePage, setFocus]);
+
+  useEffect(() => {
+    const keyDownHandler = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      const isEditable = target.isContentEditable;
+      const isInputLike =
+        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
+      if (focus !== "editor" || isEditable || isInputLike) {
+        return;
+      }
+
+      if (event.key === "a" && (event.ctrlKey || event.metaKey)) {
+        // Select all the text in the editorref
+        editorRef.current?.focus();
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(editorRef.current!);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", keyDownHandler);
+    return () => document.removeEventListener("keydown", keyDownHandler);
+  }, [focus, editorRef]);
+
   if (!id) return <></>;
 
   return (
-    <div className={clsx("flex flex-col overflow-hidden border-l border-gray-300", className)}>
+    <div
+      className={clsx("flex flex-col overflow-hidden border-l border-gray-300", className)}
+      onClick={() => {
+        if (nodePage) setFocus("editor");
+      }}
+    >
       {error && <ErrorPage error={error} className="absolute z-40 bg-white" />}
       {!synced && <Loader message="Loading editor..." className="absolute z-30" />}
-      <div className="mr-24 p-3 text-lg font-medium mt-9 md:mt-0 w-full">
+      <div className="mr-24 mt-9 w-full p-3 text-lg font-medium md:mt-0">
         <EditableNode id={id} className="w-full" />
       </div>
       <div className="absolute right-2 top-2 z-10 flex gap-2">
@@ -140,7 +178,7 @@ const Editor = ({ id, className }: EditorProps) => {
       </div>
       <div className="mb-12 overflow-auto">
         <MenuBar editor={editor} />
-        <EditorContent editor={editor} />
+        <EditorContent editor={editor} ref={editorRef} />
         {/* <FloatingMenu editor={editor}>This is the floating menu</FloatingMenu> */}
       </div>
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
