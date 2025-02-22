@@ -14,7 +14,7 @@ const strMinThirtyChars = makeValidator<string>((input: string) => {
 
 export const settings = cleanEnv(process.env, {
   HOCUSPOCUS_PORT: num({ default: 8010 }),
-  HOCUSPOCUS_TIMEOUT: num({ default: 30000 }),
+  HOCUSPOCUS_TIMEOUT: num({ default: 300000 }),
   HOCUSPOCUS_DEBOUNCE: num({ default: 2000 }),
   HOCUSPOCUS_MAXDEBOUNCE: num({ default: 10000 }),
   HOCUSPOCUS_QUIET: bool({ default: false }),
