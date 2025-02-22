@@ -25,7 +25,7 @@ const ConnectionLine = ({ fromHandle, fromX, fromY, toX, toY }: ConnectionLineCo
     });
   });
 
-  if (!handleBounds.length) {
+  if (handleBounds.length <= 1) {
     const [d] = getSimpleBezierPath({ sourceX: fromX, sourceY: fromY, targetX: toX, targetY: toY });
     return (
       <g key={fromHandle.id + "-line"}>
