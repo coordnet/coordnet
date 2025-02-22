@@ -1,7 +1,7 @@
 # CRDT
 # ------------------------------------------------------------------------------
 HOCUSPOCUS_PORT=8010
-HOCUSPOCUS_TIMEOUT=30000 # 30s
+HOCUSPOCUS_TIMEOUT=300000 # 5m
 HOCUSPOCUS_DEBOUNCE=2000 # 2s
 HOCUSPOCUS_MAXDEBOUNCE=10000 # 1s
 HOCUSPOCUS_QUIET=false
