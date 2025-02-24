@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MiniMap, Panel, ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import clsx from "clsx";
 import { History, Map, Maximize, ZoomIn, ZoomOut } from "lucide-react";
 import { format as formatTimeAgo } from "timeago.js";
 import useLocalStorageState from "use-local-storage-state";
@@ -72,8 +73,11 @@ const Controls = () => {
           )}
         </Panel>
       )}
-      {miniMapVisible && !isSkill && (
-        <MiniMap pannable={true} className="!bottom-12 !right-2 !m-0 !mb-1" />
+      {miniMapVisible && (
+        <MiniMap
+          pannable={true}
+          className={clsx("!right-2 !m-0 !mb-1", isSkill ? "!bottom-40" : "!bottom-21")}
+        />
       )}
     </>
   );

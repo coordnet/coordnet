@@ -27,7 +27,7 @@ const UndoRedo = ({
     <Panel
       position="top-right"
       className={clsx(
-        "!m-0 flex gap-1",
+        "!m-0 flex w-fit gap-1",
         isSkill ? "!bottom-3 !left-3 !top-auto" : "!right-2 !top-0",
         className
       )}
