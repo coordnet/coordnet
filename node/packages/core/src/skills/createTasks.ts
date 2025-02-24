@@ -96,7 +96,7 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
           baseTask.outputNode = canvas.nodes[key];
         } else {
           // toast.error("The output node of a prompt must be a response node.");
-          throw new Error("The output node of a prompt or paper finder must be a response node.");
+          throw new Error("Prompt and Paper Finder Nodes must be connected to a Response Node.");
         }
       }
     }

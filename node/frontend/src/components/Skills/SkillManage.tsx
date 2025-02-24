@@ -91,8 +91,8 @@ const SkillManage = ({
         showCloseButton={false}
         aria-describedby={undefined}
         className={clsx(
-          `flex h-fit max-h-[90%] w-[90%] max-w-[580px] flex-col !rounded-2xl
-          bg-profile-modal-gradient p-5`,
+          `flex h-auto max-h-[90%] w-[90%] max-w-[580px] flex-col overflow-auto !rounded-2xl
+          bg-profile-modal-gradient`,
           className
         )}
       >
