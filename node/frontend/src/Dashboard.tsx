@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
-import { ChevronsRight, Loader as LoaderIcon, Plus } from "lucide-react";
+import { ChevronsRight, ExternalLink, Loader as LoaderIcon, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
@@ -141,7 +141,7 @@ function Dashboard() {
               data-tooltip-id="dashboard-request-button"
               data-tooltip-place="bottom"
             >
-              <Plus className="mr-1 size-5" /> Request a Skill
+              <ExternalLink className="mr-2 size-3.5" /> Request a Skill
             </Button>
           </a>
           {/* <Tooltip id="dashboard-request-button">Request a skill to be made</Tooltip> */}
