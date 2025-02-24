@@ -1,4 +1,4 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { useState } from "react";
 import * as Y from "yjs";
 
@@ -39,12 +39,15 @@ const useConnectedDocument = (): YDocProviderReturn => {
     YDoc.destroy();
     const newSpaceDoc = new Y.Doc({ guid: name });
     setYDoc(newSpaceDoc);
-    const newProvider = new HocuspocusProvider({
+    const websocketProvider = new HocuspocusProviderWebsocket({
       url: crdtUrl,
+      messageReconnectTimeout: 300000,
+    });
+    const newProvider = new HocuspocusProvider({
       name,
       document: newSpaceDoc,
       token,
-      preserveConnection: false,
+      websocketProvider,
       onAuthenticationFailed(data) {
         setError(
           new CustomError({
