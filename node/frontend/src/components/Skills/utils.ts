@@ -1,52 +1,11 @@
-import {
-  CanvasEdge,
-  CanvasNode,
-  SkillJson,
-  skillJsonToYdoc,
-  SkillRun,
-  skillYdocToJson,
-} from "@coordnet/core";
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { CanvasEdge, CanvasNode, SkillJson, skillJsonToYdoc, SkillRun } from "@coordnet/core";
 import * as Y from "yjs";
 
 import { getSkillRun, getSkillVersion } from "@/api";
-import { crdtUrl } from "@/constants";
-import { CustomError } from "@/lib/utils";
 import { SkillVersion } from "@/types";
 
 export const formatSkillRunId = (id: string): string => {
   return id.split("-")[0];
-};
-
-export const loadDisconnectedDoc = async (
-  name: string,
-  token: string,
-  document: Y.Doc
-): Promise<Y.Doc> => {
-  return new Promise((resolve, reject) => {
-    const tmpDoc = new Y.Doc();
-    new HocuspocusProvider({
-      url: crdtUrl,
-      name,
-      document: tmpDoc,
-      token,
-      preserveConnection: false,
-      onAuthenticationFailed(data) {
-        reject(
-          new CustomError({
-            code: "ERR_PERMISSION_DENIED",
-            name: "Space Websocket Authentication Failed",
-            message: data.reason,
-          })
-        );
-      },
-      onSynced() {
-        const json = skillYdocToJson(tmpDoc);
-        skillJsonToYdoc(json, document);
-        return resolve(document);
-      },
-    });
-  });
 };
 
 export const addSkillRunToYdoc = async (runId: string, document: Y.Doc): Promise<Y.Doc> => {
