@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useYDoc } from "@/hooks";
+import { useUser, useYDoc } from "@/hooks";
 import { BackendEntityType } from "@/types";
 
 import { Loader } from "../";
@@ -24,6 +24,7 @@ import SkillPermissions from "./SkillPermissions";
 
 const Header = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
+  const { profile } = useUser();
   const queryClient = useQueryClient();
   const { runId } = useParams();
   const {
@@ -40,6 +41,10 @@ const Header = ({ className }: { className?: string }) => {
 
   const skill = parent.type === BackendEntityType.SKILL ? parent.data : undefined;
   const skillTitle = skill?.title ?? "Untitled";
+
+  const canEdit =
+    skill?.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+    skill?.creator?.id.includes(profile?.id ?? "");
 
   const onDelete = async () => {
     if (
@@ -65,13 +70,17 @@ const Header = ({ className }: { className?: string }) => {
           <Home className="size-4 flex-shrink-0 text-neutral-500" />
         </Button>
       </Link>
-      <div className="px-3 text-lg font-medium text-black">{skillTitle}</div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex size-6 items-center rounded px-3">
-            <EllipsisVertical className="size-4 flex-shrink-0 text-neutral-500" />
-          </Button>
+        <DropdownMenuTrigger className="flex items-center" disabled={!canEdit}>
+          <>
+            <div className="px-3 text-lg font-medium text-black">{skillTitle}</div>
+            {canEdit && (
+              <Button variant="ghost" className="flex size-6 items-center rounded px-3">
+                <EllipsisVertical className="size-4 flex-shrink-0 text-neutral-500" />
+              </Button>
+            )}
+          </>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem

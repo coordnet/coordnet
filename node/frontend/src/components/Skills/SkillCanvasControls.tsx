@@ -165,7 +165,9 @@ const SkillCanvasControls = () => {
           <SkillVersions />
         </div>
       )}
-      <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
+      <div
+        className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2 bg-blue"
+      >
         {scope == YDocScope.READ_WRITE && (
           <>
             <DropdownMenu>
