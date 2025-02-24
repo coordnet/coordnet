@@ -129,7 +129,11 @@ function Dashboard() {
             <SkillManage />
           </Dialog>
           {/* <Tooltip id="dashboard-create-button">Build a Skill</Tooltip> */}
-          <a href="/" rel="noreferrer">
+          <a
+            href="https://github.com/orgs/coordnet/discussions/categories/skill-requests"
+            rel="noreferrer"
+            target="_blank"
+          >
             <Button
               variant="outline"
               className="h-9 text-neutral-800"
