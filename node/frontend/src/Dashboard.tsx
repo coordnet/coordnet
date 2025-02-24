@@ -43,7 +43,8 @@ function Dashboard() {
   const usersSkills = skills?.results.filter(
     (skill) =>
       skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
-      skill?.creator?.id.includes(profile?.id ?? "")
+      skill?.creator?.id.includes(profile?.id ?? "") ||
+      skill?.is_public === false
   );
   const publicSkills = skills?.results.filter(
     (skill) => skill.is_public && !usersSkills?.map((s) => s.id).includes(skill.id)
