@@ -569,9 +569,9 @@ djangorestframework==3.15.2 \
     #   adrf
     #   django-rest-knox
     #   drf-spectacular
-djangorestframework-stubs[compatible-mypy]==3.15.2 \
-    --hash=sha256:0e72f1e8507bdb2acd99b304520494ea5d45bccba51a4877140cb65fd461adf0 \
-    --hash=sha256:3df129845acac6c1b097bc7e5b360d53e32a02029d60b4f972dfbd3e2508f236
+djangorestframework-stubs[compatible-mypy]==3.15.3 \
+    --hash=sha256:3add29ac343292ffc926a3f3984af42de237cca214c69ca0489d124315a803bc \
+    --hash=sha256:e7bdec722d98b8a8049bad9f8bb5ead0931f4f64010ffb3c4538c9ae0f35ef2a
     # via -r requirements/local.in
 djlint==1.36.4 \
     --hash=sha256:16ce37e085afe5a30953b2bd87cbe34c37843d94c701fc68a2dda06c1e428ff4 \
