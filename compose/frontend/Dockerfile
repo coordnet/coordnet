@@ -9,7 +9,11 @@ COPY ./frontend/package.json ./frontend/pnpm-lock.yaml .
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
+# Standardize cache directories across stages
+ENV APT_CACHE_DIR=/var/cache/apt
+
+RUN --mount=type=cache,target=APT_CACHE_DIR \
+  apt-get update && apt-get install --no-install-recommends -y \
   ca-certificates \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
