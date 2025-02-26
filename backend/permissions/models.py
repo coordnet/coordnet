@@ -38,9 +38,9 @@ Role = typing.Literal["owner", "member", "viewer"]
 
 
 class RoleOptions(models.TextChoices):
-    OWNER: tuple[Role, str] = OWNER, "Owner"
-    MEMBER: tuple[Role, str] = MEMBER, "Member"
-    VIEWER: tuple[Role, str] = VIEWER, "Viewer"
+    OWNER = OWNER, "Owner"
+    MEMBER = MEMBER, "Member"
+    VIEWER = VIEWER, "Viewer"
 
 
 READ_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.VIEWER]

@@ -182,13 +182,17 @@ class MethodNodeModelTestCase(BaseTestCase):
 
         method_qs = models.MethodNode.objects.annotate_user_permissions(user=self.owner_user)
         self.assertEqual(method_qs.count(), 1)
-        self.assertEqual(method_qs.first(), node)
-        self.assertEqual(method_qs.first().user_roles, [permissions.models.OWNER])
+        fetched_node = method_qs.first()
+        self.assertEqual(fetched_node, node)
+        assert fetched_node is not None
+        self.assertEqual(fetched_node.user_roles, [permissions.models.OWNER])
 
-    def test_role_annotation_query_viewer(self):
+    def test_role_annotation_query_viewer(self) -> None:
         node = factories.MethodNodeFactory.create(viewer=self.viewer_user)
 
         method_qs = models.MethodNode.objects.annotate_user_permissions(user=self.viewer_user)
         self.assertEqual(method_qs.count(), 1)
-        self.assertEqual(method_qs.first(), node)
-        self.assertEqual(method_qs.first().user_roles, [permissions.models.VIEWER])
+        fetched_node = method_qs.first()
+        self.assertEqual(fetched_node, node)
+        assert fetched_node is not None
+        self.assertEqual(fetched_node.user_roles, [permissions.models.VIEWER])
