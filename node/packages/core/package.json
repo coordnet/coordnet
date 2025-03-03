@@ -7,9 +7,6 @@
     "./skills": "./src/skills/index.ts"
   },
   "dependencies": {
-    "@hocuspocus/extension-database": "^2.15.2",
-    "@hocuspocus/server": "^2.15.2",
-    "@hocuspocus/transformer": "^2.15.2",
     "@instructor-ai/instructor": "^1.7.0",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-link": "^2.11.5",
@@ -19,28 +16,23 @@
     "@tiptap/extension-table-row": "^2.11.5",
     "@tiptap/html": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
-    "@xyflow/react": "^12.4.3",
-    "axios": "^1.7.9",
-    "dotenv": "^16.4.7",
-    "envalid": "^8.0.0",
-    "globals": "^15.15.0",
+    "@xyflow/react": "^12.4.4",
+    "axios": "^1.8.1",
     "marked": "^15.0.7",
-    "openai": "^4.85.1",
-    "pg": "^8.13.3",
+    "openai": "^4.86.1",
     "prosemirror-model": "1.24.1",
-    "uuid": "^11.0.5",
+    "uuid": "^11.1.0",
     "xss": "^1.0.15",
-    "y-prosemirror": "^1.2.15",
+    "y-prosemirror": "^1.2.16",
     "yjs": "^13.6.23",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@eslint/js": "9.20.0",
-    "@types/eslint__js": "^8.42.3",
-    "@types/node": "^22.13.4"
+    "@eslint/js": "9.21.0",
+    "@types/node": "^22.13.8"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@10.4.1"
+  "packageManager": "pnpm@10.5.2"
 }

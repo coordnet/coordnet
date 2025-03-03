@@ -9,42 +9,33 @@
   },
   "dependencies": {
     "@coordnet/core": "workspace:*",
-    "@hocuspocus/extension-database": "^2.15.2",
     "@hocuspocus/provider": "^2.15.2",
     "@hocuspocus/server": "^2.15.2",
     "@hocuspocus/transformer": "^2.15.2",
     "@prd-thanhnguyenhoang/celery.node": "^1.0.56",
-    "@sentry/node": "^9.1.0",
-    "@sentry/profiling-node": "^9.1.0",
-    "@tanstack/react-query-devtools": "^5.66.6",
+    "@sentry/node": "^9.3.0",
+    "@sentry/profiling-node": "^9.3.0",
     "@tiptap/core": "^2.11.5",
-    "@tiptap/html": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
-    "@xyflow/react": "^12.4.3",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
     "express": "^4.21.2",
     "express-ws": "^5.0.2",
-    "globals": "^15.15.0",
     "knex": "^3.1.0",
     "pg": "^8.13.3",
-    "uuid": "^11.0.5",
-    "y-prosemirror": "^1.2.15",
+    "y-prosemirror": "^1.2.16",
     "yjs": "^13.6.23",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@eslint/js": "9.20.0",
-    "@types/eslint__js": "^8.42.3",
+    "@eslint/js": "9.21.0",
     "@types/express": "^5.0.0",
     "@types/express-ws": "^3.0.5",
-    "@types/node": "^22.13.4",
-    "eslint": "9.20.1",
-    "prettier": "^3.5.1",
-    "tsx": "^4.19.2"
+    "@types/node": "^22.13.8",
+    "tsx": "^4.19.3"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@10.4.1"
+  "packageManager": "pnpm@10.5.2"
 }
