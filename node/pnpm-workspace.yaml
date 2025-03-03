@@ -1,4 +1,7 @@
 packages:
-  - "crdt"
-  - "packages/*"
-  - "frontend"
+  - crdt
+  - packages/*
+  - frontend
+onlyBuiltDependencies:
+  - '@sentry/cli'
+  - esbuild
