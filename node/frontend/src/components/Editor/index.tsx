@@ -64,7 +64,7 @@ const Editor = ({ id, className }: EditorProps) => {
       editorProps: { attributes: { class: "prose focus:outline-none" } },
       editable: Boolean((!runId && scope == YDocScope.READ_WRITE) || isSkillInput),
     },
-    [id, scope, synced]
+    [id, scope, synced, YDoc]
   );
 
   useEffect(() => {
