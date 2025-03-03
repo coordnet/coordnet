@@ -5,6 +5,9 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import reactPlugin from "eslint-plugin-react";
 
 export default [
+  {
+    files: ["**/*.ts", "**/*.tsx"]
+  },
   // Ignore dirs
   { ignores: ["dist/", ".vite/"] },
 
