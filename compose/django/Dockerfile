@@ -1,5 +1,3 @@
-ARG FRONTEND_IMAGE=coordnet_local_frontend
-
 # define an alias for the specific python version used in this file.
 FROM python:3.11.11-slim-bullseye AS python
 
@@ -114,10 +112,44 @@ WORKDIR ${APP_HOME}/backend
 
 ENTRYPOINT ["/entrypoint"]
 
-FROM ${FRONTEND_IMAGE} AS frontend-stage-for-copy
+FROM node:22-slim AS frontend-stage-for-copy
+RUN apt-get update && apt-get install -y procps ca-certificates
+
+# Setup pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# First copy the package files
+COPY ./node/package.json ./node/pnpm-lock.yaml ./node/pnpm-workspace.yaml ./
+WORKDIR /app/frontend
+COPY ./node/frontend/package.json ./node/frontend/pnpm-lock.yaml ./
+WORKDIR /app/packages/core
+COPY ./node/packages/core/package.json ./node/packages/core/pnpm-lock.yaml ./
+
+# Now install dependencies
+WORKDIR /app
+RUN pnpm install
+
+# Copy the rest of the source code
+COPY ./node ./
+
+# Run the server
+WORKDIR /app/frontend
+
+ARG SENTRY_AUTH_TOKEN
+ARG GIT_REVISION
+ARG SENTRY_DSN
+ENV VITE_SENTRY_RELEASE=${GIT_REVISION}
+ENV SENTRY_RELEASE=${GIT_REVISION}
+ENV VITE_SENTRY_DSN=${SENTRY_DSN}
+
+RUN pnpm build
 
 FROM python-run-stage AS python-run-stage-prod
 ARG GIT_REVISION
 ENV SENTRY_RELEASE ${GIT_REVISION}
 
-COPY --from=frontend-stage-for-copy /app/dist/static/ /app/backend/coordnet/static/
+COPY --from=frontend-stage-for-copy /app/frontend/dist/static/ /app/backend/coordnet/static/
