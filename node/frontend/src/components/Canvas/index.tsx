@@ -23,6 +23,7 @@ import SkillCanvasControls from "../Skills/SkillCanvasControls";
 import CanvasNodeComponent from "./CanvasNode";
 import ConnectionLine from "./ConnectionLine";
 import Controls from "./Controls";
+import ExternalNodeComponent from "./ExternalNode";
 import { getLayoutedNodes } from "./getLayoutedNodes";
 import MultiNodeToolbar from "./MultiNodeToolbar";
 import Sidebar from "./Sidebar";
@@ -36,7 +37,7 @@ const onDragOver = (event: DragEvent) => {
   event.dataTransfer.dropEffect = "move";
 };
 
-const nodeTypes = { GraphNode: CanvasNodeComponent };
+const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeComponent };
 
 const Canvas = ({ className }: { className?: string }) => {
   const { spaceId, pageId } = useParams();

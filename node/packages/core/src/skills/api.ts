@@ -42,3 +42,11 @@ export const queryPaperQA = async (question: string): Promise<PaperQAResponsePai
   const response = await api.post<PaperQAResponsePair[]>("api/tools/paperqa/", { question });
   return response.data;
 };
+
+export const getExternalNode = async (nodeId: string, depth: number): Promise<string> => {
+  console.log("Requesting external node", nodeId, depth);
+  const response = await api.get<string>(`api/nodes/nodes/${nodeId}/context/`, {
+    params: { depth },
+  });
+  return response.data;
+};

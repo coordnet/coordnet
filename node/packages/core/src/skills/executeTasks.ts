@@ -19,7 +19,7 @@ import {
   Task,
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
-import { querySemanticScholar } from "./api";
+import { getExternalNode, querySemanticScholar } from "./api";
 import { executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
@@ -141,6 +141,7 @@ export const processTasks = async (
           } catch (e) {
             console.error(`Failed to execute prompt task`);
             console.error(e);
+            throw e;
           }
         }
       }
@@ -203,6 +204,7 @@ export const executePromptTask = async (
       } catch (e) {
         console.error("Error when calling LLM, check console for details");
         console.error(e);
+        throw new Error("Error when calling LLM");
       }
       if (extractedNode) {
         nodes.push(extractedNode as SingleNode);
@@ -214,6 +216,7 @@ export const executePromptTask = async (
       } catch (e) {
         console.error("Error when calling LLM, check console for details");
         console.error(e);
+        throw new Error("Error when calling LLM");
       }
       nodes.push(...(extractedData.nodes as SingleNode[]));
     }
@@ -232,6 +235,7 @@ export const executePromptTask = async (
   } catch (e) {
     console.error(e);
     console.error("Error when calling LLM, check console for details");
+    throw new Error("Error when calling LLM");
   }
 };
 
@@ -256,6 +260,15 @@ export const generatePrompt = async (
     ) {
       for (const node of getSkillNodeCanvas(canvasNode.id, skillDoc).nodes) {
         nodes.push(nodeTemplate(getNode(node.id)));
+      }
+    } else if (canvasNode.data.type === NodeType.ExternalData) {
+      if (canvasNode.data?.externalNode?.nodeId) {
+        const { title } = getNode(canvasNode.id);
+        const content = await getExternalNode(
+          canvasNode.data?.externalNode?.nodeId,
+          canvasNode.data?.externalNode?.depth
+        );
+        nodes.push(nodeTemplate({ title, content }));
       }
     } else {
       nodes.push(nodeTemplate(getNode(canvasNode.id)));
