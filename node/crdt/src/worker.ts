@@ -20,8 +20,8 @@ import * as Y from "yjs";
 import { db } from "./db";
 
 const worker = celery.createWorker(
-  "redis://redis:6379/0",
-  "redis://redis:6379/0",
+  process.env.CELERY_BROKER_URL,
+  process.env.CELERY_BROKER_URL,
   process.env.CELERY_NODE_EXECUTION_QUEUE
 );
 
