@@ -1,5 +1,5 @@
 FROM node:22-slim
-RUN apt-get update && apt-get install -y procps
+RUN apt-get update && apt-get install -y procps ca-certificates
 
 # Setup pnpm
 ENV PNPM_HOME="/pnpm"
