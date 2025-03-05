@@ -18,6 +18,8 @@ import { extensions } from "@/lib/readOnlyEditor";
 import { createConnectedYDoc } from "@/lib/utils";
 import { BackendEntityType, BackendParent, ExportNode, SpaceNode } from "@/types";
 
+import { importMarkmap } from "./markmapImport";
+
 export const createConnectedCanvas = async (spaceId: string, canvasId: string) => {
   const token = store("coordnet-auth");
   const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
@@ -42,7 +44,9 @@ export const handleCanvasDrop = async (
   parent: BackendParent,
   nodesMap: Y.Map<CanvasNode>,
   spaceMap: Y.Map<SpaceNode>,
-  position: XYPosition
+  position: XYPosition,
+  spaceId: string | undefined,
+  canvasId: string | undefined
 ) => {
   const transferredHtml = dataTransfer.getData("text/html");
 
@@ -65,7 +69,15 @@ export const handleCanvasDrop = async (
         toast.error("Error importing node");
       }
 
-      // PDF Import
+      // Markmap Import
+    } else if (file.name.endsWith(".markmap")) {
+      const markdown = new TextDecoder().decode(arrayBuffer);
+
+      toast.promise(importMarkmap(spaceId, canvasId, markdown, 100), {
+        loading: "Importing Markmap...",
+        success: "Markmap Imported",
+        error: "Error fetching data",
+      });
     } else if (file.type === "application/pdf") {
       try {
         const pdfText = await readPdf(arrayBuffer);

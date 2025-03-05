@@ -14,6 +14,7 @@ import {
 } from "@xyflow/react";
 import clsx from "clsx";
 import { DragEvent, useCallback, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 
 import { useCanvas, useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
 import { YDocScope } from "@/types";
@@ -38,6 +39,7 @@ const onDragOver = (event: DragEvent) => {
 const nodeTypes = { GraphNode: CanvasNodeComponent };
 
 const Canvas = ({ className }: { className?: string }) => {
+  const { spaceId, pageId } = useParams();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { parent, scope } = useYDoc();
   const { nodes, edges, nodesMap, setNodesSelection } = useCanvas();
@@ -79,7 +81,16 @@ const Canvas = ({ className }: { className?: string }) => {
       y: event.clientY - wrapperBounds.top - 20,
     });
 
-    handleCanvasDrop(event.dataTransfer, takeSnapshot, parent, nodesMap, spaceMap, position);
+    handleCanvasDrop(
+      event.dataTransfer,
+      takeSnapshot,
+      parent,
+      nodesMap,
+      spaceMap,
+      position,
+      spaceId,
+      pageId
+    );
   };
 
   const onNodeDragStart: OnNodeDrag = useCallback(() => {
@@ -114,16 +125,19 @@ const Canvas = ({ className }: { className?: string }) => {
     [nodes, onConnect, takeSnapshot]
   );
 
-  const onLayoutNodes = useCallback(async () => {
-    takeSnapshot();
-    const layouted = await getLayoutedNodes(nodes, edges, "DOWN");
-    for (const node of layouted) {
-      const mapNode = nodesMap?.get(node.id);
-      if (mapNode) {
-        nodesMap?.set(node.id, { ...mapNode, position: node.position });
+  const onLayoutNodes = useCallback(
+    async (direction: "RIGHT" | "DOWN" = "DOWN") => {
+      takeSnapshot();
+      const layouted = await getLayoutedNodes(nodes, edges, direction);
+      for (const node of layouted) {
+        const mapNode = nodesMap?.get(node.id);
+        if (mapNode) {
+          nodesMap?.set(node.id, { ...mapNode, position: node.position });
+        }
       }
-    }
-  }, [edges, nodes, nodesMap, takeSnapshot]);
+    },
+    [edges, nodes, nodesMap, takeSnapshot]
+  );
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
