@@ -16,7 +16,7 @@ export interface ElkNode extends ElkShape {
 const elk = new ELK();
 
 const elkOptions = {
-  "elk.algorithm": "layered",
+  "elk.algorithm": "mrtree",
   "elk.layered.spacing.nodeNodeBetweenLayers": "70",
   "elk.spacing.nodeNode": "40",
 };

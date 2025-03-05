@@ -5,6 +5,12 @@ import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { toast } from "sonner";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCanvas, useFocus, useNodesContext, useYDoc } from "@/hooks";
 import { BackendEntityType, YDocScope } from "@/types";
 
@@ -23,7 +29,7 @@ const Sidebar = ({
 }: {
   takeSnapshot: () => void;
   className?: string;
-  onLayoutNodes: () => Promise<void>;
+  onLayoutNodes: (direction: "RIGHT" | "DOWN") => Promise<void>;
 }) => {
   const { parent, scope } = useYDoc();
   const { nodes, nodesMap, edgesMap, inputNodes } = useCanvas();
@@ -105,16 +111,27 @@ const Sidebar = ({
           </Button>
         )}
         <Tooltip id="node-repository">Node Repository</Tooltip>
-        <Button
-          variant="outline"
-          className="size-9 p-0 shadow"
-          onClick={() => onLayoutNodes()}
-          data-tooltip-id="layout-nodes"
-          data-tooltip-place="right"
-          disabled={scope !== YDocScope.READ_WRITE}
-        >
-          <LayoutDashboard strokeWidth={2.8} className="size-4 text-neutral-600" />
-        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild disabled={scope !== YDocScope.READ_WRITE}>
+            <Button
+              variant="outline"
+              className="size-9 p-0 shadow"
+              data-tooltip-id="layout-nodes"
+              data-tooltip-place="right"
+            >
+              <LayoutDashboard strokeWidth={2.8} className="size-4 text-neutral-600" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="right">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onLayoutNodes("DOWN")}>
+              Align Down
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onLayoutNodes("RIGHT")}>
+              Align Right
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Tooltip id="layout-nodes">Layout nodes</Tooltip>
       </div>
     </aside>
