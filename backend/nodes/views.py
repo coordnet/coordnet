@@ -424,7 +424,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
                                 "description": "Whether to include the attachment.",
                             },
                         },
-                        "required": ["method_argument", "include_attachment"],
+                        "required": ["include_attachment"],
                         "additionalProperties": False,
                     },
                 },
@@ -455,7 +455,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         parsed_messages, attachments = parse_messages(request.data)
 
         completion_response = client.chat.completions.create(
-            model="gpt-4o",
+            model="o3-mini",
             tools=filter(
                 None,
                 [
@@ -483,10 +483,11 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
             arguments = json.loads(
                 completion_response.choices[0].message.tool_calls[0].function.arguments  # type: ignore[index]
             )
-            method_argument = arguments["method_argument"]
+            method_argument = arguments.get("method_argument", "")
             if arguments.get("include_attachment"):
                 for attachment in attachments:
-                    method_argument += "\n"
+                    if method_argument:
+                        method_argument += "\n\n"
                     method_argument += attachment
 
         except (IndexError, AttributeError, KeyError) as exc:
