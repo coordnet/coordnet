@@ -1,6 +1,22 @@
-import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs";
+import DOMPurify from "dompurify";
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.mjs`;
+
+/**
+ * Cleans HTML content by removing null characters and other problematic characters
+ * @param html The HTML content to clean
+ * @returns Cleaned HTML content
+ */
+const cleanHtmlContent = (html: string): string => {
+  // eslint-disable-next-line no-control-regex
+  let cleaned = html.replace(/\u0000/g, "");
+  // eslint-disable-next-line no-control-regex
+  cleaned = cleaned.replace(/[\u0001-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+  cleaned = cleaned.replace(/\s+/g, " ");
+  cleaned = cleaned.replace(/\r\n|\r/g, "\n");
+  return DOMPurify.sanitize(cleaned);
+};
 
 /**
  * Reads a PDF file from an ArrayBuffer and extracts its text content as an HTML formatted string.
@@ -42,7 +58,7 @@ export const readPdf = async (arrayBuffer: ArrayBuffer): Promise<string> => {
     }
 
     htmlContent += "</div>";
-    return htmlContent;
+    return cleanHtmlContent(htmlContent);
   } catch (error) {
     console.error("Error processing PDF: ", error);
     throw error;

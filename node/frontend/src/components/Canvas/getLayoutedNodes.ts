@@ -15,18 +15,17 @@ export interface ElkNode extends ElkShape {
 
 const elk = new ELK();
 
-const elkOptions = {
-  "elk.algorithm": "mrtree",
-  "elk.layered.spacing.nodeNodeBetweenLayers": "70",
-  "elk.spacing.nodeNode": "40",
-};
-
 export const getLayoutedNodes = async (
   nodes: CanvasNode[],
   edges: Edge[],
   direction: "DOWN" | "RIGHT"
 ): Promise<CanvasNode[]> => {
   const isHorizontal = direction === "RIGHT";
+  const elkOptions: { [k: string]: string } = {
+    "elk.layered.spacing.nodeNodeBetweenLayers": "70",
+    "elk.spacing.nodeNode": "40",
+    "elk.algorithm": isHorizontal ? "mrtree" : "layered",
+  };
 
   // Create a set of valid node IDs
   const validNodeIds = new Set(nodes.map((node) => node.id));
