@@ -17,7 +17,7 @@ import { DragEvent, useCallback, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import { useCanvas, useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
-import { YDocScope } from "@/types";
+import { BackendEntityType, YDocScope } from "@/types";
 
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
 import CanvasNodeComponent from "./CanvasNode";
@@ -39,9 +39,13 @@ const onDragOver = (event: DragEvent) => {
 const nodeTypes = { GraphNode: CanvasNodeComponent };
 
 const Canvas = ({ className }: { className?: string }) => {
-  const { spaceId, pageId } = useParams();
+  const { spaceId, skillId, pageId } = useParams();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { parent, scope } = useYDoc();
+  const {
+    parent,
+    scope,
+    space: { YDoc: spaceDoc },
+  } = useYDoc();
   const { nodes, edges, nodesMap, setNodesSelection } = useCanvas();
   const { nodesMap: spaceMap } = useNodesContext();
   const { isQuickViewOpen } = useQuickView();
@@ -72,7 +76,7 @@ const Canvas = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (scope !== YDocScope.READ_WRITE) return;
+    if (parent.type === BackendEntityType.SPACE && scope !== YDocScope.READ_WRITE) return;
     if (!wrapperRef.current) return alert("Could not find Canvas wrapperRef.");
     if (!nodesMap || !spaceMap) return alert("Space is not initialised");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
@@ -88,8 +92,9 @@ const Canvas = ({ className }: { className?: string }) => {
       nodesMap,
       spaceMap,
       position,
+      spaceDoc,
       spaceId,
-      pageId
+      pageId || skillId
     );
   };
 
