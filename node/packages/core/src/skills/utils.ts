@@ -178,6 +178,25 @@ export const setSkillNodePageMarkdown = async (markdown: string, id: string, doc
   }
 };
 
+/**
+ * Sets the HTML for a skill node page.
+ *
+ * @param {string} html - The HTML string to be set on the node page.
+ * @param {string} id - The identifier of the skill node page.
+ * @param {Y.Doc} document - The Yjs document where the skill node page content is to be set.
+ * @returns {Promise<void>} A promise that resolves when the content has been successfully set.
+ * @throws Will log an error and display a toast notification if setting the markdown fails.
+ */
+export const setSkillNodePageHTML = async (html: string, id: string, document: Y.Doc) => {
+  try {
+    const json = generateJSON(html, [StarterKit]);
+    await setSkillNodePageContent(json, id, document);
+  } catch (error) {
+    console.error(error);
+    // toast.error("Failed to set markdown on node page");
+  }
+};
+
 export const setSkillNodeTitleAndContent = async (
   document: Y.Doc,
   id: string,
@@ -242,4 +261,49 @@ export const skillYdocToJson = (document: Y.Doc) => {
     }
   }
   return json;
+};
+
+export const cleanSkillJson = (skillJson: SkillJson): SkillJson => {
+  try {
+    const referencedNodeIds = new Set<string>();
+
+    // Collect node IDs from all canvas keys
+    Object.keys(skillJson)
+      .filter((key) => key.endsWith("-canvas-nodes"))
+      .forEach((canvasKey) => {
+        const canvasNodes = skillJson[canvasKey] || {};
+        Object.keys(canvasNodes).forEach((nodeId) => {
+          referencedNodeIds.add(nodeId);
+        });
+      });
+
+    // Clean up unused documents
+    Object.keys(skillJson)
+      .filter((key) => key.endsWith("-document"))
+      .forEach((docKey) => {
+        const baseKey = docKey.replace("-document", "");
+        if (!referencedNodeIds.has(baseKey)) {
+          delete skillJson[docKey];
+        }
+      });
+
+    // Clean up unused nodes from the nodes object
+    if (skillJson.nodes) {
+      const initialNodeCount = Object.keys(skillJson.nodes).length;
+      Object.keys(skillJson.nodes)
+        .filter((nodeId) => !referencedNodeIds.has(nodeId))
+        .forEach((nodeId) => {
+          delete (skillJson.nodes as { [k: string]: unknown })[nodeId];
+        });
+
+      const removedCount = initialNodeCount - Object.keys(skillJson.nodes).length;
+      console.log(`Removed ${removedCount} unused nodes in total`);
+    }
+
+    return skillJson;
+  } catch (err) {
+    console.error("Error cleaning skill JSON:", err);
+    // Return the original if cleaning failed
+    return skillJson;
+  }
 };

@@ -4,6 +4,7 @@ import {
   addInputNode,
   CanvasEdge,
   CanvasNode,
+  cleanSkillJson,
   createCanvas,
   createTasks,
   ExecutionContext,
@@ -124,7 +125,7 @@ worker.register(
     await processTasks(context, buddy, doc, spaceMap, nodesMap, ref, false);
     console.log("Task running is completed");
     runMeta.set("status", "success");
-    const skillJson = skillYdocToJson(doc);
+    const skillJson = cleanSkillJson(skillYdocToJson(doc));
     await db("nodes_methodnoderun").where("id", methodRunId).update({
       method_data: skillJson,
     });

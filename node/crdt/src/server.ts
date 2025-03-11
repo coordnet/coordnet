@@ -1,5 +1,6 @@
 import "./instrument";
 
+import { cleanSkillJson, skillJsonToYdoc } from "@coordnet/core";
 import {
   onAuthenticatePayload,
   onConnectPayload,
@@ -53,7 +54,7 @@ export const server = Server.configure({
       const model = modelMap[documentType];
       const request = await backendRequest(
         `api/nodes/${model.endpoint}/${public_id}/?show_permissions=true`,
-        token == "public" ? undefined : token,
+        token == "public" ? undefined : token
       );
       if (request.status !== 200) {
         throw new Error("Not authorized!");
@@ -84,6 +85,14 @@ export const server = Server.configure({
       .where({ public_id, document_type })
       .orderBy("id", "desc")
       .first();
+
+    // If loading the document then use this opportunity to first clean it
+    if (documentType === "SKILL" || documentType === "SKILL_RUN") {
+      const cleanJson = cleanSkillJson(row?.json);
+      const doc = new Y.Doc({ guid: public_id });
+      const cleanYDoc = skillJsonToYdoc(cleanJson, doc);
+      return cleanYDoc;
+    }
 
     if (row?.data) {
       Y.applyUpdate(document, row?.data);
@@ -117,7 +126,10 @@ export const server = Server.configure({
       // Add all the maps and documents from the skill
       for (const key of document.share.keys()) {
         if (key.endsWith("-document")) {
-          json[key] = transformer.fromYdoc(document, key);
+          const documentJSON = transformer.fromYdoc(document, key);
+          if (documentJSON.content.length) {
+            json[key] = documentJSON;
+          }
         } else {
           json[key] = document.getMap(key).toJSON();
         }
