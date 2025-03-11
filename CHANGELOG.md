@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add User and Space profile pages.
 - Add method node type to backend and API.
 - Add method runs to backend and API.
-- Add methode node versioning.
+- Add method node versioning.
 - Add UI for skills.
 - Add dashboard as default landing page after login.
 - Upgrade to @xyflow/react.
