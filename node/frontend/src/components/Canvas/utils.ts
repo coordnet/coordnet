@@ -1,4 +1,11 @@
-import { CanvasEdge, CanvasNode, findExtremePositions, NodeType, SingleNode } from "@coordnet/core";
+import {
+  CanvasEdge,
+  CanvasNode,
+  findExtremePositions,
+  NodeType,
+  setSkillNodePageHTML,
+  SingleNode,
+} from "@coordnet/core";
 import { generateJSON, JSONContent } from "@tiptap/core";
 import { XYPosition } from "@xyflow/react";
 import DOMPurify from "dompurify";
@@ -45,10 +52,25 @@ export const handleCanvasDrop = async (
   nodesMap: Y.Map<CanvasNode>,
   spaceMap: Y.Map<SpaceNode>,
   position: XYPosition,
+  spaceDoc: Y.Doc,
   spaceId: string | undefined,
   canvasId: string | undefined
 ) => {
   const transferredHtml = dataTransfer.getData("text/html");
+  const isSkill = parent.type === BackendEntityType.SKILL;
+
+  // Process the PDFs
+  if (
+    canvasId &&
+    dataTransfer &&
+    dataTransfer.items.length > 0 &&
+    Array.from(dataTransfer.items).some((item) => item.type === "application/pdf")
+  ) {
+    takeSnapshot();
+    const pdfs = Array.from(dataTransfer.files).filter((file) => file.type === "application/pdf");
+    handlePDFImport(pdfs, parent, nodesMap, spaceMap, position, spaceDoc);
+    return;
+  }
 
   // If it's a file
   if (dataTransfer && dataTransfer.files.length > 0) {
@@ -56,7 +78,7 @@ export const handleCanvasDrop = async (
     const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
 
     // Node Import
-    if (file.name.endsWith(".coordnode")) {
+    if (!isSkill && file.name.endsWith(".coordnode")) {
       try {
         const importNode: ExportNode = JSON.parse(new TextDecoder().decode(arrayBuffer));
         const { title, content, data, nodes } = importNode;
@@ -70,7 +92,7 @@ export const handleCanvasDrop = async (
       }
 
       // Markmap Import
-    } else if (file.name.endsWith(".markmap")) {
+    } else if (!isSkill && file.name.endsWith(".markmap")) {
       const markdown = new TextDecoder().decode(arrayBuffer);
 
       toast.promise(importMarkmap(spaceId, canvasId, markdown, 100), {
@@ -78,15 +100,6 @@ export const handleCanvasDrop = async (
         success: "Markmap Imported",
         error: "Error fetching data",
       });
-    } else if (file.type === "application/pdf") {
-      try {
-        const pdfText = await readPdf(arrayBuffer);
-        takeSnapshot();
-        addNodeToCanvas(nodesMap, spaceMap, file.name, position, pdfText);
-      } catch (e) {
-        console.log("Error importing PDF", e);
-        toast.error("Error importing PDF");
-      }
     }
 
     // Dragging from editor
@@ -172,6 +185,35 @@ export const addEdge = async (
 ): Promise<void> => {
   const id = `edge-${source}${sourceHandle || ""}-${target}${targetHandle || ""}`;
   edgesMap?.set(id, { id, source, target, sourceHandle, targetHandle } as CanvasEdge);
+};
+
+const addNodeToSkillCanvas = async (
+  nodesMap: Y.Map<CanvasNode>,
+  spaceMap: Y.Map<SpaceNode>,
+  document: Y.Doc,
+  title: string,
+  position: XYPosition,
+  content: string
+) => {
+  const id = crypto.randomUUID();
+  nodesMap.set(id, {
+    id,
+    type: "GraphNode",
+    position,
+    style: { width: 200, height: 80 },
+    data: {},
+  });
+  spaceMap.set(id, { id, title });
+
+  // Set the HTML content
+  if (content) {
+    try {
+      await setSkillNodePageHTML(content, id, document);
+    } catch (error) {
+      console.error(`Error setting HTML for node ${id}:`, error);
+      toast.error(`Error adding content for "${title}"`, { duration: 3000 });
+    }
+  }
 };
 
 export const findCentralNode = (ids: string[], nodesMap: Y.Map<CanvasNode>) => {
@@ -304,5 +346,77 @@ export const addInputNode = async (
     });
   } else {
     toast.error("Nodes or space map is not available");
+  }
+};
+
+/**
+ * Processes PDF files dropped into the browser and extracts their text content
+ * @param dataTransfer DataTransfer object containing the dropped files
+ * @param canvasId ID of the canvas to add nodes to
+ * @param document Y.Doc instance
+ */
+export const handlePDFImport = async (
+  files: File[],
+  parent: BackendParent,
+  nodesMap: Y.Map<CanvasNode>,
+  spaceMap: Y.Map<SpaceNode>,
+  startPosition: XYPosition,
+  spaceDoc: Y.Doc
+) => {
+  const isSkill = parent.type === BackendEntityType.SKILL;
+  const totalFiles = files.length;
+  let processedFiles = 0;
+  const failedFiles: string[] = [];
+  const toastId = toast.loading(`Processing PDFs: 0/${totalFiles} complete`);
+
+  try {
+    // Process files one by one sequentially and add each to canvas immediately
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      toast.loading(`Processing (${i + 1}/${totalFiles}) "${file.name}"`, { id: toastId });
+
+      try {
+        // Get HTML content from PDF
+        const arrayBuffer = await file.arrayBuffer();
+        const htmlContent = await readPdf(arrayBuffer);
+        const title = file.name.replace(/\.pdf$/i, "");
+
+        // Add the node
+        const position = {
+          x: startPosition.x + (processedFiles % 6) * 210,
+          y: startPosition.y + Math.floor(processedFiles / 6) * 50,
+        };
+
+        if (isSkill) {
+          await addNodeToSkillCanvas(nodesMap, spaceMap, spaceDoc, title, position, htmlContent);
+        } else {
+          await addNodeToCanvas(nodesMap, spaceMap, title, position, htmlContent);
+        }
+
+        processedFiles++;
+        toast.loading(`Processing PDFs: ${processedFiles}/${totalFiles} complete`, { id: toastId });
+      } catch (error) {
+        failedFiles.push(file.name);
+        console.error(`Error processing "${file.name}":`, error);
+      }
+    }
+
+    toast.info(`Processed ${processedFiles} of ${totalFiles} files`, {
+      description: failedFiles.length
+        ? `Failed to process ${failedFiles.length} files. Check the browser console details.`
+        : "",
+      duration: Infinity,
+      cancel: { label: "OK", onClick: () => toast.dismiss() },
+      id: toastId,
+    });
+    console.error(failedFiles);
+  } catch (error) {
+    toast.error("Error processing PDF files", {
+      id: toastId,
+      description: error instanceof Error ? error.message : "An unexpected error occurred",
+      duration: 5000,
+    });
+    console.error("Error during PDF processing:", error);
   }
 };

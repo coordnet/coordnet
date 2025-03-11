@@ -87,7 +87,7 @@ export const server = Server.configure({
       .first();
 
     // If loading the document then use this opportunity to first clean it
-    if (documentType === "SKILL" || documentType === "SKILL_RUN") {
+    if ((documentType === "SKILL" || documentType === "SKILL_RUN") && row?.json) {
       const cleanJson = cleanSkillJson(row?.json);
       const doc = new Y.Doc({ guid: public_id });
       const cleanYDoc = skillJsonToYdoc(cleanJson, doc);
