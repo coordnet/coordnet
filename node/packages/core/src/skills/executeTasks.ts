@@ -184,8 +184,7 @@ export const executePromptTask = async (
       response_model.schema = SingleNodeSchema;
       response_model.name = "SingleNode";
     }
-    console.log(messages);
-    console.log(buddy.model);
+
     const response = await client.chat.completions.create({
       messages,
       model: buddy.model,

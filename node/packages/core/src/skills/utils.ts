@@ -237,7 +237,8 @@ export const addToSkillCanvas = async (options: AddNodeOptions) => {
 };
 
 export const skillJsonToYdoc = async (json: { [k: string]: unknown }, document: Y.Doc) => {
-  Object.entries(json).map(([key, value]) => {
+  const cleanedJson = cleanSkillJson(json);
+  Object.entries(cleanedJson).map(([key, value]) => {
     if (key.endsWith("-document")) {
       const xml = document.getXmlFragment(key);
       prosemirrorJSONToYXmlFragment(editorSchema, value, xml);
@@ -260,7 +261,7 @@ export const skillYdocToJson = (document: Y.Doc) => {
       json[key] = document.getMap(key).toJSON();
     }
   }
-  return json;
+  return cleanSkillJson(json);
 };
 
 export const cleanSkillJson = (skillJson: SkillJson): SkillJson => {
