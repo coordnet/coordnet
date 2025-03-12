@@ -9,7 +9,7 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 # First copy the package files
-COPY ./node/package.json ./node/pnpm-lock.yaml ./node/pnpm-workspace.yaml ./
+COPY ./node/package.json ./node/pnpm-lock.yaml ./node/pnpm-workspace.yaml ./node/.prettierrc ./
 WORKDIR /app/crdt
 COPY ./node/crdt/package.json ./node/crdt/pnpm-lock.yaml ./
 WORKDIR /app/packages/core

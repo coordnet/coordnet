@@ -71,11 +71,11 @@ repos:
     hooks:
       - id: pip-compile
         name: pip-compile local.in
-        args: [ --allow-unsafe, requirements/local.in ]
+        args: [--allow-unsafe, requirements/local.in]
         files: ^requirements/(base|local)\.(in|txt)$
       - id: pip-compile
         name: pip-compile production.in
-        args: [ --allow-unsafe, requirements/production.in ]
+        args: [--allow-unsafe, requirements/production.in]
         files: ^requirements/(base|production)\.(in|txt)$
   - repo: local
     hooks:
@@ -104,7 +104,7 @@ repos:
         language: node
         files: ^node/crdt/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh crdt pnpm prettier --write --config /app/crdt/.prettierrc
+        entry: bash .pre-commit-run.sh crdt pnpm prettier --write --config /app/.prettierrc
       - id: tsc-crdt
         name: tsc (crdt)
         pass_filenames: false
@@ -121,7 +121,7 @@ repos:
         language: node
         files: ^node/frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/frontend/.prettierrc
+        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/.prettierrc
       - id: tsc-frontend
         name: tsc (frontend)
         pass_filenames: false
