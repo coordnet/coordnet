@@ -1,5 +1,6 @@
 import { Request } from "express";
 
+import { db } from "./db";
 import { settings } from "./settings";
 
 export const getDocumentType = (name: string) => {
@@ -37,4 +38,33 @@ export const authRequest = (request: Request) => {
     settings.WEBSOCKET_API_KEY !== "" &&
     request.header("Authorization") === `Token ${settings.WEBSOCKET_API_KEY}`
   );
+};
+
+// Add this function at the top of your file
+export const waitForSkillData = async (
+  methodId: string,
+  maxRetries = 30,
+  retryIntervalMs = 1000
+): Promise<{ [k: string]: unknown }> => {
+  let retries = 0;
+
+  while (retries < maxRetries) {
+    const version = await db("nodes_methodnodeversion")
+      .where("method_id", methodId)
+      .orderBy("version", "desc")
+      .first();
+
+    if (version?.method_data) {
+      console.log(`Found skill data after ${retries} retries`);
+      return version.method_data;
+    }
+
+    console.log(
+      `Skill data not found yet, retrying in ${retryIntervalMs}ms (${retries + 1}/${maxRetries})`
+    );
+    await new Promise((resolve) => setTimeout(resolve, retryIntervalMs));
+    retries++;
+  }
+
+  throw new Error("Could not find skill data after maximum retries");
 };

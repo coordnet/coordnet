@@ -52,8 +52,6 @@ export const executeTableTask = async (
       data: z.array(z.object(schemaShape).describe("A list of table columns")),
     });
 
-    console.log(messages);
-    console.log(buddy.model);
     const response = await client.chat.completions.create({
       messages,
       model: buddy.model,
