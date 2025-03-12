@@ -1,6 +1,5 @@
 import "./instrument";
 
-import { cleanSkillJson, skillJsonToYdoc } from "@coordnet/core";
 import {
   onAuthenticatePayload,
   onConnectPayload,
@@ -25,6 +24,13 @@ const modelMap = {
   SKILL: { endpoint: "methods", type: "METHOD" },
   SKILL_RUN: { endpoint: "method-runs", type: "METHOD_RUN" },
 };
+
+setInterval(() => {
+  const memoryUsage = process.memoryUsage();
+  console.log(
+    `Memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`
+  );
+}, 30000);
 
 export const server = Server.configure({
   name: "coordnet-crdt",
@@ -85,14 +91,6 @@ export const server = Server.configure({
       .where({ public_id, document_type })
       .orderBy("id", "desc")
       .first();
-
-    // If loading the document then use this opportunity to first clean it
-    if ((documentType === "SKILL" || documentType === "SKILL_RUN") && row?.json) {
-      const cleanJson = cleanSkillJson(row?.json);
-      const doc = new Y.Doc({ guid: public_id });
-      const cleanYDoc = skillJsonToYdoc(cleanJson, doc);
-      return cleanYDoc;
-    }
 
     if (row?.data) {
       Y.applyUpdate(document, row?.data);

@@ -19,6 +19,7 @@ import * as celery from "@prd-thanhnguyenhoang/celery.node";
 import * as Y from "yjs";
 
 import { db } from "./db";
+import { waitForSkillData } from "./utils";
 
 const worker = celery.createWorker(
   process.env.CELERY_BROKER_URL,
@@ -84,11 +85,16 @@ worker.register(
     // There is no existing document so get the latest version of the skill and add it
     if (!document) {
       console.log("No existing document found, getting latest version");
-      const version = await db("nodes_methodnodeversion")
-        .where("method_id", methodId)
-        .orderBy("version", "desc")
-        .first();
-      await skillJsonToYdoc(version?.method_data, doc);
+      try {
+        const skillData = await waitForSkillData(methodId);
+        await skillJsonToYdoc(skillData, doc);
+      } catch (error) {
+        console.error("Failed to get skill data:", error);
+        const runMap = doc?.getMap("meta");
+        runMap.set("status", "error");
+        runMap.set("error", String(error));
+        throw error;
+      }
     }
 
     const runMeta = doc?.getMap("meta");

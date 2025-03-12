@@ -100,6 +100,7 @@ services:
     image: coordnet_local_crdt
     container_name: coordnet_local_crdt
     command: ["pnpm", "dev:server"]
+    restart: unless-stopped
     env_file:
       - ./.envs/.local/.crdt
       - ./.envs/.local/.postgres
