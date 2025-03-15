@@ -52,7 +52,7 @@ class SoftDeletableMembershipModelManager(
     _queryset_class = SoftDeletableMembershipModelQuerySet
 
     def get_queryset(self) -> SoftDeletableMembershipModelQuerySet[T_co]:
-        return typing.cast(SoftDeletableMembershipModelQuerySet[T_co], super().get_queryset())
+        return typing.cast("SoftDeletableMembershipModelQuerySet[T_co]", super().get_queryset())
 
     def annotate_user_permissions(
         self,
