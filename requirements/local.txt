@@ -1062,9 +1062,9 @@ nodeenv==1.9.1 \
     --hash=sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f \
     --hash=sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9
     # via pre-commit
-openai==1.66.2 \
-    --hash=sha256:75194057ee6bb8b732526387b6041327a05656d976fc21c064e21c8ac6b07999 \
-    --hash=sha256:9b3a843c25f81ee09b6469d483d9fba779d5c6ea41861180772f043481b0598d
+openai==1.66.3 \
+    --hash=sha256:8dde3aebe2d081258d4159c4cb27bdc13b5bb3f7ea2201d9bd940b9a89faf0c9 \
+    --hash=sha256:a427c920f727711877ab17c11b95f1230b27767ba7a01e5b66102945141ceca9
     # via -r requirements/base.in
 packaging==24.2 \
     --hash=sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759 \
