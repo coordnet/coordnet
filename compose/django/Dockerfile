@@ -11,7 +11,27 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev
+  libpq-dev \
+  # Needed for rustup
+  curl \
+  # Needed for smolagents dependencies
+  libssl-dev \
+  git \
+  patch \
+  clang \
+  libssl-dev \
+  pkg-config \
+  python3-dev \
+  cmake
+
+# Set up rust for smolagents dependencies (for now)
+#######
+# Get Rust; NOTE: using sh for better compatibility with other base images
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+# Add .cargo/bin to PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
 
@@ -39,6 +59,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   postgresql-client \
   # Translations dependencies
   gettext \
+  # Needed for smolagents dependencies
+  ffmpeg \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*

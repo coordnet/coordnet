@@ -460,11 +460,13 @@ AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY", default=None)
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT", default=None)
 AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-preview")
 
+# Tooling
+# ------------------------------------------------------------------------------
+SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
+SERPAPI_API_KEY = env("SERPAPI_API_KEY", default="fake-key")
+
 # API settings
 # ------------------------------------------------------------------------------
-
-SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
-
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.
 FRONTEND_URL: str | None = env("FRONTEND_URL", default=None)
