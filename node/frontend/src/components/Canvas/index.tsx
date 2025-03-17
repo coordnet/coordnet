@@ -29,7 +29,7 @@ import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import useUndoRedo from "./useUndoRedo";
 import useYdocState from "./useYdocState";
-import { handleCanvasDrop } from "./utils";
+import { handleCanvasDrop } from "./utils/handleCanvasDrop";
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -53,6 +53,8 @@ const Canvas = ({ className }: { className?: string }) => {
   const reactFlowInstance = useReactFlow();
   const { undo, redo, canUndo, canRedo, takeSnapshot } = useUndoRedo();
   const { setReactFlowInstance, setNodesMap, setNodes, setFocus, focus } = useFocus();
+
+  const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
 
   useEffect(() => {
     setReactFlowInstance(reactFlowInstance);
@@ -94,7 +96,7 @@ const Canvas = ({ className }: { className?: string }) => {
       position,
       spaceDoc,
       spaceId,
-      pageId || skillId
+      pageId || spaceModel?.default_node || skillId
     );
   };
 

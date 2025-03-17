@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { setNodePageMarkdown } from "@/lib/nodes";
 import { ExportNodeSingle } from "@/types";
 
-import { createConnectedCanvas } from "./utils";
+import { createConnectedCanvas } from "./index";
 
 type MarkMapNode = Omit<ExportNodeSingle, "content"> & { content?: string };
 
@@ -91,6 +91,7 @@ export const importMarkmap = async (
   spaceId: string | undefined,
   canvasId: string | undefined,
   markdown: string,
+  position: XYPosition,
   maxDepth: number = 6
 ) => {
   if (!spaceId || !canvasId) throw new Error("Space ID or Canvas ID is missing");
@@ -99,7 +100,7 @@ export const importMarkmap = async (
     spaceId,
     canvasId
   );
-  const markmapExport = await markmapToExportNode(markdown, maxDepth, { x: 500, y: 50 });
+  const markmapExport = await markmapToExportNode(markdown, maxDepth, position);
   const idMap: Record<string, string> = {};
 
   // Create nodes on the canvas
