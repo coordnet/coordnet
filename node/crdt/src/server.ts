@@ -80,6 +80,7 @@ export const server = Server.configure({
       throw new Error("Not authorized!");
     }
   },
+
   async onLoadDocument({ document, documentName }: onLoadDocumentPayload) {
     const documentType = getDocumentType(documentName);
     if (!documentType) {

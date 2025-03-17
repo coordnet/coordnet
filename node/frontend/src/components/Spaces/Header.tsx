@@ -51,7 +51,6 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
         </div>
         {Boolean(breadcrumbs.length > 0) && <div className="">&raquo;</div>}
         {breadcrumbs.map((id, index) => {
-          const isNewRun = id === "new-run";
           const isRun = id.startsWith("run-");
           const runId = id.split("run-")[1];
 
@@ -63,16 +62,12 @@ const Header = ({ id, className }: { id: string; className?: string }) => {
           return (
             <div key={id} className="flex items-center gap-2">
               <div className="max-w-[220px] truncate text-neutral-500">
-                {isNewRun ? (
-                  "New Run"
-                ) : (
-                  <Link
-                    to={link}
-                    className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
-                  >
-                    {title}
-                  </Link>
-                )}
+                <Link
+                  to={link}
+                  className="font-normal text-neutral-500 hover:text-neutral-500 hover:underline"
+                >
+                  {title}
+                </Link>
               </div>
               {index < breadcrumbs.length - 1 && <div className="">&raquo;</div>}
             </div>

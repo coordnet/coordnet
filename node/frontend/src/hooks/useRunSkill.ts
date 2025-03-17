@@ -5,36 +5,31 @@ import {
   ExecutionPlan,
   NodeType,
   RunStatus,
-  skillJsonToYdoc,
   skillYdocToJson,
 } from "@coordnet/core";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import store from "store2";
 
 import { createSkillRun, executeSkillRun } from "@/api";
 import { useCanvas, useYDoc } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { createConnectedYDoc } from "@/lib/utils";
 import { YDocScope } from "@/types";
 
 export const useRunSkill = () => {
   const navigate = useNavigate();
-  const { runId, pageId, skillId, versionId } = useParams();
+  const { skillId, versionId } = useParams();
   const { nodes, edges, inputNodes } = useCanvas();
   const { buddy } = useBuddy();
   const {
     parent,
     scope,
-    space: { YDoc: spaceYDoc, synced: spaceSynced },
+    space: { YDoc: spaceYDoc },
   } = useYDoc();
 
   const [status, setStatus] = useState<RunStatus>("idle");
   const [error, setError] = useState<unknown>();
   const runMeta = spaceYDoc?.getMap("meta");
-
-  const isYDocReady = spaceSynced && spaceYDoc?.guid === `method-run-${runId}`;
 
   useEffect(() => {
     const checkStatus = () => {
@@ -67,21 +62,17 @@ export const useRunSkill = () => {
     // Create a new run on the backend
     const run = await createSkillRun({
       method: skillId,
-      method_data: {},
+      method_data: {
+        ...skillYdocToJson(spaceYDoc),
+        meta: { buddy: buddy?.id, status: "pending" },
+      },
       is_dev_run: scope == YDocScope.READ_WRITE,
       method_version: versionId,
     });
 
-    // Set the current canvas YDoc to the new run in the CRDT server
-    const token = store("coordnet-auth");
-    const [runDoc, runProvider] = await createConnectedYDoc(`method-run-${run.id}`, token);
-    const json = skillYdocToJson(spaceYDoc);
-    await skillJsonToYdoc(json, runDoc);
-    const meta = runDoc.getMap("meta");
-    meta.set("status", "pending");
-    meta.set("buddy", buddy?.id);
-    runProvider.destroy();
-
+    // Go to the run page and execute it
+    await executeSkillRun(run.id);
+    // window.location.href = `/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/${run.id}`;
     navigate(`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/${run.id}`);
   }, [buddy, inputNodes.length, navigate, nodes, parent.id, scope, skillId, spaceYDoc, versionId]);
 
@@ -103,10 +94,5 @@ export const useRunSkill = () => {
     // return processTasks(context, buddy, spaceYDoc, skill, skillNodesMap, nodesMap, cancelRef, true);
   }, [buddy, edges, nodes]);
 
-  useEffect(() => {
-    if (runId && !pageId && status == "pending" && isYDocReady && nodes.length > 0 && buddy) {
-      executeSkillRun(runId);
-    }
-  }, [runId, pageId, status, isYDocReady, nodes, buddy]);
   return { runSkill, prepareExecutionPlan, status, error };
 };

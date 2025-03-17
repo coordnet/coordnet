@@ -121,7 +121,7 @@ repos:
         language: node
         files: ^node/frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/.prettierrc
+        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/frontend/.prettierrc.docker.json --log-level debug
       - id: tsc-frontend
         name: tsc (frontend)
         pass_filenames: false

@@ -75,7 +75,7 @@ const Skill = () => {
 
     // Handle runId for breadcrumbs
     if (runId) {
-      const runLabel = runId === "new" ? "new-run" : `run-${runId}`;
+      const runLabel = `run-${runId}`;
       const lastBreadcrumb = updatedBreadcrumbs[updatedBreadcrumbs.length - 1];
 
       if (lastBreadcrumb !== runLabel) {
@@ -92,13 +92,10 @@ const Skill = () => {
         <Loader message="Loading skill..." className="z-60" />
       ) : !connected && !runId && !error ? (
         <Loader message="Obtaining connection for skill..." className="z-60" />
-      ) : !connected && runId && runId !== "new" && !error ? (
+      ) : (!connected || !synced) && runId && !error ? (
         <Loader message="Loading run..." className="z-60 bg-white/30" />
       ) : (
         <></>
-      )}
-      {!parent.isLoading && !error && !synced && runId == "new" && (
-        <Loader message="Creating run..." className="z-60 bg-white/30" />
       )}
       <div className="relative flex h-full flex-col">
         <Header />

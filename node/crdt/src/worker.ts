@@ -19,7 +19,6 @@ import * as celery from "@prd-thanhnguyenhoang/celery.node";
 import * as Y from "yjs";
 
 import { db } from "./db";
-import { waitForSkillData } from "./utils";
 
 const worker = celery.createWorker(
   process.env.CELERY_BROKER_URL,
@@ -66,35 +65,23 @@ worker.register(
     const skillId = skill?.public_id;
     const skillRunId = skillRun?.public_id;
 
-    // Check if there is a document in the database we can use
-    const document = await db("nodes_document")
-      .where("public_id", skillRunId)
-      .where("document_type", "METHOD_RUN")
-      .first();
-
     const doc = new Y.Doc();
-    const provider = new HocuspocusProvider({
+    new HocuspocusProvider({
       url: process.env.HOCUSPOCUS_INTERNAL_URL,
       name: `method-run-${skillRunId}`,
       document: doc,
       token: process.env.WEBSOCKET_API_KEY,
     });
 
-    await new Promise<void>((resolve) => provider.on("synced", resolve));
-
-    // There is no existing document so get the latest version of the skill and add it
-    if (!document) {
-      console.log("No existing document found, getting latest version");
-      try {
-        const skillData = await waitForSkillData(methodId);
-        await skillJsonToYdoc(skillData, doc);
-      } catch (error) {
-        console.error("Failed to get skill data:", error);
-        const runMap = doc?.getMap("meta");
-        runMap.set("status", "error");
-        runMap.set("error", String(error));
-        throw error;
-      }
+    if (skillRun.method_data && Object.keys(skillRun.method_data).length > 0) {
+      await skillJsonToYdoc(skillRun.method_data, doc);
+    } else {
+      console.log("No method run data found, getting latest version");
+      const version = await db("nodes_methodnodeversion")
+        .where("method_id", methodId)
+        .orderBy("version", "desc")
+        .first();
+      await skillJsonToYdoc(version?.method_data, doc);
     }
 
     const runMeta = doc?.getMap("meta");

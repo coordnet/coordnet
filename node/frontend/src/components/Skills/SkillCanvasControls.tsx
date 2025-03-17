@@ -2,7 +2,16 @@ import { NodeType, skillYdocToJson } from "@coordnet/core";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { ArrowRight, Bot, ChevronRight, Cpu, Edit, Loader, Play, Settings } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  ChevronRight,
+  Cpu,
+  Edit,
+  Loader as LoaderIcon,
+  Play,
+  Settings,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,6 +31,7 @@ import { BackendEntityType, YDocScope } from "@/types";
 
 import Buddies from "../Buddies";
 import ExecutionPlanRenderer from "../Canvas/ExecutionPlan";
+import Loader from "../Loader";
 import { Button } from "../ui/button";
 import SkillRunHistory from "./SkillRunHistory";
 import SkillVersions from "./SkillVersions";
@@ -41,6 +51,7 @@ const SkillCanvasControls = () => {
   const { buddy } = useBuddy();
   const [planOpen, setPlanOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
+  const [loading, setLoading] = useState(false);
 
   const publishSkillVersion = async () => {
     const inputNode = nodes.find((n) => n.data?.type === NodeType.Input);
@@ -83,6 +94,10 @@ const SkillCanvasControls = () => {
 
   if (!isSkill || isGuest) return <></>;
 
+  if (loading) {
+    return <Loader message="Creating run..." className="z-60 bg-white/30" />;
+  }
+
   if (runId) {
     if (status === "idle" || status === "pending" || status === "running")
       return (
@@ -97,7 +112,7 @@ const SkillCanvasControls = () => {
             >
               <div className="flex items-center justify-center gap-2.5 group-hover:hidden">
                 Running
-                <Loader className="size-8 animate-spin-slow" />
+                <LoaderIcon className="size-8 animate-spin-slow" />
               </div>
               <div className="hidden items-center justify-center gap-2.5 group-hover:flex">
                 Stop
@@ -223,12 +238,15 @@ const SkillCanvasControls = () => {
                 "border-violet-600 bg-violet-600 text-white hover:bg-violet-700",
               scope == YDocScope.READ_WRITE && "border-neutral-200 bg-white text-neutral-500"
             )}
-            onClick={runSkill}
+            onClick={async () => {
+              setLoading(true);
+              await runSkill();
+              setLoading(false);
+            }}
             variant="secondary"
             disabled={status === "running"}
           >
-            Run
-            <Play className="size-6" />
+            Run <Play className="size-6" />
           </Button>
         </div>
       </div>

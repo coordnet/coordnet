@@ -39,6 +39,7 @@ const useConnectedDocument = (): YDocProviderReturn => {
     YDoc.destroy();
     const newSpaceDoc = new Y.Doc({ guid: name });
     setYDoc(newSpaceDoc);
+    setSynced(false);
     const websocketProvider = new HocuspocusProviderWebsocket({
       url: crdtUrl,
       messageReconnectTimeout: 300000,
