@@ -17,22 +17,22 @@
     "@tiptap/html": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "@xyflow/react": "^12.4.4",
-    "axios": "^1.8.1",
+    "axios": "^1.8.3",
     "marked": "^15.0.7",
-    "openai": "^4.86.1",
+    "openai": "^4.87.3",
     "prosemirror-model": "1.24.1",
     "uuid": "^11.1.0",
     "xss": "^1.0.15",
-    "y-prosemirror": "^1.2.16",
-    "yjs": "^13.6.23",
+    "y-prosemirror": "^1.2.17",
+    "yjs": "^13.6.24",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@eslint/js": "9.21.0",
-    "@types/node": "^22.13.8"
+    "@eslint/js": "9.22.0",
+    "@types/node": "^22.13.10"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@10.5.2"
+  "packageManager": "pnpm@10.6.3"
 }
