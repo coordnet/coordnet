@@ -60,10 +60,15 @@ cd coordnet
 cp .envs/.local/.secrets.example .envs/.local/.secrets
 ```
 
-3. Configure your environment variables in `.envs/.local/.secrets`:
+3. Configure your environment variables in `.envs/.local/.secrets` and `.envs/.local/.django.secrets`:
    - `OPENAI_API_KEY`: Obtain from [OpenAI Platform](https://platform.openai.com/api-keys)
    - `SEMANTIC_API_KEY`: Get from [Semantic Scholar](https://www.semanticscholar.org/product/api#api-key-form)
    - `WEBSOCKET_API_KEY`: Set a secure password for your deployment
+   - For the `JWT_SIGNING_KEY` and `JWT_VERIFYING_KEY`, generate a keypair and save them as a one-line string. To create the keypair using openssl, run:
+     ```bash
+     openssl genrsa -out private-key.pem 4096
+     openssl rsa -in private-key.pem -pubout -out public-key.pem
+     ```
 
 ### Local Development
 
@@ -196,4 +201,3 @@ Licensed under either of:
 
 - [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
 - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](LICENSE-MIT))
-

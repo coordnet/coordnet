@@ -171,6 +171,7 @@ backend/coordnet/media/
 .env
 .envs/.production/
 .envs/.local/.secrets
+.envs/.local/.django.secrets
 
 ### JS
 .pnpm-store

@@ -25,6 +25,7 @@ services:
       - ./.envs/.local/.postgres
       - ./.envs/.local/.minio
       - ./.envs/.local/.secrets
+      - ./.envs/.local/.django.secrets
     ports:
       - "8000:8000"
     command: /start
