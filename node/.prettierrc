@@ -5,8 +5,9 @@
   "trailingComma": "es5",
   "overrides": [
     {
-      "files": ["frontend/**/*.{js,jsx,ts,tsx}"],
+      "files": ["**/*.{jsx,tsx}"],
       "options": {
+        "endingPosition": "absolute-with-indent",
         "plugins": [
           "prettier-plugin-tailwindcss",
           "prettier-plugin-classnames",
