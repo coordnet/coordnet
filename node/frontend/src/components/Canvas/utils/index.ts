@@ -8,24 +8,14 @@ import {
 } from "@coordnet/core";
 import { generateJSON, JSONContent } from "@tiptap/core";
 import { XYPosition } from "@xyflow/react";
-import DOMPurify from "dompurify";
 import { toast } from "sonner";
 import store from "store2";
 import * as Y from "yjs";
 
-import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
-import {
-  importNodeCanvas,
-  setNodePageContent,
-  setNodePageMarkdown,
-  waitForNode,
-} from "@/lib/nodes";
-import { readPdf } from "@/lib/pdfjs";
+import { setNodePageContent, setNodePageMarkdown, waitForNode } from "@/lib/nodes";
 import { extensions } from "@/lib/readOnlyEditor";
 import { createConnectedYDoc } from "@/lib/utils";
-import { BackendEntityType, BackendParent, ExportNode, SpaceNode } from "@/types";
-
-import { importMarkmap } from "./markmapImport";
+import { SpaceNode } from "@/types";
 
 export const createConnectedCanvas = async (spaceId: string, canvasId: string) => {
   const token = store("coordnet-auth");
@@ -43,100 +33,6 @@ export const createConnectedCanvas = async (spaceId: string, canvasId: string) =
       canvasProvider.destroy();
     },
   };
-};
-
-export const handleCanvasDrop = async (
-  dataTransfer: React.DragEvent<Element>["dataTransfer"],
-  takeSnapshot: () => void,
-  parent: BackendParent,
-  nodesMap: Y.Map<CanvasNode>,
-  spaceMap: Y.Map<SpaceNode>,
-  position: XYPosition,
-  spaceDoc: Y.Doc,
-  spaceId: string | undefined,
-  canvasId: string | undefined
-) => {
-  const transferredHtml = dataTransfer.getData("text/html");
-  const isSkill = parent.type === BackendEntityType.SKILL;
-
-  // Process the PDFs
-  if (
-    canvasId &&
-    dataTransfer &&
-    dataTransfer.items.length > 0 &&
-    Array.from(dataTransfer.items).some((item) => item.type === "application/pdf")
-  ) {
-    takeSnapshot();
-    const pdfs = Array.from(dataTransfer.files).filter((file) => file.type === "application/pdf");
-    handlePDFImport(pdfs, parent, nodesMap, spaceMap, position, spaceDoc);
-    return;
-  }
-
-  // If it's a file
-  if (dataTransfer && dataTransfer.files.length > 0) {
-    const file = dataTransfer.files[0];
-    const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
-
-    // Node Import
-    if (!isSkill && file.name.endsWith(".coordnode")) {
-      try {
-        const importNode: ExportNode = JSON.parse(new TextDecoder().decode(arrayBuffer));
-        const { title, content, data, nodes } = importNode;
-        takeSnapshot();
-        const id = await addNodeToCanvas(nodesMap, spaceMap, title, position, content, data);
-        if (nodes.length && parent.type === BackendEntityType.SPACE && parent.data)
-          await importNodeCanvas(parent.data.id, id, importNode);
-      } catch (e) {
-        console.log("Error importing node", e);
-        toast.error("Error importing node");
-      }
-
-      // Markmap Import
-    } else if (!isSkill && file.name.endsWith(".markmap")) {
-      const markdown = new TextDecoder().decode(arrayBuffer);
-
-      toast.promise(importMarkmap(spaceId, canvasId, markdown, 100), {
-        loading: "Importing Markmap...",
-        success: "Markmap Imported",
-        error: "Error fetching data",
-      });
-    }
-
-    // Dragging from editor
-  } else if (transferredHtml) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(transferredHtml, "text/html");
-    const listItems = doc.querySelectorAll("li");
-
-    // List item
-    if (listItems.length > 0) {
-      listItems.forEach((li, index) => {
-        const liPosition: XYPosition = {
-          x: position.x + index * 25,
-          y: position.y + index * 50,
-        };
-
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = li.innerHTML;
-        tempDiv.querySelectorAll("ul, ol").forEach((subList) => subList.remove());
-        const cleaned = DOMPurify.sanitize(tempDiv, { ALLOWED_TAGS, FORBID_ATTR });
-
-        takeSnapshot();
-        addNodeToCanvas(nodesMap, spaceMap, cleaned, liPosition);
-      });
-
-      // Normal HTML
-    } else {
-      const cleaned = DOMPurify.sanitize(transferredHtml, { ALLOWED_TAGS, FORBID_ATTR });
-      takeSnapshot();
-      addNodeToCanvas(nodesMap, spaceMap, cleaned, position);
-    }
-
-    // Standard 'add node'
-  } else {
-    takeSnapshot();
-    addNodeToCanvas(nodesMap, spaceMap, "New node", position, "", { editing: true });
-  }
 };
 
 export const addNodeToCanvas = async (
@@ -187,7 +83,7 @@ export const addEdge = async (
   edgesMap?.set(id, { id, source, target, sourceHandle, targetHandle } as CanvasEdge);
 };
 
-const addNodeToSkillCanvas = async (
+export const addNodeToSkillCanvas = async (
   nodesMap: Y.Map<CanvasNode>,
   spaceMap: Y.Map<SpaceNode>,
   document: Y.Doc,
@@ -346,77 +242,5 @@ export const addInputNode = async (
     });
   } else {
     toast.error("Nodes or space map is not available");
-  }
-};
-
-/**
- * Processes PDF files dropped into the browser and extracts their text content
- * @param dataTransfer DataTransfer object containing the dropped files
- * @param canvasId ID of the canvas to add nodes to
- * @param document Y.Doc instance
- */
-export const handlePDFImport = async (
-  files: File[],
-  parent: BackendParent,
-  nodesMap: Y.Map<CanvasNode>,
-  spaceMap: Y.Map<SpaceNode>,
-  startPosition: XYPosition,
-  spaceDoc: Y.Doc
-) => {
-  const isSkill = parent.type === BackendEntityType.SKILL;
-  const totalFiles = files.length;
-  let processedFiles = 0;
-  const failedFiles: string[] = [];
-  const toastId = toast.loading(`Processing PDFs: 0/${totalFiles} complete`);
-
-  try {
-    // Process files one by one sequentially and add each to canvas immediately
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      toast.loading(`Processing (${i + 1}/${totalFiles}) "${file.name}"`, { id: toastId });
-
-      try {
-        // Get HTML content from PDF
-        const arrayBuffer = await file.arrayBuffer();
-        const htmlContent = await readPdf(arrayBuffer);
-        const title = file.name.replace(/\.pdf$/i, "");
-
-        // Add the node
-        const position = {
-          x: startPosition.x + (processedFiles % 6) * 210,
-          y: startPosition.y + Math.floor(processedFiles / 6) * 50,
-        };
-
-        if (isSkill) {
-          await addNodeToSkillCanvas(nodesMap, spaceMap, spaceDoc, title, position, htmlContent);
-        } else {
-          await addNodeToCanvas(nodesMap, spaceMap, title, position, htmlContent);
-        }
-
-        processedFiles++;
-        toast.loading(`Processing PDFs: ${processedFiles}/${totalFiles} complete`, { id: toastId });
-      } catch (error) {
-        failedFiles.push(file.name);
-        console.error(`Error processing "${file.name}":`, error);
-      }
-    }
-
-    toast.info(`Processed ${processedFiles} of ${totalFiles} files`, {
-      description: failedFiles.length
-        ? `Failed to process ${failedFiles.length} files. Check the browser console details.`
-        : "",
-      duration: Infinity,
-      cancel: { label: "OK", onClick: () => toast.dismiss() },
-      id: toastId,
-    });
-    console.error(failedFiles);
-  } catch (error) {
-    toast.error("Error processing PDF files", {
-      id: toastId,
-      description: error instanceof Error ? error.message : "An unexpected error occurred",
-      duration: 5000,
-    });
-    console.error("Error during PDF processing:", error);
   }
 };
