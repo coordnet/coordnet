@@ -1,4 +1,5 @@
 import knox.views as knox_views
+import rest_framework_simplejwt.views as jwt_views
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
 
@@ -28,4 +29,7 @@ urlpatterns = router.urls + [
         views.PasswordChangeView.as_view(),
         name="knox_password_change",
     ),
+    path("auth/jwt/", jwt_views.TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("auth/jwt/refresh/", jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
+    path("auth/jwt/verify/", jwt_views.TokenVerifyView.as_view(), name="token_verify"),
 ]

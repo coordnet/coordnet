@@ -122,6 +122,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "knox",
+    "rest_framework_simplejwt",
     "django_rest_passwordreset",
     "corsheaders",
     "drf_spectacular",
@@ -256,6 +257,14 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = env("DJANGO_X_FRAME_OPTIONS", default="SAMEORIGIN")
+
+# Simple JWT Configuration
+# ------------------------------------------------------------------------------
+SIMPLE_JWT = {
+    "ALGORITHM": "RS512",
+    "SIGNING_KEY": env.str("JWT_SIGNING_KEY", multiline=True),
+    "VERIFYING_KEY": env.str("JWT_VERIFYING_KEY", multiline=True),
+}
 
 # EMAIL
 # ------------------------------------------------------------------------------
@@ -410,7 +419,10 @@ SOCIALACCOUNT_FORMS = {"signup": "users.forms.UserSocialSignupForm"}
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK: typing.Mapping[str, typing.Any] = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["knox.auth.TokenAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "knox.auth.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
     # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
