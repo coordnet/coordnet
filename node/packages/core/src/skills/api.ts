@@ -42,3 +42,12 @@ export const queryPaperQA = async (question: string): Promise<PaperQAResponsePai
   const response = await api.post<PaperQAResponsePair[]>("api/tools/paperqa/", { question });
   return response.data;
 };
+
+export const queryDeepResearch = async (question: string): Promise<string> => {
+  const response = await api.post<string>("api/tools/deep-research/", {
+    question,
+    model: "o3-mini", // or o1
+    reasoning_effort: "high", // or low, medium
+  });
+  return response.data;
+};

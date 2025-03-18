@@ -25,6 +25,7 @@ export enum NodeType {
   ResponseTable = "response_table",
   PaperFinder = "paper_finder",
   PaperQA = "paper_qa",
+  DeepResearch = "deep_research",
 }
 
 export const nodeTypeMap = {
@@ -39,6 +40,7 @@ export const nodeTypeMap = {
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
   [NodeType.PaperFinder]: "Paper Finder",
   [NodeType.PaperQA]: "Paper QA",
+  [NodeType.DeepResearch]: "Deep Research",
 };
 
 export type SpaceNode = {

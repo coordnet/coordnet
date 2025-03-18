@@ -20,6 +20,7 @@ import {
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import { querySemanticScholar } from "./api";
+import { executeDeepResearchTask } from "./deepResearch";
 import { executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
@@ -98,6 +99,7 @@ export const processTasks = async (
     }
 
     for await (const task of tasks) {
+      console.log(task);
       const isLast = task === tasks[tasks.length - 1];
 
       if (cancelRef.current) {
@@ -119,6 +121,22 @@ export const processTasks = async (
           executionPlan.tasks.push({ task, query, type: "PAPERQA" });
         } else {
           await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
+        }
+      } else if (task.promptNode.data.type === NodeType.DeepResearch) {
+        // const query = await collectInputTitles(task, skillDoc, skillNodesMap);
+        const messages = await generatePrompt(task, buddy, skillDoc, skillNodesMap);
+
+        if (dryRun) {
+          executionPlan.tasks.push({ task, query: messages[1].content as string, type: "PAPERQA" });
+        } else {
+          await executeDeepResearchTask(
+            task,
+            messages?.[1].content as string,
+            skillDoc,
+            nodesMap,
+            context.outputNode,
+            isLast
+          );
         }
       } else {
         const messages = await generatePrompt(task, buddy, skillDoc, skillNodesMap);

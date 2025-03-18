@@ -75,7 +75,8 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
     if (
       node.data.type !== NodeType.Prompt &&
       node.data.type !== NodeType.PaperFinder &&
-      node.data.type !== NodeType.PaperQA
+      node.data.type !== NodeType.PaperQA &&
+      node.data.type !== NodeType.DeepResearch
     ) {
       return;
     }
@@ -118,7 +119,11 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
         } else if (targetNode?.data?.type === NodeType.Loop) {
           loopItems.push(handleLoopNode(targetNode));
         }
-      } else if (node.data.type === NodeType.PaperFinder || node.data.type === NodeType.PaperQA) {
+      } else if (
+        node.data.type === NodeType.PaperFinder ||
+        node.data.type === NodeType.PaperQA ||
+        node.data.type === NodeType.DeepResearch
+      ) {
         // For PaperFinder nodes, only allow response nodes as input
         if (
           node.data.type === NodeType.PaperFinder &&
