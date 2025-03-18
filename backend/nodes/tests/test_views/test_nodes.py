@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 import permissions.models
-from nodes.tests import factories
+from nodes.tests import factories, fixtures
 from utils.testcases import BaseTransactionTestCase
 
 
@@ -167,3 +167,23 @@ class NodesViewTestCase(BaseTransactionTestCase):
             set(response.data["allowed_actions"]),
             {permissions.models.READ},
         )
+
+    def test_context_actions(self) -> None:
+        space = factories.SpaceFactory.create(owner=self.owner_user, viewer=self.viewer_user)
+        node = factories.NodeFactory.create(space=space)
+        subnode_1 = factories.NodeFactory.create(
+            space=space, public_id=list(fixtures.GRAPH["edges"].values())[0]["source"]
+        )
+        target_id = list(fixtures.GRAPH["edges"].values())[0]["target"]
+        subnode_2 = factories.NodeFactory.create(space=space, public_id=target_id)
+        node.subnodes.add(subnode_1)
+        node.subnodes.add(subnode_2)
+        node.graph_document = factories.DocumentFactory.create(
+            public_id=node.public_id, json=fixtures.GRAPH
+        )
+        node.save()
+
+        response = self.owner_client.get(reverse("nodes:nodes-context", args=[node.public_id]))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertIn(f"This node is a prerequisite for these nodes: {target_id}", response.data)
