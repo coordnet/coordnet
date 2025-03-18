@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Backend execution of methods/skills.
 - Add o1 and o3 models to allowed models.
 - Add node context endpoint, which returns the LLM context for a given node.
+- Support JWT authentication for the API and using it for other services.
 
 ### Fixed
 

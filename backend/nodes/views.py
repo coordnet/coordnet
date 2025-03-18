@@ -407,7 +407,9 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         serializer = serializers.MethodNodeRunExecutionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        run.method.execute(method_run_id=run.id, **serializer.validated_data)
+        run.method.execute(
+            method_run_id=run.id, **serializer.validated_data | {"authentication": request.auth}
+        )
         return response.Response(status=204)
 
     @decorators.action(detail=False, methods=["post"])
@@ -525,6 +527,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
             method_run_id=run.id,
             method_argument=method_argument,
             buddy_id=request.data.get("buddy_id"),
+            authentication=request.auth,
         )
         return response.Response(
             serializers.MethodNodeRunDetailSerializer(run, context={"request": request}).data
