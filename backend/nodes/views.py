@@ -112,6 +112,22 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
             node.save()
         return response.Response({"status": "success"})
 
+    @extend_schema(
+        description="Retrieve context based on this node.",
+        summary="Retrieve context",
+    )
+    @decorators.action(detail=True, methods=["get"])
+    def context(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        node = self.get_object()
+        try:
+            depth = int(request.query_params.get("depth", 1))
+        except ValueError as exc:
+            raise ValueError("Depth must be an integer.") from exc
+
+        return response.Response(node.node_context_for_depth(query_depth=depth, include_edges=True))
+
 
 @extend_schema(tags=["Skills"])
 @extend_schema_view(

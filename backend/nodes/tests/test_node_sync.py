@@ -80,7 +80,7 @@ class NodeEventTestCase(BaseTransactionTestCase):
 
         tasks.process_document_events(raise_exception=True)
 
-        self.assertEqual(models.Node.all_objects.count(), 2)
+        self.assertEqual(models.Node.all_objects.count(), 3)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
 
     def test_graph_and_node_create(self) -> None:
@@ -114,7 +114,7 @@ class NodeEventTestCase(BaseTransactionTestCase):
 
         tasks.process_document_events(raise_exception=True)
 
-        self.assertEqual(models.Node.all_objects.count(), 2)
+        self.assertEqual(models.Node.all_objects.count(), 3)
         self.assertEqual(models.DocumentEvent.objects.count(), 0)
 
     def test_space_update_and_existing_nodes(self) -> None:

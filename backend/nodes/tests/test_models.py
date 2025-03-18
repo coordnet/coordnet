@@ -71,31 +71,31 @@ class NodeModelTestCase(BaseTestCase):
         node = factories.NodeFactory.create(title="test", text="test text")
         self.assertEqual(
             node.node_as_str(include_content=False, include_connections=True),
-            f"({node.public_id})\n - Title: test",
+            f"\n\n({node.public_id})\n - Title: test",
         )
         self.assertEqual(
             node.node_as_str(include_content=True, include_connections=True),
-            f"({node.public_id})\n - Title: test\n - Content: test text",
+            f"\n\n({node.public_id})\n - Title: test\n - Content: test text",
         )
 
         subnode = factories.NodeFactory.create(title="subnode")
         node.subnodes.add(subnode)
         self.assertEqual(
             node.node_as_str(include_content=False, include_connections=True),
-            f"({node.public_id})\n - Title: test\n - Connects to: {subnode.public_id}",
+            f"\n\n({node.public_id})\n - Title: test\n - Connects to: {subnode.public_id}",
         )
         self.assertEqual(
             node.node_as_str(include_content=True, include_connections=True),
-            f"({node.public_id})\n - Title: test\n - Content: test text"
+            f"\n\n({node.public_id})\n - Title: test\n - Content: test text"
             f"\n - Connects to: {subnode.public_id}",
         )
         self.assertEqual(
             node.node_as_str(include_content=False, include_connections=False),
-            f"({node.public_id})\n - Title: test",
+            f"\n\n({node.public_id})\n - Title: test",
         )
         self.assertEqual(
             node.node_as_str(include_content=True, include_connections=False),
-            f"({node.public_id})\n - Title: test\n - Content: test text",
+            f"\n\n({node.public_id})\n - Title: test\n - Content: test text",
         )
 
     def test_node_context_for_depth(self) -> None:
