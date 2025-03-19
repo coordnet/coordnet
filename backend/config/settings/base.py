@@ -123,7 +123,6 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "knox",
     "rest_framework_simplejwt",
-    "channels_auth_token_middlewares",
     "django_rest_passwordreset",
     "corsheaders",
     "drf_spectacular",

@@ -1,8 +1,10 @@
 import json
 import logging
 
+import rest_framework.exceptions
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from knox.auth import TokenAuthentication
 
 import buddies.models
 import buddies.serializers
@@ -14,22 +16,30 @@ logger = logging.getLogger(__name__)
 class QueryConsumer(AsyncWebsocketConsumer):
     """The same functionality as views/BuddyModelViewSet.query, but as a WebSocket consumer."""
 
-    async def connect(self) -> None:
-        if not self.scope.get("user") or self.scope.get("user").is_anonymous:
-            logger.debug("User not authenticated, closing WebSocket...")
-            await self.close(code=1008)
-            return
-
-        await self.accept()
-
-    async def receive(  # noqa: PLR0912
+    async def receive(  # noqa: PLR0911,PLR0912,PLR0915
         self, text_data: str | None = None, bytes_data: bytes | None = None
     ) -> None:
         try:
             if text_data is None:
                 return
-
             payload = json.loads(text_data)
+            if (token := payload.get("token")) is None:
+                await self.close(code=1007)
+                return
+
+            # TokenAuthentication expects a byte string
+            token = token.encode()
+
+            token_auth = TokenAuthentication()
+            try:
+                user, _ = await database_sync_to_async(token_auth.authenticate_credentials)(token)
+            except rest_framework.exceptions.AuthenticationFailed:
+                await self.close(code=1008)
+                return
+
+            if user is None:
+                await self.close(code=1008)
+                return
 
             try:
                 buddy = await buddies.models.Buddy.objects.aget(
