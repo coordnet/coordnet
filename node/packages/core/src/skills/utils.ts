@@ -19,19 +19,13 @@ import { findExtremePositions } from "../utils";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const baseURL = (globalThis as any).process?.env?.BACKEND_URL ?? "";
 
-export const editorSchema: Schema = getSchema([
-  StarterKit,
-  Table,
-  TableRow,
-  TableHeader,
-  TableCell,
-  Link,
-]);
+export const editorExtensions = [StarterKit, Table, TableRow, TableHeader, TableCell, Link];
+export const editorSchema: Schema = getSchema(editorExtensions);
 
 export const setNodesState = (
   nodeIds: string[],
   nodesMap: Y.Map<CanvasNode> | undefined,
-  state: "active" | "executing" | "inactive" = "active",
+  state: "active" | "executing" | "inactive" = "active"
 ) => {
   nodeIds.forEach((id) => {
     const node = nodesMap?.get(id);
@@ -147,7 +141,7 @@ export const getSkillNodeCanvas = (id: string, document: Y.Doc) => {
 export const setSkillNodePageContent = async (
   content: JSONContent,
   id: string,
-  document: Y.Doc,
+  document: Y.Doc
 ) => {
   try {
     const xml = document.getXmlFragment(`${id}-document`);
@@ -170,7 +164,7 @@ export const setSkillNodePageContent = async (
 export const setSkillNodePageMarkdown = async (markdown: string, id: string, document: Y.Doc) => {
   try {
     const html = xss(await marked.parse(markdown));
-    const json = generateJSON(html, [StarterKit]);
+    const json = generateJSON(html, editorExtensions);
     await setSkillNodePageContent(json, id, document);
   } catch (error) {
     console.error(error);
@@ -189,7 +183,7 @@ export const setSkillNodePageMarkdown = async (markdown: string, id: string, doc
  */
 export const setSkillNodePageHTML = async (html: string, id: string, document: Y.Doc) => {
   try {
-    const json = generateJSON(html, [StarterKit]);
+    const json = generateJSON(html, editorExtensions);
     await setSkillNodePageContent(json, id, document);
   } catch (error) {
     console.error(error);
@@ -201,7 +195,7 @@ export const setSkillNodeTitleAndContent = async (
   document: Y.Doc,
   id: string,
   title: string,
-  markdown: string,
+  markdown: string
 ) => {
   await setSkillNodePageMarkdown(markdown, id, document);
   const spaceMap = document.getMap<SpaceNode>("nodes");
