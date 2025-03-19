@@ -3,6 +3,7 @@ import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import * as Y from "yjs";
 
+import { getToken } from "@/api/jwt";
 import { crdtUrl } from "@/constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -85,10 +86,7 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
   );
 };
 
-export const createConnectedYDoc = async (
-  name: string,
-  token: string
-): Promise<[Y.Doc, HocuspocusProvider]> => {
+export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, HocuspocusProvider]> => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return new Promise((resolve, _reject) => {
     const doc = new Y.Doc();
@@ -96,7 +94,7 @@ export const createConnectedYDoc = async (
       url: crdtUrl,
       name,
       document: doc,
-      token,
+      token: getToken,
       preserveConnection: false,
     });
 

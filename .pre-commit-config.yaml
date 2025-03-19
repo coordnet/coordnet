@@ -121,13 +121,24 @@ repos:
         language: node
         files: ^node/frontend/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
         exclude: ^(pnpm-lock\.yaml|\.git)
-        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/frontend/.prettierrc.docker.json --log-level debug
+        entry: bash .pre-commit-run.sh frontend pnpm prettier --write --config /app/.prettierrc
       - id: tsc-frontend
         name: tsc (frontend)
         pass_filenames: false
         language: node
         files: ^node/frontend/.*\.[jt]sx?$
         entry: bash .pre-commit-run.sh frontend pnpm tsc --project tsconfig.json
+      - id: eslint-core
+        name: eslint (core)
+        language: node
+        files: ^node/packages/core/.*\.[jt]sx?$
+        entry: bash .pre-commit-run.sh frontend cd /app/packages/core; pnpm eslint
+      - id: prettier-core
+        name: prettier (core)
+        language: node
+        files: ^node/packages/core/.*\.(js|jsx|ts|tsx|css|scss|html|json|md)$
+        exclude: ^(pnpm-lock\.yaml|\.git)
+        entry: bash .pre-commit-run.sh frontend cd /app/packages/core; pnpm prettier --write --config /app/.prettierrc
 
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:

@@ -1,6 +1,5 @@
 import { CanvasEdge, CanvasNode } from "@coordnet/core";
 import { toast } from "sonner";
-import store from "store2";
 
 import { createConnectedYDoc } from "./utils";
 
@@ -10,12 +9,11 @@ export const getCanvas = async (
 ): Promise<{ nodes: CanvasNode[]; edges: CanvasEdge[] }> => {
   let nodes: CanvasNode[] = [];
   let edges: CanvasEdge[] = [];
-  const token = store("coordnet-auth");
   let docName = `node-graph-${id}`;
   if (skillId) {
     docName = `method-${skillId}`;
   }
-  const [canvasDoc, canvasProvider] = await createConnectedYDoc(docName, token);
+  const [canvasDoc, canvasProvider] = await createConnectedYDoc(docName);
   try {
     const nodesKey = skillId ? `${id}-canvas-nodes` : "nodes";
     const edgesKey = skillId ? `${id}-canvas-edges` : "edges";

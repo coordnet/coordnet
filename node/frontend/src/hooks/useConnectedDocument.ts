@@ -2,10 +2,10 @@ import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/pro
 import { useState } from "react";
 import * as Y from "yjs";
 
+import { getToken } from "@/api/jwt";
 import { crdtUrl } from "@/constants";
 import { CustomError } from "@/lib/utils"; // or whichever error you need
 
-import useUser from "./useUser";
 import { YDocProviderReturn } from "./useYDoc/provider";
 
 /**
@@ -19,7 +19,6 @@ import { YDocProviderReturn } from "./useYDoc/provider";
  * collaboration. It handles authentication, connection status, and synchronization status.
  */
 const useConnectedDocument = (): YDocProviderReturn => {
-  const { token } = useUser();
   const [YDoc, setYDoc] = useState<Y.Doc>(() => new Y.Doc());
   const [synced, setSynced] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -47,7 +46,7 @@ const useConnectedDocument = (): YDocProviderReturn => {
     const newProvider = new HocuspocusProvider({
       name,
       document: newSpaceDoc,
-      token,
+      token: getToken,
       websocketProvider,
       onAuthenticationFailed(data) {
         setError(
