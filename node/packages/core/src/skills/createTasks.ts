@@ -2,7 +2,12 @@ import { Canvas, CanvasNode, ExecutionContext, NodeType, Task } from "../types";
 import { isResponseNode } from "./utils";
 
 const isInputNode = (node: CanvasNode) => {
-  return node?.data?.type === NodeType.Default || isResponseNode(node) || !node?.data?.type;
+  return (
+    node?.data?.type === NodeType.Default ||
+    isResponseNode(node) ||
+    !node?.data?.type ||
+    node?.data?.type === NodeType.ExternalData
+  );
 };
 
 const preprocessInputNode = (canvas: Canvas) => {

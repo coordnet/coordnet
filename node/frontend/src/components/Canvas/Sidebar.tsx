@@ -98,18 +98,16 @@ const Sidebar = ({
           <Plus strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="add-node">Add Node</Tooltip>
-        {!isSkill && (
-          <Button
-            variant="outline"
-            className="size-9 p-0 shadow"
-            onClick={() => setNodeRepositoryVisible(true)}
-            data-tooltip-id="node-repository"
-            data-tooltip-place="right"
-            disabled={scope !== YDocScope.READ_WRITE}
-          >
-            <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          className="size-9 p-0 shadow"
+          onClick={() => setNodeRepositoryVisible(true)}
+          data-tooltip-id="node-repository"
+          data-tooltip-place="right"
+          disabled={scope !== YDocScope.READ_WRITE}
+        >
+          <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
+        </Button>
         <Tooltip id="node-repository">Node Repository</Tooltip>
 
         <DropdownMenu>

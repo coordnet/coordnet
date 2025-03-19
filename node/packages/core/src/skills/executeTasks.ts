@@ -19,7 +19,7 @@ import {
   Task,
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
-import { querySemanticScholar } from "./api";
+import { getExternalNode, querySemanticScholar } from "./api";
 import { executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
@@ -121,7 +121,13 @@ export const processTasks = async (
           await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
         }
       } else {
-        const messages = await generatePrompt(task, buddy, skillDoc, skillNodesMap);
+        const messages = await generatePrompt(
+          task,
+          buddy,
+          skillDoc,
+          skillNodesMap,
+          context.authentication
+        );
         if (dryRun) {
           executionPlan.tasks.push({ task, messages, type: "PROMPT" });
         } else {
@@ -238,7 +244,8 @@ export const generatePrompt = async (
   task: Task,
   buddy: Buddy,
   skillDoc: Y.Doc,
-  spaceNodesMap: Y.Map<SpaceNode>
+  spaceNodesMap: Y.Map<SpaceNode>,
+  authentication: string
 ): Promise<ChatCompletionMessageParam[]> => {
   const getNode = (nodeId: string) => {
     return {
@@ -255,6 +262,16 @@ export const generatePrompt = async (
     ) {
       for (const node of getSkillNodeCanvas(canvasNode.id, skillDoc).nodes) {
         nodes.push(nodeTemplate(getNode(node.id)));
+      }
+    } else if (canvasNode.data.type === NodeType.ExternalData) {
+      if (canvasNode.data?.externalNode?.nodeId) {
+        const { title } = getNode(canvasNode.id);
+        const content = await getExternalNode(
+          canvasNode.data?.externalNode?.nodeId,
+          canvasNode.data?.externalNode?.depth,
+          authentication
+        );
+        nodes.push(nodeTemplate({ title, content }));
       }
     } else {
       nodes.push(nodeTemplate(getNode(canvasNode.id)));

@@ -88,7 +88,12 @@ export const useRunSkill = () => {
     }
 
     const canvas = createCanvas(nodes, edges);
-    const context: ExecutionContext = { taskList: [], responses: {}, outputNode };
+    const context: ExecutionContext = {
+      authentication: "plan",
+      taskList: [],
+      responses: {},
+      outputNode,
+    };
     createTasks(canvas, context);
 
     // return processTasks(context, buddy, spaceYDoc, skill, skillNodesMap, nodesMap, cancelRef, true);

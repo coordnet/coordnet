@@ -8,8 +8,6 @@ const headers: { [key: string]: string } = {
   "Content-Type": "application/json",
 };
 
-// if (authToken) headers["Authorization"] = `Token ${authToken}`;
-
 export const isAxiosError = <ResponseType>(error: unknown): error is AxiosError<ResponseType> => {
   return axios.isAxiosError(error);
 };
@@ -40,5 +38,18 @@ export const querySemanticScholar = async (
 
 export const queryPaperQA = async (question: string): Promise<PaperQAResponsePair[]> => {
   const response = await api.post<PaperQAResponsePair[]>("api/tools/paperqa/", { question });
+  return response.data;
+};
+
+export const getExternalNode = async (
+  nodeId: string,
+  depth: number,
+  authentication: string
+): Promise<string> => {
+  console.log("Requesting external node", nodeId, depth);
+  const response = await api.get<string>(`api/nodes/nodes/${nodeId}/context/`, {
+    params: { depth },
+    headers: { Authorization: `Bearer ${authentication}` },
+  });
   return response.data;
 };
