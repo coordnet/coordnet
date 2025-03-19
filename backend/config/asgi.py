@@ -11,7 +11,7 @@ try:
     from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 except ImportError:
 
-    def SentryAsgiMiddleware(app: "ASGIHandler") -> "ASGIHandler":
+    def SentryAsgiMiddleware(app: "ASGIHandler") -> "ASGIHandler":  # type: ignore[no-redef]
         return app
 
 
@@ -24,6 +24,7 @@ django_asgi_app = SentryAsgiMiddleware(get_asgi_application())
 import sys
 from pathlib import Path
 
+import channels_auth_token_middlewares.middleware
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 
@@ -37,6 +38,10 @@ sys.path.append(str(BASE_DIR / "coordnet"))
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
-        "websocket": AllowedHostsOriginValidator(URLRouter(buddies.urls.websocket_urlpatterns)),
+        "websocket": AllowedHostsOriginValidator(
+            channels_auth_token_middlewares.middleware.SimpleJWTAuthTokenMiddleware(
+                URLRouter(buddies.urls.websocket_urlpatterns)
+            ),
+        ),
     }
 )

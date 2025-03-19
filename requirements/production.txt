@@ -272,6 +272,12 @@ cffi==1.17.1 \
 channels==4.2.0 \
     --hash=sha256:6b75bc8d6888fb7236e7e7bf1948520b72d296ad08216a242fc56b1db0ffde1a \
     --hash=sha256:d9e707487431ba5dbce9af982970dab3b0efd786580fadb99e45dca5e39fdd59
+    # via
+    #   -r requirements/base.in
+    #   channels-auth-token-middlewares
+channels-auth-token-middlewares==1.1.0 \
+    --hash=sha256:4f0359d906b6acd56d97f508793f3aff89b09d5574f9f4865ac310af6160adb2 \
+    --hash=sha256:6dd6103b24674df721f2e2e279f2dec9de59bf14d7db92e8065e8f53b3e990a7
     # via -r requirements/base.in
 charset-normalizer==3.4.1 \
     --hash=sha256:0167ddc8ab6508fe81860a57dd472b2ef4060e8d378f0cc555707126830f2537 \
