@@ -4,7 +4,7 @@ import logging
 import rest_framework.exceptions
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from knox.auth import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 import buddies.models
 import buddies.serializers
@@ -27,12 +27,10 @@ class QueryConsumer(AsyncWebsocketConsumer):
                 await self.close(code=1007)
                 return
 
-            # TokenAuthentication expects a byte string
-            token = token.encode()
-
-            token_auth = TokenAuthentication()
+            token_auth = JWTAuthentication()
             try:
-                user, _ = await database_sync_to_async(token_auth.authenticate_credentials)(token)
+                validated_token = token_auth.get_validated_token(token.encode())
+                user = await database_sync_to_async(token_auth.get_user)(validated_token)
             except rest_framework.exceptions.AuthenticationFailed:
                 await self.close(code=1008)
                 return
