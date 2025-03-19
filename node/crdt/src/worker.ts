@@ -35,7 +35,7 @@ worker.setOnFailed(async ({ body, error }) => {
     url: process.env.HOCUSPOCUS_INTERNAL_URL,
     name: `method-run-${skillRunId}`,
     document: doc,
-    token: process.env.WEBSOCKET_API_KEY,
+    token: body[1].authentication,
   });
 
   await new Promise<void>((resolve) => provider.on("synced", resolve));
@@ -53,11 +53,13 @@ worker.register(
     method_run_id: methodRunId,
     buddy_id: buddyId,
     method_argument,
+    authentication,
   }: {
     method_id: string;
     method_run_id: string;
     buddy_id: string;
     method_argument: string;
+    authentication: string;
   }) => {
     console.log("Executing method", methodId, methodRunId, buddyId);
     const skill = await db("nodes_node").where("id", methodId).first();
@@ -70,7 +72,7 @@ worker.register(
       url: process.env.HOCUSPOCUS_INTERNAL_URL,
       name: `method-run-${skillRunId}`,
       document: doc,
-      token: process.env.WEBSOCKET_API_KEY,
+      token: authentication,
     });
 
     if (skillRun.method_data && Object.keys(skillRun.method_data).length > 0) {

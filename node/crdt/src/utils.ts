@@ -1,5 +1,3 @@
-import { Request } from "express";
-
 import { settings } from "./settings";
 
 export const getDocumentType = (name: string) => {
@@ -26,15 +24,7 @@ export const backendRequest = (path: string, token?: string) => {
     "Content-Type": "application/json",
   };
   if (token) {
-    headers["Authorization"] = `Token ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
   return fetch(`${settings.BACKEND_URL}/${path}`, { headers });
-};
-
-export const authRequest = (request: Request) => {
-  return (
-    settings.WEBSOCKET_API_KEY &&
-    settings.WEBSOCKET_API_KEY !== "" &&
-    request.header("Authorization") === `Token ${settings.WEBSOCKET_API_KEY}`
-  );
 };

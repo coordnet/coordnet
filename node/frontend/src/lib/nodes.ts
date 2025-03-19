@@ -3,7 +3,6 @@ import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 import { toast } from "sonner";
-import store from "store2";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import * as Y from "yjs";
 
@@ -20,8 +19,7 @@ export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
   id: string,
   format: T = "plain" as T
 ): Promise<FormatReturnType<T> | undefined> => {
-  const token = store("coordnet-auth");
-  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`);
   try {
     const xml = editorDoc.getXmlFragment("default");
     return getNodeContent(xml, format);
@@ -43,8 +41,7 @@ export const setNodePageMarkdown = async (markdown: string, id: string) => {
 };
 
 export const setNodePageContent = async (content: JSONContent, id: string) => {
-  const token = store("coordnet-auth");
-  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`, token);
+  const [editorDoc, editorProvider] = await createConnectedYDoc(`node-editor-${id}`);
   try {
     const xml = editorDoc.getXmlFragment("default");
     prosemirrorJSONToYXmlFragment(readOnlyEditor.schema, content, xml);

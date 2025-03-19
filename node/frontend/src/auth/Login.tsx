@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Background, ReactFlow } from "@xyflow/react";
+import { setAuthTokens } from "axios-jwt";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import store from "store2";
 import { z } from "zod";
 
 import { authApi, handleApiError } from "@/api";
@@ -49,12 +49,13 @@ function Login() {
 
   const onSubmit = async (values: FormType) => {
     try {
-      const response = await authApi.post(
-        "/api/auth/login/",
-        {},
-        { auth: { username: values.email, password: values.password } }
-      );
-      store("coordnet-auth", response.data.token);
+      const response = await authApi.post("/api/auth/jwt/", {
+        email: values.email,
+        password: values.password,
+      });
+
+      const { access, refresh } = response.data;
+      setAuthTokens({ accessToken: access, refreshToken: refresh });
 
       // Login successful so check if there is a redirect URL
       const dest = new URL(window.location.origin);

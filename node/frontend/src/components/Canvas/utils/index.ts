@@ -9,7 +9,6 @@ import {
 import { generateJSON, JSONContent } from "@tiptap/core";
 import { XYPosition } from "@xyflow/react";
 import { toast } from "sonner";
-import store from "store2";
 import * as Y from "yjs";
 
 import { setNodePageContent, setNodePageMarkdown, waitForNode } from "@/lib/nodes";
@@ -18,9 +17,8 @@ import { createConnectedYDoc } from "@/lib/utils";
 import { SpaceNode } from "@/types";
 
 export const createConnectedCanvas = async (spaceId: string, canvasId: string) => {
-  const token = store("coordnet-auth");
-  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
-  const [canvasDoc, canvasProvider] = await createConnectedYDoc(`node-graph-${canvasId}`, token);
+  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`);
+  const [canvasDoc, canvasProvider] = await createConnectedYDoc(`node-graph-${canvasId}`);
 
   return {
     spaceProvider,
@@ -155,23 +153,6 @@ export const addToCanvas = async (options: AddNodeOptions) => {
   });
 
   disconnect();
-};
-
-export const setNodeTitleAndContent = async (
-  spaceId: string | undefined,
-  id: string,
-  title: string,
-  markdown: string
-) => {
-  const token = store("coordnet-auth");
-
-  await setNodePageMarkdown(markdown, id);
-
-  const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`, token);
-  const spaceMap = spaceDoc.getMap<SpaceNode>("nodes");
-  const spaceNode = spaceMap.get(id);
-  if (spaceNode) spaceMap.set(id, { ...spaceNode, title });
-  spaceProvider.destroy();
 };
 
 export const addInputNode = async (

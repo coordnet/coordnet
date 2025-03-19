@@ -8,11 +8,11 @@ import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from
 import TextareaAutosize from "react-textarea-autosize";
 import { Tooltip } from "react-tooltip";
 import { toast } from "sonner";
-import store from "store2";
 import useLocalStorageState from "use-local-storage-state";
 import { useDebounceValue } from "usehooks-ts";
 
 import { getLLMTokenCount } from "@/api";
+import { getToken } from "@/api/jwt";
 import { websocketUrl } from "@/constants";
 import { useFocus, useNodesContext } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
@@ -139,12 +139,13 @@ const LLM = ({ id }: { id: string }) => {
     setAbortController(newAbortController);
 
     const socket = new WebSocket(`${websocketUrl}/buddies/${buddyId}/`);
+    const token = await getToken();
     socket.onopen = () => {
       const payload = JSON.stringify({
         message: promptInput,
         nodes: queryNodes,
         level: depth,
-        token: store("coordnet-auth"),
+        token,
       });
       socket.send(payload);
     };

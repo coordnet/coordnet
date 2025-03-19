@@ -1,5 +1,6 @@
 import "./instrument";
 
+import { editorExtensions } from "@coordnet/core";
 import {
   onAuthenticatePayload,
   onConnectPayload,
@@ -8,14 +9,13 @@ import {
   Server,
 } from "@hocuspocus/server";
 import { TiptapTransformer } from "@hocuspocus/transformer";
-import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
 
 import { db } from "./db";
 import { hocuspocusSettings } from "./settings";
 import { backendRequest, cleanDocumentName, getDocumentType } from "./utils";
 
-const transformer = TiptapTransformer.extensions([StarterKit]);
+const transformer = TiptapTransformer.extensions(editorExtensions);
 
 const modelMap = {
   SPACE: { endpoint: "spaces", type: "SPACE" },
@@ -55,14 +55,13 @@ export const server = Server.configure({
       documentType === "SKILL" ||
       documentType === "SKILL_RUN"
     ) {
-      if (token == process.env.WEBSOCKET_API_KEY) return true;
-
       const model = modelMap[documentType];
       const request = await backendRequest(
         `api/nodes/${model.endpoint}/${public_id}/?show_permissions=true`,
         token == "public" ? undefined : token
       );
       if (request.status !== 200) {
+        console.log("Invalid response", request.status);
         throw new Error("Not authorized!");
       }
 
@@ -77,6 +76,7 @@ export const server = Server.configure({
         data.connection.readOnly = true;
       }
     } else {
+      console.log("Invalid document type", documentType);
       throw new Error("Not authorized!");
     }
   },

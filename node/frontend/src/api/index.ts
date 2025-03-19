@@ -1,10 +1,8 @@
 import { Buddy, Skill, SkillJson, SkillRun } from "@coordnet/core";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
-import store from "store2";
 
-import { apiUrl } from "./constants";
-import { CustomError, dataURItoBlob } from "./lib/utils";
+import { CustomError, dataURItoBlob } from "../lib/utils";
 import {
   ApiError,
   BackendNode,
@@ -24,51 +22,14 @@ import {
   SkillUpdateForm,
   SkillVersion,
   Space,
-} from "./types";
+} from "../types";
+import { api, authApi } from "./jwt";
 
-const authToken = store("coordnet-auth");
-
-const headers: { [key: string]: string } = {
-  Accept: "application/json",
-  "Content-Type": "application/json",
-};
-
-if (authToken) headers["Authorization"] = `Token ${authToken}`;
+export { api, authApi, logout } from "./jwt";
 
 export const isAxiosError = <ResponseType>(error: unknown): error is AxiosError<ResponseType> => {
   return axios.isAxiosError(error);
 };
-
-export const api = axios.create({ baseURL: apiUrl, headers });
-export const authApi = axios.create({ baseURL: apiUrl, headers });
-
-api.interceptors.response.use(
-  function (response) {
-    return response;
-  },
-  function (error) {
-    if (error.code === "ECONNABORTED" || error.code == "ERR_CANCELED") {
-      return;
-    }
-    console.log(error);
-
-    if (!error.response) {
-      toast.error(error.message);
-    }
-
-    // if (error?.response?.status === 403) {
-    //   toast.error("You do not have permission to access this resource");
-    // }
-
-    if (!error?.response?.config?.url?.includes("auth/login/") && error.response.status === 401) {
-      const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
-      const loginUrl = `/auth/login?redirect=${currentUrl}`;
-      store.remove("coordnet-auth");
-      window.location.href = loginUrl;
-    }
-    return Promise.reject(error);
-  }
-);
 
 export const handleApiError = (
   e: unknown,
