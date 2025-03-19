@@ -11,7 +11,7 @@ try:
     from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 except ImportError:
 
-    def SentryAsgiMiddleware(app: "ASGIHandler") -> "ASGIHandler":
+    def SentryAsgiMiddleware(app: "ASGIHandler") -> "ASGIHandler":  # type: ignore[no-redef]
         return app
 
 
