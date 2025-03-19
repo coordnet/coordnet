@@ -1,4 +1,4 @@
-import { CanvasNode } from "@coordnet/core";
+import { CanvasNode, NodeType } from "@coordnet/core";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
-import { NodeSearchResult } from "@/types";
+import { BackendEntityType, NodeSearchResult } from "@/types";
 
 import { addNodeToCanvas } from "./Canvas/utils";
 import { Button } from "./ui/button";
@@ -34,6 +34,8 @@ const NodeRepository = ({ className }: NodeProps) => {
     queryKey: ["spaces"],
     queryFn: ({ signal }) => getSpaces(signal),
   });
+
+  const isSpace = parent?.type === BackendEntityType.SPACE;
 
   const {
     nodeRepositoryVisible: visible,
@@ -70,13 +72,19 @@ const NodeRepository = ({ className }: NodeProps) => {
       if (!nodesMap) return alert("nodesMap not found");
       const flowPosition = reactFlowInstance.screenToFlowPosition({ x: 100, y: 100 });
       if (!flowPosition) alert("Failed to add node");
-      const id = node.id;
+      const id = isSpace ? node.id : crypto.randomUUID();
+      const type = isSpace ? "GraphNode" : "ExternalNode";
       const newNode: CanvasNode = {
         id,
-        type: "GraphNode",
+        type,
         position: flowPosition,
         style: { width: 200, height: 80 },
-        data: {},
+        data: isSpace
+          ? {}
+          : {
+              type: NodeType.ExternalData,
+              externalNode: { nodeId: node.id, spaceId: node.space, depth: 0 },
+            },
       };
       nodesMap.set(id, newNode);
     } else if (focus === "editor") {
@@ -98,7 +106,8 @@ const NodeRepository = ({ className }: NodeProps) => {
   const [debouncedInputvalue] = useDebounceValue(inputValue, 300);
   const { data, isLoading } = useQuery({
     queryKey: ["searchNodes", debouncedInputvalue],
-    queryFn: ({ signal }) => searchNodes(signal, debouncedInputvalue, parent.data?.id ?? ""),
+    queryFn: ({ signal }) =>
+      searchNodes(signal, debouncedInputvalue, isSpace ? (parent.data?.id ?? "") : ""),
     enabled: Boolean(debouncedInputvalue && parent.data),
   });
 

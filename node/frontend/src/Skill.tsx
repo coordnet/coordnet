@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryParam } from "use-query-params";
 
-import { Editor, Loader, QuickView, Skill as SkillCanvas } from "@/components";
+import { Editor, Loader, NodeRepository, QuickView, Skill as SkillCanvas } from "@/components";
 import ErrorPage from "@/components/ErrorPage";
 import { CanvasProvider, NodesContextProvider, useNodesContext, useYDoc } from "@/hooks";
 
@@ -104,6 +104,7 @@ const Skill = () => {
         ) : (
           <>
             <CanvasProvider skillId={skillId} skillNodeId={pageId}>
+              <NodeRepository />
               <SkillCanvas key={skillId} className="w-full flex-grow" />
               <Editor
                 id={nodePage}

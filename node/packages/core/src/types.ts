@@ -25,6 +25,7 @@ export enum NodeType {
   ResponseTable = "response_table",
   PaperFinder = "paper_finder",
   PaperQA = "paper_qa",
+  ExternalData = "external_data",
 }
 
 export const nodeTypeMap = {
@@ -39,6 +40,7 @@ export const nodeTypeMap = {
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
   [NodeType.PaperFinder]: "Paper Finder",
   [NodeType.PaperQA]: "Paper QA",
+  [NodeType.ExternalData]: "External Data",
 };
 
 export type SpaceNode = {
@@ -57,8 +59,13 @@ export type CanvasNode = XYFlowNode<
     editing?: boolean;
     state?: string;
     loading?: boolean;
+    externalNode?: {
+      nodeId: string;
+      spaceId: string;
+      depth: number;
+    };
   },
-  "GraphNode"
+  "GraphNode" | "ExternalNode"
 >;
 export type CanvasEdge = Edge;
 
@@ -77,6 +84,7 @@ export interface Task {
 }
 
 export interface ExecutionContext {
+  authentication: string;
   taskList: Task[];
   responses: { [nodeId: string]: string };
   outputNode: CanvasNode;

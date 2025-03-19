@@ -114,7 +114,7 @@ worker.register(
     }
 
     runMeta.set("status", "running");
-    const context: ExecutionContext = { taskList: [], responses: {}, outputNode };
+    const context: ExecutionContext = { authentication, taskList: [], responses: {}, outputNode };
     createTasks(canvas, context);
     const ref = { current: false };
     await processTasks(context, buddy, doc, spaceMap, nodesMap, ref, false);
