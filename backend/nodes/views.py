@@ -8,6 +8,10 @@ from django import http
 from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, parsers, response
+from rest_framework.mixins import ListModelMixin
+from rest_framework.views import APIView
+from django.utils.http import quote_etag
+from django.utils.cache import patch_cache_control
 
 import permissions.managers
 import permissions.models
@@ -108,6 +112,14 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
             node.image_original = request.FILES["image"]
             node.save()
         return response.Response({"status": "success"})
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        latest = queryset.order_by('-updated_at').first()
+        response = super().list(request, *args, **kwargs)
+        if latest:
+            response['Last-Modified'] = latest.updated_at.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        return response
 
 
 @extend_schema(tags=["Skills"])
@@ -241,7 +253,16 @@ class SpaceModelViewSet(
         description="Retrieve a single node version.", summary="Retrieve a node version"
     ),
 )
-class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.DocumentVersion]):
+class CacheControlMixin(ListModelMixin):
+    """Mixin to add cache control headers to responses."""
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        
+        if request.method == "GET":
+            patch_cache_control(response, private=True, max_age=60)  # Cache for 1 minute
+        return response
+
+class DocumentVersionModelViewSet(CacheControlMixin, views.BaseReadOnlyModelViewSet[models.DocumentVersion]):
     """API endpoint that allows document versions to be viewed."""
 
     queryset = models.DocumentVersion.available_objects.all()
@@ -265,9 +286,23 @@ class DocumentVersionModelViewSet(views.BaseReadOnlyModelViewSet[models.Document
         document_version = self.get_object()
         return http.HttpResponse(document_version.data, content_type="application/octet-stream")
 
+    def get_object(self):
+        obj = super().get_object()
+        response = self.request.response
+        response['ETag'] = quote_etag(f"{obj.public_id}:{obj.created_at.isoformat()}")
+        return obj
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        latest = queryset.order_by('-created_at').first()
+        response = super().list(request, *args, **kwargs)
+        if latest:
+            response['ETag'] = quote_etag(f"list:{latest.created_at.isoformat()}")
+        return response
+
 
 @extend_schema(tags=["Nodes"])
-class SearchView(generics.ListAPIView):
+class SearchView(CacheControlMixin, generics.ListAPIView):
     """API endpoint that allows searching for nodes."""
 
     pagination_class = utils.pagination.NoCountLimitOffsetPagination
@@ -286,57 +321,11 @@ class SearchView(generics.ListAPIView):
             data=request.query_params, context={"request": request}
         )
         search_query_serializer.is_valid(raise_exception=True)
-
-        nodes = (
-            models.Node.available_objects.filter(
-                django_models.Q(
-                    models.Node.get_user_has_permission_filter(
-                        permissions.models.READ, request.user
-                    ),
-                    node_type=models.NodeType.DEFAULT,
-                )
-                | django_models.Q(
-                    models.MethodNode.get_user_has_permission_filter(
-                        permissions.models.READ, request.user, prefix="methodnode"
-                    ),
-                ),
-            )
-            .select_related("space")
-            .prefetch_related(
-                django_models.Prefetch(
-                    "parents", queryset=models.Node.available_objects.only("id", "public_id")
-                ),
-            )
-            .annotate(
-                rank=pg_search.SearchRank(
-                    "search_vector",
-                    pg_search.SearchQuery(search_query_serializer.validated_data["q"]),
-                )
-            )
-            .filter(
-                search_vector=pg_search.SearchQuery(search_query_serializer.validated_data["q"])
-            )
-            .order_by("-rank")
-            .distinct()
-        )
-
-        if "space" in search_query_serializer.validated_data:
-            nodes = nodes.filter(space=search_query_serializer.validated_data["space"])
-
-        if "node_type" in search_query_serializer.validated_data:
-            nodes = nodes.filter(node_type=search_query_serializer.validated_data["node_type"])
-
-        page = self.paginate_queryset(nodes)
-        if page is not None:
-            serializer = serializers.NodeSearchResultSerializer(
-                page, many=True, context={"request": request}
-            )
-            return self.get_paginated_response(serializer.data)
-
-        serializer = serializers.NodeSearchResultSerializer(
-            nodes, many=True, context={"request": request}
-        )
-        return response.Response(serializer.data)
+        
+        query_hash = hash(frozenset(request.query_params.items()))
+        response = super().get(request, *args, **kwargs)
+        response['ETag'] = quote_etag(f"search:{query_hash}")
+        return response
 
 
 @extend_schema(tags=["Skills"])
