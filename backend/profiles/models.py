@@ -1,6 +1,7 @@
 import datetime
 import typing
 import uuid
+import re
 
 import django.core.validators
 import imagekit.models
@@ -165,12 +166,27 @@ class Profile(utils.models.BaseModel):
         return Profile.objects.none()
 
     def clean(self) -> None:
+        super().clean() 
+
         if self.user and self.space:
             raise ValidationError("Profile must be either for a user or a space, not both.")
         if not self.user and not self.space:
             raise ValidationError("Profile must be either for a user or a space.")
         if self.user and self.members.exists():
             raise ValidationError("User profiles cannot have members.")
+
+        telegram_pattern = r'^https:\/\/t\.me\/[a-zA-Z0-9_]+$'
+        twitter_pattern = r'^https:\/\/twitter\.com\/[a-zA-Z0-9_]+$'
+        bluesky_pattern = r'^https:\/\/bsky\.app\/profile\/[a-zA-Z0-9_]+$'
+
+        if self.telegram_url and not re.match(telegram_pattern, self.telegram_url):
+            raise ValidationError({'telegram_url': 'Invalid Telegram URL format.'})
+
+        if self.twitter_url and not re.match(twitter_pattern, self.twitter_url):
+            raise ValidationError({'twitter_url': 'Invalid Twitter URL format.'})
+
+        if self.bluesky_url and not re.match(bluesky_pattern, self.bluesky_url):
+            raise ValidationError({'bluesky_url': 'Invalid Bluesky URL format.'})
 
     def save(
         self,
