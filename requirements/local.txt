@@ -492,9 +492,9 @@ django-crispy-forms==2.3 \
     # via
     #   -r requirements/base.in
     #   crispy-bootstrap5
-django-debug-toolbar==5.0.1 \
-    --hash=sha256:296f6f18a80710e84fbb8361538ae5ec522a75ebe9ab67db34bcf1026cbeb420 \
-    --hash=sha256:7456cc2e951db37dab335686db7803c4a0ecb6736d120705f6668db9548bf49f
+django-debug-toolbar==5.1.0 \
+    --hash=sha256:8a3b9da4aeab8d384a366e20304bd939a451f0242523c5b7b402248ad474eed2 \
+    --hash=sha256:c0591e338ee9603bdfce5aebf8d18ca7341fdbb69595e2b0b34869be5857180e
     # via -r requirements/local.in
 django-dry-rest-permissions==1.2.0 \
     --hash=sha256:063420bd3578a21ad3a6f5926a936975f3938d101b03150c73a60cd2a25682f9 \
