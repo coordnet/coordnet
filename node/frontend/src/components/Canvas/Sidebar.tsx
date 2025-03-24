@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useOnViewportChange, useReactFlow } from "@xyflow/react";
 import clsx from "clsx";
 import { LayoutDashboard, Plus, Search } from "lucide-react";
@@ -5,6 +6,7 @@ import { DragEvent, MouseEvent, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { toast } from "sonner";
 
+import { getSpaces } from "@/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +36,14 @@ const Sidebar = ({
   const { parent, scope } = useYDoc();
   const { nodes, nodesMap, edgesMap, inputNodes } = useCanvas();
   const { nodesMap: spaceMap } = useNodesContext();
+  const { data: spaces } = useQuery({
+    queryKey: ["spaces"],
+    queryFn: ({ signal }) => getSpaces(signal),
+  });
+
+  const filteredSpaces = spaces?.results.filter(
+    (space) => !(space.is_public && !space.allowed_actions.includes("manage"))
+  );
 
   const [lastClickTime, setLastClickTime] = useState(0);
   const [clickCount, setClickCount] = useState(0);
@@ -98,16 +108,18 @@ const Sidebar = ({
           <Plus strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="add-node">Add Node</Tooltip>
-        <Button
-          variant="outline"
-          className="size-9 p-0 shadow"
-          onClick={() => setNodeRepositoryVisible(true)}
-          data-tooltip-id="node-repository"
-          data-tooltip-place="right"
-          disabled={scope !== YDocScope.READ_WRITE}
-        >
-          <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
-        </Button>
+        {Boolean(filteredSpaces && filteredSpaces.length > 0) && (
+          <Button
+            variant="outline"
+            className="size-9 p-0 shadow"
+            onClick={() => setNodeRepositoryVisible(true)}
+            data-tooltip-id="node-repository"
+            data-tooltip-place="right"
+            disabled={scope !== YDocScope.READ_WRITE}
+          >
+            <Search strokeWidth={2.8} className="size-4 text-neutral-600" />
+          </Button>
+        )}
         <Tooltip id="node-repository">Node Repository</Tooltip>
 
         <DropdownMenu>
