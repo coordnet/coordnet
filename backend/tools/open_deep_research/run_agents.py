@@ -4,7 +4,6 @@ import shutil
 import textwrap
 from pathlib import Path
 
-# import tqdm.asyncio
 from smolagents.utils import AgentError
 
 

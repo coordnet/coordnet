@@ -1,7 +1,7 @@
 anthropic>=0.37.1
 audioop-lts<1.0; python_version >= "3.13" # required to use pydub in Python >=3.13; LTS port of the removed Python builtin module audioop
 beautifulsoup4>=4.12.3
-datasets>=2.21.0
+datasets==3.4.1
 google_search_results>=2.4.2
 huggingface_hub>=0.23.4
 mammoth>=1.8.0
@@ -9,33 +9,32 @@ markdownify>=0.13.1
 numexpr>=2.10.1
 numpy>=2.1.2
 openai>=1.52.2
-openpyxl
+openpyxl==3.1.5
 pandas>=2.2.3
 pathvalidate>=3.2.1
-pdfminer>=20191125
-pdfminer.six>=20240706
+pdfminer.six==20250324
 Pillow>=11.0.0
 puremagic>=1.28
-pypdf>=5.1.0
+pypdf==5.3.1
 python-dotenv>=1.0.1
 python_pptx>=1.0.2
 Requests>=2.32.3
 serpapi>=0.1.5
 tqdm>=4.66.4
-torch>=2.2.2
-torchvision>=0.17.2
-transformers>=4.46.0
-youtube_transcript_api>=0.6.2
-chess
-sympy
-pubchempy
-Bio
-scikit-learn
-scipy
-pydub
-PyPDF2
-python-pptx
-torch
-xlrd
-SpeechRecognition
+# torch>=2.2.2
+# torchvision>=0.17.2
+# transformers>=4.46.0
+#nvidia-cuda-nvrtc-cu12 ; platform_machine == "x86_64"
+youtube_transcript_api==1.0.2
+chess==1.11.2
+sympy==1.13.1
+pubchempy==1.0.4
+Bio==1.7.1
+scikit-learn==1.6.1
+scipy==1.15.2
+pydub==0.25.1
+PyPDF2==3.0.1
+python-pptx==1.0.2
+xlrd==2.0.1
+SpeechRecognition==3.14.2
 smolagents==1.11.0

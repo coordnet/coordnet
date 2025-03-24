@@ -52,7 +52,6 @@ AUTHORIZED_IMPORTS = [
     "chess",
     "PyPDF2",
     "pptx",
-    "torch",
     "datetime",
     "fractions",
     "csv",

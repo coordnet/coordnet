@@ -72,11 +72,11 @@ repos:
       - id: pip-compile
         name: pip-compile local.in
         args: [--allow-unsafe, requirements/local.in]
-        files: ^requirements/(base|local)\.(in|txt)$
+        files: ^(requirements/(base|local)\.(in|txt))|backend/tools/open_deep_research/requirements\.txt$
       - id: pip-compile
         name: pip-compile production.in
         args: [--allow-unsafe, requirements/production.in]
-        files: ^requirements/(base|production)\.(in|txt)$
+        files: ^(requirements/(base|production)\.(in|txt))|backend/tools/open_deep_research/requirements\.txt$
   - repo: local
     hooks:
       - id: ruff
