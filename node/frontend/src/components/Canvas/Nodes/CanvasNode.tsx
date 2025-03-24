@@ -9,6 +9,7 @@ import pSBC from "shade-blend-color";
 import { toast } from "sonner";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
+import { EditableNode } from "@/components";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -26,10 +27,10 @@ import { useCanvas, useNodesContext, useQuickView, useUser, useYDoc } from "@/ho
 import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
 import { BackendEntityType } from "@/types";
 
-import { EditableNode } from "../";
+import { addInputNode } from "../utils";
 import Footer from "./Footer";
 import HoverMenu from "./HoverMenu";
-import { addInputNode } from "./utils";
+import NodeError from "./NodeError";
 
 const handleStyle: CSSProperties = {
   borderWidth: "3px",
@@ -170,12 +171,14 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
               border border-gray-1 bg-white p-3 text-center text-sm`,
               Boolean(data.borderColor) && "border-2",
               selected && "shadow-node-selected",
-              canInput && "border-2 !border-blue-light"
+              canInput && "border-2 !border-blue-light",
+              data.error && "border-red-600 text-red-600"
             )}
             style={nodeStyle}
             ref={nodeRef}
             onDoubleClick={onDoubleClick}
           >
+            <NodeError data={data} />
             {isSkill && isSkillWriter ? (
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>

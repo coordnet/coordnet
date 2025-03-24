@@ -132,7 +132,6 @@ export const processTasks = async (
           executionPlan.tasks.push({ task, messages, type: "PROMPT" });
         } else {
           try {
-            // setNodesState(selectedIds, nodesMap, "executing");
             setNodesState([task.promptNode.id], nodesMap, "executing");
             await executePromptTask(
               task,
@@ -145,8 +144,15 @@ export const processTasks = async (
               isLast
             );
           } catch (e) {
-            console.error(`Failed to execute prompt task`);
+            console.error(`Failed to execute prompt task for node ${task.promptNode.id}`);
             console.error(e);
+
+            await setNodesState(
+              task.inputNodes.map((node) => node.id),
+              nodesMap,
+              "error",
+              "Prompt failed, context may be too long"
+            );
           }
         }
       }
@@ -181,62 +187,47 @@ export const executePromptTask = async (
     return;
   }
 
-  try {
-    const response_model: ResponseModel<z.AnyZodObject> = {
-      schema: MultipleNodesSchema,
-      name: "MultipleNodes",
-    };
-    if (isSingleResponseType(task.outputNode)) {
-      response_model.schema = SingleNodeSchema;
-      response_model.name = "SingleNode";
-    }
+  const response_model: ResponseModel<z.AnyZodObject> = {
+    schema: MultipleNodesSchema,
+    name: "MultipleNodes",
+  };
+  if (isSingleResponseType(task.outputNode)) {
+    response_model.schema = SingleNodeSchema;
+    response_model.name = "SingleNode";
+  }
 
-    const response = await client.chat.completions.create({
-      messages,
-      model: buddy.model,
-      stream: false,
-      response_model,
+  const response = await client.chat.completions.create({
+    messages,
+    model: buddy.model,
+    stream: false,
+    response_model,
+  });
+
+  if (cancelRef.current) return;
+
+  const nodes: SingleNode[] = [];
+  if (isSingleResponseType(task.outputNode)) {
+    let extractedNode: SingleNodeResponse = {};
+    extractedNode = response;
+    if (extractedNode) {
+      nodes.push(extractedNode as SingleNode);
+    }
+  } else {
+    let extractedData: MultipleNodesResponse = {};
+    extractedData = response;
+    nodes.push(...(extractedData.nodes as SingleNode[]));
+  }
+
+  if (cancelRef.current) return;
+
+  if (isMultipleResponseNode(task.outputNode)) {
+    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
+      if (canvasId) await addToSkillCanvas({ canvasId, document: skillDoc, nodes });
     });
-
-    if (cancelRef.current) return;
-
-    const nodes: SingleNode[] = [];
-    if (isSingleResponseType(task.outputNode)) {
-      let extractedNode: SingleNodeResponse = {};
-      try {
-        extractedNode = response;
-      } catch (e) {
-        console.error("Error when calling LLM, check console for details");
-        console.error(e);
-      }
-      if (extractedNode) {
-        nodes.push(extractedNode as SingleNode);
-      }
-    } else {
-      let extractedData: MultipleNodesResponse = {};
-      try {
-        extractedData = response;
-      } catch (e) {
-        console.error("Error when calling LLM, check console for details");
-        console.error(e);
-      }
-      nodes.push(...(extractedData.nodes as SingleNode[]));
-    }
-
-    if (cancelRef.current) return;
-
-    if (isMultipleResponseNode(task.outputNode)) {
-      [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-        if (canvasId) await addToSkillCanvas({ canvasId, document: skillDoc, nodes });
-      });
-    } else {
-      [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
-        if (id) await setSkillNodeTitleAndContent(skillDoc, id, nodes[0].title, nodes[0].markdown);
-      });
-    }
-  } catch (e) {
-    console.error(e);
-    console.error("Error when calling LLM, check console for details");
+  } else {
+    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
+      if (id) await setSkillNodeTitleAndContent(skillDoc, id, nodes[0].title, nodes[0].markdown);
+    });
   }
 };
 

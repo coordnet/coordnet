@@ -18,131 +18,121 @@ export const executeTableTask = async (
   outputNode: CanvasNode,
   isLastTask: boolean
 ) => {
-  try {
-    if (!task?.outputNode?.id) {
-      console.error("Output node not found");
-      return;
-    }
-
-    // Get the table columns from the node
-    const { nodes } = getSkillNodeCanvas(task.outputNode.id, skillDoc);
-
-    // Sort the nodes by y position to get the order of columns
-    const sortedNodes = nodes.slice().sort((a, b) => {
-      const yA = a.position?.y ?? 0;
-      const yB = b.position?.y ?? 0;
-      return yA - yB;
-    });
-
-    const schemaShape: { [k: string]: ZodString } = {};
-    const columnMap: { [k: string]: string } = {};
-    for (const node of sortedNodes) {
-      const spaceNode = spaceNodesMap.get(node.id);
-      const title = spaceNode?.title;
-      const content = getSkillNodePageContent(node.id, skillDoc);
-      if (title) {
-        const key = formatTitleToKey(title);
-        schemaShape[key] = z.string().describe(content!);
-        columnMap[key] = title;
-      }
-    }
-
-    // Create a schema for the columns
-    const TableSchema = z.object({
-      data: z.array(z.object(schemaShape).describe("A list of table columns")),
-    });
-
-    const response = await client.chat.completions.create({
-      messages,
-      model: buddy.model,
-      stream: false,
-      response_model: { schema: TableSchema, name: "TableSchema" },
-    });
-
-    if (cancelRef.current) return;
-
-    let extractedTableData: TableResponse<typeof TableSchema> = {};
-    try {
-      extractedTableData = response;
-    } catch (e) {
-      console.error("Error when calling LLM, check console for details");
-      console.error(e);
-    }
-
-    if (cancelRef.current) return;
-
-    // Get the page content as JSON
-    let pageContent: JSONContent = (await getSkillNodePageContent(
-      task?.outputNode?.id ?? "",
-      skillDoc,
-      "json"
-    )) as JSONContent;
-
-    if (!pageContent) {
-      // Initialize an empty document
-      pageContent = { type: "doc", content: [] };
-    }
-
-    // Process the document to find matching tables and update them
-    const givenHeaders = Object.values(columnMap);
-    let matchingTable: JSONContent | null = null;
-
-    // Find all tables in the document
-    const tables: JSONContent[] = findTables(pageContent);
-
-    // Search for a matching table
-    for (const table of tables) {
-      const headers = extractTableHeaders(table);
-      if (headersMatch(headers, givenHeaders)) {
-        matchingTable = table;
-        break;
-      }
-    }
-
-    if (matchingTable) {
-      // Append data to the existing matching table
-      for (const rowData of extractedTableData.data || []) {
-        const tableRow: JSONContent = dataRowToTableRow(rowData, Object.keys(columnMap));
-        if (matchingTable.content) {
-          matchingTable.content.push(tableRow);
-        }
-      }
-    } else {
-      // Create a new table and append it to the document
-      const newTable: JSONContent = {
-        type: "table",
-        content: [],
-      };
-      // Create header row
-      const headerCells: JSONContent[] = [];
-      for (const key of Object.keys(columnMap)) {
-        const headerText = columnMap[key];
-        const headerCell: JSONContent = {
-          type: "tableHeader",
-          attrs: { colspan: 1, rowspan: 1 },
-          content: [{ type: "paragraph", content: [{ type: "text", text: headerText }] }],
-        };
-        headerCells.push(headerCell);
-      }
-      const headerRow: JSONContent = { type: "tableRow", content: headerCells };
-      newTable.content?.push(headerRow);
-      // Add data rows
-      for (const rowData of extractedTableData.data || []) {
-        const tableRow: JSONContent = dataRowToTableRow(rowData, Object.keys(columnMap));
-        newTable.content?.push(tableRow);
-      }
-      // Add new table to the document
-      pageContent.content?.push(newTable);
-    }
-
-    // Set the updated document as the node content
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
-      if (id) await setSkillNodePageContent(pageContent, id, skillDoc);
-    });
-  } catch (e) {
-    console.error(e);
-    console.error("Error when calling LLM, check console for details");
+  if (!task?.outputNode?.id) {
+    console.error("Output node not found");
+    return;
   }
+
+  // Get the table columns from the node
+  const { nodes } = getSkillNodeCanvas(task.outputNode.id, skillDoc);
+
+  // Sort the nodes by y position to get the order of columns
+  const sortedNodes = nodes.slice().sort((a, b) => {
+    const yA = a.position?.y ?? 0;
+    const yB = b.position?.y ?? 0;
+    return yA - yB;
+  });
+
+  const schemaShape: { [k: string]: ZodString } = {};
+  const columnMap: { [k: string]: string } = {};
+  for (const node of sortedNodes) {
+    const spaceNode = spaceNodesMap.get(node.id);
+    const title = spaceNode?.title;
+    const content = getSkillNodePageContent(node.id, skillDoc);
+    if (title) {
+      const key = formatTitleToKey(title);
+      schemaShape[key] = z.string().describe(content!);
+      columnMap[key] = title;
+    }
+  }
+
+  // Create a schema for the columns
+  const TableSchema = z.object({
+    data: z.array(z.object(schemaShape).describe("A list of table columns")),
+  });
+
+  const response = await client.chat.completions.create({
+    messages,
+    model: buddy.model,
+    stream: false,
+    response_model: { schema: TableSchema, name: "TableSchema" },
+  });
+
+  if (cancelRef.current) return;
+
+  let extractedTableData: TableResponse<typeof TableSchema> = {};
+  extractedTableData = response;
+
+  if (cancelRef.current) return;
+
+  // Get the page content as JSON
+  let pageContent: JSONContent = (await getSkillNodePageContent(
+    task?.outputNode?.id ?? "",
+    skillDoc,
+    "json"
+  )) as JSONContent;
+
+  if (!pageContent) {
+    // Initialize an empty document
+    pageContent = { type: "doc", content: [] };
+  }
+
+  // Process the document to find matching tables and update them
+  const givenHeaders = Object.values(columnMap);
+  let matchingTable: JSONContent | null = null;
+
+  // Find all tables in the document
+  const tables: JSONContent[] = findTables(pageContent);
+
+  // Search for a matching table
+  for (const table of tables) {
+    const headers = extractTableHeaders(table);
+    if (headersMatch(headers, givenHeaders)) {
+      matchingTable = table;
+      break;
+    }
+  }
+
+  if (matchingTable) {
+    // Append data to the existing matching table
+    for (const rowData of extractedTableData.data || []) {
+      const tableRow: JSONContent = dataRowToTableRow(rowData, Object.keys(columnMap));
+      if (matchingTable.content) {
+        matchingTable.content.push(tableRow);
+      }
+    }
+  } else {
+    // Create a new table and append it to the document
+    const newTable: JSONContent = {
+      type: "table",
+      content: [],
+    };
+    // Create header row
+    const headerCells: JSONContent[] = [];
+    for (const key of Object.keys(columnMap)) {
+      const headerText = columnMap[key];
+      const headerCell: JSONContent = {
+        type: "tableHeader",
+        attrs: { colspan: 1, rowspan: 1 },
+        content: [{ type: "paragraph", content: [{ type: "text", text: headerText }] }],
+      };
+      headerCells.push(headerCell);
+    }
+    const headerRow: JSONContent = { type: "tableRow", content: headerCells };
+    newTable.content?.push(headerRow);
+    // Add data rows
+    for (const rowData of extractedTableData.data || []) {
+      const tableRow: JSONContent = dataRowToTableRow(rowData, Object.keys(columnMap));
+      newTable.content?.push(tableRow);
+    }
+    // Add new table to the document
+    pageContent.content?.push(newTable);
+  }
+
+  // Set the updated document as the node content
+  [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
+    if (id) await setSkillNodePageContent(pageContent, id, skillDoc);
+  });
 };
 
 // Function to find all tables in the document

@@ -22,17 +22,22 @@ export const baseURL = (globalThis as any).process?.env?.BACKEND_URL ?? "";
 export const editorExtensions = [StarterKit, Table, TableRow, TableHeader, TableCell, Link];
 export const editorSchema: Schema = getSchema(editorExtensions);
 
-export const setNodesState = (
+export const setNodesState = async (
   nodeIds: string[],
   nodesMap: Y.Map<CanvasNode> | undefined,
-  state: "active" | "executing" | "inactive" = "active"
+  state: "active" | "executing" | "inactive" | "error" = "active",
+  error?: string
 ) => {
-  nodeIds.forEach((id) => {
+  for (const id of nodeIds) {
     const node = nodesMap?.get(id);
     if (node) {
-      nodesMap?.set(id, { ...node, data: { ...node.data, state } });
+      console.log("error", error);
+      const data: CanvasNode["data"] = { ...node.data, state };
+      if (error) data.error = error;
+      console.log("tha data", data);
+      await nodesMap?.set(id, { ...node, data });
     }
-  });
+  }
 };
 
 export const isResponseNode = (node: CanvasNode) => {

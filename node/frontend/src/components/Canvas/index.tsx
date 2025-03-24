@@ -20,16 +20,16 @@ import { useCanvas, useFocus, useNodesContext, useQuickView, useYDoc } from "@/h
 import { BackendEntityType, YDocScope } from "@/types";
 
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
-import CanvasNodeComponent from "./CanvasNode";
 import ConnectionLine from "./ConnectionLine";
 import Controls from "./Controls";
-import ExternalNodeComponent from "./ExternalNode";
-import { getLayoutedNodes } from "./getLayoutedNodes";
+import useUndoRedo from "./hooks/useUndoRedo";
+import useYdocState from "./hooks/useYdocState";
 import MultiNodeToolbar from "./MultiNodeToolbar";
+import CanvasNodeComponent from "./Nodes/CanvasNode";
+import ExternalNodeComponent from "./Nodes/ExternalNode";
 import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
-import useUndoRedo from "./useUndoRedo";
-import useYdocState from "./useYdocState";
+import { getLayoutedNodes } from "./utils/getLayoutedNodes";
 import { handleCanvasDrop } from "./utils/handleCanvasDrop";
 
 const onDragOver = (event: DragEvent) => {

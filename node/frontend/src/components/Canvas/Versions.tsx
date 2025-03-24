@@ -14,9 +14,10 @@ import { useCanvas, useYDoc } from "@/hooks";
 import { NodeVersion } from "@/types";
 
 import { Button } from "../ui/button";
-import CanvasNodeComponent from "./CanvasNode";
+import CanvasNodeComponent from "./Nodes/CanvasNode";
+import ExternalNodeComponent from "./Nodes/ExternalNode";
 
-const nodeTypes = { GraphNode: CanvasNodeComponent };
+const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeComponent };
 
 const LIMIT = 10;
 

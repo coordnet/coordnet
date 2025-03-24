@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
+import { Button } from "@/components/ui/button";
 import {
   Menubar,
   MenubarContent,
@@ -15,8 +16,6 @@ import {
 import { nodeColors } from "@/constants";
 import { useCanvas, useQuickView, useYDoc } from "@/hooks";
 import { YDocScope } from "@/types";
-
-import { Button } from "../ui/button";
 
 const HoverMenu = ({
   id,

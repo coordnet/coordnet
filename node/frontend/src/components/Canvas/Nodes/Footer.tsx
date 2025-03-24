@@ -17,19 +17,11 @@ const Footer = ({
 }) => {
   const { nodeFeatures } = useCanvas();
   const { showQuickView } = useQuickView();
-
   const { hasPage, hasCanvas, tokens } = nodeFeatures(id);
-
-  // const backendNode = parent.data?.subnodes.find((node) => node.id === id);
-
-  // const tokens = (backendNode?.text_token_count ?? 0) + (backendNode?.title_token_count ?? 0);
 
   const [, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
-
-  // TODO: Make this work again
-  // if (!backendNode || parent.type == BackendEntityType.SKILL) return <></>;
 
   return (
     <div className={clsx(className)}>

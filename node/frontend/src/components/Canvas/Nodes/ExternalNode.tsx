@@ -16,6 +16,8 @@ import {
 import { useCanvas, useNodesContext } from "@/hooks";
 import { createConnectedYDoc } from "@/lib/utils";
 
+import NodeError from "./NodeError";
+
 const handleStyle: CSSProperties = {
   borderWidth: "3px",
   borderColor: "#fff",
@@ -120,12 +122,13 @@ const ExternalNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps)
         className={clsx(
           `CanvasNode flex size-full items-center justify-center overflow-hidden rounded-lg border
           border-gray-1 bg-white p-3 text-center text-sm`,
-          error && "border-red-600 text-red-600",
+          (error || data.error) && "border-red-600 text-red-600",
           selected && "shadow-node-selected"
         )}
         style={nodeStyle}
         ref={nodeRef}
       >
+        <NodeError data={data} />
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <div

@@ -58,6 +58,7 @@ export type CanvasNode = XYFlowNode<
     progress?: number;
     editing?: boolean;
     state?: string;
+    error?: string;
     loading?: boolean;
     externalNode?: {
       nodeId: string;
