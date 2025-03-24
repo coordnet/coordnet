@@ -52,6 +52,7 @@ jobs:
             --from-literal=DJANGO_ADMIN_URL=/admin/ \
             --from-literal=OPENAI_API_KEY=test-openai-key \
             --from-literal=SEMANTIC_API_KEY=test-semantic-key \
+            --from-literal=WEBSOCKET_API_KEY=bf3f8c32-9bd8-45ba-82e1-dabf2b0da354 \
             --from-literal=MAILGUN_API_KEY=test-mailgun-key
 
       - name: Apply Kubernetes manifests
