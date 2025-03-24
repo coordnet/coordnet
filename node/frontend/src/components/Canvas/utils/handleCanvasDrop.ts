@@ -61,6 +61,18 @@ export const handleCanvasDrop = async (
 
   // Process files
   if (dataTransfer.files.length > 0) {
+    // If there are over 100 files then show a confirmation
+    if (
+      dataTransfer.files.length > 100 &&
+      !window.confirm(
+        `You are about to import ${dataTransfer.files.length} files. In the current version of ` +
+          `the app you may experienve peformance issues with a large amount of files. ` +
+          `Are you sure you want to continue?`
+      )
+    ) {
+      return;
+    }
+
     takeSnapshot();
     const filesArray = Array.from(dataTransfer.files);
     const total = filesArray.length;
