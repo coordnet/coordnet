@@ -5,7 +5,7 @@
 
 <div align="center">
   <a href="https://github.com/coordnet/coordnet">
-    <img src="frontend/public/static/coordination-network-circle.png" alt="Coordination Network" width="175" height="175">
+    <img src="node/frontend/public/static/coordination-network-circle.png" alt="Coordination Network" width="175" height="175">
   </a>
 
   <h3 align="center">Coordination Network</h3>
