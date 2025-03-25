@@ -41,13 +41,13 @@ const SkillVersions = ({ readOnly = false }: { readOnly?: boolean }) => {
             className={clsx(
               `flex h-7 items-center justify-center gap-2 rounded-full bg-gradient-to-r
               from-violet-50 to-blue-50 px-4 py-1 text-sm font-medium text-neutral-700`,
-              scope == YDocScope.READ_ONLY && "!py-5"
+              scope !== YDocScope.READ_WRITE && "!py-5"
             )}
           >
             {versionId && currentVersion ? (
               <>
                 Version {currentVersion.version}
-                {scope === YDocScope.READ_ONLY && (
+                {scope !== YDocScope.READ_WRITE && (
                   <div className="text-sm text-gray-5">
                     {format(new Date(currentVersion.created_at), "dd MMM yyyy")}
                   </div>

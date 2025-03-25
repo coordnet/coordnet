@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCanvas, useFocus, useNodesContext, useYDoc } from "@/hooks";
-import { BackendEntityType, YDocScope } from "@/types";
+import { YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
 import { addInputNode, addNodeToCanvas } from "./utils";
@@ -33,7 +33,7 @@ const Sidebar = ({
   className?: string;
   onLayoutNodes: (direction: "RIGHT" | "DOWN") => Promise<void>;
 }) => {
-  const { parent, scope } = useYDoc();
+  const { scope } = useYDoc();
   const { nodes, nodesMap, edgesMap, inputNodes } = useCanvas();
   const { nodesMap: spaceMap } = useNodesContext();
   const { data: spaces } = useQuery({
@@ -50,8 +50,6 @@ const Sidebar = ({
   const { setNodeRepositoryVisible } = useFocus();
   const reactFlow = useReactFlow();
 
-  const isSkill = parent.type === BackendEntityType.SKILL;
-
   useOnViewportChange({
     onChange: () => {
       setLastClickTime(0);
@@ -63,7 +61,7 @@ const Sidebar = ({
     event.preventDefault();
 
     // If we are in a skill then add an input node
-    if (isSkill && scope != YDocScope.READ_WRITE)
+    if (scope == YDocScope.READ_ONLY_WITH_INPUT)
       return addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes);
 
     if (!nodesMap || !spaceMap) return toast.error("Nodes not loaded");
@@ -97,13 +95,13 @@ const Sidebar = ({
           className="size-9 p-0 shadow"
           onClick={onClick}
           onDragStart={(event: DragEvent) => {
-            if (scope !== YDocScope.READ_WRITE || isSkill) return;
+            if (scope == YDocScope.READ_ONLY) return;
             onDragStart(event, "node-1");
           }}
-          draggable={scope === YDocScope.READ_WRITE}
+          draggable={scope !== YDocScope.READ_ONLY}
           data-tooltip-id="add-node"
           data-tooltip-place="right"
-          disabled={scope !== YDocScope.READ_WRITE && !isSkill}
+          disabled={scope == YDocScope.READ_ONLY}
         >
           <Plus strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>

@@ -26,7 +26,7 @@ const EditableNode = forwardRef<HTMLDivElement, EditableNodeProps>(
     const node = nodes?.find((n) => n.id === id);
 
     const { inputNodes } = useCanvas();
-    const isSkillInput = inputNodes.includes(id);
+    const isSkillInput = inputNodes.includes(id) && scope == YDocScope.READ_ONLY_WITH_INPUT;
 
     useEffect(() => {
       if (!inputRef.current || isFocused) return;

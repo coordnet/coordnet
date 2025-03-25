@@ -48,7 +48,7 @@ const Skill = () => {
 
   // Redirect to the latest version if no versionId is provided and the skill is read-only
   useEffect(() => {
-    if (scope == YDocScope.READ_ONLY && skill?.latest_version.id && !versionId && !runId) {
+    if (scope == YDocScope.READ_ONLY_WITH_INPUT && skill?.latest_version.id && !versionId) {
       navigate(`/skills/${skillId}/versions/${skill?.latest_version.id}`, { replace: true });
     }
   }, [scope, skill, versionId, navigate, skillId, runId]);

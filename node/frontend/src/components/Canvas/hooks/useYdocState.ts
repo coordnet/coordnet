@@ -59,12 +59,14 @@ function useYdocState(): [OnNodesChange<CanvasNode>, OnEdgesChange<CanvasEdge>, 
           } else if (
             node &&
             change.type !== "remove" &&
-            (scope == YDocScope.READ_WRITE || inputNodes.includes(change.id))
+            (scope == YDocScope.READ_WRITE ||
+              (scope == YDocScope.READ_ONLY_WITH_INPUT && inputNodes.includes(change.id)))
           ) {
             nodesMap.set(change.id, node);
           } else if (
             change.type === "remove" &&
-            (scope == YDocScope.READ_WRITE || inputNodes.includes(change.id))
+            (scope == YDocScope.READ_WRITE ||
+              (scope == YDocScope.READ_ONLY_WITH_INPUT && inputNodes.includes(change.id)))
           ) {
             const deletedNode = nodesMap.get(change.id);
             nodesMap.delete(change.id);

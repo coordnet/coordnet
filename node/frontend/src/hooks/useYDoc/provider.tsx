@@ -10,6 +10,7 @@ import { BackendEntityType, YDocScope } from "@/types";
 
 import useBackendParent from "../useBackendParent";
 import useConnectedDocument from "../useConnectedDocument";
+import useUser from "../useUser";
 import { YDocContext } from "./context";
 
 export type YDocProviderReturn = {
@@ -33,16 +34,21 @@ export function YDocProvider({ children }: { children: React.ReactNode }) {
   const { spaceId, skillId, runId, pageId, versionId } = useParams();
   const [nodePage] = useQueryParam<string>("nodePage");
   const parent = useBackendParent();
+  const { isGuest } = useUser();
 
   const isSkill = !!skillId;
   const isSpace = !!spaceId;
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
   const nodeId = pageId ?? spaceModel?.default_node ?? "";
-  const scope: YDocScope = runId
-    ? YDocScope.READ_ONLY
-    : parent?.data?.allowed_actions.includes("write")
-      ? YDocScope.READ_WRITE
-      : YDocScope.READ_ONLY;
+  const isSkillWriter = parent.data?.allowed_actions.includes("write");
+  const scope: YDocScope =
+    isSkill && !isSkillWriter && !isGuest && !runId
+      ? YDocScope.READ_ONLY_WITH_INPUT
+      : runId
+        ? YDocScope.READ_ONLY
+        : isSkillWriter
+          ? YDocScope.READ_WRITE
+          : YDocScope.READ_ONLY;
 
   const space = useConnectedDocument();
   const editor = useConnectedDocument();

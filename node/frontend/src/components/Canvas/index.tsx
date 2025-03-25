@@ -79,7 +79,7 @@ const Canvas = ({ className }: { className?: string }) => {
 
   const onDrop = async (event: DragEvent) => {
     event.preventDefault();
-    if (parent.type === BackendEntityType.SPACE && scope !== YDocScope.READ_WRITE) return;
+    if (scope === YDocScope.READ_ONLY) return;
     if (!wrapperRef.current) return alert("Could not find Canvas wrapperRef.");
     if (!nodesMap || !spaceMap) return alert("Space is not initialised");
     const wrapperBounds = wrapperRef.current.getBoundingClientRect();
@@ -193,7 +193,7 @@ const Canvas = ({ className }: { className?: string }) => {
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
-          nodesConnectable={scope == YDocScope.READ_WRITE}
+          nodesConnectable={scope !== YDocScope.READ_ONLY}
           // nodesDraggable={!isSkillRun && scope == YDocScope.READ_WRITE}
           minZoom={0.1}
           maxZoom={2}
