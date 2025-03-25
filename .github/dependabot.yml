@@ -59,6 +59,6 @@ updates:
 
   # Enable version updates for NPM packages
   - package-ecosystem: 'npm'
-    directory: 'frontend'
+    directory: 'node'
     schedule:
       interval: 'daily'
