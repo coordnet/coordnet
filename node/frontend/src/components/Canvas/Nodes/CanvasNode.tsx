@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { saveAs } from "file-saver";
 import { Check, ChevronDown, Loader2, LoaderIcon, PlusCircle } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import pSBC from "shade-blend-color";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ interface CanvasNodeComponentProps {
 }
 
 const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) => {
+  const { runId } = useParams();
   const { isGuest } = useUser();
   const { parent } = useYDoc();
   const { nodesMap: spaceMap } = useNodesContext();
@@ -65,7 +67,7 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
   const isSkill = parent.type === BackendEntityType.SKILL;
   const isSkillWriter = parent.data?.allowed_actions.includes("write");
   const isInputNode = data?.type === NodeType.Input;
-  const canInput = isSkill && isInputNode && !isSkillWriter && !isGuest;
+  const canInput = isSkill && isInputNode && !isSkillWriter && !isGuest && !runId;
 
   useEffect(() => {
     if (!nodeRef.current) return;
@@ -202,20 +204,24 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
                   >
                     Node Type
                   </DropdownMenuLabel>
-                  {Object.values(NodeType).map((value) => (
-                    <DropdownMenuItem
-                      key={value}
-                      className="flex cursor-pointer items-center text-sm font-medium capitalize
-                        text-neutral-700"
-                      onClick={() => setType(value)}
-                    >
-                      <div className="mr-1 size-5">
-                        {value == data.type ||
-                          (!data.type && value == "default" && <Check className="size-4" />)}
-                      </div>
-                      {nodeTypeMap[value]}
-                    </DropdownMenuItem>
-                  ))}
+                  {Object.values(NodeType).map((value) => {
+                    if (value === NodeType.PaperQA || value == NodeType.ExternalData) return null;
+
+                    return (
+                      <DropdownMenuItem
+                        key={value}
+                        className="flex cursor-pointer items-center text-sm font-medium capitalize
+                          text-neutral-700"
+                        onClick={() => setType(value)}
+                      >
+                        <div className="mr-1 size-5">
+                          {value == data.type ||
+                            (!data.type && value == "default" && <Check className="size-4" />)}
+                        </div>
+                        {nodeTypeMap[value]}
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
