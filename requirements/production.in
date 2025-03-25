@@ -13,4 +13,4 @@ django-anymail[mailgun]==12.0  # https://github.com/anymail/django-anymail
 
 # Error tracking
 # ------------------------------------------------------------------------------
-sentry-sdk[openai,django,celery]==2.23.1  # https://github.com/getsentry/sentry-python
+sentry-sdk[openai,django,celery]==2.24.1  # https://github.com/getsentry/sentry-python
