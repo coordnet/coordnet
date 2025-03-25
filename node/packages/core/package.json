@@ -17,7 +17,7 @@
     "@tiptap/html": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "@xyflow/react": "^12.4.4",
-    "axios": "^1.8.3",
+    "axios": "^1.8.4",
     "marked": "^15.0.7",
     "openai": "^4.87.3",
     "prosemirror-model": "1.24.1",
