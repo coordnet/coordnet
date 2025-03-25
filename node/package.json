@@ -3,12 +3,12 @@
   "private": true,
   "scripts": {},
   "devDependencies": {
-    "eslint": "9.22.0",
+    "eslint": "9.23.0",
     "prettier": "^3.5.3",
-    "typescript-eslint": "^8.26.1",
+    "typescript-eslint": "^8.28.0",
     "typescript": "^5.8.2"
   },
-  "packageManager": "pnpm@10.6.3",
+  "packageManager": "pnpm@10.6.5",
   "engines": {
     "node": ">=22"
   }
