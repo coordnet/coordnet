@@ -14,7 +14,7 @@
     "@hocuspocus/transformer": "^2.15.2",
     "@prd-thanhnguyenhoang/celery.node": "^1.0.56",
     "@sentry/node": "^9.5.0",
-    "@sentry/profiling-node": "^9.5.0",
+    "@sentry/profiling-node": "^9.9.0",
     "@tiptap/core": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "dotenv": "^16.4.7",
