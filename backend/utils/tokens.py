@@ -29,35 +29,14 @@ def num_tokens_from_messages(
         # cl100k_base is still the default.
         print("Warning: model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
-    if model in {
-        "gpt-3.5-turbo-0125",
-        "gpt-4-0314",
-        "gpt-4-32k-0314",
-        "gpt-4-0613",
-        "gpt-4-32k-0613",
-        "gpt-4o-mini-2024-07-18",
-        "gpt-4o-2024-08-06",
-    }:
-        tokens_per_message = 3
-        tokens_per_name = 1
-    elif model == "gpt-3.5-turbo-0301":
+
+    if model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif "gpt-3.5-turbo" in model:
-        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0125")
-    elif "gpt-4o-mini" in model:
-        return num_tokens_from_messages(messages, model="gpt-4o-mini-2024-07-18")
-    elif "gpt-4o" in model:
-        return num_tokens_from_messages(messages, model="gpt-4o-2024-08-06")
-    elif "gpt-4" in model:
-        return num_tokens_from_messages(messages, model="gpt-4-0613")
-    elif "o1-" in model or model == "o1":
-        # Note: This is our addition and I'm not sure if it returns the correct counts.
-        return num_tokens_from_messages(messages, model="gpt-4o-2024-08-06")
     else:
-        raise NotImplementedError(
-            f"""num_tokens_from_messages() is not implemented for model {model}."""
-        )
+        tokens_per_message = 3
+        tokens_per_name = 1
+
     num_tokens = 0
     for message in messages:
         num_tokens += tokens_per_message

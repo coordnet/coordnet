@@ -20,6 +20,7 @@ crispy-bootstrap5==2024.10  # https://github.com/django-crispy-forms/crispy-boot
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
 # Django REST Framework
 djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
+djangorestframework-simplejwt[crypto]==5.5.0  # https://github.com/jazzband/djangorestframework-simplejwt
 django-cors-headers==4.7.0  # https://github.com/adamchainz/django-cors-headers
 # DRF-spectacular for api documentation
 drf-spectacular==0.28.0  # https://github.com/tfranzel/drf-spectacular
@@ -48,3 +49,16 @@ django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 # ------------------------------------------------------------------------------
 tiktoken==0.9.0  # https://github.com/openai/tiktoken
 openai==1.68.2  # https://github.com/openai/openai-python
+
+# Error tracking
+# ------------------------------------------------------------------------------
+sentry-sdk[openai,django,celery]==2.24.1  # https://github.com/getsentry/sentry-python
+
+# External APIs
+# ------------------------------------------------------------------------------
+pqapi==7.2.0  # Closed Source
+# This is necessary because the paper-qa library didn't actually work with the pqapi lbrary when we were testing it.
+https://github.com/JannKleen/paper-qa/releases/download/v5.11.2/paper_qa-5.11.2.tar.gz#egg=paper_qa
+# This is required for the pqapi dependency paper-qa, which seems to requiring it (that's normally not needed)
+# Once this is resolved, this can be removed and also the --allow-unsafe for the pip-compile command
+setuptools==75.8.0  # https://github.com/pypa/setuptools

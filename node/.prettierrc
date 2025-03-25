@@ -1,0 +1,21 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 100,
+  "trailingComma": "es5",
+  "overrides": [
+    {
+      "files": ["**/*.{jsx,tsx}"],
+      "options": {
+        "endingPosition": "absolute-with-indent",
+        "plugins": [
+          "prettier-plugin-tailwindcss",
+          "prettier-plugin-classnames",
+          "prettier-plugin-merge"
+        ],
+        "customFunctions": ["clsx"],
+        "tailwindFunctions": ["clsx"]
+      }
+    }
+  ]
+}

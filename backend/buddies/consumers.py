@@ -4,8 +4,7 @@ import logging
 import rest_framework.exceptions
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from knox.auth import TokenAuthentication
-from openai.types.chat import ChatCompletion
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 import buddies.models
 import buddies.serializers
@@ -28,12 +27,10 @@ class QueryConsumer(AsyncWebsocketConsumer):
                 await self.close(code=1007)
                 return
 
-            # TokenAuthentication expects a byte string
-            token = token.encode()
-
-            token_auth = TokenAuthentication()
+            token_auth = JWTAuthentication()
             try:
-                user, _ = await database_sync_to_async(token_auth.authenticate_credentials)(token)
+                validated_token = token_auth.get_validated_token(token.encode())
+                user = await database_sync_to_async(token_auth.get_user)(validated_token)
             except rest_framework.exceptions.AuthenticationFailed:
                 await self.close(code=1008)
                 return
@@ -64,7 +61,7 @@ class QueryConsumer(AsyncWebsocketConsumer):
                 response = await utils.llm.get_async_openai_client().chat.completions.create(
                     model=buddy.model,
                     messages=messages,
-                    stream=not buddy.is_o1,
+                    stream=True,
                     timeout=180,
                 )
             except Exception as e:
@@ -72,64 +69,46 @@ class QueryConsumer(AsyncWebsocketConsumer):
                 await self.close(code=1011)
                 return
 
-            # If the response is not streaming
-            if isinstance(response, ChatCompletion):
+            try:
+                async for chunk in response:
+                    try:
+                        if (chunk_content := chunk.choices[0].delta.content) is not None:
+                            await self.send(chunk_content)
+                    except IndexError:
+                        # Chunk choices are empty, for example when an Azure endpoint returns
+                        # content moderation information instead.
+                        continue
+                    except KeyError:
+                        logger.exception(
+                            "Unexpected format from OpenAI API, skipping chunk...",
+                            exc_info=True,
+                        )
+                        continue
+            except Exception as e:
+                logger.info(
+                    f"Error while getting response content as iterator: {e}",
+                    exc_info=True,
+                )
                 try:
-                    content = response.choices[0].message.content
-                    if content:
-                        await self.send(content)
-                except Exception as e:
-                    logger.exception(
-                        f"Error while getting non-streaming response content: {e}",
-                        exc_info=True,
-                    )
-                    await self.close(code=1011)
-                    return
-
-            # If the response is streaming
-            else:
-                try:
+                    await response.response.aread()
                     async for chunk in response:
                         try:
                             if (chunk_content := chunk.choices[0].delta.content) is not None:
                                 await self.send(chunk_content)
                         except IndexError:
-                            # Chunk choices are empty, for example when an Azure endpoint returns
-                            # content moderation information instead.
+                            # Chunk choices are empty, for example when an Azure endpoint
+                            # returns content moderation information instead.
                             continue
-                        except KeyError:
+                        except AttributeError:
                             logger.exception(
                                 "Unexpected format from OpenAI API, skipping chunk...",
                                 exc_info=True,
                             )
                             continue
                 except Exception as e:
-                    logger.info(
-                        f"Error while getting response content as iterator: {e}",
-                        exc_info=True,
-                    )
-                    try:
-                        await response.response.aread()
-                        async for chunk in response:
-                            try:
-                                if (chunk_content := chunk.choices[0].delta.content) is not None:
-                                    await self.send(chunk_content)
-                            except IndexError:
-                                # Chunk choices are empty, for example when an Azure endpoint
-                                # returns content moderation information instead.
-                                continue
-                            except AttributeError:
-                                logger.exception(
-                                    "Unexpected format from OpenAI API, skipping chunk...",
-                                    exc_info=True,
-                                )
-                                continue
-                    except Exception as e:
-                        logger.exception(
-                            f"Error while getting response content: {e}", exc_info=True
-                        )
-                    await self.close(code=1006)
-                    return
+                    logger.exception(f"Error while getting response content: {e}", exc_info=True)
+                await self.close(code=1006)
+                return
 
             await self.close()
         except Exception as e:

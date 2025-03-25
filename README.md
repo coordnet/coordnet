@@ -15,6 +15,7 @@
 </div>
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -43,6 +44,7 @@ Coordination Network is an open-source platform designed to help organizations a
 ## Getting Started
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Git
 - Pre-commit (for development)
@@ -50,29 +52,37 @@ Coordination Network is an open-source platform designed to help organizations a
 ### Environment Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/coordnet/coordnet.git
 cd coordnet
 ```
 
 2. Copy the environment file:
+
 ```bash
 cp .envs/.local/.secrets.example .envs/.local/.secrets
 ```
 
-3. Configure your environment variables in `.envs/.local/.secrets`:
+3. Configure your environment variables in `.envs/.local/.secrets` and `.envs/.local/.django.secrets`:
    - `OPENAI_API_KEY`: Obtain from [OpenAI Platform](https://platform.openai.com/api-keys)
    - `SEMANTIC_API_KEY`: Get from [Semantic Scholar](https://www.semanticscholar.org/product/api#api-key-form)
-   - `WEBSOCKET_API_KEY`: Set a secure password for your deployment
+   - For the `JWT_SIGNING_KEY` and `JWT_VERIFYING_KEY`, generate a keypair and save them as a one-line string. To create the keypair using openssl, run:
+     ```bash
+     openssl genrsa -out private-key.pem 4096
+     openssl rsa -in private-key.pem -pubout -out public-key.pem
+     ```
 
 ### Local Development
 
 1. Build the Docker images:
+
 ```bash
 docker compose build
 ```
 
 2. Start the application:
+
 ```bash
 docker compose up --watch
 ```
@@ -85,6 +95,7 @@ docker compose up --watch
 ## Initial Configuration
 
 ### Account Creation
+
 1. Once the application is running, navigate to http://localhost:5173/auth/signup
 2. Fill in your details:
    - Name
@@ -92,6 +103,7 @@ docker compose up --watch
    - Password
 
 ### Email Verification
+
 1. The system will send a verification email
 2. Since you're running locally, emails are sent to Mailpit
 3. Access Mailpit at http://localhost:8025
@@ -99,12 +111,15 @@ docker compose up --watch
 5. Enter the code in the verification page to complete your account setup
 
 ### Superuser Setup
+
 1. Open a terminal and get a shell to the Django container:
+
 ```bash
 docker compose run --rm django bash
 ```
 
 2. Create a superuser account:
+
 ```bash
 python manage.py createsuperuser
 ```
@@ -114,6 +129,7 @@ python manage.py createsuperuser
    - Password
 
 ### Space Creation
+
 1. Log in to the Django Admin (http://localhost:8000/admin) using your superuser credentials
 2. Navigate to "Spaces" and click "+ Add"
 3. Configure your space:
@@ -125,18 +141,22 @@ python manage.py createsuperuser
 ## Development Tools
 
 ### Pre-commit Hooks
+
 1. Install pre-commit:
+
 ```bash
 pip install pre-commit
 ```
 
 2. Set up the hooks:
+
 ```bash
 pre-commit install
 pre-commit install --hook-type commit-msg
 ```
 
 ### Docker Commands
+
 - Build containers: `docker compose build`
 - Start services: `docker compose up --watch`
 - Stop services: `docker compose down`
@@ -145,9 +165,11 @@ pre-commit install --hook-type commit-msg
 ## Configuration
 
 ### Required Settings
+
 When not using Docker Compose, configure the following:
 
 - Database Settings (either set `DATABASE_URL` or individual settings):
+
   - `POSTGRES_DB`
   - `POSTGRES_USER`
   - `POSTGRES_PASSWORD`
@@ -155,9 +177,11 @@ When not using Docker Compose, configure the following:
   - `POSTGRES_PORT`
 
 - Message Queue Settings:
+
   - `CELERY_BROKER_URL` or default `REDIS_URL`
 
 - Production Settings:
+
   - `SECRET_KEY`
   - `CORS_ALLOWED_ORIGINS`
   - `CSRF_TRUSTED_ORIGINS`
@@ -168,6 +192,7 @@ When not using Docker Compose, configure the following:
   - `MAILGUN_DOMAIN`
 
 ### Optional Settings
+
 - Sentry Error Tracking:
   - `SENTRY_AUTH_TOKEN`
   - `SENTRY_DSN`
@@ -179,6 +204,7 @@ The project is currently deployed using Docker containers on fly.io. Configurati
 ## API Documentation
 
 The API is documented using OpenAPI. Access the documentation:
+
 - Local: `docs/redoc-static.html`
 - Online: [API Documentation](https://htmlpreview.github.io/?https://github.com/coordnet/coordnet/blob/main/docs/redoc-static.html)
 
@@ -196,4 +222,3 @@ Licensed under either of:
 
 - [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
 - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](LICENSE-MIT))
-

@@ -25,6 +25,7 @@ services:
       - ./.envs/.local/.postgres
       - ./.envs/.local/.minio
       - ./.envs/.local/.secrets
+      - ./.envs/.local/.django.secrets
     ports:
       - "8000:8000"
     command: /start
@@ -99,7 +100,8 @@ services:
       dockerfile: compose/crdt/Dockerfile
     image: coordnet_local_crdt
     container_name: coordnet_local_crdt
-    command: ["pnpm", "dev"]
+    command: ["pnpm", "dev:server"]
+    restart: unless-stopped
     env_file:
       - ./.envs/.local/.crdt
       - ./.envs/.local/.postgres
@@ -109,12 +111,29 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./crdt
+          path: ./node
           target: /app
           ignore:
-            - ./crdt/node_modules
-        - action: rebuild
-          path: ./crdt/pnpm-lock.yaml
+            - "**/node_modules/**"
+
+  node_worker:
+    build:
+      context: .
+      dockerfile: compose/crdt/Dockerfile
+    image: coordnet_local_crdt
+    container_name: coordnet_local_node_worker
+    command: ["pnpm", "dev:worker"]
+    env_file:
+      - ./.envs/.local/.crdt
+      - ./.envs/.local/.postgres
+      - ./.envs/.local/.secrets
+    develop:
+      watch:
+        - action: sync
+          path: ./node
+          target: /app
+          ignore:
+            - "**/node_modules/**"
 
   frontend:
     build:
@@ -122,6 +141,7 @@ services:
       dockerfile: compose/frontend/Dockerfile
     image: coordnet_local_frontend
     container_name: coordnet_local_frontend
+    command: ["pnpm", "dev"]
     env_file:
       - ./.envs/.local/.frontend
     ports:
@@ -129,12 +149,10 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./frontend
+          path: ./node
           target: /app
           ignore:
-            - ./frontend/node_modules
-        - action: rebuild
-          path: ./frontend/pnpm-lock.yaml
+            - "**/node_modules/**"
 
   minio:
     image: bitnami/minio:latest

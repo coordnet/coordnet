@@ -122,6 +122,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "knox",
+    "rest_framework_simplejwt",
     "django_rest_passwordreset",
     "corsheaders",
     "drf_spectacular",
@@ -257,6 +258,14 @@ CSRF_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = env("DJANGO_X_FRAME_OPTIONS", default="SAMEORIGIN")
 
+# Simple JWT Configuration
+# ------------------------------------------------------------------------------
+SIMPLE_JWT = {
+    "ALGORITHM": "RS512",
+    "SIGNING_KEY": env.str("JWT_SIGNING_KEY", multiline=True),
+    "VERIFYING_KEY": env.str("JWT_VERIFYING_KEY", multiline=True),
+}
+
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
@@ -382,6 +391,8 @@ CELERY_TASK_SEND_SENT_EVENT = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_acks_late
 CELERY_ACKS_LATE = True
 
+CELERY_NODE_EXECUTION_QUEUE = env.str("CELERY_NODE_EXECUTION_QUEUE", "node_execution")
+
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
@@ -408,7 +419,10 @@ SOCIALACCOUNT_FORMS = {"signup": "users.forms.UserSocialSignupForm"}
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK: typing.Mapping[str, typing.Any] = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["knox.auth.TokenAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "knox.auth.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
     # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -457,9 +471,6 @@ OPENAI_BASE_URL = env("OPENAI_BASE_URL", default=None)
 AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY", default=None)
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT", default=None)
 AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-preview")
-
-# Needed because the API is different for the these models.
-O1_MODELS = {"o1-preview", "o1-mini", "o1"}
 
 # API settings
 # ------------------------------------------------------------------------------

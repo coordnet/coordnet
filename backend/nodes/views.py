@@ -1,9 +1,11 @@
+import json
 import typing
 import uuid
 
 import django.contrib.postgres.search as pg_search
 import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
+import sentry_sdk
 from django import http
 from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -14,6 +16,7 @@ import permissions.models
 import permissions.utils
 import permissions.views
 import users.models
+import utils.llm
 import utils.managers
 import utils.pagination
 import utils.parsers
@@ -108,6 +111,22 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
             node.image_original = request.FILES["image"]
             node.save()
         return response.Response({"status": "success"})
+
+    @extend_schema(
+        description="Retrieve context based on this node.",
+        summary="Retrieve context",
+    )
+    @decorators.action(detail=True, methods=["get"])
+    def context(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        node = self.get_object()
+        try:
+            depth = int(request.query_params.get("depth", 1))
+        except ValueError as exc:
+            raise ValueError("Depth must be an integer.") from exc
+
+        return response.Response(node.node_context_for_depth(query_depth=depth, include_edges=True))
 
 
 @extend_schema(tags=["Skills"])
@@ -371,7 +390,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeRun]":
-        if self.action == "list":
+        if self.action in ("list", "decide"):
             return self.queryset.defer("method_data")
         return self.queryset
 
@@ -379,6 +398,141 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         if self.action == "retrieve":
             return serializers.MethodNodeRunDetailSerializer
         return self.serializer_class
+
+    @decorators.action(detail=True, methods=["post"])
+    def execute(
+        self, request: "request.Request", public_id: str | None = None
+    ) -> response.Response:
+        run = self.get_object()
+        serializer = serializers.MethodNodeRunExecutionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        run.method.execute(
+            method_run_id=run.id,
+            **serializer.validated_data | {"authentication": str(request.auth)},
+        )
+        return response.Response(status=204)
+
+    @decorators.action(detail=False, methods=["post"])
+    def decide(self, request: "request.Request", public_id: str | None = None) -> response.Response:
+        def create_json_schema_for_method(method: models.MethodNode) -> dict | None:
+            function_description = ""
+            if method.title:
+                function_description += method.title
+            if method.description and method.title:
+                function_description += f": {method.description}"
+            elif method.description:
+                function_description = method.description
+            else:
+                return None
+
+            return {
+                "type": "function",
+                "function": {
+                    "name": str(method.pk),
+                    "description": function_description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "method_argument": {
+                                "type": "string",
+                                "description": "The input for this method.",
+                            },
+                            "include_attachment": {
+                                "type": "boolean",
+                                "description": "Whether to include the attachment.",
+                            },
+                        },
+                        "required": ["include_attachment"],
+                        "additionalProperties": False,
+                    },
+                },
+            }
+
+        def parse_messages(discord_dict: dict) -> tuple[list[dict], list[str]]:
+            attachment_limit = 1
+            saved_attachments: list[str] = []
+            parsed_messages = []
+            for message in discord_dict["messages"]:
+                parsed_message = {
+                    "content": message.get("content", {}).get("text", ""),
+                    "role": "assistant" if message.get("content", {}).get("user") else "user",
+                }
+                if chat_attachments := message.get("content", {}).get("attachments", []):
+                    for idx, full_attachment in enumerate(chat_attachments):
+                        if (text := full_attachment.get("text")) and len(
+                            saved_attachments
+                        ) < attachment_limit:
+                            parsed_message["content"] += f"\nAttachment {idx}:\n{text}"
+                            saved_attachments.append(text)
+                parsed_messages.append(parsed_message)
+
+            # Invert the list to get the oldest messages first.
+            return parsed_messages[::-1], saved_attachments
+
+        client = utils.llm.get_openai_client()
+        parsed_messages, attachments = parse_messages(request.data)
+
+        completion_response = client.chat.completions.create(
+            model="o3-mini",
+            tools=filter(
+                None,
+                [
+                    create_json_schema_for_method(method)  # type: ignore[misc]
+                    for method in models.MethodNode.available_objects.filter(
+                        models.MethodNode.get_user_has_permission_filter(
+                            action="read", user=request.user
+                        )
+                    ).distinct()
+                ],
+            ),
+            messages=[  # type: ignore[arg-type]
+                {
+                    "role": "developer",
+                    "content": "Considering the chat provided, which method would you recommend for"
+                    " the user? If there is no fitting method, don't return anything."
+                    "\nWhen passing parameters to the method, set the 'include_attachment' flag"
+                    " if it's relevant to the current method call.",
+                }
+            ]
+            + parsed_messages,
+        )
+        try:
+            method_pk = int(completion_response.choices[0].message.tool_calls[0].function.name)  # type: ignore[index]
+            arguments = json.loads(
+                completion_response.choices[0].message.tool_calls[0].function.arguments  # type: ignore[index]
+            )
+            method_argument = arguments.get("method_argument", "")
+            if arguments.get("include_attachment"):
+                for attachment in attachments:
+                    if method_argument:
+                        method_argument += "\n\n"
+                    method_argument += attachment
+
+        except (IndexError, AttributeError, KeyError) as exc:
+            sentry_sdk.capture_exception(exc)
+            return response.Response("Error parsing messages.", status=400)
+
+        # TODO: Check that the method was actually part of the original queryset.
+        method = models.MethodNode.objects.get(pk=method_pk)
+        run = models.MethodNodeRun.objects.create(  # type: ignore[misc]
+            method=method,
+            space=method.space,
+            user=request.user,
+            method_data={},
+            # TODO: This picks the latest version, even if the user doesn't have access to it.
+            method_version=method.versions.latest("version"),
+        )
+
+        run.method.execute(
+            method_run_id=run.id,
+            method_argument=method_argument,
+            buddy_id=request.data.get("buddy_id"),
+            authentication=str(request.auth),
+        )
+        return response.Response(
+            serializers.MethodNodeRunDetailSerializer(run, context={"request": request}).data
+        )
 
 
 @extend_schema(tags=["Skills"])

@@ -10,47 +10,38 @@ if [ "$#" -lt 2 ]; then
     exit 1
 fi
 
-# Extract the container name and shift
+# Extract the container name and the command
 CONTAINER="$1"
 shift
 
-# The command to execute
-COMMAND="$1"
-shift
-
-# Initialize an array to hold modified arguments
-MODIFIED_ARGS=()
-
 if [ "$CONTAINER" == "django" ]; then
-    # For the 'django' container, pass the arguments as-is
-    MODIFIED_ARGS=("$@")
-elif [ "$CONTAINER" == "crdt" ] || [ "$CONTAINER" == "frontend" ]; then
-    # Loop through all remaining arguments to adjust file paths
-    for ARG in "$@"; do
-        # If the argument starts with '$CONTAINER/', remove it
-        if [[ "$ARG" == "$CONTAINER/"* ]]; then
-            MODIFIED_ARG="${ARG#$CONTAINER/}"
-        else
-            MODIFIED_ARG="$ARG"
-        fi
-        MODIFIED_ARGS+=("$MODIFIED_ARG")
-    done
+    COMMAND="$@"
 else
-    echo "Error: Unknown container '$CONTAINER'. Valid containers are 'django', 'crdt', 'frontend'."
-    exit 1
+    # For other containers, modify file paths by replacing "node/" with "/app/"
+    MODIFIED_ARGS=()
+    for ARG in "$@"; do
+        if [[ "$ARG" == node/* ]]; then
+            MODIFIED_ARG="${ARG/node\//\/app\/}"
+            MODIFIED_ARGS+=("$MODIFIED_ARG")
+        else
+            MODIFIED_ARGS+=("$ARG")
+        fi
+    done
+    COMMAND="${MODIFIED_ARGS[@]}"
 fi
 
-# Build the full command to execute
-FULL_COMMAND="$COMMAND ${MODIFIED_ARGS[*]}"
+SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
 
 if [ "$CONTAINER" == "django" ]; then
-    # For the 'django' container, navigate to the parent directory
-    docker compose run --rm -T "$CONTAINER" bash -c "cd ..; $FULL_COMMAND"
+    # For the Django container, navigate to the parent directory
+    docker compose run --rm -T "$CONTAINER" bash -c "cd ..; $COMMAND"
 else
-    # For 'crdt' and 'frontend' containers, mount the container directory to /app
-    SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
+    # For all other containers, map ./node to /app inside the container
     docker compose run --rm \
-        -v "$SCRIPTPATH/$CONTAINER:/app" \
+        -v "$SCRIPTPATH/node:/app" \
         -v "/app/node_modules/" \
-        -T "$CONTAINER" bash -c "cd /app && $FULL_COMMAND"
+        -v "/app/frontend/node_modules/" \
+        -v "/app/crdt/node_modules/" \
+        -v "/app/packages/core/node_modules/" \
+        -T "$CONTAINER" bash -c "$COMMAND"
 fi

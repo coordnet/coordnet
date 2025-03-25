@@ -250,6 +250,20 @@ class MethodNodeRunDetailSerializer(MethodNodeRunListSerializer):
     method_data = serializers.JSONField(required=True)
 
 
+class MethodNodeRunExecutionSerializer(serializers.Serializer):
+    """
+    This is a temporary serializer to handle the execution of a method node run.
+    We'll switch to something like JSON Schema later on.
+    """
+
+    buddy_id = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, write_only=True
+    )
+    method_argument = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, write_only=True
+    )
+
+
 class MethodNodeVersionListSerializer(
     utils.serializers.BaseSoftDeletableSerializer[models.MethodNodeVersion]
 ):

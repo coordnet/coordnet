@@ -53,7 +53,13 @@ SPACE = {
 }
 
 GRAPH: dict[str, dict] = {
-    "edges": {},
+    "edges": {
+        "e5750bb8-15ca-4029-8ad5-5a19af3291c1": {
+            "id": "e5750bb8-15ca-4029-8ad5-5a19af3291c1",
+            "source": "e5750bb8-15ca-4029-8ad5-5a19af3291c1",
+            "target": "fa12f66a-b31c-48f1-a63f-6f99137117fd",
+        },
+    },
     "nodes": {
         "e5750bb8-15ca-4029-8ad5-5a19af3291c1": {
             "id": "e5750bb8-15ca-4029-8ad5-5a19af3291c1",
@@ -67,6 +73,19 @@ GRAPH: dict[str, dict] = {
             "resizing": False,
             "selected": False,
             "positionAbsolute": {"x": 280, "y": 216.5},
-        }
+        },
+        "fa12f66a-b31c-48f1-a63f-6f99137117fd": {
+            "id": "fa12f66a-b31c-48f1-a63f-6f99137117fd",
+            "data": {"id": "fa12f66a-b31c-48f1-a63f-6f99137117fd"},
+            "type": "GraphNode",
+            "style": {"width": 161, "height": 73},
+            "width": 161,
+            "height": 73,
+            "dragging": False,
+            "position": {"x": 700, "y": 216.5},
+            "resizing": False,
+            "selected": False,
+            "positionAbsolute": {"x": 700, "y": 216.5},
+        },
     },
 }

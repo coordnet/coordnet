@@ -1,6 +1,6 @@
 import typing
 import uuid
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import django.core.validators
 import dry_rest_permissions.generics
@@ -8,6 +8,7 @@ import imagekit.models
 import imagekit.processors
 import model_utils
 import pgtrigger
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes import models as content_type_models
 from django.contrib.postgres import indexes as pg_indexes
@@ -23,6 +24,7 @@ import permissions.managers
 import permissions.models
 import permissions.utils
 import utils.models
+from config.celery_app import app
 from utils import tokens
 
 if typing.TYPE_CHECKING:
@@ -248,7 +250,9 @@ class Node(BaseNode):
             return public_subquery
 
         space_public_subquery = Space.objects.filter(
-            nodes=models.OuterRef("object_id"), is_removed=False, is_public=True  # mypy: ignore
+            nodes=models.OuterRef("object_id"),
+            is_removed=False,
+            is_public=True,  # mypy: ignore
         )
         space_public_writable_subquery = Space.objects.filter(
             nodes=models.OuterRef("object_id"),
@@ -341,14 +345,18 @@ class Node(BaseNode):
 
         return super().save(force_insert, force_update, using, update_fields)
 
-    def node_as_str(self, include_content: bool, include_connections: bool) -> str:
+    def node_as_str(
+        self, include_content: bool, include_connections: bool, edges: dict | None = None
+    ) -> str:
         """Return a string representation of the node."""
+        if edges is None:
+            edges = {}
         single_line_title = self.title.replace("\n", " ").replace("\r", " ") if self.title else ""
         single_line_text = self.text.replace("\n", " ").replace("\r", " ") if self.text else ""
         single_line_description = (
             self.description.replace("\n", " ").replace("\r", " ") if self.description else ""
         )
-        node_str = f"({str(self.public_id)})\n - Title: {single_line_title}"
+        node_str = f"\n\n({str(self.public_id)})\n - Title: {single_line_title}"
         if include_content:
             if single_line_text:
                 node_str += f"\n - Content: {single_line_text}"
@@ -357,6 +365,13 @@ class Node(BaseNode):
         if include_connections:
             if subnode_ids := self.subnodes.values_list("public_id", flat=True):
                 node_str += f"\n - Connects to: {', '.join(map(str, subnode_ids))}"
+
+        if str(self.public_id) in edges:
+            node_str += (
+                "\n - This node is a prerequisite for these nodes: "
+                f"{', '.join(node_id for node_id in edges[str(self.public_id)])}"
+            )
+
         return node_str
 
     def fetch_subnodes(self, depth: int) -> dict[int, list["Node"]]:
@@ -372,7 +387,10 @@ class Node(BaseNode):
         return nodes_at_depth
 
     def node_context_for_depth(
-        self, query_depth: int, nodes_at_depth: dict[int, list["Node"]] | None = None
+        self,
+        query_depth: int,
+        nodes_at_depth: dict[int, list["Node"]] | None = None,
+        include_edges: bool = False,
     ) -> str:
         """Get the context of a node for a certain depth."""
         node_depth = (query_depth // 2) + 1
@@ -388,6 +406,12 @@ class Node(BaseNode):
         nodes_added: "dict[uuid.UUID, tuple[bool, bool]]" = {}
         context_nodes: "dict[uuid.UUID, str]" = OrderedDict()
 
+        edges = defaultdict(list)
+        if include_edges and self.graph_document and "edges" in self.graph_document.json:
+            raw_edges = self.graph_document.json["edges"]
+            for edge in raw_edges.values():
+                edges[edge["source"]].append(edge["target"])
+
         for depth, _nodes in nodes_at_depth.items():
             include_content = depth != ignore_content_at_depth
             for node in _nodes:
@@ -398,7 +422,9 @@ class Node(BaseNode):
 
                 # Calculate the new settings for the node, to provide as much context as possible.
                 new_include_content = set_include_content or include_content
-                new_include_connections = set_include_connections or depth != node_depth
+                new_include_connections = (
+                    set_include_connections or depth != node_depth
+                ) and query_depth > 1
 
                 # Save the new settings for the node.
                 nodes_added[node.public_id] = (new_include_content, new_include_connections)
@@ -409,6 +435,7 @@ class Node(BaseNode):
                     node.node_as_str(
                         include_content=new_include_content,
                         include_connections=new_include_connections,
+                        edges=edges,
                     )
                     + "\n"
                 )
@@ -488,6 +515,14 @@ class MethodNode(permissions.models.MembershipModelMixin, Node):  # type: ignore
     #       soft-deletability.
     available_objects = permissions.managers.SoftDeletableMembershipModelManager()  # type: ignore[misc]
     all_objects = permissions.managers.MembershipModelQueryManager()  # type: ignore[misc]
+
+    def execute(self, method_run_id: int, **kwargs: typing.Any) -> None:
+        """Execute the method."""
+        app.send_task(
+            "execute_method",
+            queue=settings.CELERY_NODE_EXECUTION_QUEUE,
+            kwargs={"method_id": self.pk, "method_run_id": method_run_id} | kwargs,
+        )
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init__(*args, **kwargs)
@@ -995,5 +1030,10 @@ class MethodNodeRun(utils.models.SoftDeletableBaseModel):
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user is the owner of the object."""
+        return self.user == request.user
+
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_execute_permission(self, request: "http.HttpRequest") -> bool:
         """Return True if the user is the owner of the object."""
         return self.user == request.user

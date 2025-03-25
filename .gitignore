@@ -171,14 +171,16 @@ backend/coordnet/media/
 .env
 .envs/.production/
 .envs/.local/.secrets
+.envs/.local/.django.secrets
 
 ### JS
 .pnpm-store
 node_modules
 backend/coordnet/media/
-!frontend/src/lib/
-frontend/.env.sentry-build-plugin
-frontend/.vite
+!node/frontend/src/lib/
+node/frontend/.env.sentry-build-plugin
+node/frontend/.vite
+node/frontend/dist
 
 ### k8s
 kubernetes/secrets.yaml
