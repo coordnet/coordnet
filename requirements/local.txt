@@ -634,8 +634,8 @@ django==5.1.7 \
     #   djangorestframework-simplejwt
     #   drf-spectacular
     #   sentry-sdk
-django-allauth==65.5.0 \
-    --hash=sha256:1a564fd2f5413054559078c2b7146796b517c1e7a38c6312e9de7c9bb708325d
+django-allauth==65.6.0 \
+    --hash=sha256:8058298a55c7232f06fd1397a2858498d10d0e710cc4d0db364923f5c75a5748
     # via -r requirements/base.in
 django-appconf==1.1.0 \
     --hash=sha256:7abd5a163ff57557f216e84d3ce9dac36c37ffce1ab9a044d3d53b7c943dd10f \
