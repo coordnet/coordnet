@@ -1555,9 +1555,9 @@ numpy==2.2.4 \
     --hash=sha256:f486038e44caa08dbd97275a9a35a283a8f1d2f0ee60ac260a1790e76660833c \
     --hash=sha256:f7de08cbe5551911886d1ab60de58448c6df0f67d9feb7d1fb21e9875ef95e91
     # via paper-qa
-openai==1.68.2 \
-    --hash=sha256:24484cb5c9a33b58576fdc5acf0e5f92603024a4e39d0b99793dfa1eb14c2b36 \
-    --hash=sha256:b720f0a95a1dbe1429c0d9bb62096a0d98057bcda82516f6e8af10284bdd5b19
+openai==1.69.0 \
+    --hash=sha256:73c4b2ddfd050060f8d93c70367189bd891e70a5adb6d69c04c3571f4fea5627 \
+    --hash=sha256:7b8a10a8ff77e1ae827e5e4c8480410af2070fb68bc973d6c994cf8218f1f98d
     # via
     #   -r requirements/base.in
     #   litellm
