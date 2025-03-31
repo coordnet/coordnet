@@ -60,6 +60,7 @@ export type CanvasNode = XYFlowNode<
     state?: string;
     error?: string;
     loading?: boolean;
+    buddy?: Buddy;
     externalNode?: {
       nodeId: string;
       spaceId: string;

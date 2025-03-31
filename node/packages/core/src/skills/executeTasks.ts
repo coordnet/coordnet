@@ -72,6 +72,7 @@ export const processTasks = async (
   const executionPlan: ExecutionPlan = { tasks: [] };
 
   for await (const task of context.taskList) {
+    const taskBuddy = task.promptNode.data.buddy || buddy;
     const selectedIds = [task.promptNode.id, ...task.inputNodes.map((node) => node.id)];
 
     if (cancelRef.current) {
@@ -123,7 +124,7 @@ export const processTasks = async (
       } else {
         const messages = await generatePrompt(
           task,
-          buddy,
+          taskBuddy,
           skillDoc,
           skillNodesMap,
           context.authentication
@@ -139,7 +140,7 @@ export const processTasks = async (
               skillDoc,
               cancelRef,
               skillNodesMap,
-              buddy,
+              taskBuddy,
               context.outputNode,
               isLast
             );
