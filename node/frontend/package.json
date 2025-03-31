@@ -50,7 +50,7 @@
     "dompurify": "^3.2.4",
     "downshift": "^9.0.9",
     "file-saver": "^2.0.5",
-    "lucide-react": "^0.483.0",
+    "lucide-react": "^0.485.0",
     "marked": "^15.0.7",
     "markmap-lib": "^0.18.11",
     "match-sorter": "^8.0.0",
