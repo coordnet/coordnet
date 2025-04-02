@@ -52,7 +52,7 @@ openai==1.70.0  # https://github.com/openai/openai-python
 
 # Error tracking
 # ------------------------------------------------------------------------------
-sentry-sdk[openai,django,celery]==2.24.1  # https://github.com/getsentry/sentry-python
+sentry-sdk[openai,django,celery]==2.25.0  # https://github.com/getsentry/sentry-python
 
 # External APIs
 # ------------------------------------------------------------------------------
