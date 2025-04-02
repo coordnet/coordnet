@@ -35,7 +35,7 @@ const NodeTypeSelect = ({
   if (!isSkill) return <></>;
 
   const shouldSkipType = (type: NodeType) => {
-    return type === NodeType.PaperQA || type === NodeType.ExternalData;
+    return type === NodeType.ExternalData;
   };
 
   const nodeTypeBadge = (
