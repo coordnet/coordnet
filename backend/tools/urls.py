@@ -9,5 +9,6 @@ router = routers.get_router()
 
 urlpatterns = router.urls
 urlpatterns += [
-    path("tools/paperqa/", tools.views.PaperQAView.as_view(), name="paperqa"),
+    path("tools/paperqa/", tools.views.LocalPDFQueryView.as_view(), name="paperqa-local"),
+    path("tools/paperqa/external/", tools.views.PaperQAView.as_view(), name="paperqa-external"),
 ]

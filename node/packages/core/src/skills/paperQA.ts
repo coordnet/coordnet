@@ -4,26 +4,50 @@ import { CanvasNode, PaperQAResponse, PaperQAResponsePair, Task } from "../types
 import { queryPaperQA } from "./api";
 import { setNodesState, setSkillNodeTitleAndContent } from "./utils";
 
-export const formatPaperQAResponse = (data: unknown): PaperQAResponse => {
-  if (
-    Array.isArray(data) &&
-    data.every((item) => Array.isArray(item) && item.length === 2 && typeof item[0] === "string")
-  ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obj: Record<string, any> = {};
-    for (const [key, value] of data) {
-      // Recurse on the value, in case it is itself an array of pairs
-      obj[key] = formatPaperQAResponse(value);
+export const convertPairsToObject = (pairs: unknown): Record<string, unknown> => {
+  if (!Array.isArray(pairs)) {
+    throw new Error("Expected pairs to be an array");
+  }
+  const obj: Record<string, unknown> = {};
+  for (const pair of pairs) {
+    if (Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string") {
+      const key = pair[0];
+      let value = pair[1];
+      // If the value is an array of pairs, recursively convert it.
+      if (
+        Array.isArray(value) &&
+        value.every(
+          (inner) => Array.isArray(inner) && inner.length === 2 && typeof inner[0] === "string"
+        )
+      ) {
+        value = convertPairsToObject(value);
+      }
+      obj[key] = value;
+    } else {
+      console.error("Invalid pair encountered:", pair);
+      throw new Error("Invalid PaperQA response format");
     }
-    return obj as PaperQAResponse;
+  }
+  return obj;
+};
+
+export const formatPaperQAResponse = (data: unknown): PaperQAResponse => {
+  if (Array.isArray(data)) {
+    try {
+      // Convert the nested pairs into an object recursively.
+      return convertPairsToObject(data) as unknown as PaperQAResponse;
+    } catch (error) {
+      console.error("Error converting pairs to object:", error);
+      throw new Error("Failed to format PaperQA response");
+    }
   }
   throw new Error("Invalid PaperQA response format");
 };
 
 export const paperQAResponseToMd = (data: PaperQAResponse): string => {
   const session = data?.session;
-  const bibtex = data?.bibtex;
-  const timing_info = data?.timing_info;
+  const bibtex = data?.bibtex ?? {};
+  const timing_info = data?.timing_info ?? {};
   const duration = data?.duration ?? 0;
 
   const timingKey = Object.keys(timing_info)[0];
@@ -100,10 +124,12 @@ export const executePaperQATask = async (
     let markdown = "";
     try {
       markdown = paperQAResponseToMd(formatPaperQAResponse(response));
-    } catch {
+    } catch (error) {
+      console.error("Error formatting PaperQA response", error);
       try {
         markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
-      } catch {
+      } catch (error) {
+        console.error("Error parsing PaperQA response", error);
         markdown = JSON.stringify(response, null, 2);
       }
     }
