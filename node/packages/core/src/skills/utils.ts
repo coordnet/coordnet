@@ -22,7 +22,9 @@ import {
   SingleNode,
   SkillJson,
   SkillRun,
+  SourceNode,
   SpaceNode,
+  Task,
 } from "../types";
 import { findExtremePositions } from "../utils";
 
@@ -43,10 +45,8 @@ export const setNodesState = async (
   for (const id of nodeIds) {
     const node = nodesMap?.get(id);
     if (node) {
-      console.log("error", error);
       const data: CanvasNode["data"] = { ...node.data, state };
       if (error) data.error = error;
-      console.log("tha data", data);
       await nodesMap?.set(id, { ...node, data });
     }
   }
@@ -229,10 +229,11 @@ interface AddNodeOptions {
   canvasId: string;
   document: Y.Doc;
   nodes: SingleNode[];
+  sourceNode?: SourceNode;
 }
 
 export const addToSkillCanvas = async (options: AddNodeOptions) => {
-  const { canvasId, nodes, document } = options;
+  const { canvasId, nodes, document, sourceNode } = options;
   const nodesMap = document.getMap<CanvasNode>(`${canvasId}-canvas-nodes`);
   const spaceMap = document.getMap<SpaceNode>("nodes");
   const nodePositions = findExtremePositions(Array.from(nodesMap.values()));
@@ -244,7 +245,7 @@ export const addToSkillCanvas = async (options: AddNodeOptions) => {
       type: "GraphNode",
       position: { x: nodePositions.minX + 210 * i, y: nodePositions.maxY + 120 },
       style: { width: 200, height: 80 },
-      data: {},
+      data: { sourceNode: sourceNode ? { ...sourceNode } : undefined },
     });
     spaceMap.set(id, { id, title: node.title });
 
@@ -414,4 +415,22 @@ export const setSpaceNodePageMarkdown = async (markdown: string, id: string, aut
     console.error(error);
   }
   provider.disconnect();
+};
+
+export const findSourceNode = (task: Task) => {
+  return (
+    task.sourceNodeInfo ||
+    (task.inputNodes.length > 0 && task.inputNodes.some((n) => n.data?.sourceNode)
+      ? task.inputNodes.find((n) => n.data?.sourceNode)?.data?.sourceNode
+      : task.inputNodes.length > 0 &&
+          task.inputNodes.some((n) => n.data.type === NodeType.ExternalData)
+        ? {
+            id: task.inputNodes.find((n) => n.data.type === NodeType.ExternalData)?.id ?? "",
+            spaceId: task.inputNodes.find((n) => n.data.type === NodeType.ExternalData)?.data
+              ?.externalNode?.spaceId,
+            nodeId: task.inputNodes.find((n) => n.data.type === NodeType.ExternalData)?.data
+              ?.externalNode?.nodeId,
+          }
+        : undefined)
+  );
 };

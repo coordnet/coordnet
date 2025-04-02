@@ -30,6 +30,7 @@ import {
   addToSkillCanvas,
   baseURL,
   createConnectedYDocServer,
+  findSourceNode,
   getSkillNodeCanvas,
   isCancelled,
   isMultipleResponseNode,
@@ -38,8 +39,6 @@ import {
   isTableResponseType,
   setNodesState,
   setSkillNodeTitleAndContent,
-  setSpaceNodePageMarkdown,
-  setSpaceNodeTitle,
 } from "./utils";
 
 const oai = new OpenAI({
@@ -92,19 +91,34 @@ export const processTasks = async (
     let tasks = [task];
     let taskResultsProcessed = false;
 
-    console.log(task);
-
     if (task?.loop === true) {
       tasks = [];
       const otherNodes = task.inputNodes.filter(
         (node) => !isResponseNode(node) && node.data.type !== NodeType.ExternalData
       );
+
       for (const inputNode of task.inputNodes) {
         if (isResponseNode(inputNode)) {
           const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
           for (const responseNode of inputNodeNodes) {
             if (isCancelled(skillDoc)) break;
-            tasks.push({ ...task, inputNodes: [...otherNodes, responseNode] });
+
+            // Preserve source node information if it exists
+            const sourceNodeInfo =
+              responseNode.data?.sourceNode ||
+              (inputNode.data.type === NodeType.ExternalData
+                ? {
+                    id: inputNode.id,
+                    spaceId: inputNode.data?.externalNode?.spaceId,
+                    nodeId: inputNode.data?.externalNode?.nodeId,
+                  }
+                : undefined);
+
+            tasks.push({
+              ...task,
+              inputNodes: [...otherNodes, responseNode],
+              sourceNodeInfo: sourceNodeInfo,
+            });
           }
         } else if (inputNode.data.type === NodeType.ExternalData) {
           const spaceId = inputNode.data?.externalNode?.spaceId ?? "";
@@ -124,13 +138,31 @@ export const processTasks = async (
             const spaceNode = externalSpaceMap.get(node.id);
             if (!spaceNode) continue;
             spaceMap.set(node.id, spaceNode);
-            const newSubNode = {
-              ...node,
-              data: { ...node.data, externalNode: { spaceId, nodeId: node.id, depth: 1 } },
+
+            // Create source node info with reference to original external node
+            const sourceNodeInfo = {
+              id: inputNode.id,
+              spaceId: inputNode.data?.externalNode?.spaceId,
+              nodeId: node.id,
             };
 
-            tasks.push({ ...task, inputNodes: [...otherNodes, newSubNode] });
+            const newSubNode = {
+              ...node,
+              data: {
+                ...node.data,
+                externalNode: { spaceId, nodeId: node.id, depth: 1 },
+                sourceNode: sourceNodeInfo,
+              },
+            };
+
+            tasks.push({
+              ...task,
+              inputNodes: [...otherNodes, newSubNode],
+              sourceNodeInfo: sourceNodeInfo,
+            });
           }
+
+          // Close connections
           spaceProvider.disconnect();
           canvasProvider.disconnect();
         }
@@ -139,8 +171,6 @@ export const processTasks = async (
         if (isCancelled(skillDoc)) break;
       }
     }
-
-    console.log(JSON.stringify(tasks));
 
     for await (const currentSubTask of tasks) {
       const isLastSubTask = currentSubTask === tasks[tasks.length - 1];
@@ -193,10 +223,24 @@ export const processTasks = async (
               skillDoc,
               taskBuddy,
               context.outputNode,
-              context.authentication,
               isLastSubTask
             );
             taskResultsProcessed = true;
+          }
+        }
+
+        if (taskResultsProcessed && currentSubTask.outputNode && !dryRun) {
+          const outputNodeId = currentSubTask.outputNode.id;
+          const connectedEdges = Array.from(edgesMap.values()).filter(
+            (edge) => edge.source === outputNodeId
+          );
+
+          // Update any connected external data nodes immediately
+          for (const edge of connectedEdges) {
+            const targetNode = nodesMap.get(edge.target);
+            if (targetNode?.data?.type === NodeType.ExternalData) {
+              await setExternalData(outputNodeId, skillDoc, nodesMap, context, targetNode);
+            }
           }
         }
       } catch (e: unknown) {
@@ -213,19 +257,6 @@ export const processTasks = async (
       }
 
       if (isCancelled(skillDoc)) break;
-    }
-
-    // If there is an attached target node then set the external data
-    if (!isCancelled(skillDoc) && taskResultsProcessed && task.outputNode && !dryRun) {
-      const outputNodeId = task.outputNode.id;
-      const connectedEdges = Array.from(edgesMap.values()).filter(
-        (edge) => edge.source === outputNodeId
-      );
-
-      for (const edge of connectedEdges) {
-        const targetNode = nodesMap.get(edge.target);
-        setExternalData(outputNodeId, skillDoc, nodesMap, context, targetNode);
-      }
     }
 
     if (!isCancelled(skillDoc)) {
@@ -245,15 +276,12 @@ export const executePromptTask = async (
   skillDoc: Y.Doc,
   buddy: Buddy,
   outputNode: CanvasNode,
-  auth: string,
   isLastTask: boolean
 ) => {
   if (isTableResponseType(task.outputNode)) {
     await executeTableTask(task, messages, skillDoc, buddy, outputNode, isLastTask);
     return;
   }
-
-  // const spaceNodesMap: Y.Map<SpaceNode> = skillDoc.getMap("nodes");
 
   const response_model: ResponseModel<z.AnyZodObject> = {
     schema: MultipleNodesSchema,
@@ -292,28 +320,13 @@ export const executePromptTask = async (
   [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
     if (!canvasId) return;
 
+    // Find the source node info - prioritize from task if available
+    const sourceNode = findSourceNode(task);
+
     if (task.outputNode?.data?.type === NodeType.ResponseMarkMap) {
       await handleMarkMapResponse(task, nodes, canvasId, skillDoc);
     } else if (isMultipleResponseNode(task.outputNode)) {
-      await addToSkillCanvas({ canvasId, document: skillDoc, nodes });
-    } else if (task?.outputNode?.data.type === NodeType.ExternalData) {
-      const externalNode = task?.outputNode?.data.externalNode;
-      const spaceId = externalNode?.spaceId;
-      if (
-        nodes.length === 1 &&
-        task.inputNodes.length === 1 &&
-        task.inputNodes[0].data.externalNode?.spaceId === spaceId &&
-        spaceId
-      ) {
-        // Update the external node with the new data
-        const nodeId = task.inputNodes[0].data.externalNode?.nodeId;
-        if (nodeId && nodes[0].title) setSpaceNodeTitle(nodes[0].title, nodeId, spaceId, auth);
-        if (nodeId && nodes[0].markdown) setSpaceNodePageMarkdown(nodes[0].markdown, nodeId, auth);
-      } else {
-        // Just add the node to the external canvas
-        console.log("We're adding nodes", "to the output node", task.outputNode.data.externalNode);
-        console.log(nodes);
-      }
+      await addToSkillCanvas({ canvasId, document: skillDoc, nodes, sourceNode });
     } else {
       await setSkillNodeTitleAndContent(skillDoc, canvasId, nodes[0].title, nodes[0].markdown);
     }

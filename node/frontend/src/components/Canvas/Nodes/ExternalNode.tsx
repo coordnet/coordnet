@@ -132,7 +132,7 @@ const ExternalNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps)
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <div
-              className="nodrag absolute left-0 top-0 m-1 flex h-3 max-w-[90px] cursor-pointer
+              className="nodrag absolute bottom-0 left-0 m-1 flex h-3 max-w-[90px] cursor-pointer
                 items-center rounded-full bg-violet-200 px-1.5 text-[8px] font-bold
                 text-neutral-600"
             >
@@ -170,12 +170,14 @@ const ExternalNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps)
           to={`/spaces/${data?.externalNode?.spaceId}/${data?.externalNode?.nodeId}`}
           target="_blank"
         >
-          <div className="absolute right-2 top-0 flex items-center text-[10px]">
+          <div className="absolute left-2 top-0 flex items-center text-[10px]">
             External Data <ExternalLink className="-mt-0.5 ml-1 size-2.5" />
           </div>
         </Link>
         {window.location.hostname === "localhost" && (
-          <div className="absolute bottom-0 right-2 text-[10px]">{String(id).slice(0, 8)}</div>
+          <div className="absolute bottom-0 right-2 text-[10px]">
+            {String(data?.externalNode?.nodeId ?? id).slice(0, 8)}
+          </div>
         )}
 
         {error ? (
