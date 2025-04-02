@@ -1,4 +1,4 @@
-import { CanvasNode } from "@coordnet/core";
+import { CanvasNode, ExportNode } from "@coordnet/core";
 import { XYPosition } from "@xyflow/react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -8,7 +8,7 @@ import * as Y from "yjs";
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
 import { importNodeCanvas } from "@/lib/nodes";
 import { readPdf } from "@/lib/pdfjs";
-import { BackendEntityType, BackendParent, ExportNode, SpaceNode } from "@/types";
+import { BackendEntityType, BackendParent, SpaceNode } from "@/types";
 
 import { addNodeToCanvas, addNodeToSkillCanvas } from "./";
 import { importMarkmap } from "./markmapImport";

@@ -385,6 +385,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@hocuspocus/provider':
+        specifier: ^2.15.2
+        version: 2.15.2(y-protocols@1.0.6(yjs@13.6.24))(yjs@13.6.24)
       '@instructor-ai/instructor':
         specifier: ^1.7.0
         version: 1.7.0(openai@4.89.0(ws@8.18.0)(zod@3.24.2))(zod@3.24.2)
@@ -418,9 +421,15 @@ importers:
       axios:
         specifier: ^1.8.4
         version: 1.8.4
+      elkjs:
+        specifier: ^0.10.0
+        version: 0.10.0
       marked:
         specifier: ^15.0.7
         version: 15.0.7
+      markmap-lib:
+        specifier: ^0.18.11
+        version: 0.18.11(markmap-common@0.18.9)
       openai:
         specifier: ^4.89.0
         version: 4.89.0(ws@8.18.0)(zod@3.24.2)
@@ -2863,6 +2872,9 @@ packages:
 
   electron-to-chromium@1.5.96:
     resolution: {integrity: sha512-8AJUW6dh75Fm/ny8+kZKJzI1pgoE8bKLZlzDU2W1ENd+DXKJrx7I7l9hb8UWR4ojlnb5OlixMt00QWiYJoVw1w==}
+
+  elkjs@0.10.0:
+    resolution: {integrity: sha512-v/3r+3Bl2NMrWmVoRTMBtHtWvRISTix/s9EfnsfEWApNrsmNjqgqJOispCGg46BPwIFdkag3N/HYSxJczvCm6w==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -7769,6 +7781,8 @@ snapshots:
   ee-first@1.1.1: {}
 
   electron-to-chromium@1.5.96: {}
+
+  elkjs@0.10.0: {}
 
   emoji-regex@8.0.0: {}
 
