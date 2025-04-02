@@ -12,7 +12,6 @@ import {
   processTasks,
   skillJsonToYdoc,
   skillYdocToJson,
-  SpaceNode,
 } from "@coordnet/core";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import * as celery from "@prd-thanhnguyenhoang/celery.node";
@@ -105,7 +104,6 @@ worker.register(
     const edgesMap: Y.Map<CanvasEdge> = doc.getMap(`${skillId}-canvas-edges`);
     const nodes = Array.from(nodesMap.values());
     const canvas = createCanvas(nodes, Array.from(edgesMap.values()));
-    const spaceMap: Y.Map<SpaceNode> = doc.getMap("nodes");
 
     const outputNode = nodes.find((node) => node.data.type === NodeType.Output);
     if (!outputNode) {
@@ -113,17 +111,18 @@ worker.register(
       return;
     }
 
-    runMeta.set("status", "running");
-    const context: ExecutionContext = { authentication, taskList: [], responses: {}, outputNode };
-    createTasks(canvas, context);
-    const ref = { current: false };
-    await processTasks(context, buddy, doc, spaceMap, nodesMap, ref, false);
-    console.log("Task running is completed");
-    runMeta.set("status", "success");
-    const skillJson = cleanSkillJson(skillYdocToJson(doc));
-    await db("nodes_methodnoderun").where("id", methodRunId).update({
-      method_data: skillJson,
-    });
+    if (runMeta.get("status") !== "cancelled") {
+      runMeta.set("status", "running");
+      const context: ExecutionContext = { authentication, taskList: [], responses: {}, outputNode };
+      createTasks(canvas, context);
+      await processTasks(context, buddy, skillId, doc, false);
+      console.log("Task running is completed");
+      runMeta.set("status", "success");
+      const skillJson = cleanSkillJson(skillYdocToJson(doc));
+      await db("nodes_methodnoderun").where("id", methodRunId).update({
+        method_data: skillJson,
+      });
+    }
   }
 );
 worker.start();

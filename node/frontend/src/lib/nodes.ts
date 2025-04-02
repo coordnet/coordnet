@@ -1,4 +1,4 @@
-import { CanvasNode, FormatReturnType, getNodeContent } from "@coordnet/core";
+import { CanvasNode, ExportNode, FormatReturnType, getNodeContent } from "@coordnet/core";
 import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -9,7 +9,7 @@ import * as Y from "yjs";
 import { getNode } from "@/api";
 import { createConnectedCanvas } from "@/components/Canvas/utils";
 import { extensions } from "@/lib/readOnlyEditor";
-import { ExportNode, SpaceNode } from "@/types";
+import { SpaceNode } from "@/types";
 
 import { getCanvas } from "./canvases";
 import { readOnlyEditor } from "./readOnlyEditor";

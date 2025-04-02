@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import typing
 import warnings
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -264,6 +265,8 @@ SIMPLE_JWT = {
     "ALGORITHM": "RS512",
     "SIGNING_KEY": env.str("JWT_SIGNING_KEY", multiline=True),
     "VERIFYING_KEY": env.str("JWT_VERIFYING_KEY", multiline=True),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
 # EMAIL

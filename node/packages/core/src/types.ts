@@ -1,4 +1,5 @@
 import { CompletionMeta } from "@instructor-ai/instructor";
+import { JSONContent } from "@tiptap/core";
 import { Edge, Node as XYFlowNode, Position } from "@xyflow/react";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { z } from "zod";
@@ -23,6 +24,7 @@ export enum NodeType {
   ResponseSingle = "response_single",
   ResponseMultiple = "response_multiple",
   ResponseTable = "response_table",
+  ResponseMarkMap = "response_markmap",
   PaperFinder = "paper_finder",
   PaperQA = "paper_qa",
   ExternalData = "external_data",
@@ -38,6 +40,7 @@ export const nodeTypeMap = {
   [NodeType.ResponseTable]: "Response (table)",
   [NodeType.ResponseSingle]: "Responses (one node)",
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
+  [NodeType.ResponseMarkMap]: "Responses (MarkMap)",
   [NodeType.PaperFinder]: "Paper Finder",
   [NodeType.PaperQA]: "Paper QA",
   [NodeType.ExternalData]: "External Data",
@@ -77,6 +80,28 @@ export interface Canvas {
   adjacencyList: { [id: string]: string[] };
   topologicallySortedNodes: string[];
 }
+
+export type ExportNodeSingle = {
+  id: string;
+  width: number | null | undefined;
+  height: number | null | undefined;
+  type?: string;
+  title: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  data?: {
+    borderColor?: string;
+    type?: NodeType;
+  };
+  content?: JSONContent;
+};
+
+export type ExportNode = ExportNodeSingle & {
+  nodes: ExportNodeSingle[];
+  edges: CanvasEdge[];
+};
 
 export interface Task {
   inputNodes: CanvasNode[];
@@ -208,7 +233,7 @@ export interface SemanticScholarPaper {
   isOpenAccess: boolean;
 }
 
-export type RunStatus = "idle" | "pending" | "running" | "canceled" | "success" | "error";
+export type RunStatus = "idle" | "pending" | "running" | "cancelled" | "success" | "error";
 
 export interface RunResult {
   status: RunStatus;

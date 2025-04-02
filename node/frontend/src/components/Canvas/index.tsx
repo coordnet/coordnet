@@ -1,6 +1,7 @@
 import "@xyflow/react/dist/style.css";
 import "./react-flow.css";
 
+import { getLayoutedNodes } from "@coordnet/core";
 import {
   Background,
   OnConnect,
@@ -29,7 +30,6 @@ import CanvasNodeComponent from "./Nodes/CanvasNode";
 import ExternalNodeComponent from "./Nodes/ExternalNode";
 import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
-import { getLayoutedNodes } from "./utils/getLayoutedNodes";
 import { handleCanvasDrop } from "./utils/handleCanvasDrop";
 
 const onDragOver = (event: DragEvent) => {

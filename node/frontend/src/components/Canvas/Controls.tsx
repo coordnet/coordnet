@@ -76,7 +76,7 @@ const Controls = () => {
       {miniMapVisible && (
         <MiniMap
           pannable={true}
-          className={clsx("!right-2 !m-0 !mb-1", isSkill ? "!bottom-40" : "!bottom-21")}
+          className={clsx("!right-2 !m-0 !mb-1", isSkill ? "!bottom-40" : "!bottom-12")}
         />
       )}
     </>

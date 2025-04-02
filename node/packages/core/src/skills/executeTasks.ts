@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import {
   Buddy,
+  CanvasEdge,
   CanvasNode,
   ExecutionContext,
   ExecutionPlan,
@@ -20,19 +21,25 @@ import {
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import { getExternalNode, querySemanticScholar } from "./api";
+import { setExternalData } from "./externalData";
+import { handleMarkMapResponse } from "./markmap";
 import { executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
   addToSkillCanvas,
   baseURL,
+  createConnectedYDocServer,
   getSkillNodeCanvas,
+  isCancelled,
   isMultipleResponseNode,
   isResponseNode,
   isSingleResponseType,
   isTableResponseType,
   setNodesState,
   setSkillNodeTitleAndContent,
+  setSpaceNodePageMarkdown,
+  setSpaceNodeTitle,
 } from "./utils";
 
 const oai = new OpenAI({
@@ -46,10 +53,8 @@ export const client = Instructor({ client: oai, mode: "TOOLS" });
 export const processTasks = async (
   context: ExecutionContext,
   buddy: Buddy | undefined,
+  skillId: string,
   skillDoc: Y.Doc | undefined,
-  skillNodesMap: Y.Map<SpaceNode> | undefined,
-  nodesMap: Y.Map<CanvasNode> | undefined,
-  cancelRef: { current: boolean },
   dryRun: boolean = false
 ) => {
   if (!buddy) {
@@ -60,22 +65,24 @@ export const processTasks = async (
     console.error("Skill yDoc not found!");
     return;
   }
-  if (!skillNodesMap) {
-    console.error("Skill node map not found");
-    return;
-  }
-  if (!nodesMap) {
-    console.error("nodesMap not found");
-    return;
-  }
+
+  const nodesMap: Y.Map<CanvasNode> = skillDoc.getMap(`${skillId}-canvas-nodes`);
+  const edgesMap: Y.Map<CanvasEdge> = skillDoc.getMap(`${skillId}-canvas-edges`);
+  const spaceMap: Y.Map<SpaceNode> = skillDoc.getMap("nodes");
 
   const executionPlan: ExecutionPlan = { tasks: [] };
 
   for await (const task of context.taskList) {
     const taskBuddy = task.promptNode.data.buddy || buddy;
     const selectedIds = [task.promptNode.id, ...task.inputNodes.map((node) => node.id)];
+    if (task.outputNode) {
+      selectedIds.push(task.outputNode.id);
+    }
 
-    if (cancelRef.current) {
+    // Give the task some time to process before continuing
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    if (isCancelled(skillDoc)) {
       setNodesState(selectedIds, nodesMap, "inactive");
       break;
     }
@@ -83,82 +90,150 @@ export const processTasks = async (
     if (!dryRun) setNodesState(selectedIds, nodesMap, "active");
 
     let tasks = [task];
+    let taskResultsProcessed = false;
+
+    console.log(task);
 
     if (task?.loop === true) {
       tasks = [];
-      const otherNodes = task.inputNodes.filter((node) => !isResponseNode(node));
+      const otherNodes = task.inputNodes.filter(
+        (node) => !isResponseNode(node) && node.data.type !== NodeType.ExternalData
+      );
       for (const inputNode of task.inputNodes) {
         if (isResponseNode(inputNode)) {
           const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
           for (const responseNode of inputNodeNodes) {
-            if (cancelRef.current) break;
+            if (isCancelled(skillDoc)) break;
             tasks.push({ ...task, inputNodes: [...otherNodes, responseNode] });
           }
+        } else if (inputNode.data.type === NodeType.ExternalData) {
+          const spaceId = inputNode.data?.externalNode?.spaceId ?? "";
+          const [canvasDoc, canvasProvider] = await createConnectedYDocServer(
+            `node-graph-${inputNode.data?.externalNode?.nodeId}`,
+            context.authentication
+          );
+          const nodes = Array.from(canvasDoc.getMap<CanvasNode>("nodes").values());
+
+          const [spaceDoc, spaceProvider] = await createConnectedYDocServer(
+            `space-${inputNode.data?.externalNode?.spaceId}`,
+            context.authentication
+          );
+          const externalSpaceMap = spaceDoc.getMap<SpaceNode>("nodes");
+
+          for (const node of nodes) {
+            const spaceNode = externalSpaceMap.get(node.id);
+            if (!spaceNode) continue;
+            spaceMap.set(node.id, spaceNode);
+            const newSubNode = {
+              ...node,
+              data: { ...node.data, externalNode: { spaceId, nodeId: node.id, depth: 1 } },
+            };
+
+            tasks.push({ ...task, inputNodes: [...otherNodes, newSubNode] });
+          }
+          spaceProvider.disconnect();
+          canvasProvider.disconnect();
         }
+        // const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
+        // for (const responseNode of inputNodeNodes) {
+        if (isCancelled(skillDoc)) break;
       }
     }
 
-    for await (const task of tasks) {
-      const isLast = task === tasks[tasks.length - 1];
+    console.log(JSON.stringify(tasks));
 
-      if (cancelRef.current) {
+    for await (const currentSubTask of tasks) {
+      const isLastSubTask = currentSubTask === tasks[tasks.length - 1];
+
+      if (isCancelled(skillDoc)) {
         setNodesState(selectedIds, nodesMap, "inactive");
-        break; // Exit the loop if cancellation is requested
+        break;
       }
 
-      if (task.promptNode.data.type === NodeType.PaperFinder) {
-        const query = await collectInputTitles(task, skillDoc, skillNodesMap);
-        if (dryRun) {
-          executionPlan.tasks.push({ task, query, type: "PAPERS" });
+      try {
+        if (currentSubTask.promptNode.data.type === NodeType.PaperFinder) {
+          const query = await collectInputTitles(currentSubTask, skillDoc);
+          if (dryRun) {
+            executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERS" });
+          } else {
+            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
+            await executeKeywordTask(currentSubTask, skillDoc, query);
+            taskResultsProcessed = true;
+          }
+        } else if (currentSubTask.promptNode.data.type === NodeType.PaperQA) {
+          const query = await collectInputTitles(currentSubTask, skillDoc);
+          if (dryRun) {
+            executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERQA" });
+          } else {
+            await executePaperQATask(
+              currentSubTask,
+              query,
+              skillDoc,
+              nodesMap,
+              context.outputNode,
+              isLastSubTask
+            );
+            taskResultsProcessed = true;
+          }
         } else {
-          setNodesState([task.promptNode.id], nodesMap, "executing");
-          await executeKeywordTask(task, skillDoc, query, cancelRef);
-        }
-      } else if (task.promptNode.data.type === NodeType.PaperQA) {
-        const query = await collectInputTitles(task, skillDoc, skillNodesMap);
-        if (dryRun) {
-          executionPlan.tasks.push({ task, query, type: "PAPERQA" });
-        } else {
-          await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
-        }
-      } else {
-        const messages = await generatePrompt(
-          task,
-          taskBuddy,
-          skillDoc,
-          skillNodesMap,
-          context.authentication
-        );
-        if (dryRun) {
-          executionPlan.tasks.push({ task, messages, type: "PROMPT" });
-        } else {
-          try {
-            setNodesState([task.promptNode.id], nodesMap, "executing");
+          // Default prompt task
+          const messages = await generatePrompt(
+            currentSubTask,
+            taskBuddy,
+            skillDoc,
+            context.authentication
+          );
+          if (dryRun) {
+            executionPlan.tasks.push({ task: currentSubTask, messages, type: "PROMPT" });
+          } else {
+            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
             await executePromptTask(
-              task,
+              currentSubTask,
               messages,
               skillDoc,
-              cancelRef,
-              skillNodesMap,
               taskBuddy,
               context.outputNode,
-              isLast
+              context.authentication,
+              isLastSubTask
             );
-          } catch (e) {
-            console.error(`Failed to execute prompt task for node ${task.promptNode.id}`);
-            console.error(e);
-
-            await setNodesState(
-              task.inputNodes.map((node) => node.id),
-              nodesMap,
-              "error",
-              "Prompt failed, context may be too long"
-            );
+            taskResultsProcessed = true;
           }
         }
+      } catch (e: unknown) {
+        // Catch errors during execution
+        console.error(`Failed to execute task for node ${currentSubTask.promptNode.id}`);
+        console.error(e);
+        const errorMessage = e instanceof Error ? e.message : "Task execution failed";
+        await setNodesState(
+          [currentSubTask.promptNode.id, ...currentSubTask.inputNodes.map((n) => n.id)],
+          nodesMap,
+          "error",
+          `Execution failed: ${errorMessage.substring(0, 100)}`
+        );
+      }
+
+      if (isCancelled(skillDoc)) break;
+    }
+
+    // If there is an attached target node then set the external data
+    if (!isCancelled(skillDoc) && taskResultsProcessed && task.outputNode && !dryRun) {
+      const outputNodeId = task.outputNode.id;
+      const connectedEdges = Array.from(edgesMap.values()).filter(
+        (edge) => edge.source === outputNodeId
+      );
+
+      for (const edge of connectedEdges) {
+        const targetNode = nodesMap.get(edge.target);
+        setExternalData(outputNodeId, skillDoc, nodesMap, context, targetNode);
       }
     }
-    setNodesState(selectedIds, nodesMap, "inactive");
+
+    if (!isCancelled(skillDoc)) {
+      setNodesState(selectedIds, nodesMap, "inactive");
+    } else {
+      setNodesState(selectedIds, nodesMap, "inactive", "Cancelled");
+      break;
+    }
   }
 
   return executionPlan;
@@ -168,25 +243,17 @@ export const executePromptTask = async (
   task: Task,
   messages: ChatCompletionMessageParam[],
   skillDoc: Y.Doc,
-  cancelRef: React.RefObject<boolean | null>,
-  spaceNodesMap: Y.Map<SpaceNode>,
   buddy: Buddy,
   outputNode: CanvasNode,
+  auth: string,
   isLastTask: boolean
 ) => {
   if (isTableResponseType(task.outputNode)) {
-    await executeTableTask(
-      task,
-      messages,
-      skillDoc,
-      cancelRef,
-      spaceNodesMap,
-      buddy,
-      outputNode,
-      isLastTask
-    );
+    await executeTableTask(task, messages, skillDoc, buddy, outputNode, isLastTask);
     return;
   }
+
+  // const spaceNodesMap: Y.Map<SpaceNode> = skillDoc.getMap("nodes");
 
   const response_model: ResponseModel<z.AnyZodObject> = {
     schema: MultipleNodesSchema,
@@ -204,7 +271,7 @@ export const executePromptTask = async (
     response_model,
   });
 
-  if (cancelRef.current) return;
+  if (isCancelled(skillDoc)) return;
 
   const nodes: SingleNode[] = [];
   if (isSingleResponseType(task.outputNode)) {
@@ -219,30 +286,52 @@ export const executePromptTask = async (
     nodes.push(...(extractedData.nodes as SingleNode[]));
   }
 
-  if (cancelRef.current) return;
+  if (isCancelled(skillDoc)) return;
 
-  if (isMultipleResponseNode(task.outputNode)) {
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-      if (canvasId) await addToSkillCanvas({ canvasId, document: skillDoc, nodes });
-    });
-  } else {
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
-      if (id) await setSkillNodeTitleAndContent(skillDoc, id, nodes[0].title, nodes[0].markdown);
-    });
-  }
+  // For the task output node and the final output node if it's the last task
+  [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
+    if (!canvasId) return;
+
+    if (task.outputNode?.data?.type === NodeType.ResponseMarkMap) {
+      await handleMarkMapResponse(task, nodes, canvasId, skillDoc);
+    } else if (isMultipleResponseNode(task.outputNode)) {
+      await addToSkillCanvas({ canvasId, document: skillDoc, nodes });
+    } else if (task?.outputNode?.data.type === NodeType.ExternalData) {
+      const externalNode = task?.outputNode?.data.externalNode;
+      const spaceId = externalNode?.spaceId;
+      if (
+        nodes.length === 1 &&
+        task.inputNodes.length === 1 &&
+        task.inputNodes[0].data.externalNode?.spaceId === spaceId &&
+        spaceId
+      ) {
+        // Update the external node with the new data
+        const nodeId = task.inputNodes[0].data.externalNode?.nodeId;
+        if (nodeId && nodes[0].title) setSpaceNodeTitle(nodes[0].title, nodeId, spaceId, auth);
+        if (nodeId && nodes[0].markdown) setSpaceNodePageMarkdown(nodes[0].markdown, nodeId, auth);
+      } else {
+        // Just add the node to the external canvas
+        console.log("We're adding nodes", "to the output node", task.outputNode.data.externalNode);
+        console.log(nodes);
+      }
+    } else {
+      await setSkillNodeTitleAndContent(skillDoc, canvasId, nodes[0].title, nodes[0].markdown);
+    }
+  });
 };
 
 export const generatePrompt = async (
   task: Task,
   buddy: Buddy,
-  skillDoc: Y.Doc,
-  spaceNodesMap: Y.Map<SpaceNode>,
+  document: Y.Doc,
   authentication: string
 ): Promise<ChatCompletionMessageParam[]> => {
+  const spaceNodesMap: Y.Map<SpaceNode> = document.getMap("nodes");
+
   const getNode = (nodeId: string) => {
     return {
       title: spaceNodesMap?.get(nodeId)?.title ?? "",
-      content: getSkillNodePageContent(nodeId, skillDoc) ?? "",
+      content: getSkillNodePageContent(nodeId, document) ?? "",
     };
   };
 
@@ -250,13 +339,15 @@ export const generatePrompt = async (
   for await (const canvasNode of task.inputNodes) {
     if (
       canvasNode.data.type == NodeType.ResponseSingle ||
-      canvasNode.data.type == NodeType.ResponseMultiple
+      canvasNode.data.type == NodeType.ResponseMultiple ||
+      canvasNode.data.type == NodeType.ResponseMarkMap
     ) {
-      for (const node of getSkillNodeCanvas(canvasNode.id, skillDoc).nodes) {
+      for (const node of getSkillNodeCanvas(canvasNode.id, document).nodes) {
         nodes.push(nodeTemplate(getNode(node.id)));
       }
     } else if (canvasNode.data.type === NodeType.ExternalData) {
       if (canvasNode.data?.externalNode?.nodeId) {
+        console.log("adding external node", canvasNode.data?.externalNode?.nodeId);
         const { title } = getNode(canvasNode.id);
         const content = await getExternalNode(
           canvasNode.data?.externalNode?.nodeId,
@@ -276,14 +367,9 @@ export const generatePrompt = async (
   ];
 };
 
-export const executeKeywordTask = async (
-  task: Task,
-  skillDoc: Y.Doc,
-  query: string,
-  cancelRef: React.RefObject<boolean | null>
-) => {
+export const executeKeywordTask = async (task: Task, document: Y.Doc, query: string) => {
   try {
-    if (cancelRef.current) return;
+    if (isCancelled(document)) return;
     const papers = await querySemanticScholar(query);
     const nodes: SingleNode[] = papers.map((paper) => ({
       title: paper.title,
@@ -299,20 +385,17 @@ export const executeKeywordTask = async (
 ${paper.abstract}`,
     }));
 
-    if (cancelRef.current) return;
+    if (isCancelled(document)) return;
 
-    await addToSkillCanvas({ canvasId: task?.outputNode?.id ?? "", nodes, document: skillDoc });
+    await addToSkillCanvas({ canvasId: task?.outputNode?.id ?? "", nodes, document });
   } catch (e) {
     console.error(e);
     console.info("A request to find papers failed, continuing with the next task");
   }
 };
 
-export const collectInputTitles = async (
-  task: Task,
-  skillDoc: Y.Doc,
-  spaceNodesMap: Y.Map<SpaceNode>
-): Promise<string> => {
+export const collectInputTitles = async (task: Task, skillDoc: Y.Doc): Promise<string> => {
+  const spaceMap: Y.Map<SpaceNode> = skillDoc.getMap("nodes");
   let query = "";
 
   for await (const canvasNode of task.inputNodes) {
@@ -322,14 +405,14 @@ export const collectInputTitles = async (
     ) {
       const { nodes } = getSkillNodeCanvas(canvasNode.id, skillDoc);
       for (const node of nodes) {
-        const title = spaceNodesMap?.get(node.id)?.title;
-        if (title) query += title;
+        const title = spaceMap?.get(node.id)?.title;
+        if (title) query += title + " ";
       }
     } else {
-      const title = spaceNodesMap?.get(canvasNode.id)?.title;
-      if (title) query += title;
+      const title = spaceMap?.get(canvasNode.id)?.title;
+      if (title) query += title + " ";
     }
   }
 
-  return query;
+  return query.trim();
 };

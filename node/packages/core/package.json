@@ -7,6 +7,7 @@
     "./skills": "./src/skills/index.ts"
   },
   "dependencies": {
+    "@hocuspocus/provider": "^2.15.2",
     "@instructor-ai/instructor": "^1.7.0",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-link": "^2.11.5",
@@ -18,7 +19,9 @@
     "@tiptap/starter-kit": "^2.11.5",
     "@xyflow/react": "^12.4.4",
     "axios": "^1.8.4",
+    "elkjs": "^0.10.0",
     "marked": "^15.0.7",
+    "markmap-lib": "^0.18.11",
     "openai": "^4.89.0",
     "prosemirror-model": "1.25.0",
     "uuid": "^11.1.0",
