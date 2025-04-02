@@ -4,6 +4,7 @@ import { CanvasNode, PaperQAResponse, PaperQAResponsePair, SingleNode, Task } fr
 import { queryPaperQA } from "./api";
 import {
   addToSkillCanvas,
+  findSourceNode,
   isMultipleResponseNode,
   setNodesState,
   setSkillNodeTitleAndContent,
@@ -141,12 +142,14 @@ export const executePaperQATask = async (
 
     const node: SingleNode = { title: "PaperQA Response: " + query, markdown: markdown };
 
+    const sourceNode = findSourceNode(task);
+
     [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
       if (!canvasId) return;
 
       // If it's a multiple response node
       if (task.outputNode && isMultipleResponseNode(task.outputNode)) {
-        await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node] });
+        await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node], sourceNode });
       } else {
         // Otherwise just update the node directly
         await setSkillNodeTitleAndContent(skillDoc, canvasId, node.title, node.markdown);

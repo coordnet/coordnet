@@ -51,6 +51,12 @@ export type SpaceNode = {
   title: string;
 };
 
+export type SourceNode = {
+  id: string;
+  spaceId?: string;
+  nodeId?: string;
+};
+
 export type CanvasNode = XYFlowNode<
   {
     borderColor?: string;
@@ -69,6 +75,7 @@ export type CanvasNode = XYFlowNode<
       spaceId: string;
       depth: number;
     };
+    sourceNode?: SourceNode;
   },
   "GraphNode" | "ExternalNode"
 >;
@@ -108,6 +115,7 @@ export interface Task {
   outputNode: CanvasNode | null;
   promptNode: CanvasNode;
   loop?: boolean;
+  sourceNodeInfo?: SourceNode;
 }
 
 export interface ExecutionContext {
