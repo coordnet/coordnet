@@ -467,7 +467,7 @@ coredis==4.20.0 \
     --hash=sha256:e0ee1eed2698a434d7ded4b9be90b2d1a6bade6585b6dd985655cbeadf990078 \
     --hash=sha256:ed268f54636f1784fbc2c3a2e8e19a71e5d9c8d88d1a55676512a52af39f2f7c \
     --hash=sha256:f80b77c96ff0add39d50cc2e2a9820dee5b7f742cddd764406bd2b6693329fad
-    # via fh-llm-client
+    # via fhlmi
 coverage==7.8.0 \
     --hash=sha256:042e7841a26498fff7a37d6fda770d17519982f5b7d8bf5278d140b67b61095f \
     --hash=sha256:04bfec25a8ef1c5f41f5e7e5c842f6b615599ca8ba8391ec33a9290d9d2db3a3 \
@@ -800,17 +800,17 @@ faker==37.0.2 \
     --hash=sha256:8955706c56c28099585e9e2b6f814eb0a3a227eb36a2ee3eb9ab577c4764eacc \
     --hash=sha256:948bd27706478d3aa0b6f9f58b9f25207098f6ca79852c7b49c44a8ced2bc59b
     # via factory-boy
-fh-llm-client==0.1.0 \
-    --hash=sha256:859da187b0e5b24545828fd88f9a16be9ca4f46a2443f6ba3665759609823725 \
-    --hash=sha256:8bf7ad7a3a0778740c5ce327e37e118c186999ea9ead1688aa7e571e4d3fa18c
-    # via paper-qa
 fhaviary[llm]==0.18.3 \
     --hash=sha256:cf9f901a155797499bbd2da9f4d302ff6a27c30629bfd103055b5930f8b47d72 \
     --hash=sha256:dff759684b170e818f464762bf8db5da37e9711ef8971e8dd6f43588640dc5c8
     # via
-    #   fh-llm-client
+    #   fhlmi
     #   paper-qa
     #   pqapi
+fhlmi==0.26.0 \
+    --hash=sha256:0546c5065693c79c7b7b1a9067c83c5ecda09d6de6256c0dc4cd5e89722017f8 \
+    --hash=sha256:c436a5052d8f8d668ca8df02cb0a24530d298e4999f7af9a8e3f0f10ba244790
+    # via paper-qa
 filelock==3.18.0 \
     --hash=sha256:adbc88eabb99d2fec8c9c1b229b171f18afa655400173ddc653d5d01501fb9f2 \
     --hash=sha256:c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de
@@ -1271,13 +1271,13 @@ latexcodec==3.0.0 \
 limits==4.4.1 \
     --hash=sha256:9fefa114e58fa3182d64b011cf6e000fe1cc4917cf3e9cbe8f6d4b70e52498d5 \
     --hash=sha256:ec200a20ccb7292dd77035ded417984386333418cb9f9d579090e4194e831907
-    # via fh-llm-client
+    # via fhlmi
 litellm==1.63.14 \
     --hash=sha256:9cffe19d8140c33a2f777c5b2e8b8175ffe03979aac341b8538d6e6d143bd640 \
     --hash=sha256:d4c469f5990e142cc23dfa06c3fddd627001928e4df43682001f453af6a1fb51
     # via
-    #   fh-llm-client
     #   fhaviary
+    #   fhlmi
 markdown-it-py==3.0.0 \
     --hash=sha256:355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1 \
     --hash=sha256:e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb
@@ -1572,8 +1572,8 @@ packaging==24.2 \
     #   huggingface-hub
     #   limits
     #   sphinx
-paper-qa @ https://github.com/JannKleen/paper-qa/releases/download/v5.11.2/paper_qa-5.11.2.tar.gz \
-    --hash=sha256:e3539201ae9274c960ef8921cf9b00d36cdc2e387a1e151d0dafeb413357cb27
+paper-qa @ https://github.com/JannKleen/paper-qa/releases/download/v5.20.1/paper_qa-5.20.1.tar.gz \
+    --hash=sha256:7b810ca6effdd60acbc4c2ba6904b271cace4f81bc4bf519e5a7084e609b1b30
     # via
     #   -r requirements/base.in
     #   pqapi
@@ -1827,8 +1827,8 @@ pydantic==2.10.1 \
     --hash=sha256:a4daca2dc0aa429555e0656d6bf94873a7dc5f54ee42b1f5873d666fb3f35560 \
     --hash=sha256:a8d20db84de64cf4a7d59e899c2caf0fe9d660c7cfc482528e7020d7dd189a7e
     # via
-    #   fh-llm-client
     #   fhaviary
+    #   fhlmi
     #   litellm
     #   openai
     #   paper-qa
@@ -2313,9 +2313,9 @@ s3transfer==0.11.4 \
     --hash=sha256:559f161658e1cf0a911f45940552c696735f5c74e64362e515f333ebed87d679 \
     --hash=sha256:ac265fa68318763a03bf2dc4f39d5cbd6a9e178d81cc9483ad27da33637e320d
     # via boto3
-sentry-sdk[celery,django,openai]==2.24.1 \
-    --hash=sha256:36baa6a1128b9d98d2adc5e9b2f887eff0a6af558fc2b96ed51919042413556d \
-    --hash=sha256:8ba3c29990fa48865b908b3b9dc5ae7fa7e72407c7c9e91303e5206b32d7b8b1
+sentry-sdk[celery,django,openai]==2.25.0 \
+    --hash=sha256:a6e623691ff03d1758f940fe421e5b65f313f4ac37638079ab94d1b6f052eb15 \
+    --hash=sha256:aa0f558209c1819391421d65e25b1c4000f49580e6ecf5c05ff0c6e74f74470b
     # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
@@ -2450,7 +2450,7 @@ tiktoken==0.9.0 \
     --hash=sha256:f32cc56168eac4851109e9b5d327637f15fd662aa30dd79f964b7c39fbadd26e
     # via
     #   -r requirements/base.in
-    #   fh-llm-client
+    #   fhlmi
     #   litellm
     #   paper-qa
     #   sentry-sdk
@@ -2516,7 +2516,7 @@ typing-extensions==4.12.2 \
     #   django-stubs
     #   django-stubs-ext
     #   djangorestframework-stubs
-    #   fh-llm-client
+    #   fhlmi
     #   huggingface-hub
     #   ipython
     #   limits

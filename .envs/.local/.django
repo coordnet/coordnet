@@ -18,3 +18,7 @@ CELERY_FLOWER_PASSWORD=ooxohvaeP6aivoo2Ahsooquoo0ieng2hien8bai0Et1Wae8ceshee1ohs
 # Frontend
 # ------------------------------------------------------------------------------
 FRONTEND_URL=http://localhost:5173
+
+# PaperQA
+# ------------------------------------------------------------------------------
+PQA_HOME=/app/backend/tools/paperqa/home
