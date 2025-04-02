@@ -1,8 +1,13 @@
 import * as Y from "yjs";
 
-import { CanvasNode, PaperQAResponse, PaperQAResponsePair, Task } from "../types";
+import { CanvasNode, PaperQAResponse, PaperQAResponsePair, SingleNode, Task } from "../types";
 import { queryPaperQA } from "./api";
-import { setNodesState, setSkillNodeTitleAndContent } from "./utils";
+import {
+  addToSkillCanvas,
+  isMultipleResponseNode,
+  setNodesState,
+  setSkillNodeTitleAndContent,
+} from "./utils";
 
 export const convertPairsToObject = (pairs: unknown): Record<string, unknown> => {
   if (!Array.isArray(pairs)) {
@@ -134,14 +139,29 @@ export const executePaperQATask = async (
       }
     }
 
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
-      if (id) await setSkillNodeTitleAndContent(skillDoc, id, "PaperQA Response", markdown);
+    const node: SingleNode = { title: "PaperQA Response: " + query, markdown: markdown };
+
+    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
+      if (!canvasId) return;
+
+      // If it's a multiple response node
+      if (task.outputNode && isMultipleResponseNode(task.outputNode)) {
+        await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node] });
+      } else {
+        // Otherwise just update the node directly
+        await setSkillNodeTitleAndContent(skillDoc, canvasId, node.title, node.markdown);
+      }
     });
 
     // Mark the node as done/inactive
     setNodesState([task.promptNode.id], nodesMap, "inactive");
   } catch (error) {
     console.error("Error executing PaperQA task", error);
-    setNodesState([task.promptNode.id], nodesMap, "inactive");
+    setNodesState(
+      [task.promptNode.id],
+      nodesMap,
+      "error",
+      `PaperQA error: ${(error as Error)?.message}`
+    );
   }
 };
