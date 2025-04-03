@@ -535,9 +535,9 @@ coverage==7.8.0 \
     # via
     #   -r requirements/local.in
     #   django-coverage-plugin
-crispy-bootstrap5==2024.10 \
-    --hash=sha256:55b442fe675dd95ad280123c7fe464f454186e90b8e5642e751f436c87627c44 \
-    --hash=sha256:59e91dac5e45a8c954af3fbcaa6804cd5aef4402f027af2f99a352b096c4016f
+crispy-bootstrap5==2025.4 \
+    --hash=sha256:51efa19c7d40e339774a6fe23407e83b95b7634cad6de70fd1f1093131bea1d9 \
+    --hash=sha256:d675ea7e245048905077dfe16bf1fa1ee16842f52fe88164ccc8a5e2d11119b3
     # via -r requirements/base.in
 cron-descriptor==1.4.5 \
     --hash=sha256:736b3ae9d1a99bc3dbfc5b55b5e6e7c12031e7ba5de716625772f8b02dcd6013 \
@@ -2313,9 +2313,9 @@ s3transfer==0.11.4 \
     --hash=sha256:559f161658e1cf0a911f45940552c696735f5c74e64362e515f333ebed87d679 \
     --hash=sha256:ac265fa68318763a03bf2dc4f39d5cbd6a9e178d81cc9483ad27da33637e320d
     # via boto3
-sentry-sdk[celery,django,openai]==2.24.1 \
-    --hash=sha256:36baa6a1128b9d98d2adc5e9b2f887eff0a6af558fc2b96ed51919042413556d \
-    --hash=sha256:8ba3c29990fa48865b908b3b9dc5ae7fa7e72407c7c9e91303e5206b32d7b8b1
+sentry-sdk[celery,django,openai]==2.25.0 \
+    --hash=sha256:a6e623691ff03d1758f940fe421e5b65f313f4ac37638079ab94d1b6f052eb15 \
+    --hash=sha256:aa0f558209c1819391421d65e25b1c4000f49580e6ecf5c05ff0c6e74f74470b
     # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
