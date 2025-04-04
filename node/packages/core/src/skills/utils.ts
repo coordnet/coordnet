@@ -403,12 +403,9 @@ export const setSpaceNodeTitle = async (
   provider.disconnect();
 };
 
-export const setSpaceNodePageMarkdown = async (markdown: string, id: string, auth: string) => {
+export const setSpaceNodePageJson = async (json: JSONContent, id: string, auth: string) => {
   const [document, provider] = await createConnectedYDocServer(`node-editor-${id}`, auth);
   try {
-    console.log("OH HAI!", markdown);
-    const html = xss(await marked.parse(markdown));
-    const json = generateJSON(html, editorExtensions);
     const xml = document.getXmlFragment("default");
     prosemirrorJSONToYXmlFragment(editorSchema, json, xml);
   } catch (error) {
