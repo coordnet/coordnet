@@ -6,7 +6,7 @@ import {
   createConnectedYDocServer,
   getSkillNodeCanvas,
   setNodesState,
-  setSpaceNodePageMarkdown,
+  setSpaceNodePageJson,
   setSpaceNodeTitle,
 } from "./utils";
 
@@ -41,7 +41,7 @@ export const setExternalData = async (
           // This node has a connection to the external space
           const nodeId = sourceInfo.nodeId;
           const sourceTitle = sourceSpaceMap.get(node.id)?.title;
-          const sourceContent = getSkillNodePageContent(node.id, skillDoc);
+          const sourceContent = getSkillNodePageContent(node.id, skillDoc, "json");
 
           // Update the referenced node in the external space
           if (nodeId && sourceTitle) {
@@ -54,7 +54,7 @@ export const setExternalData = async (
           }
 
           if (nodeId && sourceContent) {
-            await setSpaceNodePageMarkdown(sourceContent, nodeId, context.authentication);
+            await setSpaceNodePageJson(sourceContent, nodeId, context.authentication);
           }
 
           // Mark this external node as updated
