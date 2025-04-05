@@ -634,8 +634,8 @@ django==5.1.8 \
     #   djangorestframework-simplejwt
     #   drf-spectacular
     #   sentry-sdk
-django-allauth==65.6.0 \
-    --hash=sha256:8058298a55c7232f06fd1397a2858498d10d0e710cc4d0db364923f5c75a5748
+django-allauth==65.7.0 \
+    --hash=sha256:eb060692150f39e1529893c2de5f9b46e1dab51153ff6cca7ad72c7c125259ea
     # via -r requirements/base.in
 django-appconf==1.1.0 \
     --hash=sha256:7abd5a163ff57557f216e84d3ce9dac36c37ffce1ab9a044d3d53b7c943dd10f \
@@ -2313,9 +2313,9 @@ s3transfer==0.11.4 \
     --hash=sha256:559f161658e1cf0a911f45940552c696735f5c74e64362e515f333ebed87d679 \
     --hash=sha256:ac265fa68318763a03bf2dc4f39d5cbd6a9e178d81cc9483ad27da33637e320d
     # via boto3
-sentry-sdk[celery,django,openai]==2.25.0 \
-    --hash=sha256:a6e623691ff03d1758f940fe421e5b65f313f4ac37638079ab94d1b6f052eb15 \
-    --hash=sha256:aa0f558209c1819391421d65e25b1c4000f49580e6ecf5c05ff0c6e74f74470b
+sentry-sdk[celery,django,openai]==2.25.1 \
+    --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
+    --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
     # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
