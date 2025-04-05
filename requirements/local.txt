@@ -729,9 +729,9 @@ django-timezone-field==7.1 \
     --hash=sha256:93914713ed882f5bccda080eda388f7006349f25930b6122e9b07bf8db49c4b4 \
     --hash=sha256:b3ef409d88a2718b566fabe10ea996f2838bc72b22d3a2900c0aa905c761380c
     # via django-celery-beat
-djangorestframework==3.15.2 \
-    --hash=sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20 \
-    --hash=sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad
+djangorestframework==3.16.0 \
+    --hash=sha256:bea7e9f6b96a8584c5224bfb2e4348dfb3f8b5e34edbecb98da258e892089361 \
+    --hash=sha256:f022ff46613584de994c0c6a4aebbace5fd700555fbe9d33b865ebf173eba6c9
     # via
     #   -r requirements/base.in
     #   adrf
@@ -2313,9 +2313,9 @@ s3transfer==0.11.4 \
     --hash=sha256:559f161658e1cf0a911f45940552c696735f5c74e64362e515f333ebed87d679 \
     --hash=sha256:ac265fa68318763a03bf2dc4f39d5cbd6a9e178d81cc9483ad27da33637e320d
     # via boto3
-sentry-sdk[celery,django,openai]==2.25.0 \
-    --hash=sha256:a6e623691ff03d1758f940fe421e5b65f313f4ac37638079ab94d1b6f052eb15 \
-    --hash=sha256:aa0f558209c1819391421d65e25b1c4000f49580e6ecf5c05ff0c6e74f74470b
+sentry-sdk[celery,django,openai]==2.25.1 \
+    --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
+    --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
     # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
