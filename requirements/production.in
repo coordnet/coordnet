@@ -9,4 +9,4 @@ django-celery-results==2.5.1  #  https://github.com/celery/django-celery-results
 
 # Django
 # ------------------------------------------------------------------------------
-django-anymail[mailgun]==12.0  # https://github.com/anymail/django-anymail
+django-anymail[mailgun]==13.0  # https://github.com/anymail/django-anymail
