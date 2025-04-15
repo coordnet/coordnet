@@ -8,31 +8,31 @@
   },
   "dependencies": {
     "@instructor-ai/instructor": "^1.7.0",
-    "@tiptap/core": "^2.11.5",
-    "@tiptap/extension-link": "^2.11.5",
-    "@tiptap/extension-table": "^2.11.5",
-    "@tiptap/extension-table-cell": "^2.11.5",
-    "@tiptap/extension-table-header": "^2.11.5",
-    "@tiptap/extension-table-row": "^2.11.5",
-    "@tiptap/html": "^2.11.5",
-    "@tiptap/starter-kit": "^2.11.5",
-    "@xyflow/react": "^12.4.4",
+    "@tiptap/core": "^2.11.7",
+    "@tiptap/extension-link": "^2.11.7",
+    "@tiptap/extension-table": "^2.11.7",
+    "@tiptap/extension-table-cell": "^2.11.7",
+    "@tiptap/extension-table-header": "^2.11.7",
+    "@tiptap/extension-table-row": "^2.11.7",
+    "@tiptap/html": "^2.11.7",
+    "@tiptap/starter-kit": "^2.11.7",
+    "@xyflow/react": "^12.5.6",
     "axios": "^1.8.4",
-    "marked": "^15.0.7",
-    "openai": "^4.89.0",
+    "marked": "^15.0.8",
+    "openai": "^4.94.0",
     "prosemirror-model": "1.25.0",
     "uuid": "^11.1.0",
     "xss": "^1.0.15",
-    "y-prosemirror": "^1.3.0",
+    "y-prosemirror": "^1.3.3",
     "yjs": "^13.6.24",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@eslint/js": "9.23.0",
-    "@types/node": "^22.13.13"
+    "@eslint/js": "9.24.0",
+    "@types/node": "^22.14.1"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@10.6.5"
+  "packageManager": "pnpm@10.8.1"
 }
