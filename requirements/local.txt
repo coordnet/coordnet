@@ -729,9 +729,9 @@ django-timezone-field==7.1 \
     --hash=sha256:93914713ed882f5bccda080eda388f7006349f25930b6122e9b07bf8db49c4b4 \
     --hash=sha256:b3ef409d88a2718b566fabe10ea996f2838bc72b22d3a2900c0aa905c761380c
     # via django-celery-beat
-djangorestframework==3.15.2 \
-    --hash=sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20 \
-    --hash=sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad
+djangorestframework==3.16.0 \
+    --hash=sha256:bea7e9f6b96a8584c5224bfb2e4348dfb3f8b5e34edbecb98da258e892089361 \
+    --hash=sha256:f022ff46613584de994c0c6a4aebbace5fd700555fbe9d33b865ebf173eba6c9
     # via
     #   -r requirements/base.in
     #   adrf
