@@ -10,12 +10,15 @@ data:
   HOCUSPOCUS_MAXDEBOUNCE: "10000"
   HOCUSPOCUS_QUIET: "false"
   BACKEND_URL: "http://django:5000"
+  HOCUSPOCUS_INTERNAL_URL: "ws://crdt:8010"
+  CELERY_NODE_EXECUTION_QUEUE: "node_execution"
+  CELERY_BROKER_URL: "redis://redis:6379/0"
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: django-config
+  name: coordnet-config
   namespace: coordnet
 data:
   USE_DOCKER: "no"
@@ -25,6 +28,7 @@ data:
   DJANGO_SECURE_SSL_REDIRECT: "False"
   SENTRY_ENVIRONMENT: "production"
   CONN_MAX_AGE: "0"
+  CELERY_NODE_EXECUTION_QUEUE: "node_execution"
 
   # If using Mailgun for email ensure to set this
   MAILGUN_DOMAIN: ""
@@ -41,3 +45,17 @@ data:
   # If you are using Azure OpenAI then set these
   # AZURE_OPENAI_API_ENDPOINT: ""
   # AZURE_OPENAI_API_VERSION: ""
+
+  # Storage
+  BUCKET_NAME: "coordnet-static"
+  AWS_QUERYSTRING_AUTH: "True"
+  AWS_QUERYSTRING_EXPIRE: "43200"
+  AWS_LOCATION: ""
+  AWS_REGION: "auto"
+  # AWS_S3_CUSTOM_DOMAIN: "static.coord.dev"
+
+  # Only required if using Minio
+  AWS_ENDPOINT_URL_S3: "http://minio:9000"
+  MINIO_DEFAULT_BUCKETS: "coordnet-static:download"
+  AWS_S3_URL_PROTOCOL: "http:"
+  AWS_S3_CUSTOM_DOMAIN: "localhost:30002/coordnet-static"

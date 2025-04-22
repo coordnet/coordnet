@@ -78,3 +78,18 @@ spec:
       nodePort: 30001
   selector:
     app: crdt
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeworker
+  namespace: coordnet
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30003
+  selector:
+    app: nodeworker

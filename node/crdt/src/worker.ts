@@ -19,12 +19,22 @@ import * as celery from "@prd-thanhnguyenhoang/celery.node";
 import * as Y from "yjs";
 
 import { db } from "./db";
+import { setWorkerPrefetch } from "./utils";
+
+setInterval(() => {
+  const memoryUsage = process.memoryUsage();
+  console.log(
+    `Worker memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`
+  );
+}, 30000);
 
 const worker = celery.createWorker(
   process.env.CELERY_BROKER_URL,
   process.env.CELERY_BROKER_URL,
   process.env.CELERY_NODE_EXECUTION_QUEUE
 );
+
+setWorkerPrefetch(worker);
 
 worker.setOnFailed(async ({ body, error }) => {
   const skillRun = await db("nodes_methodnoderun").where("id", body[1].method_run_id).first();

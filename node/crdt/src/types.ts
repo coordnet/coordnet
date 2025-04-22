@@ -1,3 +1,4 @@
+import { CeleryBroker } from "@prd-thanhnguyenhoang/celery.node/dist/kombu/brokers";
 import { z } from "zod";
 
 export interface Me {
@@ -15,3 +16,8 @@ export const PermissionSchema = z.object({
 });
 
 export type Permission = z.infer<typeof PermissionSchema>;
+
+export interface AMQPBrokerWithChannel extends CeleryBroker {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channel: Promise<any>;
+}
