@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 import { getSkillRuns } from "@/api";
 import {
@@ -17,8 +17,9 @@ import { BackendEntityType } from "@/types";
 
 import { formatSkillRunId } from "./utils";
 
-const SkillRunHistory = () => {
+const SkillRunHistory = ({ className }: { className?: string }) => {
   const { runId } = useParams();
+  const location = useLocation();
   const { parent } = useYDoc();
   const [open, setOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
@@ -30,6 +31,8 @@ const SkillRunHistory = () => {
     initialData: { count: 0, next: "", previous: "", results: [] },
   });
 
+  const isRunner = location.pathname.includes("skills-runner");
+
   if (!isSkill) return <></>;
 
   return (
@@ -37,8 +40,11 @@ const SkillRunHistory = () => {
       <DropdownMenuTrigger asChild>
         {(runId || (isFetched && runs.count > 0)) && (
           <div
-            className="flex h-7 items-center justify-center rounded-full bg-gradient-to-r
-              from-violet-50 to-blue-50 px-4 py-1 text-sm font-medium text-neutral-700"
+            className={clsx(
+              `flex h-7 items-center justify-center rounded-full bg-gradient-to-r from-violet-50
+              to-blue-50 px-4 py-1 text-sm font-medium text-neutral-700`,
+              className
+            )}
           >
             {runId ? `Run ${formatSkillRunId(runId)}` : `History (${runs.count})`}
             {isFetched && runs.count > 0 && <ChevronDown className="-mr-2 ml-1 size-4" />}
@@ -53,7 +59,11 @@ const SkillRunHistory = () => {
         >
           {[...runs.results].reverse().map((run) => (
             <Link
-              to={`/skills/${parent.id}/${run.method_version ? `versions/${run.method_version}/` : ""}runs/${run.id}`}
+              to={
+                isRunner
+                  ? `/skills-runner/${parent.id}/${run.method_version}/${run.id}`
+                  : `/skills/${parent.id}/${run.method_version ? `versions/${run.method_version}/` : ""}runs/${run.id}`
+              }
               key={run.id}
               className="block"
             >

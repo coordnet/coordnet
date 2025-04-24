@@ -19,7 +19,15 @@ import { useUser } from "@/hooks";
 import SkillManage from "./SkillManage";
 import SkillPermissions from "./SkillPermissions";
 
-const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) => {
+const SkillCard = ({
+  skill,
+  disableInteraction = false,
+  className,
+}: {
+  skill: Skill;
+  disableInteraction?: boolean;
+  className?: string;
+}) => {
   const { profile } = useUser();
   const queryClient = useQueryClient();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,8 +36,9 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   const showControls =
-    skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
-    skill?.creator?.id.includes(profile?.id ?? "");
+    !disableInteraction &&
+    (skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+      skill?.creator?.id.includes(profile?.id ?? ""));
 
   const onDelete = async (id: string) => {
     if (
@@ -118,7 +127,10 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
         </DialogContent>
       </Dialog>
 
-      <Link to={`/skills/${skill.id}`}>
+      <Link
+        to={`/skills/${skill.id}`}
+        className={clsx(disableInteraction ? "pointer-events-none" : "cursor-pointer")}
+      >
         <div
           className="h-20 w-full bg-cover bg-center"
           style={{ backgroundImage: `url("${getProfileCardImage(skill, true, true)}")` }}
