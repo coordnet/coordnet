@@ -1,6 +1,6 @@
 import { RunStatus } from "@coordnet/core";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { EditorContent, useEditor as useEditorTipTap } from "@tiptap/react";
+import { EditorContent, JSONContent, useEditor as useEditorTipTap } from "@tiptap/react";
 import clsx from "clsx";
 
 import { SkillsRunnerInput } from "@/types";
@@ -19,7 +19,7 @@ export const Output = ({
 }: {
   inputs: SkillsRunnerInput[];
   status: RunStatus;
-  output: string;
+  output: JSONContent | undefined;
   error: unknown;
   outputModalOpen: boolean;
   setOutputModalOpen: React.Dispatch<React.SetStateAction<boolean>>;

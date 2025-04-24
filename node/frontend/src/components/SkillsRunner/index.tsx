@@ -8,7 +8,7 @@ import {
   skillYdocToJson,
 } from "@coordnet/core";
 import { useQuery } from "@tanstack/react-query";
-import { generateJSON } from "@tiptap/core";
+import { generateJSON, JSONContent } from "@tiptap/core";
 import clsx from "clsx";
 import { ArrowRight, ExternalLink, FileText, HomeIcon, LoaderIcon, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -42,7 +42,7 @@ const SkillRunner = () => {
   const { buddy, setBuddyId } = useBuddy();
   const skill = parent.type === BackendEntityType.SKILL ? parent?.data : undefined;
   const [skillRunLoading, setSkillRunLoading] = useState(false);
-  const [skillOutput, setSkillOutput] = useState("");
+  const [skillOutput, setSkillOutput] = useState<JSONContent>();
   const [inputs, setInputs] = useState<SkillsRunnerInput[]>([]);
   const [outputModalOpen, setOutputModalOpen] = useState(false);
   const [status, setStatus] = useState<RunStatus>("idle");
@@ -114,7 +114,7 @@ const SkillRunner = () => {
   useEffect(() => {
     if (!runId || !spaceYDoc || !connected || !synced) {
       setInputs([]);
-      setSkillOutput("");
+      setSkillOutput(undefined);
       return;
     }
     const skillData = skillYdocToJson(spaceYDoc);
@@ -172,13 +172,13 @@ const SkillRunner = () => {
 
     const document = skillData[`${finalOutput?.id}-document`];
     if (document) {
-      setSkillOutput(proseMirrorJSONToText(document));
+      setSkillOutput(document);
     }
   }, [runId, spaceYDoc, connected, synced, skillId, status]);
 
   const runSkill = async () => {
     setSkillRunLoading(true);
-    setSkillOutput("");
+    setSkillOutput(undefined);
     if (!buddy) {
       return toast.error("You need to set a Buddy to run this skill");
     }
