@@ -4,3 +4,5 @@ resources:
   - configmaps.yaml
   - deployments.yaml
   - services.yaml
+  # If you don't want to use minio, comment out the following line
+  - minio.yaml

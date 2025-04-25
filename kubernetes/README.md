@@ -28,10 +28,12 @@ This is an example of how to run Coordination Network in Kubernetes.
 
 If you make changes to the config or there are new images you can restart using:
 
-```
+```bash
 kubectl rollout restart deployment/django -n coordnet
 kubectl rollout restart deployment/celeryworker -n coordnet
 kubectl rollout restart deployment/celerybeat -n coordnet
 kubectl rollout restart deployment/pubsub -n coordnet
 kubectl rollout restart deployment/crdt -n coordnet
+kubectl rollout restart deployment/nodeworker -n coordnet
+kubectl rollout restart deployment/minio -n coordnet
 ```

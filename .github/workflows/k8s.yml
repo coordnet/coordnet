@@ -41,19 +41,56 @@ jobs:
             --selector=app.kubernetes.io/name=postgresql \
             --timeout=120s
 
+      - name: Build the Docker Images
+        run: |
+          # Build images and load them
+          cp .envs/.local/.secrets.example .envs/.local/.secrets
+          cp .envs/.local/.django.secrets.example .envs/.local/.django.secrets
+          docker build \
+            --build-arg BUILD_ENVIRONMENT=production \
+            -t coordnet_local_django \
+            -f compose/django/Dockerfile .
+          docker build \
+            -t coordnet_local_crdt \
+            -f compose/crdt/Dockerfile .
+
+          kind load docker-image coordnet_local_django:latest --name coordnet-test-cluster
+          kind load docker-image coordnet_local_crdt:latest --name coordnet-test-cluster
+
+      - name: Update image references in Kubernetes manifests with sed
+        run: |
+          DJANGO_IMAGE="ghcr.io/coordnet/coordnet_backend:latest"
+          CRDT_IMAGE="ghcr.io/coordnet/coordnet_crdt:latest"
+          LOCAL_DJANGO_IMAGE="coordnet_local_django:latest"
+          LOCAL_CRDT_IMAGE="coordnet_local_crdt:latest"
+
+          sed -i "s|$DJANGO_IMAGE|$LOCAL_DJANGO_IMAGE|g" kubernetes/deployments.yaml kubernetes/jobs-django-migrate.yaml
+          sed -i "s|$CRDT_IMAGE|$LOCAL_CRDT_IMAGE|g" kubernetes/deployments.yaml
+
       - name: Create secrets
         run: |
+          openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -pubout -in private_key.pem -out public_key.pem
+          JWT_SIGNING_KEY_CONTENT=$(cat private_key.pem)
+          JWT_VERIFYING_KEY_CONTENT=$(cat public_key.pem)
+
           # Create a blank secrets file first to prevent errors then create with kubectl
           > kubernetes/secrets.yaml
           kubectl create secret generic coordnet-secrets \
             --namespace coordnet \
             --from-literal=DATABASE_URL=postgres://coordnet:coordnet@postgres-postgresql.coordnet.svc.cluster.local:5432/coordnet \
-            --from-literal=DJANGO_SECRET_KEY=$(openssl rand -base64 32) \
+            --from-literal=DJANGO_SECRET_KEY=$(openssl rand -base64 32 | tr -d '\n') \
             --from-literal=DJANGO_ADMIN_URL=/admin/ \
             --from-literal=OPENAI_API_KEY=test-openai-key \
             --from-literal=SEMANTIC_API_KEY=test-semantic-key \
             --from-literal=WEBSOCKET_API_KEY=bf3f8c32-9bd8-45ba-82e1-dabf2b0da354 \
-            --from-literal=MAILGUN_API_KEY=test-mailgun-key
+            --from-literal=MAILGUN_API_KEY=test-mailgun-key \
+            --from-literal=MINIO_ROOT_USER=miniouser \
+            --from-literal=MINIO_ROOT_PASSWORD=miniopassword \
+            --from-literal=AWS_ACCESS_KEY_ID=miniouser \
+            --from-literal=AWS_SECRET_ACCESS_KEY=miniopassword \
+            "--from-literal=JWT_SIGNING_KEY=$JWT_SIGNING_KEY_CONTENT" \
+            "--from-literal=JWT_VERIFYING_KEY=$JWT_VERIFYING_KEY_CONTENT"
 
       - name: Apply Kubernetes manifests
         run: |
@@ -78,6 +115,8 @@ jobs:
           kubectl rollout status deployment/celerybeat -n coordnet --timeout=120s
           kubectl rollout status deployment/pubsub -n coordnet --timeout=120s
           kubectl rollout status deployment/crdt -n coordnet --timeout=120s
+          kubectl rollout status deployment/minio -n coordnet --timeout=120s
+          kubectl rollout status deployment/nodeworker -n coordnet --timeout=120s
 
       - name: Collect deployment logs on failure
         if: failure()
@@ -92,6 +131,13 @@ jobs:
             kubectl logs $pod -n coordnet || echo "No logs available for $pod"
             echo "-----------------------------"
           done
+
+      - name: Install testing dependencies
+        run: |
+          apt-get update && apt-get install -y jq python3-pip curl wget sudo
+          pip install awscli
+          wget -qO /usr/local/bin/websocat https://github.com/vi/websocat/releases/latest/download/websocat.x86_64-unknown-linux-musl
+          chmod a+x /usr/local/bin/websocat
 
       - name: Test Django endpoint
         run: |
@@ -114,3 +160,48 @@ jobs:
           sleep 5
           curl -f http://localhost:30200/ | grep "OK" || { echo "CRDT health check failed"; kill $CRDT_PID; exit 1; }
           kill $CRDT_PID
+
+      - name: Test CRDT WebSocket connection
+        run: |
+          kubectl port-forward svc/crdt 30201:8010 -n coordnet &
+          CRDT_WS_PID=$!
+          sleep 5
+
+          echo "Attempting WebSocket connection to ws://localhost:30201..."
+          timeout 10s sh -c 'echo -n "" | websocat ws://localhost:30201'
+
+          WS_STATUS=$?
+          kill $CRDT_WS_PID
+
+          if [ $WS_STATUS -ne 0 ]; then
+            echo "WebSocket connection test failed or timed out (status $WS_STATUS)."
+            exit 1
+          else
+            echo "WebSocket connection test successful."
+          fi
+
+      - name: Test MinIO setup
+        run: |
+          kubectl port-forward svc/minio 30300:9000 -n coordnet &
+          MINIO_PID=$!
+          sleep 5
+
+          export AWS_ACCESS_KEY_ID=miniouser
+          export AWS_SECRET_ACCESS_KEY=miniopassword
+          export AWS_EC2_METADATA_DISABLED=true
+
+          aws --endpoint-url http://localhost:30300 s3 ls || { echo "MinIO connection failed"; kill $MINIO_PID; exit 1; }
+
+          BUCKET_EXISTS=$(aws --endpoint-url http://localhost:30300 s3 ls | grep coordnet-static || echo "")
+          if [ -z "$BUCKET_EXISTS" ]; then
+            echo "coordnet-static bucket not found in MinIO"
+            kill $MINIO_PID
+            exit 1
+          fi
+
+          echo "Test content" > test-file.txt
+          aws --endpoint-url http://localhost:30300 s3 cp test-file.txt s3://coordnet-static/test-file.txt || { echo "MinIO upload failed"; kill $MINIO_PID; exit 1; }
+          aws --endpoint-url http://localhost:30300 s3 ls s3://coordnet-static/ | grep test-file.txt || { echo "MinIO verification failed"; kill $MINIO_PID; exit 1; }
+
+          echo "MinIO test successful"
+          kill $MINIO_PID
