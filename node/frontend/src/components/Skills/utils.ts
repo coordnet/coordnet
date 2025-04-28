@@ -1,7 +1,8 @@
 import { CanvasEdge, CanvasNode, SkillJson, skillJsonToYdoc, SkillRun } from "@coordnet/core";
+import { toast } from "sonner";
 import * as Y from "yjs";
 
-import { getSkillRun, getSkillVersion } from "@/api";
+import { getSkill, getSkillRun, getSkillVersion } from "@/api";
 import { SkillVersion } from "@/types";
 
 export const formatSkillRunId = (id: string): string => {
@@ -65,4 +66,16 @@ export const removeInputNodesAndEdges = (data: SkillJson) => {
   }
 
   return newData;
+};
+
+export const copySkillRunnerUrl = async (skillId?: string) => {
+  const toastId = toast.loading("Copying skill runner URL...");
+  const skill = await getSkill(undefined, skillId);
+  if (!skill?.latest_version?.id) {
+    toast.error("Can't share as no version has been published yet", { id: toastId });
+  } else {
+    const url = `${window.location.origin}/skills-runner/${skill?.id}/${skill?.latest_version.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Skill runner URL copied to clipboard!", { id: toastId });
+  }
 };

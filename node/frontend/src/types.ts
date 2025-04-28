@@ -301,7 +301,20 @@ export enum YDocScope {
   READ_WRITE = "read-write",
 }
 
-export type SkillsRunnerInputType = "text" | "pdf" | "md" | "txt";
+export type SkillsRunnerInputType =
+  | "text"
+  | "pdf"
+  | "doc"
+  | "xls"
+  | "ppt"
+  | "html"
+  | "csv"
+  | "json"
+  | "xml"
+  | "zip"
+  | "epub"
+  | "txt"
+  | "md";
 
 export interface SkillsRunnerInput {
   id: string;

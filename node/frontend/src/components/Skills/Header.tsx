@@ -1,7 +1,7 @@
 import { Skill } from "@coordnet/core";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Edit, EllipsisVertical, Home, Settings2, Trash2 } from "lucide-react";
+import { Edit, EllipsisVertical, Home, Settings2, Share, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -21,6 +21,7 @@ import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
 import SkillManage from "./SkillManage";
 import SkillPermissions from "./SkillPermissions";
+import { copySkillRunnerUrl } from "./utils";
 
 const Header = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
@@ -94,6 +95,12 @@ const Header = ({ className }: { className?: string }) => {
             onClick={() => setPermissionsModalOpen(true)}
           >
             <Settings2 className="mr-2 size-4" /> Manage Permissions
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="flex cursor-pointer items-center font-medium text-neutral-700"
+            onClick={() => copySkillRunnerUrl(skill?.id)}
+          >
+            <Share className="mr-2 size-4" /> Share Skill Runner URL
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex cursor-pointer items-center font-medium text-red-500"

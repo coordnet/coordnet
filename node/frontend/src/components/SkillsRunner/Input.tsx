@@ -6,12 +6,15 @@ import { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
+import { convertWithMarkItDown } from "@/api";
 import line from "@/assets/line-1.svg";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import useWindowDrag from "@/hooks/useWindowDrag";
 import { readPdf } from "@/lib/pdfjs";
-import { SkillsRunnerInput, SkillsRunnerInputType } from "@/types";
+import { SkillsRunnerInput } from "@/types";
+
+import { getFileTypeInfo } from "./utils";
 
 export const Input = ({
   inputs,
@@ -28,6 +31,17 @@ export const Input = ({
   const [manualText, setManualText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDragging = useWindowDrag();
+  const [uploadStatus, setUploadStatus] = useState<
+    Record<
+      string,
+      {
+        status: "pending" | "success" | "error";
+        filename: string;
+        error?: string;
+      }
+    >
+  >({});
+
   const hasTextInput = inputs.some((input) => input.type === "text");
 
   const handleTextSubmit = () => {
@@ -43,56 +57,103 @@ export const Input = ({
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach(async (file) => {
-      try {
-        let content = "";
-        const fileExtension = file.name.split(".").pop()?.toLowerCase();
-        let type: SkillsRunnerInputType = "txt";
-        if (fileExtension === "pdf") {
-          type = "pdf";
-          const arrayBuffer = await file.arrayBuffer();
-          content = await readPdf(arrayBuffer);
-        } else if (fileExtension === "md") {
-          type = "md";
-          const arrayBuffer = await file.arrayBuffer();
-          const markdown = new TextDecoder().decode(arrayBuffer);
-          content = DOMPurify.sanitize(await marked.parse(markdown));
-        } else if (fileExtension === "txt") {
-          type = "txt";
-          const text = await file.text();
-          content = DOMPurify.sanitize(text);
-        } else {
-          console.error("Unsupported file type:", fileExtension);
-          return;
-        }
-        onAddInput({ id: crypto.randomUUID(), type, name: file.name, content });
-      } catch (error) {
-        console.error("Error reading file:", error);
-      }
+    const filesArray = Array.from(files);
+
+    // Create an initial pending status for all files in one go
+    const initialStatus: typeof uploadStatus = {};
+    filesArray.forEach((file) => {
+      const fileId = crypto.randomUUID();
+      initialStatus[fileId] = {
+        status: "pending",
+        filename: file.name,
+      };
     });
+
+    setUploadStatus(initialStatus);
+
+    // Process each file
+    for (const file of filesArray) {
+      const fileId = Object.keys(initialStatus).find(
+        (id) => initialStatus[id].filename === file.name
+      );
+      if (!fileId) continue;
+
+      const fileExtension = file.name.split(".").pop();
+      const { type } = getFileTypeInfo(fileExtension);
+
+      try {
+        const result = await convertWithMarkItDown(file);
+
+        if (result.status === "success" && result.text_content) {
+          const content = DOMPurify.sanitize(result.text_content);
+          setUploadStatus((prev) => ({
+            ...prev,
+            [fileId]: {
+              ...prev[fileId],
+              status: "success",
+            },
+          }));
+          onAddInput({
+            id: fileId,
+            type,
+            name: file.name,
+            content,
+          });
+          console.log(content);
+        } else {
+          throw new Error(result.error || "Conversion failed");
+        }
+      } catch (error) {
+        console.error("Error processing file:", error);
+
+        try {
+          let content = "";
+          if (fileExtension?.toLowerCase() === "pdf") {
+            const arrayBuffer = await file.arrayBuffer();
+            content = await readPdf(arrayBuffer);
+          } else if (fileExtension?.toLowerCase() === "md") {
+            const arrayBuffer = await file.arrayBuffer();
+            const markdown = new TextDecoder().decode(arrayBuffer);
+            content = DOMPurify.sanitize(await marked.parse(markdown));
+          } else if (fileExtension?.toLowerCase() === "txt") {
+            const text = await file.text();
+            content = DOMPurify.sanitize(text);
+          } else {
+            throw new Error(`Could not process file: ${file.name}`);
+          }
+
+          setUploadStatus((prev) => ({
+            ...prev,
+            [fileId]: { ...prev[fileId], status: "success" },
+          }));
+          onAddInput({ id: fileId, type, name: file.name, content });
+        } catch (fallbackError) {
+          console.error(fallbackError);
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          setUploadStatus((prev) => ({
+            ...prev,
+            [fileId]: { ...prev[fileId], status: "error", error: errorMessage },
+          }));
+          onAddInput({ id: fileId, type, name: file.name, content: "", error: errorMessage });
+        }
+      }
+    }
+
+    // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Group inputs by type for display
-  const groupedInputs = inputs.reduce(
-    (acc, input) => {
-      const key =
-        input.type === "text"
-          ? "text"
-          : input.type === "pdf"
-            ? "pdf"
-            : input.type === "md"
-              ? "md"
-              : "txt";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(input);
-      return acc;
-    },
-    {} as Record<string, SkillsRunnerInput[]>
-  );
+  // Calculate pending uploads
+  const pendingUploads = Object.values(uploadStatus).filter(
+    (status) => status.status === "pending"
+  ).length;
+
+  // Get acceptable file types
+  const acceptableFileTypes =
+    ".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.html,.htm,.csv,.json,.xml,.epub,.txt,.md";
 
   return (
     <div>
@@ -103,13 +164,14 @@ export const Input = ({
             className={clsx(
               "flex h-52 w-48 flex-shrink-0 flex-col items-center justify-center gap-3",
               "rounded-lg border border-dashed p-4 transition-colors duration-200",
-              !runId && isDragging ? "border-purple bg-purple/10 shadow-lg" : "border-violet-600"
+              !runId && isDragging ? "border-purple bg-purple/10 shadow-lg" : "border-violet-600",
+              pendingUploads > 0 && "opacity-70"
             )}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
               const files = e.dataTransfer.files;
-              if (!files.length || runId) return;
+              if (!files.length || runId || pendingUploads > 0) return;
               const changeEvent = {
                 target: { files },
               } as unknown as React.ChangeEvent<HTMLInputElement>;
@@ -117,7 +179,11 @@ export const Input = ({
             }}
           >
             <div className="text-center text-base font-normal text-neutral-400">
-              {!runId && isDragging ? "Drop files here" : "Drag & Drop"}
+              {pendingUploads > 0
+                ? `Processing ${pendingUploads} files...`
+                : !runId && isDragging
+                  ? "Drop files here"
+                  : "Drag & Drop"}
             </div>
             <div className="flex justify-center gap-3">
               <Button
@@ -131,16 +197,19 @@ export const Input = ({
                 data-tooltip-id="skills-runner-upload"
                 data-tooltip-place="bottom"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={Boolean(runId)}
+                disabled={Boolean(runId) || pendingUploads > 0}
               >
                 <Upload className="size-6" />
               </Button>
-              <Tooltip id="skills-runner-upload">Upload files (.pdf, .md, .txt)</Tooltip>
+              <Tooltip id="skills-runner-upload" className="z-50 max-w-[300px]">
+                Upload files (PDF, Word, Excel, PowerPoint, HTML, CSV, JSON, XML, ZIP, EPUB, TXT,
+                MD)
+              </Tooltip>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".txt,.md,.pdf"
+                accept={acceptableFileTypes}
                 onChange={handleFileUpload}
                 className="hidden"
               />
@@ -155,8 +224,14 @@ export const Input = ({
                 data-tooltip-id="skills-runner-text"
                 data-tooltip-place="bottom"
                 onClick={() => !hasTextInput && setTextModalOpen(true)}
-                disabled={Boolean(hasTextInput || runId)}
-                title={hasTextInput ? "Text already added" : "Add text input"}
+                disabled={Boolean(hasTextInput || runId || pendingUploads > 0)}
+                title={
+                  pendingUploads > 0
+                    ? "Wait for file processing"
+                    : hasTextInput
+                      ? "Text already added"
+                      : "Add text input"
+                }
               >
                 <FileText className="size-6" />
               </Button>
@@ -165,49 +240,57 @@ export const Input = ({
           </div>
           <img src={line} alt="line" className="flex-shrink-0" />
         </div>
-        {Object.entries(groupedInputs).length > 0 && (
-          <div className="mt-4 flex w-48 flex-col gap-2">
-            {Object.entries(groupedInputs).map(([type, items], i) => (
-              <div key={`input-file-${type}-${i}`}>
-                <div
-                  className={clsx(
-                    `flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3
-                    py-2 text-sm font-medium text-neutral-900`,
-                    items.some((item) => item.error) && "border-red-500 bg-red-50 text-red-500"
-                  )}
-                  data-tooltip-id={`skills-runner-${type}-error`}
-                  data-tooltip-place="bottom"
-                >
-                  {items.some((item) => item.error) ? (
-                    <TriangleAlert className="size-4 text-red-500" />
-                  ) : (
-                    <Upload className="size-4 text-green-500" />
-                  )}
-                  <span className="truncate">
-                    {type === "text"
-                      ? "Text added"
-                      : `${items.length} .${type.toLowerCase()} ${items.length === 1 ? "file" : "files"} added`}
-                  </span>
-                  {!runId && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => items.forEach((item) => onRemoveInput(item.id))}
-                      className="ml-auto h-6 w-6 p-0"
-                    >
-                      <X className="size-4" />
-                    </Button>
+
+        {inputs.length > 0 && (
+          <div className="mt-4 flex max-h-[274px] w-48 flex-col gap-2 overflow-auto">
+            {inputs.map((input, i) => {
+              const fileExtension = input.name.split(".").pop();
+              const { icon } = getFileTypeInfo(fileExtension);
+
+              return (
+                <div key={`${input.id}-${i}`}>
+                  <div
+                    className={clsx(
+                      `flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3
+                      py-2 text-sm font-medium text-neutral-900`,
+                      input.error && "border-red-500 bg-red-50 text-red-500"
+                    )}
+                    data-tooltip-id={`skills-runner-file-${input.id}`}
+                    data-tooltip-place="bottom"
+                  >
+                    {input.error ? (
+                      <TriangleAlert className="size-4 text-red-500" />
+                    ) : input.type === "text" ? (
+                      <FileText className="size-4 text-green-500" />
+                    ) : (
+                      icon
+                    )}
+                    <span className="truncate">
+                      {input.type === "text" ? "Text Input" : input.name}
+                    </span>
+                    {!runId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemoveInput(input.id)}
+                        className="ml-auto h-6 w-6 p-0"
+                        disabled={pendingUploads > 0}
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {input.error && (
+                    <Tooltip id={`skills-runner-file-${input.id}`} className="max-w-[300px]">
+                      {input.error}
+                    </Tooltip>
                   )}
                 </div>
-                {items.some((item) => item.error) && (
-                  <Tooltip id={`skills-runner-${type}-error`} className="max-w-[300px]">
-                    {items.map((item) => item.error).join(", ")}
-                  </Tooltip>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
+
         <Dialog open={textModalOpen} onOpenChange={setTextModalOpen}>
           <DialogContent
             className="flex h-[60%] max-h-[600px] w-[90%] max-w-[768px] flex-col rounded-lg
