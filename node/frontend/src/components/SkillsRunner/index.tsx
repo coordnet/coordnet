@@ -23,6 +23,7 @@ import { extensions } from "@/lib/readOnlyEditor";
 import { title } from "@/lib/utils";
 import { BackendEntityType, SkillsRunnerInput, SkillsRunnerInputType, YDocScope } from "@/types";
 
+import ErrorPage from "../ErrorPage";
 import SkillRunHistory from "../Skills/SkillRunHistory";
 import { formatSkillRunId } from "../Skills/utils";
 import { Button } from "../ui/button";
@@ -39,7 +40,7 @@ const SkillRunner = () => {
     scope,
     space: { connected, synced, error: yDocError, YDoc: spaceYDoc },
   } = useYDoc();
-  const { buddy, setBuddyId } = useBuddy();
+  const { buddy, setBuddyId, buddyId } = useBuddy();
   const skill = parent.type === BackendEntityType.SKILL ? parent?.data : undefined;
   const [skillRunLoading, setSkillRunLoading] = useState(false);
   const [skillOutput, setSkillOutput] = useState<JSONContent>();
@@ -74,26 +75,36 @@ const SkillRunner = () => {
     const checkStatus = () => {
       const newStatus = runMeta.get("status") as RunStatus;
       const newError = runMeta.get("error");
+      const newBuddy = runMeta.get("buddy") as string;
       if (newStatus != status) setStatus(newStatus);
       if (newError != error) setError(newError);
+      if (buddyId != newBuddy) {
+        console.log("setting bud");
+        setBuddyId(newBuddy);
+      }
     };
     runMeta.observe(checkStatus);
     return () => runMeta.unobserve(checkStatus);
-  }, [runMeta, status, error]);
+  }, [runMeta, status, error, buddyId, setBuddyId]);
 
-  const { data: version } = useQuery({
+  const {
+    data: version,
+    error: versionError,
+    isLoading: versionLoading,
+  } = useQuery({
     queryKey: ["skills", parent.id, "versions", versionId],
     queryFn: () => getSkillVersion(versionId ?? ""),
     enabled: Boolean(versionId),
+    retry: 0,
   });
 
   useEffect(() => {
-    if (skill && !versionId && !skill.allowed_actions.includes("write")) {
+    if (skill && !versionId && !buddyId) {
       setBuddyId(skill.buddy);
-    } else if (skill && versionId && version) {
+    } else if (skill && versionId && version && !buddyId) {
       setBuddyId(version.buddy);
     }
-  }, [skill, version, versionId, setBuddyId, scope]);
+  }, [buddyId, setBuddyId, skill, version, versionId]);
 
   useEffect(() => {
     if (skill) title(skill.title ?? "Untitled");
@@ -117,11 +128,14 @@ const SkillRunner = () => {
       setSkillOutput(undefined);
       return;
     }
+
     const skillData = skillYdocToJson(spaceYDoc);
     if (!(`${skillId}-canvas-nodes` in skillData)) {
       toast.error("Unable to parse nodes");
+      console.log(skillData);
       return;
     }
+
     // Find all nodes attached to the input node
     const canvasNodes = Object.values(skillData[`${skillId}-canvas-nodes`] as CanvasNode[]);
     const canvasEdges = Object.values(skillData[`${skillId}-canvas-edges`] as CanvasEdge[]);
@@ -236,8 +250,8 @@ const SkillRunner = () => {
           id: edgeId,
           source: nodeId,
           target: inputNode.id,
-          sourceHandle: "target-right", // Connection from the right side of source node
-          targetHandle: "target-left", // Connection to the left side of target node
+          sourceHandle: "target-right",
+          targetHandle: "target-left",
         };
       }
 
@@ -259,12 +273,18 @@ const SkillRunner = () => {
       toast.error("Failed to run skill: " + errorMessage);
     }
   };
-
-  if (parent.isLoading && !yDocError) {
+  if (parent.isLoading && versionLoading && !yDocError) {
     return <Loader message="Loading skill..." className="z-60" />;
   }
   if (runId && !connected && !synced) {
     return <Loader message="Loading skill run..." className="z-60" />;
+  }
+
+  if (!parent.isLoading && parent.error) {
+    return <ErrorPage error={parent.error} />;
+  }
+  if (!versionLoading && versionError) {
+    return <ErrorPage error={versionError} />;
   }
 
   return (
