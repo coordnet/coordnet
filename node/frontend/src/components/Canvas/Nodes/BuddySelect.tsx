@@ -29,7 +29,7 @@ const BuddySelect = ({
   const isSkill = parent.type === BackendEntityType.SKILL;
   const buddyName = data?.buddy ? data?.buddy?.name : buddy?.name;
 
-  const setBuddy = (buddy: Buddy) => {
+  const setBuddy = (buddy?: Buddy) => {
     const node = nodesMap?.get(id);
     if (node) {
       nodesMap?.set(id, { ...node, data: { ...node?.data, buddy } });
@@ -62,6 +62,17 @@ const BuddySelect = ({
             <DropdownMenuLabel className="border-b border-b-neutral-100 p-2 text-sm font-semibold">
               Buddy
             </DropdownMenuLabel>
+            <DropdownMenuItem
+              key="node-buddy-default"
+              className="flex cursor-pointer items-center text-sm font-medium capitalize
+                text-neutral-700"
+              onClick={() => setBuddy(undefined)}
+            >
+              <div className="mr-1 size-5">
+                {data.buddy === undefined && <Check className="size-4" />}
+              </div>
+              Default Skill Buddy ({buddy?.name})
+            </DropdownMenuItem>
             {buddies?.results?.map((b) => {
               return (
                 <DropdownMenuItem
@@ -72,9 +83,7 @@ const BuddySelect = ({
                   title={b?.system_message}
                 >
                   <div className="mr-1 size-5">
-                    {(b.id == data?.buddy?.id || (!data?.buddy && b.id == buddy?.id)) && (
-                      <Check className="size-4" />
-                    )}
+                    {b.id == data?.buddy?.id && <Check className="size-4" />}
                   </div>
                   {b?.name} ({b?.model})
                 </DropdownMenuItem>
