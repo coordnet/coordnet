@@ -54,7 +54,7 @@ openai==1.74.0  # https://github.com/openai/openai-python
 # ------------------------------------------------------------------------------
 sentry-sdk[openai,django,celery]==2.25.1  # https://github.com/getsentry/sentry-python
 
-# External APIs
+# External APIs and Tooling
 # ------------------------------------------------------------------------------
 pqapi==7.2.0  # Closed Source
 # This is necessary because the paper-qa library didn't actually work with the pqapi lbrary when we were testing it.
@@ -62,3 +62,4 @@ https://github.com/JannKleen/paper-qa/releases/download/v5.11.2/paper_qa-5.11.2.
 # This is required for the pqapi dependency paper-qa, which seems to requiring it (that's normally not needed)
 # Once this is resolved, this can be removed and also the --allow-unsafe for the pip-compile command
 setuptools==78.1.0  # https://github.com/pypa/setuptools
+markitdown[pptx,docx,xlsx,xls,pdf,outlook]==0.1.1   # https://github.com/microsoft/markitdown

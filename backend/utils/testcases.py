@@ -28,13 +28,13 @@ class BaseSetupTestCase:
         self.viewer_user = users_factories.UserFactory()
 
         self.owner_client = drf_test.APIClient()
-        self.owner_client.force_authenticate(user=self.owner_user)
+        self.owner_client.force_authenticate(user=self.owner_user)  # type: ignore[arg-type]
 
         self.member_client = drf_test.APIClient()
-        self.member_client.force_authenticate(user=self.member_user)
+        self.member_client.force_authenticate(user=self.member_user)  # type: ignore[arg-type]
 
         self.viewer_client = drf_test.APIClient()
-        self.viewer_client.force_authenticate(user=self.viewer_user)
+        self.viewer_client.force_authenticate(user=self.viewer_user)  # type: ignore[arg-type]
 
         # To de-flake tests, prefetch content types here.
         content_type_models.ContentType.objects.get_for_model(nodes.models.Node)
