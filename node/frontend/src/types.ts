@@ -311,7 +311,6 @@ export type SkillsRunnerInputType =
   | "csv"
   | "json"
   | "xml"
-  | "zip"
   | "epub"
   | "txt"
   | "md";
