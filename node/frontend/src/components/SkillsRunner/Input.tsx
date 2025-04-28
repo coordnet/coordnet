@@ -43,8 +43,6 @@ export const Input = ({
     }
   };
 
-  console.log(inputs);
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;

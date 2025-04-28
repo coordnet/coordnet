@@ -46,10 +46,10 @@ const SkillRunner = () => {
   const [skillOutput, setSkillOutput] = useState<JSONContent>();
   const [inputs, setInputs] = useState<SkillsRunnerInput[]>([]);
   const [outputModalOpen, setOutputModalOpen] = useState(false);
-  const [status, setStatus] = useState<RunStatus>("idle");
+  const [status, setStatus] = useState<RunStatus>("loading");
   const [error, setError] = useState<unknown>();
   const runMeta = spaceYDoc?.getMap("meta");
-  const isRunning = status === "running" || status === "pending";
+  const isRunning = runId && (status === "running" || status === "pending");
   const wasRunningRef = useRef(false);
 
   // Track when a run completes to auto-open the modal
@@ -131,8 +131,7 @@ const SkillRunner = () => {
 
     const skillData = skillYdocToJson(spaceYDoc);
     if (!(`${skillId}-canvas-nodes` in skillData)) {
-      toast.error("Unable to parse nodes");
-      console.log(skillData);
+      console.error("found no nodes yet", skillData);
       return;
     }
 
@@ -188,7 +187,7 @@ const SkillRunner = () => {
     if (document) {
       setSkillOutput(document);
     }
-  }, [runId, spaceYDoc, connected, synced, skillId, status]);
+  }, [runId, spaceYDoc, connected, synced, skillId, status, isRunning]);
 
   const runSkill = async () => {
     setSkillRunLoading(true);
@@ -273,11 +272,9 @@ const SkillRunner = () => {
       toast.error("Failed to run skill: " + errorMessage);
     }
   };
+
   if (parent.isLoading && versionLoading && !yDocError) {
     return <Loader message="Loading skill..." className="z-60" />;
-  }
-  if (runId && !connected && !synced) {
-    return <Loader message="Loading skill run..." className="z-60" />;
   }
 
   if (!parent.isLoading && parent.error) {
@@ -343,18 +340,16 @@ const SkillRunner = () => {
       {isRunning ? (
         <div className="fixed z-50 size-full bg-black/40">
           <div className="absolute bottom-4 w-full">
-            {runId && (
-              <Link
-                to={`/skills/${skillId}/versions/${versionId}/runs/${runId}`}
-                target="_blank"
-                className="mx-auto mb-2 flex w-fit items-center gap-2.5 rounded-full border
-                  border-neutral-200 bg-white px-4 py-1 text-sm font-medium text-neutral-700
-                  hover:text-neutral-700"
-              >
-                See run progress
-                <ExternalLink className="size-4" />
-              </Link>
-            )}
+            <Link
+              to={`/skills/${skillId}/versions/${versionId}/runs/${runId}`}
+              target="_blank"
+              className="mx-auto mb-2 flex w-fit items-center gap-2.5 rounded-full border
+                border-neutral-200 bg-white px-4 py-1 text-sm font-medium text-neutral-700
+                hover:text-neutral-700"
+            >
+              See run progress
+              <ExternalLink className="size-4" />
+            </Link>
             <Button
               disabled
               className={clsx(
@@ -374,7 +369,7 @@ const SkillRunner = () => {
               to-blue-100"
           />
 
-          {runId ? (
+          {runId && status !== "loading" && !isRunning ? (
             <Button
               onClick={newRun}
               className={clsx(
@@ -388,16 +383,32 @@ const SkillRunner = () => {
           ) : (
             <Button
               onClick={runSkill}
-              disabled={skillRunLoading || isRunning || inputs.length === 0}
+              disabled={
+                (runId && status == "loading") ||
+                skillRunLoading ||
+                isRunning ||
+                inputs.length === 0
+              }
               className={clsx(
                 `flex h-16 items-center gap-3 rounded-[100px] bg-violet-600 pl-10 pr-6 text-xl
                   text-white hover:bg-violet-700`,
-                (skillRunLoading || isRunning || inputs.length === 0) &&
-                  "cursor-not-allowed bg-neutral-200 text-neutral-400 hover:bg-neutral-300"
+                ((runId && status == "loading") ||
+                  skillRunLoading ||
+                  isRunning ||
+                  inputs.length === 0) &&
+                  "cursor-not-allowed bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
               )}
             >
-              {skillRunLoading ? "Loading..." : "Run"}
-              <Play className="size-6 text-white" />
+              {(runId && status == "loading") || skillRunLoading ? (
+                <>
+                  Loading..
+                  <LoaderIcon className="animate-spin-slow" />
+                </>
+              ) : (
+                <>
+                  Run <Play className="size-6 text-white" />
+                </>
+              )}
             </Button>
           )}
         </div>

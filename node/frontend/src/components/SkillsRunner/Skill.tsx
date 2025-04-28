@@ -1,7 +1,7 @@
 import { Skill as SkillType } from "@coordnet/core";
 import clsx from "clsx";
 import { Bot, Check, ChevronDown } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import line from "@/assets/line-1.svg";
 import {
@@ -17,19 +17,29 @@ import SkillCard from "../Skills/SkillCard";
 
 export const Skill = ({ skill }: { skill?: SkillType }) => {
   const { buddy, buddies, buddyId, setBuddyId } = useBuddy();
-  const { runId } = useParams();
+  const { skillId, versionId, runId } = useParams();
+
+  const skillCard = skill ? (
+    <SkillCard
+      skill={skill}
+      disableInteraction={true}
+      className="z-1 relative !h-52 w-48 shadow-lg"
+    />
+  ) : (
+    <></>
+  );
 
   return (
     <div>
       <h2 className="mb-4 text-xl font-semibold text-neutral-400">Skill Card</h2>
       <div className="flex flex-row gap-6">
         <div className="relative">
-          {skill && (
-            <SkillCard
-              skill={skill}
-              disableInteraction={true}
-              className="z-1 relative !h-52 w-48 shadow-lg"
-            />
+          {runId ? (
+            <Link to={`/skills/${skillId}/versions/${versionId}/runs/${runId}`} target="_blank">
+              {skillCard}
+            </Link>
+          ) : (
+            skillCard
           )}
         </div>
         <img src={line} alt="line" className="flex-shrink-0" />
