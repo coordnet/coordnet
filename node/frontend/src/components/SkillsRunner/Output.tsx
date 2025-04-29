@@ -95,7 +95,7 @@ export const Output = ({
 
   return (
     <>
-      <div>
+      <div className="mx-auto">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-neutral-400">Output</h2>
           {status !== "loading" && (

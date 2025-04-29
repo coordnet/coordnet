@@ -36,10 +36,10 @@ export const Dropzone: React.FC<DropzoneProps> = ({
   const isDragging = useWindowDrag();
 
   return (
-    <div className="flex h-52 items-center justify-center gap-6">
+    <div className="flex items-center justify-center gap-6 md:h-52">
       <div
         className={clsx(
-          "flex h-52 w-48 flex-shrink-0 flex-col items-center justify-center gap-3",
+          "flex w-48 flex-shrink-0 flex-col items-center justify-center gap-3 md:h-52",
           "rounded-lg border border-dashed p-4 transition-colors duration-200",
           !isDisabled && isDragging ? "border-purple bg-purple/10 shadow-lg" : "border-violet-600",
           isProcessing && "cursor-not-allowed opacity-70"
@@ -113,7 +113,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
           <Tooltip id="skills-runner-text">Input text</Tooltip>
         </div>
       </div>
-      <img src={line} alt="" className="flex-shrink-0" aria-hidden="true" />
+      <img src={line} alt="" className="hidden flex-shrink-0 md:block" aria-hidden="true" />
     </div>
   );
 };

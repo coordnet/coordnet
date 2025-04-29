@@ -284,12 +284,15 @@ const SkillRunner = () => {
 
   return (
     <div
-      className="relative flex h-full flex-col items-center justify-center overflow-auto
-        bg-gradient-to-b from-violet-50 to-blue-50"
+      className="relative h-full flex-col items-center justify-center overflow-auto bg-gradient-to-b
+        from-violet-50 to-blue-50 md:flex"
       key={runId}
     >
-      <div className="absolute top-4 flex w-full items-center justify-between px-4">
-        <div className="flex gap-4 rounded-lg border border-neutral-200 bg-white p-2">
+      <div className="top-4 flex w-full items-center justify-between md:absolute md:px-4">
+        <div
+          className="flex w-full justify-between gap-4 rounded-lg border border-neutral-200 bg-white
+            p-2 md:w-auto"
+        >
           <Button
             asChild
             variant="ghost"
@@ -317,11 +320,11 @@ const SkillRunner = () => {
         <SkillVersions
           showDraft={false}
           showDate={false}
-          className="flex !h-14 cursor-pointer items-center justify-center gap-2 rounded-full border
-            border-neutral-200 from-white to-white px-6"
+          className="hidden !h-14 cursor-pointer items-center justify-center gap-2 rounded-full
+            border border-neutral-200 from-white to-white px-6 md:flex"
         />
       </div>
-      <div className="flex max-w-[764px] flex-col gap-6 md:flex-row">
+      <div className="mb-36 mt-6 flex max-w-[764px] flex-col gap-6 md:mb-0 md:mt-0 md:flex-row">
         <Input inputs={inputs} onAddInput={handleAddInput} onRemoveInput={handleRemoveInput} />
 
         <Skill skill={skill} />
@@ -337,7 +340,7 @@ const SkillRunner = () => {
       </div>
 
       {isRunning ? (
-        <div className="fixed z-50 size-full bg-black/40">
+        <div className="fixed bottom-0 left-0 right-0 top-0 z-50 size-full bg-black/40">
           <div className="absolute bottom-4 w-full">
             <Link
               to={`/skills/${skillId}/versions/${versionId}/runs/${runId}`}
@@ -362,7 +365,7 @@ const SkillRunner = () => {
           </div>
         </div>
       ) : (
-        <div className="absolute bottom-4 flex flex-col items-center justify-center">
+        <div className="fixed bottom-4 flex w-full flex-col items-center justify-center">
           <div className="flex items-center gap-2">
             <SkillRunHistory
               className="mx-auto mb-2 w-fit cursor-pointer border border-neutral-200

@@ -39,7 +39,7 @@ export const Input = ({ inputs, onAddInput, onRemoveInput }: InputProps) => {
   };
 
   return (
-    <div>
+    <div className="mx-auto">
       <h2 className="mb-4 text-xl font-semibold text-neutral-400">Input</h2>
       <div>
         <Dropzone
@@ -55,7 +55,7 @@ export const Input = ({ inputs, onAddInput, onRemoveInput }: InputProps) => {
         />
 
         {inputs.length > 0 && (
-          <div className="mt-4 flex max-h-[274px] w-48 flex-col gap-2 overflow-auto">
+          <div className="mt-4 flex max-h-[204px] w-48 flex-col gap-2 overflow-auto">
             {inputs.map((input) => (
               <InputItem
                 key={input.id}

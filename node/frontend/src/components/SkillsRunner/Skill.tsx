@@ -30,7 +30,7 @@ export const Skill = ({ skill }: { skill?: SkillType }) => {
   );
 
   return (
-    <div>
+    <div className="mx-auto">
       <h2 className="mb-4 text-xl font-semibold text-neutral-400">Skill Card</h2>
       <div className="flex flex-row gap-6">
         <div className="relative">
@@ -42,7 +42,7 @@ export const Skill = ({ skill }: { skill?: SkillType }) => {
             skillCard
           )}
         </div>
-        <img src={line} alt="line" className="flex-shrink-0" />
+        <img src={line} alt="line" className="hidden flex-shrink-0 md:block" />
       </div>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild disabled={Boolean(runId)}>
