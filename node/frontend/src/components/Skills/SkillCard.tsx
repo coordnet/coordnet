@@ -1,7 +1,7 @@
 import { Skill } from "@coordnet/core";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Edit, Ellipsis, Play, Settings2, Share, Trash2 } from "lucide-react";
+import { Edit, Ellipsis, Play, Settings2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -18,7 +18,7 @@ import { useUser } from "@/hooks";
 
 import SkillManage from "./SkillManage";
 import SkillPermissions from "./SkillPermissions";
-import { copySkillRunnerUrl } from "./utils";
+import SkillRunnerDropdown from "./SkillRunnerDropdown";
 
 const SkillCard = ({
   skill,
@@ -106,13 +106,8 @@ const SkillCard = ({
               <Settings2 className="mr-2 size-4" /> Manage Permissions
             </DropdownMenuItem>
 
-            <DropdownMenuItem
-              className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
-                hover:bg-gray-100"
-              onClick={() => copySkillRunnerUrl(skill.id)}
-            >
-              <Share className="mr-2 size-4" /> Share Skill Runner URL
-            </DropdownMenuItem>
+            <SkillRunnerDropdown variant="navigate" skillId={skill.id} className="px-4 py-2" />
+            <SkillRunnerDropdown variant="copy" skillId={skill.id} className="px-4 py-2" />
 
             <DropdownMenuItem
               className="flex cursor-pointer items-center px-4 py-2 font-medium text-red-500

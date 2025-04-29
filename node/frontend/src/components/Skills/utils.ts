@@ -1,8 +1,7 @@
 import { CanvasEdge, CanvasNode, SkillJson, skillJsonToYdoc, SkillRun } from "@coordnet/core";
-import { toast } from "sonner";
 import * as Y from "yjs";
 
-import { getSkill, getSkillRun, getSkillVersion } from "@/api";
+import { getSkillRun, getSkillVersion } from "@/api";
 import { SkillVersion } from "@/types";
 
 export const formatSkillRunId = (id: string): string => {
@@ -66,38 +65,4 @@ export const removeInputNodesAndEdges = (data: SkillJson) => {
   }
 
   return newData;
-};
-
-export const copySkillRunnerUrl = async (skillId?: string) => {
-  const toastId = toast.loading("Copying skill runner URL...");
-  let errored = false;
-
-  const getUrl = async () => {
-    const skill = await getSkill(undefined, skillId);
-    const version = skill?.latest_version;
-    if (!version?.id) {
-      toast.error("Can't share as no version has been published yet", { id: toastId });
-      errored = true;
-      return "";
-    }
-    return `${window.location.origin}/skills-runner/${skillId}/${version.id}`;
-  };
-
-  try {
-    if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
-      // Use ClipboardItem approach for Safari compatibility
-      const clipboardItem = new ClipboardItem({
-        "text/plain": getUrl().then((url) => new Blob([url], { type: "text/plain" })),
-      });
-      await navigator.clipboard.write([clipboardItem]);
-    } else {
-      // Fallback for Firefox and other browsers
-      await navigator.clipboard.writeText(await getUrl());
-    }
-
-    if (!errored) toast.success("Skill runner URL copied to clipboard!", { id: toastId });
-  } catch (error) {
-    console.error("Error copying to clipboard:", error);
-    toast.error("Error copying to clipboard", { id: toastId });
-  }
 };
