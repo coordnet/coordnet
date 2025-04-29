@@ -365,12 +365,27 @@ const SkillRunner = () => {
           </div>
         </div>
       ) : (
-        <div className="absolute bottom-4">
-          <SkillRunHistory
-            className="mx-auto mb-2 w-fit cursor-pointer bg-gradient-to-r from-indigo-100
-              to-blue-100"
-            versionId={versionId}
-          />
+        <div className="absolute bottom-4 flex flex-col items-center justify-center">
+          <div className="flex items-center gap-2">
+            <SkillRunHistory
+              className="mx-auto mb-2 w-fit cursor-pointer border border-neutral-200
+                bg-gradient-to-r !from-indigo-100 !to-blue-100 text-neutral-900"
+              versionId={versionId}
+            />
+            {runId && (status === "error" || status === "success") && (
+              <Button
+                asChild
+                className="mx-auto mb-2 flex h-7 w-fit cursor-pointer items-center gap-2
+                  rounded-full border border-neutral-200 bg-gradient-to-r !from-indigo-100
+                  !to-blue-100 px-4 py-1 text-sm font-medium text-neutral-900
+                  hover:text-neutral-900"
+              >
+                <Link to={`/skills/${skillId}/versions/${versionId}/runs/${runId}`} target="_blank">
+                  View Canvas <ExternalLink className="size-3 text-neutral-500" strokeWidth={2} />
+                </Link>
+              </Button>
+            )}
+          </div>
 
           {runId && status !== "loading" && !isRunning ? (
             <Button

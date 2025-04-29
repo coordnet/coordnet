@@ -51,7 +51,9 @@ const SkillRunHistory = ({ versionId, className }: { versionId?: string; classNa
             )}
           >
             {runId ? `Run ${formatSkillRunId(runId)}` : `History (${runs.length})`}
-            {isFetched && runs.length > 0 && <ChevronDown className="-mr-2 ml-1 size-4" />}
+            {isFetched && runs.length > 0 && (
+              <ChevronDown className="-mr-2 ml-1 size-4 text-neutral-500" />
+            )}
           </div>
         )}
       </DropdownMenuTrigger>
