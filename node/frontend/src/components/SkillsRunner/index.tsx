@@ -314,7 +314,7 @@ const SkillRunner = () => {
         <SkillVersions
           showDraft={false}
           showDate={false}
-          className="flex !h-14 items-center justify-center gap-2 rounded-full border
+          className="flex !h-14 cursor-pointer items-center justify-center gap-2 rounded-full border
             border-neutral-200 from-white to-white px-6"
         />
       </div>

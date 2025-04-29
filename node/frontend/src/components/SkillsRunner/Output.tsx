@@ -98,21 +98,23 @@ export const Output = ({
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-neutral-400">Output</h2>
-          <span
-            className={`rounded-full border border-neutral-200 px-2 py-1 text-sm capitalize ${
+          {status !== "loading" && (
+            <span
+              className={`rounded-full border border-neutral-200 px-2 py-1 text-sm capitalize ${
               status === "success" && hasError
-                ? "bg-red-100 text-red-800"
-                : status === "success"
-                  ? "bg-green-100 text-green-800"
-                  : status === "pending" || status === "running"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : status === "error"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-white text-gray-800"
+                  ? "bg-red-100 text-red-800"
+                  : status === "success"
+                    ? "bg-green-100 text-green-800"
+                    : status === "pending" || status === "running"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : status === "error"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-white text-gray-800"
               }`}
-          >
-            {hasError ? "Input error" : status}
-          </span>
+            >
+              {hasError ? "Input error" : status}
+            </span>
+          )}
         </div>
         <div
           className={clsx(

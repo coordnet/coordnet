@@ -70,12 +70,34 @@ export const removeInputNodesAndEdges = (data: SkillJson) => {
 
 export const copySkillRunnerUrl = async (skillId?: string) => {
   const toastId = toast.loading("Copying skill runner URL...");
-  const skill = await getSkill(undefined, skillId);
-  if (!skill?.latest_version?.id) {
-    toast.error("Can't share as no version has been published yet", { id: toastId });
-  } else {
-    const url = `${window.location.origin}/skills-runner/${skill?.id}/${skill?.latest_version.id}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Skill runner URL copied to clipboard!", { id: toastId });
+  let errored = false;
+
+  const getUrl = async () => {
+    const skill = await getSkill(undefined, skillId);
+    const version = skill?.latest_version;
+    if (!version?.id) {
+      toast.error("Can't share as no version has been published yet", { id: toastId });
+      errored = true;
+      return "";
+    }
+    return `${window.location.origin}/skills-runner/${skillId}/${version.id}`;
+  };
+
+  try {
+    if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
+      // Use ClipboardItem approach for Safari compatibility
+      const clipboardItem = new ClipboardItem({
+        "text/plain": getUrl().then((url) => new Blob([url], { type: "text/plain" })),
+      });
+      await navigator.clipboard.write([clipboardItem]);
+    } else {
+      // Fallback for Firefox and other browsers
+      await navigator.clipboard.writeText(await getUrl());
+    }
+
+    if (!errored) toast.success("Skill runner URL copied to clipboard!", { id: toastId });
+  } catch (error) {
+    console.error("Error copying to clipboard:", error);
+    toast.error("Error copying to clipboard", { id: toastId });
   }
 };
