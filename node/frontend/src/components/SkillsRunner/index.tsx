@@ -25,6 +25,7 @@ import { BackendEntityType, SkillsRunnerInput, SkillsRunnerInputType, YDocScope 
 
 import ErrorPage from "../ErrorPage";
 import SkillRunHistory from "../Skills/SkillRunHistory";
+import SkillVersions from "../Skills/SkillVersions";
 import { formatSkillRunId } from "../Skills/utils";
 import { Button } from "../ui/button";
 import { Input } from "./Input";
@@ -310,17 +311,12 @@ const SkillRunner = () => {
             <FileText className="size-4 text-neutral-500" />
           </Button>
         </div>
-        <div
-          className="flex h-14 items-center justify-center gap-2 rounded-full border
-            border-neutral-200 bg-white px-5"
-        >
-          <div
-            className="justify-start font-['Roboto'] text-sm font-medium leading-normal
-              text-neutral-900"
-          >
-            Skill Version {version?.version}
-          </div>
-        </div>
+        <SkillVersions
+          showDraft={false}
+          showDate={false}
+          className="flex !h-14 items-center justify-center gap-2 rounded-full border
+            border-neutral-200 from-white to-white px-6"
+        />
       </div>
       <div className="flex max-w-[764px] flex-col gap-6 md:flex-row">
         <Input inputs={inputs} onAddInput={handleAddInput} onRemoveInput={handleRemoveInput} />
