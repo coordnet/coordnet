@@ -349,7 +349,7 @@ const SkillRunner = () => {
                 border-neutral-200 bg-white px-4 py-1 text-sm font-medium text-neutral-700
                 hover:text-neutral-700"
             >
-              See run progress
+              See Run progress
               <ExternalLink className="size-4" />
             </Link>
             <Button
