@@ -1,21 +1,13 @@
 import { RunStatus } from "@coordnet/core";
-// @ts-expect-error No types for turndown-plugin-gfm
-import { gfm } from "@joplin/turndown-plugin-gfm";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { EditorContent, JSONContent, useEditor as useEditorTipTap } from "@tiptap/react";
 import clsx from "clsx";
-import * as React from "react";
-import { toast } from "sonner";
-import TurndownService from "turndown";
 
 import { SkillsRunnerInput } from "@/types";
 
 import { loadExtensions } from "../Editor/extensions";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
-
-const turndownService = new TurndownService();
-turndownService.use(gfm);
 
 export const Output = ({
   inputs,
@@ -54,65 +46,28 @@ export const Output = ({
     [output]
   );
 
-  const [hasCopied, setHasCopied] = React.useState(false);
-  const [hasCopiedMd, setHasCopiedMd] = React.useState(false);
-
-  const handleCopy = async () => {
-    try {
-      const plainText = modalEditor?.getText() || "";
-      const htmlText = modalEditor?.getHTML() || "";
-      const clipboardItem = new ClipboardItem({
-        "text/plain": new Blob([plainText], { type: "text/plain" }),
-        "text/html": new Blob([htmlText], { type: "text/html" }),
-      });
-      await navigator.clipboard.write([clipboardItem]);
-      setHasCopied(true);
-      setTimeout(() => setHasCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      try {
-        await navigator.clipboard.writeText(modalEditor?.getText() || "");
-        setHasCopied(true);
-        setTimeout(() => setHasCopied(false), 2000);
-      } catch (plainTextError) {
-        toast.error(`Failed to copy plain text as well: ${plainTextError}`);
-        setHasCopied(false);
-      }
-    }
-  };
-
-  const handleCopyMarkdown = async () => {
-    try {
-      const html = "<div>" + (modalEditor?.getHTML() || "") + "</div>";
-      const markdown = turndownService.turndown(html);
-      await navigator.clipboard.writeText(markdown);
-      setHasCopiedMd(true);
-      setTimeout(() => setHasCopiedMd(false), 2000);
-    } catch (error) {
-      toast.error(`Failed to copy markdown: ${error}`);
-    }
-  };
-
   return (
     <>
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-neutral-400">Output</h2>
-          <span
-            className={`rounded-full border border-neutral-200 px-2 py-1 text-sm capitalize ${
+          {status !== "loading" && (
+            <span
+              className={`rounded-full border border-neutral-200 px-2 py-1 text-sm capitalize ${
               status === "success" && hasError
-                ? "bg-red-100 text-red-800"
-                : status === "success"
-                  ? "bg-green-100 text-green-800"
-                  : status === "pending" || status === "running"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : status === "error"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-white text-gray-800"
+                  ? "bg-red-100 text-red-800"
+                  : status === "success"
+                    ? "bg-green-100 text-green-800"
+                    : status === "pending" || status === "running"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : status === "error"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-white text-gray-800"
               }`}
-          >
-            {hasError ? "Input error" : status}
-          </span>
+            >
+              {hasError ? "Input error" : status}
+            </span>
+          )}
         </div>
         <div
           className={clsx(
@@ -166,26 +121,12 @@ export const Output = ({
             <Button variant="outline" onClick={() => setOutputModalOpen(false)}>
               Close
             </Button>
-            <div className="flex gap-2">
-              <Button
-                className={clsx(
-                  hasCopiedMd ? "bg-green-600" : "bg-violet-600",
-                  "px-6 py-2 font-medium text-white hover:bg-violet-700"
-                )}
-                onClick={handleCopyMarkdown}
-              >
-                {hasCopiedMd ? "Copied!" : "Copy Markdown"}
-              </Button>
-              <Button
-                className={clsx(
-                  hasCopied ? "bg-green-600" : "bg-violet-600",
-                  "px-6 py-2 font-medium text-white hover:bg-violet-700"
-                )}
-                onClick={handleCopy}
-              >
-                {hasCopied ? "Copied!" : "Copy"}
-              </Button>
-            </div>
+            <Button
+              className="bg-violet-600 px-6 py-2 font-medium text-white hover:bg-violet-700"
+              onClick={() => setOutputModalOpen(false)}
+            >
+              Copy Output
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
