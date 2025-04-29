@@ -153,7 +153,7 @@ export const Output = ({
 
       <Dialog open={outputModalOpen} onOpenChange={setOutputModalOpen}>
         <DialogContent
-          className="flex h-[800px] max-h-[95vh] w-[1200px] max-w-[95vw] flex-col gap-2
+          className="flex h-[800px] max-h-[95vh] w-[800px] max-w-[95vw] flex-col gap-2
             overflow-hidden rounded-lg p-6"
           showCloseButton={false}
           overlayClassName="bg-black/40"

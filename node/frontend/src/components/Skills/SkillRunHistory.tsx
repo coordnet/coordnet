@@ -17,19 +17,23 @@ import { BackendEntityType } from "@/types";
 
 import { formatSkillRunId } from "./utils";
 
-const SkillRunHistory = ({ className }: { className?: string }) => {
+const SkillRunHistory = ({ versionId, className }: { versionId?: string; className?: string }) => {
   const { runId } = useParams();
   const location = useLocation();
   const { parent } = useYDoc();
   const [open, setOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
 
-  const { data: runs, isFetched } = useQuery({
+  const { data: runsData, isFetched } = useQuery({
     queryKey: ["skills", parent.id, "runs"],
     queryFn: ({ signal }) => getSkillRuns(signal, parent?.id ?? ""),
     enabled: Boolean(parent.id),
     initialData: { count: 0, next: "", previous: "", results: [] },
   });
+
+  const runs = versionId
+    ? runsData.results.filter((r) => r.method_version == versionId)
+    : runsData.results;
 
   const isRunner = location.pathname.includes("skills-runner");
 
@@ -38,7 +42,7 @@ const SkillRunHistory = ({ className }: { className?: string }) => {
   return (
     <DropdownMenu modal={true} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        {(runId || (isFetched && runs.count > 0)) && (
+        {(runId || (isFetched && runs.length > 0)) && (
           <div
             className={clsx(
               `flex h-7 items-center justify-center rounded-full bg-gradient-to-r from-violet-50
@@ -46,18 +50,18 @@ const SkillRunHistory = ({ className }: { className?: string }) => {
               className
             )}
           >
-            {runId ? `Run ${formatSkillRunId(runId)}` : `History (${runs.count})`}
-            {isFetched && runs.count > 0 && <ChevronDown className="-mr-2 ml-1 size-4" />}
+            {runId ? `Run ${formatSkillRunId(runId)}` : `History (${runs.length})`}
+            {isFetched && runs.length > 0 && <ChevronDown className="-mr-2 ml-1 size-4" />}
           </div>
         )}
       </DropdownMenuTrigger>
-      {isFetched && runs.count > 0 && (
+      {isFetched && runs.length > 0 && (
         <DropdownMenuContent
           side="top"
           sideOffset={8}
           className="flex max-h-[125px] flex-col overflow-auto"
         >
-          {[...runs.results].reverse().map((run) => (
+          {[...runs].reverse().map((run) => (
             <Link
               to={
                 isRunner

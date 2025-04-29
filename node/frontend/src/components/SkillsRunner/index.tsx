@@ -287,8 +287,8 @@ const SkillRunner = () => {
 
   return (
     <div
-      className="relative flex h-full flex-col items-center justify-center bg-gradient-to-b
-        from-violet-50 to-blue-50"
+      className="relative flex h-full flex-col items-center justify-center overflow-auto
+        bg-gradient-to-b from-violet-50 to-blue-50"
       key={runId}
     >
       <div className="absolute top-4 flex w-full items-center justify-between px-4">
@@ -307,8 +307,14 @@ const SkillRunner = () => {
               {skill?.title || "Skill Runner"}
             </div>
           </div>
-          <Button variant="ghost" className="size-9 rounded-lg border border-neutral-200 p-2">
-            <FileText className="size-4 text-neutral-500" />
+          <Button
+            variant="ghost"
+            className="size-9 rounded-lg border border-neutral-200 p-2"
+            asChild
+          >
+            <Link to={`/skills/${skillId}/versions/${versionId}`}>
+              <FileText className="size-4 text-neutral-500" />
+            </Link>
           </Button>
         </div>
         <SkillVersions
@@ -363,6 +369,7 @@ const SkillRunner = () => {
           <SkillRunHistory
             className="mx-auto mb-2 w-fit cursor-pointer bg-gradient-to-r from-indigo-100
               to-blue-100"
+            versionId={versionId}
           />
 
           {runId && status !== "loading" && !isRunning ? (
