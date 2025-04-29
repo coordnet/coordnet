@@ -1,15 +1,19 @@
 import {
+  CanvasNode,
   createCanvas,
   createTasks,
   ExecutionContext,
   ExecutionPlan,
   NodeType,
+  processTasks,
   RunStatus,
   skillYdocToJson,
+  SpaceNode,
 } from "@coordnet/core";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import * as Y from "yjs";
 
 import { createSkillRun, executeSkillRun } from "@/api";
 import { useCanvas, useYDoc } from "@/hooks";
@@ -72,7 +76,6 @@ export const useRunSkill = () => {
 
     // Go to the run page and execute it
     await executeSkillRun(run.id);
-    // window.location.href = `/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/${run.id}`;
     navigate(`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/${run.id}`);
   }, [buddy, inputNodes.length, navigate, nodes, parent.id, scope, skillId, spaceYDoc, versionId]);
 
@@ -96,8 +99,11 @@ export const useRunSkill = () => {
     };
     createTasks(canvas, context);
 
-    // return processTasks(context, buddy, spaceYDoc, skill, skillNodesMap, nodesMap, cancelRef, true);
-  }, [buddy, edges, nodes]);
+    const nodesMap: Y.Map<CanvasNode> = spaceYDoc.getMap(`${skillId}-canvas-nodes`);
+    const spaceMap: Y.Map<SpaceNode> = spaceYDoc.getMap("nodes");
+    const ref = { current: false };
+    return await processTasks(context, buddy, spaceYDoc, spaceMap, nodesMap, ref, true);
+  }, [buddy, edges, nodes, skillId, spaceYDoc]);
 
   return { runSkill, prepareExecutionPlan, status, error };
 };
