@@ -30,5 +30,5 @@ factory-boy==3.3.3  # https://github.com/FactoryBoy/factory_boy
 django-debug-toolbar==5.1.0  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
 django-coverage-plugin==3.1.0  # https://github.com/nedbat/django_coverage_plugin
-celery[redis]==5.4.0  # pyup: < 6.0  # https://github.com/celery/celery
+celery[redis]==5.5.2  # pyup: < 6.0  # https://github.com/celery/celery
 flower==2.0.1  # https://github.com/mher/flower
