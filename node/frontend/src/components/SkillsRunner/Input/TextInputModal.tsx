@@ -1,3 +1,5 @@
+import { Editor } from "@tiptap/core";
+import { EditorContent } from "@tiptap/react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -6,8 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 interface TextInputModalProps {
   isOpen: boolean;
   onClose: () => void;
-  text: string;
-  setText: (text: string) => void;
+  editor: Editor | null;
   onSubmit: () => void;
   isEditing: boolean;
 }
@@ -15,8 +16,7 @@ interface TextInputModalProps {
 export const TextInputModal: React.FC<TextInputModalProps> = ({
   isOpen,
   onClose,
-  text,
-  setText,
+  editor,
   onSubmit,
   isEditing,
 }) => {
@@ -31,14 +31,7 @@ export const TextInputModal: React.FC<TextInputModalProps> = ({
       >
         <DialogTitle>{isEditing ? "Edit Input" : "Add Input"}</DialogTitle>
         <DialogDescription className="hidden">Add or edit input text</DialogDescription>
-        <textarea
-          className="flex-grow resize-none rounded-md border border-neutral-200 p-2
-            focus:outline-none focus:ring-2 focus:ring-violet-400"
-          placeholder="Type your input here..."
-          value={text}
-          autoFocus
-          onChange={(e) => setText(e.target.value)}
-        />
+        <EditorContent editor={editor} className="prose max-w-none flex-grow" />
         <div className="flex justify-between pt-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
@@ -46,7 +39,7 @@ export const TextInputModal: React.FC<TextInputModalProps> = ({
           <Button
             className="bg-violet-600 font-semibold text-white hover:bg-violet-700"
             onClick={onSubmit}
-            disabled={!text.trim()}
+            disabled={editor?.isEmpty}
           >
             {isEditing ? "Save Changes" : "Add as input"}
           </Button>

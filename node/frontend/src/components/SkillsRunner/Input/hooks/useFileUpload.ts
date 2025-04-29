@@ -1,9 +1,11 @@
+import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 import { useRef, useState } from "react";
 
 import { convertWithMarkItDown } from "@/api";
 import { readPdf } from "@/lib/pdfjs";
+import { extensions } from "@/lib/readOnlyEditor";
 import { SkillsRunnerInput } from "@/types";
 
 import { getFileTypeInfo } from "../../utils";
@@ -49,11 +51,13 @@ export function useFileUpload({ onAddInput }: UseFileUploadProps) {
         // Attempt conversion via API
         const result = await convertWithMarkItDown(file);
         if (result.status === "success" && result.text_content) {
-          const content = DOMPurify.sanitize(result.text_content);
+          const markdown = DOMPurify.sanitize(result.text_content);
           setUploadStatus((prev) => ({
             ...prev,
             [fileId]: { ...prev[fileId], status: "success" },
           }));
+          const html = await marked.parse(markdown);
+          const content = generateJSON(html, extensions);
           onAddInput({ id: fileId, type, name: file.name, content });
         } else {
           throw new Error(result.error || "Conversion failed, attempting fallback.");
@@ -62,17 +66,18 @@ export function useFileUpload({ onAddInput }: UseFileUploadProps) {
         console.warn("API conversion failed or skipped, trying fallback:", error);
         // Fallback processing
         try {
-          let content = "";
+          let content: JSONContent = {};
           if (fileExtension === "pdf") {
-            content = await readPdf(await file.arrayBuffer());
+            const text = await readPdf(await file.arrayBuffer());
+            content = generateJSON(text, extensions);
           } else if (fileExtension === "md") {
             const markdown = await file.text();
-            content = DOMPurify.sanitize(await marked.parse(markdown));
+            const html = DOMPurify.sanitize(await marked.parse(markdown));
+            content = generateJSON(html, extensions);
           } else if (fileExtension === "txt") {
-            content = DOMPurify.sanitize(await file.text());
+            const text = DOMPurify.sanitize(await file.text());
+            content = generateJSON(text, extensions);
           } else {
-            // Consider if other simple text-based types could be read directly
-            // For now, throw error if not handled by API or specific fallbacks
             throw new Error(`Cannot process file type '${fileExtension}' locally.`);
           }
 
@@ -90,7 +95,7 @@ export function useFileUpload({ onAddInput }: UseFileUploadProps) {
             [fileId]: { ...prev[fileId], status: "error", error: errorMessage },
           }));
           // Still add input, but mark as errored
-          onAddInput({ id: fileId, type, name: file.name, content: "", error: errorMessage });
+          onAddInput({ id: fileId, type, name: file.name, content: {}, error: errorMessage });
         }
       }
     }

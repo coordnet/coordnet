@@ -3,12 +3,11 @@ import {
   CanvasNode,
   isResponseNode,
   NodeType,
-  proseMirrorJSONToText,
   RunStatus,
   skillYdocToJson,
 } from "@coordnet/core";
 import { useQuery } from "@tanstack/react-query";
-import { generateJSON, JSONContent } from "@tiptap/core";
+import { JSONContent } from "@tiptap/core";
 import clsx from "clsx";
 import { ArrowRight, ExternalLink, FileText, HomeIcon, LoaderIcon, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +18,6 @@ import { createSkillRun, executeSkillRun, getSkillVersion } from "@/api";
 import { Loader } from "@/components";
 import { NodesContextProvider, useUser, useYDoc } from "@/hooks";
 import useBuddy from "@/hooks/useBuddy";
-import { extensions } from "@/lib/readOnlyEditor";
 import { title } from "@/lib/utils";
 import { BackendEntityType, SkillsRunnerInput, SkillsRunnerInputType, YDocScope } from "@/types";
 
@@ -152,9 +150,8 @@ const SkillRunner = () => {
     const loadedInputs: SkillsRunnerInput[] = [];
     for (const node of inputNodes) {
       const nodeTitle = spaceNodes[node.id]?.title || "";
-      const nodeContent = skillData[`${node.id}-document`];
-      if (!nodeContent) continue;
-      const content = proseMirrorJSONToText(nodeContent);
+      const content = skillData[`${node.id}-document`];
+      if (!content) continue;
       let type: SkillsRunnerInputType = "text";
       if (nodeTitle.endsWith(".pdf")) type = "pdf";
       else if (nodeTitle.endsWith(".md")) type = "md";
@@ -242,7 +239,7 @@ const SkillRunner = () => {
         };
 
         nodesObj[nodeId] = newNode;
-        skillData[`${nodeId}-document`] = generateJSON(input.content, extensions);
+        skillData[`${nodeId}-document`] = input.content;
 
         // Create edge with the specified handles
         const edgeId = `edge-${nodeId}-${inputNode.id}`;

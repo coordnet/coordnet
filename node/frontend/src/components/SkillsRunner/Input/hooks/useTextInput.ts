@@ -1,5 +1,7 @@
+import { useEditor as useEditorTipTap } from "@tiptap/react";
 import { useState } from "react";
 
+import { loadExtensions } from "@/components/Editor/extensions";
 import { SkillsRunnerInput } from "@/types";
 
 interface UseTextInputProps {
@@ -10,15 +12,19 @@ interface UseTextInputProps {
 
 export function useTextInput({ onAddInput, onRemoveInput }: UseTextInputProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [text, setText] = useState("");
   const [editingInputId, setEditingInputId] = useState<string | null>(null);
+
+  const editor = useEditorTipTap({
+    immediatelyRender: false,
+    extensions: loadExtensions(undefined, undefined, "doc"),
+  });
 
   const openModal = (inputToEdit?: SkillsRunnerInput) => {
     if (inputToEdit) {
-      setText(inputToEdit.content);
+      editor?.commands.setContent(inputToEdit.content);
       setEditingInputId(inputToEdit.id);
     } else {
-      setText("");
+      editor?.commands.clearContent();
       setEditingInputId(null);
     }
     setIsModalOpen(true);
@@ -26,31 +32,32 @@ export function useTextInput({ onAddInput, onRemoveInput }: UseTextInputProps) {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setText("");
+    editor?.commands.clearContent();
     setEditingInputId(null);
   };
 
   const handleSubmit = () => {
-    if (text.trim()) {
+    const text = editor?.getText();
+    const content = editor?.getJSON();
+    if (text?.trim() && content) {
       const name = text.replace(/\n/g, " ");
       const maxLength = 20;
       const truncatedName = name.length > maxLength ? name.substring(0, maxLength) + "..." : name;
 
       if (editingInputId) {
-        // Remove the old one first to maintain order potentially, or update in place if needed
         onRemoveInput(editingInputId);
         onAddInput({
           id: editingInputId,
           type: "text",
           name: `User Input "${truncatedName}"`,
-          content: text,
+          content,
         });
       } else {
         onAddInput({
           id: crypto.randomUUID(),
           type: "text",
           name: `User Input "${truncatedName}"`,
-          content: text,
+          content,
         });
       }
       closeModal();
@@ -59,11 +66,10 @@ export function useTextInput({ onAddInput, onRemoveInput }: UseTextInputProps) {
 
   return {
     isModalOpen,
-    text,
     editingInputId,
-    setText,
     openModal,
     closeModal,
     handleSubmit,
+    editor,
   };
 }

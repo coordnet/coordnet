@@ -21,8 +21,9 @@ export const Input = ({ inputs, onAddInput, onRemoveInput }: InputProps) => {
   const { fileInputRef, pendingUploads, handleFileChange, handleFileDrop, triggerFileInput } =
     useFileUpload({ onAddInput });
 
-  const { isModalOpen, text, editingInputId, setText, openModal, closeModal, handleSubmit } =
-    useTextInput({ inputs, onAddInput, onRemoveInput });
+  const { isModalOpen, editingInputId, openModal, closeModal, handleSubmit, editor } = useTextInput(
+    { inputs, onAddInput, onRemoveInput }
+  );
 
   const isProcessingFiles = pendingUploads > 0;
   const isDisabled = isRunActive || isProcessingFiles;
@@ -71,8 +72,7 @@ export const Input = ({ inputs, onAddInput, onRemoveInput }: InputProps) => {
         <TextInputModal
           isOpen={isModalOpen}
           onClose={closeModal}
-          text={text}
-          setText={setText}
+          editor={editor}
           onSubmit={handleSubmit}
           isEditing={Boolean(editingInputId)}
         />

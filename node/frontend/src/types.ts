@@ -319,6 +319,6 @@ export interface SkillsRunnerInput {
   id: string;
   type: SkillsRunnerInputType;
   name: string;
-  content: string;
+  content: JSONContent;
   error?: string;
 }
