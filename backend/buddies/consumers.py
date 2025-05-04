@@ -8,7 +8,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 import buddies.models
 import buddies.serializers
-import utils.llm
+import llms.utils
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class QueryConsumer(AsyncWebsocketConsumer):
             messages = await database_sync_to_async(buddy._get_messages)(level, nodes, message)
 
             try:
-                response = await utils.llm.get_async_openai_client().chat.completions.create(
+                response = await llms.utils.get_async_openai_client().chat.completions.create(
                     model=buddy.model,
                     messages=messages,
                     stream=True,

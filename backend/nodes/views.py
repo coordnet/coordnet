@@ -11,12 +11,12 @@ from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, parsers, response
 
+import llms.utils
 import permissions.managers
 import permissions.models
 import permissions.utils
 import permissions.views
 import users.models
-import utils.llm
 import utils.managers
 import utils.pagination
 import utils.parsers
@@ -470,7 +470,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
             # Invert the list to get the oldest messages first.
             return parsed_messages[::-1], saved_attachments
 
-        client = utils.llm.get_openai_client()
+        client = llms.llm.get_openai_client()
         parsed_messages, attachments = parse_messages(request.data)
 
         completion_response = client.chat.completions.create(
