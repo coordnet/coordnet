@@ -36,4 +36,3 @@ Scopes should be used to add further detail to area of the project that is being
 - **web3**
 - **crdt**
 - **profiles**
-- **skills**
