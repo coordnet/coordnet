@@ -20,7 +20,7 @@ import {
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import { getExternalNode, querySemanticScholar } from "./api";
-import { executePaperQATask } from "./paperQA";
+import { executePaperQACollectionTask, executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
@@ -120,6 +120,21 @@ export const processTasks = async (
           executionPlan.tasks.push({ task, query, type: "PAPERQA" });
         } else {
           await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
+        }
+      } else if (task.promptNode.data.type === NodeType.PaperQACollection) {
+        const query = await collectInputTitles(task, skillDoc, skillNodesMap);
+        if (dryRun) {
+          executionPlan.tasks.push({ task, query, type: "PAPERQA" });
+        } else {
+          await executePaperQACollectionTask(
+            task,
+            query,
+            skillDoc,
+            nodesMap,
+            context.outputNode,
+            isLast,
+            context.authentication
+          );
         }
       } else {
         const messages = await generatePrompt(

@@ -15,6 +15,12 @@ swap_size_mb = 1024
 
 [env]
   SENTRY_ENVIRONMENT="production"
+  HOCUSPOCUS_TIMEOUT=300000
+  CELERY_NODE_EXECUTION_QUEUE="node_execution"
+  CELERY_BROKER_URL="amqp://celery:coeJahg9Aa2Eexae@coordnet-rabbitmq.internal/celery"
+  BACKEND_URL="http://coordnet.internal:8000"
+  HOCUSPOCUS_INTERNAL_URL="ws://coordnet-hocuspocus.internal:8010"
+
 #  POSTGRES_USER="coordnet_hocuspocus"
 #  POSTGRES_PORT=5432
 #  POSTGRES_DB="coordnet"

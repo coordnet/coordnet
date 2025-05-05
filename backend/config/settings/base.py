@@ -134,7 +134,7 @@ THIRD_PARTY_APPS = [
     "imagekit",
 ]
 
-LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "profiles", "utils"]
+LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "profiles", "utils", "tools"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -477,7 +477,7 @@ AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-p
 # API settings
 # ------------------------------------------------------------------------------
 
-SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
+SEMANTIC_API_KEY = env("SEMANTIC_SCHOLAR_API_KEY", default="fake-key")
 
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.

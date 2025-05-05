@@ -27,6 +27,7 @@ import Footer from "./Footer";
 import HoverMenu from "./HoverMenu";
 import NodeError from "./NodeError";
 import NodeTypeSelect from "./NodeTypeSelect";
+import PaperQACollectionsSelect from "./PaperQACollectionsSelect";
 
 const handleStyle: CSSProperties = {
   borderWidth: "3px",
@@ -173,6 +174,7 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
             <NodeError data={data} />
             <BuddySelect id={id} data={data} />
             <NodeTypeSelect id={id} data={data} />
+            <PaperQACollectionsSelect id={id} data={data} />
 
             {canInput && (
               <>
