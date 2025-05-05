@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add node context endpoint, which returns the LLM context for a given node.
 - Support JWT authentication for the API and using it for other services.
 - Buddies can be set per skill prompt node.
+- Add endpoint to convert various file types into markdown using Microsoft's markitdown library.
+- Skill Runner page.
 
 ### Fixed
 

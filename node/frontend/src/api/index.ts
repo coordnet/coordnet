@@ -512,3 +512,16 @@ export const createSkillVersion = async (skill: string, data: SkillJson): Promis
   });
   return response.data;
 };
+
+export const convertWithMarkItDown = async (
+  file: File
+): Promise<{ status: string; filename: string; text_content?: string; error?: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.post("api/tools/markitdown/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return response.data;
+};
