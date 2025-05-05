@@ -1,7 +1,7 @@
 import * as Y from "yjs";
 
 import { CanvasNode, PaperQAResponse, PaperQAResponsePair, Task } from "../types";
-import { queryPaperQA } from "./api";
+import { queryPaperQA, queryPaperQACollection } from "./api";
 import { setNodesState, setSkillNodeTitleAndContent } from "./utils";
 
 export const convertPairsToObject = (pairs: unknown): Record<string, unknown> => {
@@ -120,6 +120,53 @@ export const executePaperQATask = async (
     setNodesState([task.promptNode.id], nodesMap, "executing");
 
     const response = await queryPaperQA(query);
+
+    let markdown = "";
+    try {
+      markdown = paperQAResponseToMd(formatPaperQAResponse(response));
+    } catch (error) {
+      console.error("Error formatting PaperQA response", error);
+      try {
+        markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
+      } catch (error) {
+        console.error("Error parsing PaperQA response", error);
+        markdown = JSON.stringify(response, null, 2);
+      }
+    }
+
+    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
+      if (id) await setSkillNodeTitleAndContent(skillDoc, id, "PaperQA Response", markdown);
+    });
+
+    // Mark the node as done/inactive
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
+  } catch (error) {
+    console.error("Error executing PaperQA task", error);
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
+  }
+};
+
+export const executePaperQACollectionTask = async (
+  task: Task,
+  query: string,
+  skillDoc: Y.Doc,
+  nodesMap: Y.Map<CanvasNode>,
+  outputNode: CanvasNode,
+  isLastTask: boolean,
+  authentication: string
+) => {
+  try {
+    setNodesState([task.promptNode.id], nodesMap, "executing");
+
+    if (!task.promptNode.data.paperQACollection) {
+      throw Error("No PaperQA collection found in task, getting first");
+    }
+
+    const response = await queryPaperQACollection(
+      task.promptNode.data.paperQACollection,
+      query,
+      authentication
+    );
 
     let markdown = "";
     try {
