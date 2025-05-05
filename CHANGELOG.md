@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [25.5.0] - 2025-05-05
+
 ### Added
 
 - Support for object storage (MinIO and S3) for storing uploads.
@@ -89,6 +91,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Initial release of the Coordination.network project as built docker image.
 
+[25.5.0]: https://github.com/coordnet/coordnet/compare/v24.11.3...v25.5.0
 [24.11.3]: https://github.com/coordnet/coordnet/compare/v24.11.2...v24.11.3
 [24.11.2]: https://github.com/coordnet/coordnet/compare/v24.11.1...v24.11.2
 [24.11.1]: https://github.com/coordnet/coordnet/compare/v24.11.0...v24.11.1
