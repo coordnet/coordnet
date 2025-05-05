@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 import { getSkillRuns } from "@/api";
 import {
@@ -17,43 +17,59 @@ import { BackendEntityType } from "@/types";
 
 import { formatSkillRunId } from "./utils";
 
-const SkillRunHistory = () => {
+const SkillRunHistory = ({ versionId, className }: { versionId?: string; className?: string }) => {
   const { runId } = useParams();
+  const location = useLocation();
   const { parent } = useYDoc();
   const [open, setOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
 
-  const { data: runs, isFetched } = useQuery({
+  const { data: runsData, isFetched } = useQuery({
     queryKey: ["skills", parent.id, "runs"],
     queryFn: ({ signal }) => getSkillRuns(signal, parent?.id ?? ""),
     enabled: Boolean(parent.id),
     initialData: { count: 0, next: "", previous: "", results: [] },
   });
 
+  const runs = versionId
+    ? runsData.results.filter((r) => r.method_version == versionId)
+    : runsData.results;
+
+  const isRunner = location.pathname.includes("skills-runner");
+
   if (!isSkill) return <></>;
 
   return (
     <DropdownMenu modal={true} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        {(runId || (isFetched && runs.count > 0)) && (
+        {(runId || (isFetched && runs.length > 0)) && (
           <div
-            className="flex h-7 items-center justify-center rounded-full bg-gradient-to-r
-              from-violet-50 to-blue-50 px-4 py-1 text-sm font-medium text-neutral-700"
+            className={clsx(
+              `flex h-7 items-center justify-center rounded-full bg-gradient-to-r from-violet-50
+              to-blue-50 px-4 py-1 text-sm font-medium text-neutral-700`,
+              className
+            )}
           >
-            {runId ? `Run ${formatSkillRunId(runId)}` : `History (${runs.count})`}
-            {isFetched && runs.count > 0 && <ChevronDown className="-mr-2 ml-1 size-4" />}
+            {runId ? `Run ${formatSkillRunId(runId)}` : `History (${runs.length})`}
+            {isFetched && runs.length > 0 && (
+              <ChevronDown className="-mr-2 ml-1 size-4 text-neutral-500" />
+            )}
           </div>
         )}
       </DropdownMenuTrigger>
-      {isFetched && runs.count > 0 && (
+      {isFetched && runs.length > 0 && (
         <DropdownMenuContent
           side="top"
           sideOffset={8}
           className="flex max-h-[125px] flex-col overflow-auto"
         >
-          {[...runs.results].reverse().map((run) => (
+          {[...runs].reverse().map((run) => (
             <Link
-              to={`/skills/${parent.id}/${run.method_version ? `versions/${run.method_version}/` : ""}runs/${run.id}`}
+              to={
+                isRunner
+                  ? `/skills-runner/${parent.id}/${run.method_version}/${run.id}`
+                  : `/skills/${parent.id}/${run.method_version ? `versions/${run.method_version}/` : ""}runs/${run.id}`
+              }
               key={run.id}
               className="block"
             >

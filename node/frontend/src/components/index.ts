@@ -8,3 +8,4 @@ export { default as Skill } from "./Skill";
 export { default as NodeRepository } from "./NodeRepository";
 export { default as QuickView } from "./QuickView";
 export { default as Profile } from "./Profiles/Profile";
+export { default as SkillsRunner } from "./SkillsRunner";

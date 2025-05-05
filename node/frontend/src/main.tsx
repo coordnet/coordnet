@@ -17,7 +17,7 @@ import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import Signup from "./auth/Signup";
 import VerifyEmail from "./auth/VerifyEmail";
-import { Profile } from "./components";
+import { Profile, SkillsRunner } from "./components";
 import ErrorPage from "./components/ErrorPage";
 import Dashboard from "./Dashboard";
 import Skill from "./Skill";
@@ -77,6 +77,12 @@ export const router = createBrowserRouter([
     // View a skill version run (not owner)
     path: "/skills/:skillId/versions/:versionId/:pageId?/runs/:runId?",
     element: addProviders(<Skill />),
+    errorElement: <ErrorPage />,
+  },
+  {
+    // Use a skills runner page
+    path: "/skills-runner/:skillId/:versionId/:runId?",
+    element: addProviders(<SkillsRunner />),
     errorElement: <ErrorPage />,
   },
   {

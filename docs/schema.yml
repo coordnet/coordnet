@@ -13,6 +13,7 @@ paths:
       - auth
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -24,10 +25,92 @@ paths:
       - auth
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
           description: No response body
+  /api/auth/jwt/:
+    post:
+      operationId: auth_jwt_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/auth/jwt/refresh/:
+    post:
+      operationId: auth_jwt_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/jwt/verify/:
+    post:
+      operationId: auth_jwt_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerify'
+          description: ''
   /api/auth/login/:
     post:
       operationId: auth_login_create
@@ -159,6 +242,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -187,6 +271,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -202,6 +287,7 @@ paths:
       - auth
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -213,6 +299,7 @@ paths:
       - auth
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -240,6 +327,7 @@ paths:
       - Buddies
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -269,6 +357,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -294,6 +383,7 @@ paths:
       - Buddies
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -330,6 +420,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -365,6 +456,7 @@ paths:
               $ref: '#/components/schemas/PatchedBuddy'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -389,6 +481,7 @@ paths:
       - Buddies
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -426,6 +519,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -465,6 +559,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -500,6 +595,7 @@ paths:
       - Buddies
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -577,6 +673,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -605,6 +702,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -629,6 +727,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -664,6 +763,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -698,6 +798,7 @@ paths:
               $ref: '#/components/schemas/PatchedMethodNodeRunList'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -721,10 +822,76 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
           description: No response body
+  /api/nodes/method-runs/{public_id}/execute/:
+    post:
+      operationId: nodes_method_runs_execute_create
+      description: API endpoint that allows method node runs to be viewed or edited.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeRunList'
+          description: ''
+  /api/nodes/method-runs/decide/:
+    post:
+      operationId: nodes_method_runs_decide_create
+      description: API endpoint that allows method node runs to be viewed or edited.
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MethodNodeRunList'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodNodeRunList'
+          description: ''
   /api/nodes/method-versions/:
     get:
       operationId: nodes_method_versions_list
@@ -751,6 +918,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -779,6 +947,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -803,6 +972,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -838,6 +1008,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -872,6 +1043,7 @@ paths:
               $ref: '#/components/schemas/PatchedMethodNodeVersionList'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -895,6 +1067,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
@@ -921,6 +1094,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -949,6 +1123,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -973,6 +1148,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1008,6 +1184,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1042,6 +1219,7 @@ paths:
               $ref: '#/components/schemas/PatchedMethodNodeList'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1065,6 +1243,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
@@ -1097,6 +1276,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1134,6 +1314,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -1167,6 +1348,7 @@ paths:
       - Skills
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
@@ -1195,6 +1377,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1237,6 +1420,7 @@ paths:
       - Nodes
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1261,6 +1445,7 @@ paths:
       - Nodes
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1268,6 +1453,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NodeDetail'
+          description: ''
+  /api/nodes/nodes/{public_id}/context/:
+    get:
+      operationId: nodes_nodes_context_retrieve
+      description: Retrieve context based on this node.
+      summary: Retrieve context
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Nodes
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeList'
           description: ''
   /api/nodes/nodes/{public_id}/upload-images/:
     post:
@@ -1290,6 +1500,7 @@ paths:
               $ref: '#/components/schemas/NodeList'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1342,6 +1553,7 @@ paths:
       - Nodes
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       - {}
       responses:
@@ -1373,6 +1585,7 @@ paths:
       - Spaces
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1401,6 +1614,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -1425,6 +1639,7 @@ paths:
       - Spaces
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1460,6 +1675,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1494,6 +1710,7 @@ paths:
               $ref: '#/components/schemas/PatchedSpace'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1517,6 +1734,7 @@ paths:
       - Spaces
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
@@ -1549,6 +1767,7 @@ paths:
       - Spaces
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1586,6 +1805,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -1619,6 +1839,7 @@ paths:
       - Spaces
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
@@ -1676,6 +1897,7 @@ paths:
       - Nodes
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1700,6 +1922,7 @@ paths:
       - Nodes
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1724,6 +1947,7 @@ paths:
       - Nodes
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1768,6 +1992,7 @@ paths:
       - Profiles
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1794,6 +2019,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '201':
@@ -1818,6 +2044,7 @@ paths:
       - Profiles
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1851,6 +2078,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1883,6 +2111,7 @@ paths:
               $ref: '#/components/schemas/PatchedProfileCard'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1904,6 +2133,7 @@ paths:
       - Profiles
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '204':
@@ -1928,6 +2158,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -1998,6 +2229,7 @@ paths:
       - Profiles
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2022,6 +2254,7 @@ paths:
       - Profiles
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2055,6 +2288,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2087,6 +2321,7 @@ paths:
               $ref: '#/components/schemas/PatchedProfile'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2115,6 +2350,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2247,6 +2483,7 @@ paths:
       - schema
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2268,6 +2505,19 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/tools/markitdown/:
+    post:
+      operationId: tools_markitdown_create
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
   /api/users/:
     get:
       operationId: users_list
@@ -2288,6 +2538,7 @@ paths:
       - users
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2310,6 +2561,7 @@ paths:
       - users
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2343,6 +2595,7 @@ paths:
         required: true
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2375,6 +2628,7 @@ paths:
               $ref: '#/components/schemas/PatchedUser'
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -2390,6 +2644,7 @@ paths:
       - users
       security:
       - knoxApiToken: []
+      - jwtAuth: []
       - cookieAuth: []
       responses:
         '200':
@@ -4249,6 +4504,46 @@ components:
       - node_count
       - title
       - updated_at
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    TokenVerify:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+      required:
+      - token
     User:
       type: object
       description: |-
@@ -4285,6 +4580,10 @@ components:
       type: apiKey
       in: cookie
       name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
     knoxApiToken:
       type: apiKey
       in: header

@@ -13,4 +13,5 @@ router.register(
 urlpatterns = router.urls
 urlpatterns += [
     path("tools/paperqa/", tools.views.PaperQAView.as_view(), name="paperqa-external"),
+    path("tools/markitdown/", tools.views.MarkItDownView.as_view(), name="markitdown"),
 ]

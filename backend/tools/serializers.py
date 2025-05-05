@@ -24,3 +24,7 @@ class PaperQACollectionSerializer(utils.serializers.BaseSerializer):
     class Meta:
         model = tools.models.PaperQACollection
         fields = ("id", "name", "created_at", "updated_at")
+
+
+class MarkItDownSerializer(rest_framework.serializers.Serializer):
+    file = rest_framework.serializers.FileField(required=True)

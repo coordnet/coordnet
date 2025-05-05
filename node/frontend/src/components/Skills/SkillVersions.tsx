@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 import { getSkillVersions } from "@/api";
 import {
@@ -14,7 +14,18 @@ import {
 import { useYDoc } from "@/hooks";
 import { SkillVersion, YDocScope } from "@/types";
 
-const SkillVersions = ({ readOnly = false }: { readOnly?: boolean }) => {
+const SkillVersions = ({
+  showDraft = true,
+  showDate = true,
+  readOnly = false,
+  className = "",
+}: {
+  showDraft?: boolean;
+  showDate?: boolean;
+  readOnly?: boolean;
+  className?: string;
+}) => {
+  const { pathname } = useLocation();
   const { versionId } = useParams();
   const { parent, scope } = useYDoc();
 
@@ -41,13 +52,14 @@ const SkillVersions = ({ readOnly = false }: { readOnly?: boolean }) => {
             className={clsx(
               `flex h-7 items-center justify-center gap-2 rounded-full bg-gradient-to-r
               from-violet-50 to-blue-50 px-4 py-1 text-sm font-medium text-neutral-700`,
-              scope !== YDocScope.READ_WRITE && "!py-5"
+              scope !== YDocScope.READ_WRITE && "!py-5",
+              className
             )}
           >
             {versionId && currentVersion ? (
               <>
                 Version {currentVersion.version}
-                {scope !== YDocScope.READ_WRITE && (
+                {scope !== YDocScope.READ_WRITE && showDate && (
                   <div className="text-sm text-gray-5">
                     {format(new Date(currentVersion.created_at), "dd MMM yyyy")}
                   </div>
@@ -75,7 +87,7 @@ const SkillVersions = ({ readOnly = false }: { readOnly?: boolean }) => {
           sideOffset={8}
           className="flex max-h-[125px] flex-col overflow-auto"
         >
-          {scope === YDocScope.READ_WRITE && latestVersion?.version && (
+          {scope === YDocScope.READ_WRITE && latestVersion?.version && showDraft && (
             <Link to={`/skills/${parent.id}`} className="block cursor-pointer">
               <DropdownMenuItem
                 className={clsx(
@@ -90,7 +102,12 @@ const SkillVersions = ({ readOnly = false }: { readOnly?: boolean }) => {
           )}
           {[...versions.results].reverse().map((version) => (
             <Link
-              to={`/skills/${parent.id}/versions/${version.id}`}
+              to={
+                pathname.includes("skills-runner")
+                  ? `/skills-runner/${parent.id}/${version.id}`
+                  : `/skills/${parent.id}/versions/${version.id}`
+              }
+              reloadDocument={pathname.includes("skills-runner")}
               className="block cursor-pointer"
               key={version.id}
             >
@@ -101,9 +118,11 @@ const SkillVersions = ({ readOnly = false }: { readOnly?: boolean }) => {
                 )}
               >
                 <div className="flex items-center gap-1">Version {version.version}</div>
-                <div className="text-sm text-gray-5">
-                  {format(new Date(version.created_at), "dd/MM/yy HH:mm")}
-                </div>
+                {showDate && (
+                  <div className="text-sm text-gray-5">
+                    {format(new Date(version.created_at), "dd/MM/yy HH:mm")}
+                  </div>
+                )}
               </DropdownMenuItem>
             </Link>
           ))}
