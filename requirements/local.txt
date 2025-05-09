@@ -7,7 +7,7 @@
 adrf==0.1.9 \
     --hash=sha256:e2f59fd84960a564b0385d9201c55531a30c6118eb40c86c5356c077f279af23 \
     --hash=sha256:fd6c45df908e042c91571fdcff1ea54180c871ec18659b639cf3217d67ce97d5
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 aiohappyeyeballs==2.6.1 \
     --hash=sha256:c3f9d0113123803ccadfdf3f0faa505bc78e6a72d1cc4806cbd719826e943558 \
     --hash=sha256:f349ba8f4b75cb25c99c5c2d84e997e485204d2902a9597802b0371f09331fb8
@@ -126,7 +126,7 @@ anyio==4.9.0 \
 argon2-cffi==23.1.0 \
     --hash=sha256:879c3e79a2729ce768ebb7d36d4609e3a78a4ca2ec3a9f12286ca057e3d0db08 \
     --hash=sha256:c670642b78ba29641818ab2e68bd4e6a78ba53b7eff7b4c3815ae16abf91c7ea
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 argon2-cffi-bindings==21.2.0 \
     --hash=sha256:20ef543a89dee4db46a1a6e206cd015360e5a75822f76df533845c3cbaf72670 \
     --hash=sha256:2c3e3cc67fdb7d82c4718f19b4e7a87123caf8a93fde7e23cf66ac0337d3cb3f \
@@ -320,7 +320,7 @@ cfgv==3.4.0 \
 channels==4.2.0 \
     --hash=sha256:6b75bc8d6888fb7236e7e7bf1948520b72d296ad08216a242fc56b1db0ffde1a \
     --hash=sha256:d9e707487431ba5dbce9af982970dab3b0efd786580fadb99e45dca5e39fdd59
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 charset-normalizer==3.4.1 \
     --hash=sha256:0167ddc8ab6508fe81860a57dd472b2ef4060e8d378f0cc555707126830f2537 \
     --hash=sha256:01732659ba9b5b873fc117534143e4feefecf3b2078b0a6a2e925271bb6f4cfa \
@@ -556,7 +556,7 @@ coverage==7.8.0 \
 crispy-bootstrap5==2025.4 \
     --hash=sha256:51efa19c7d40e339774a6fe23407e83b95b7634cad6de70fd1f1093131bea1d9 \
     --hash=sha256:d675ea7e245048905077dfe16bf1fa1ee16842f52fe88164ccc8a5e2d11119b3
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 cron-descriptor==1.4.5 \
     --hash=sha256:736b3ae9d1a99bc3dbfc5b55b5e6e7c12031e7ba5de716625772f8b02dcd6013 \
     --hash=sha256:f51ce4ffc1d1f2816939add8524f206c376a42c87a5fca3091ce26725b3b1bca
@@ -628,7 +628,7 @@ django==5.1.8 \
     --hash=sha256:11b28fa4b00e59d0def004e9ee012fefbb1065a5beb39ee838983fd24493ad4f \
     --hash=sha256:42e92a1dd2810072bcc40a39a212b693f94406d0ba0749e68eb642f31dc770b4
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   adrf
     #   channels
     #   crispy-bootstrap5
@@ -656,7 +656,7 @@ django==5.1.8 \
     #   sentry-sdk
 django-allauth==65.7.0 \
     --hash=sha256:eb060692150f39e1529893c2de5f9b46e1dab51153ff6cca7ad72c7c125259ea
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-appconf==1.1.0 \
     --hash=sha256:7abd5a163ff57557f216e84d3ce9dac36c37ffce1ab9a044d3d53b7c943dd10f \
     --hash=sha256:9fcead372f82a0f21ee189434e7ae9c007cbb29af1118c18251720f3d06243e4
@@ -664,11 +664,11 @@ django-appconf==1.1.0 \
 django-celery-beat==2.8.0 \
     --hash=sha256:955bfb3c4b8f1026a8d20144d0da39c941e1eb23acbaee9e12a7e7cc1f74959a \
     --hash=sha256:f8fd2e1ffbfa8e570ab9439383b2cd15a6642b347662d0de79c62ba6f68d4b38
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-cors-headers==4.7.0 \
     --hash=sha256:6fdf31bf9c6d6448ba09ef57157db2268d515d94fc5c89a0a1028e1fc03ee52b \
     --hash=sha256:f1c125dcd58479fe7a67fe2499c16ee38b81b397463cf025f0e2c42937421070
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-coverage-plugin==3.1.0 \
     --hash=sha256:223d34bf92bebadcb8b7b89932480e41c7bd98b44a8156934488fbe7f4a71f99 \
     --hash=sha256:eb0ea8ffdb0db11a02994fc99be6500550efb496c350d709f418ff3d8e553a67
@@ -677,7 +677,7 @@ django-crispy-forms==2.3 \
     --hash=sha256:2db17ae08527201be1273f0df789e5f92819e23dd28fec69cffba7f3762e1a38 \
     --hash=sha256:efc4c31e5202bbec6af70d383a35e12fc80ea769d464fb0e7fe21768bb138a20
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   crispy-bootstrap5
 django-debug-toolbar==5.1.0 \
     --hash=sha256:8a3b9da4aeab8d384a366e20304bd939a451f0242523c5b7b402248ad474eed2 \
@@ -686,11 +686,11 @@ django-debug-toolbar==5.1.0 \
 django-dry-rest-permissions==1.2.0 \
     --hash=sha256:063420bd3578a21ad3a6f5926a936975f3938d101b03150c73a60cd2a25682f9 \
     --hash=sha256:6ddd5549c83daf782c9ba1d2d7a5d624bc52b2c65e0100290b6614700d21bbc3
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-environ==0.12.0 \
     --hash=sha256:227dc891453dd5bde769c3449cf4a74b6f2ee8f7ab2361c93a07068f4179041a \
     --hash=sha256:92fb346a158abda07ffe6eb23135ce92843af06ecf8753f43adf9d2366dcc0ca
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-extensions==3.2.3 \
     --hash=sha256:44d27919d04e23b3f40231c4ab7af4e61ce832ef46d610cc650d53e68328410a \
     --hash=sha256:9600b7562f79a92cbf1fde6403c04fee314608fefbb595502e34383ae8203401
@@ -698,15 +698,15 @@ django-extensions==3.2.3 \
 django-filter==25.1 \
     --hash=sha256:1ec9eef48fa8da1c0ac9b411744b16c3f4c31176c867886e4c48da369c407153 \
     --hash=sha256:4fa48677cf5857b9b1347fed23e355ea792464e0fe07244d1fdfb8a806215b80
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-imagekit==5.0.0 \
     --hash=sha256:a8e77ed6549751026a51f961bb2cd5fda739be691496da8eecbe68ffb966c261 \
     --hash=sha256:aae9f74a8e9b6ceb5d15f7d8e266302901e76d9f532c78bd5135cb0fa206a6b0
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-model-utils==5.0.0 \
     --hash=sha256:041cdd6230d2fbf6cd943e1969318bce762272077f4ecd333ab2263924b4e5eb \
     --hash=sha256:fec78e6c323d565a221f7c4edc703f4567d7bb1caeafe1acd16a80c5ff82056b
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-pgactivity==1.7.1 \
     --hash=sha256:0cd9e8dbaab7997410bd0fe490417d63f568fa27fd02e548bb3ea8dc73e0e319 \
     --hash=sha256:4d8aad75c2d48e1e79f39d9163b5f134f5867f65c75f08c37fa745d5e8f3d6fa
@@ -714,27 +714,27 @@ django-pgactivity==1.7.1 \
 django-pglock==1.7.1 \
     --hash=sha256:15db418fb56bee37fc8707038495b5085af9b8c203ebfa300202572127bdb3f0 \
     --hash=sha256:69050bdb522fd34585d49bb8a4798dbfbab9ec4754dd1927b1b9eef2ec0edadf
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-pgtrigger==4.13.3 \
     --hash=sha256:c525f9e81f120d166c4bd5fe8c3770640356f0644edf0fc2b7f6426008e52f77 \
     --hash=sha256:d6e4d17021bbd5e425a308f07414b237b9b34423275d86ad756b90c307df3ca4
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-redis==5.4.0 \
     --hash=sha256:6a02abaa34b0fea8bf9b707d2c363ab6adc7409950b2db93602e6cb292818c42 \
     --hash=sha256:ebc88df7da810732e2af9987f7f426c96204bf89319df4c6da6ca9a2942edd5b
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-rest-knox==5.0.2 \
     --hash=sha256:694da5d0ad6eb3edbfd7cdc8d69c089fc074e6b0e548e00ff2750bf2fdfadb6f \
     --hash=sha256:f283622bcf5d28a6a0203845c065d06c7432efa54399ae32070c61ac03af2d6f
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-rest-passwordreset==1.5.0 \
     --hash=sha256:6da38dd00e0cdb1ed5c403e66beeb90f10f8a1a73ebc13fdd27f2b5d67d14181 \
     --hash=sha256:862fce99b12198aa1473299aac68febe4f40760a39beabc47f941cff5c9e7280
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-storages[s3]==1.14.5 \
     --hash=sha256:5ce9c69426f24f379821fd688442314e4aa03de87ae43183c4e16915f4c165d4 \
     --hash=sha256:ace80dbee311258453e30cd5cfd91096b834180ccf09bc1f4d2cb6d38d68571a
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 django-stubs[compatible-mypy]==5.1.3 \
     --hash=sha256:716758ced158b439213062e52de6df3cff7c586f9f9ad7ab59210efbea5dfe78 \
     --hash=sha256:8c230bc5bebee6da282ba8a27ad1503c84a0c4cd2f46e63d149e76d2a63e639a
@@ -753,7 +753,7 @@ djangorestframework==3.16.0 \
     --hash=sha256:bea7e9f6b96a8584c5224bfb2e4348dfb3f8b5e34edbecb98da258e892089361 \
     --hash=sha256:f022ff46613584de994c0c6a4aebbace5fd700555fbe9d33b865ebf173eba6c9
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   adrf
     #   django-rest-knox
     #   djangorestframework-simplejwt
@@ -761,7 +761,7 @@ djangorestframework==3.16.0 \
 djangorestframework-simplejwt[crypto]==5.5.0 \
     --hash=sha256:474a1b737067e6462b3609627a392d13a4da8a08b1f0574104ac6d7b1406f90e \
     --hash=sha256:4ef6b38af20cdde4a4a51d1fd8e063cbbabb7b45f149cc885d38d905c5a62edb
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 djangorestframework-stubs[compatible-mypy]==3.15.3 \
     --hash=sha256:3add29ac343292ffc926a3f3984af42de237cca214c69ca0489d124315a803bc \
     --hash=sha256:e7bdec722d98b8a8049bad9f8bb5ead0931f4f64010ffb3c4538c9ae0f35ef2a
@@ -801,7 +801,7 @@ docutils==0.21.2 \
 drf-spectacular==0.28.0 \
     --hash=sha256:2c778a47a40ab2f5078a7c42e82baba07397bb35b074ae4680721b2805943061 \
     --hash=sha256:856e7edf1056e49a4245e87a61e8da4baff46c83dbc25be1da2df77f354c7cb4
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 editorconfig==0.17.0 \
     --hash=sha256:8739052279699840065d3a9f5c125d7d5a98daeefe53b0e5274261d77cb49aa2 \
     --hash=sha256:fe491719c5f65959ec00b167d07740e7ffec9a3f362038c72b289330b9991dfc
@@ -1069,7 +1069,7 @@ hiredis==3.1.0 \
     --hash=sha256:f7c7f89e0bc4246115754e2eda078a111282f6d6ecc6fb458557b724fe6f2aac \
     --hash=sha256:f9ea0678806c53d96758e74c6a898f9d506a2e3367a344757f768bef9e069366 \
     --hash=sha256:fcb91ba42903de637b94a1b64477f381f94ad82c0742c264f9245be76a7a3cbc
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 html2text==2024.2.26 \
     --hash=sha256:05f8e367d15aaabc96415376776cdd11afd5127a77fce6e36afc60c563ca2c32
     # via paper-qa
@@ -1463,7 +1463,7 @@ markdownify==1.1.0 \
 markitdown[docx,outlook,pdf,pptx,xls,xlsx]==0.1.1 \
     --hash=sha256:98ea8c009fe174b37ef933e00f4364214e8fed35691178b8521b13604d0c4a58 \
     --hash=sha256:da97a55a45a3d775ea758e88a344d5cac94ee97115fb0293f99027d32c2fc3f6
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 markupsafe==3.0.2 \
     --hash=sha256:0bff5e0ae4ef2e1ae4fdf2dfd5b76c75e5c2fa4132d05fc1b0dabcd20c7e28c4 \
     --hash=sha256:0f4ca02bea9a23221c0182836703cbf8930c5e9454bacce27e767509fa286a30 \
@@ -1769,11 +1769,11 @@ onnxruntime==1.21.1 \
     --hash=sha256:ed4f9771233a92edcab9f11f537702371d450fe6cd79a727b672d37b9dab0cde \
     --hash=sha256:f615c05869a523a94d0a4de1f0936d0199a473cf104d630fc26174bebd5759bd
     # via magika
-openai==1.74.0 \
-    --hash=sha256:592c25b8747a7cad33a841958f5eb859a785caea9ee22b9e4f4a2ec062236526 \
-    --hash=sha256:aff3e0f9fb209836382ec112778667027f4fd6ae38bdb2334bc9e173598b092a
+openai==1.78.0 \
+    --hash=sha256:1ade6a48cd323ad8a7715e7e1669bb97a17e1a5b8a916644261aaef4bf284778 \
+    --hash=sha256:254aef4980688468e96cbddb1f348ed01d274d02c64c6c69b0334bf001fb62b3
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   litellm
     #   sentry-sdk
 openpyxl==3.1.5 \
@@ -1838,7 +1838,7 @@ pandas==2.2.3 \
 paper-qa @ https://github.com/JannKleen/paper-qa/releases/download/v5.11.2/paper_qa-5.11.2.tar.gz \
     --hash=sha256:e3539201ae9274c960ef8921cf9b00d36cdc2e387a1e151d0dafeb413357cb27
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   pqapi
 parso==0.8.4 \
     --hash=sha256:a418670a20291dacd2dddc80c377c5c3791378ee1e8d12bffc35420643d43f18 \
@@ -1945,7 +1945,7 @@ pillow==11.2.1 \
     --hash=sha256:fdec757fea0b793056419bca3e9932eb2b0ceec90ef4813ea4c1e072c389eb28 \
     --hash=sha256:fe15238d3798788d00716637b3d4e7bb6bde18b26e5d08335a96e88564a36b6b
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   pilkit
     #   python-pptx
 platformdirs==4.3.7 \
@@ -1957,7 +1957,7 @@ platformdirs==4.3.7 \
 pqapi==7.2.0 \
     --hash=sha256:3c6425c6b60885eb3de0b4f128ccc0eeb2fda949ee5e7fdb7ab66c4c95bccb1c \
     --hash=sha256:7d78e45a2f1c314399a2820b9272aa76aa4f50f990f7ed68ef0928bde0cbc4ee
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 pre-commit==4.2.0 \
     --hash=sha256:601283b9757afd87d40c4c4a9b2b5de9637a8ea02eaff7adc2d0fb4e04841146 \
     --hash=sha256:a009ca7205f1eb497d10b845e52c838a98b6cdd2102a6c8e4540e94ee75c58bd
@@ -2278,7 +2278,7 @@ python-pptx==1.0.2 \
 python-slugify==8.0.4 \
     --hash=sha256:276540b79961052b66b7d116620b36518847f52d5fd9e3a70164fc8c50faa6b8 \
     --hash=sha256:59202371d1d05b54a9e7720c5e038f928f45daaffe41dd10822f3907b937c856
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 pytz==2025.1 \
     --hash=sha256:89dd22dca55b46eac6eda23b2d72721bf1bdfef212645d81513ef5d03038de57 \
     --hash=sha256:c2db42be2a2518b28e65f9207c4d05e6ff547d1efa4086469ef855e4ab70178e
@@ -2350,7 +2350,7 @@ redis==5.2.1 \
     --hash=sha256:16f2e22dff21d5125e8481515e386711a34cbec50f0e44413dd7d9c060a54e0f \
     --hash=sha256:ee7e1056b9aea0f04c6c2ed59452947f34c4940ee025f5dd83e6a6418b6989e4
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   celery
     #   django-redis
 referencing==0.36.2 \
@@ -2461,7 +2461,7 @@ requests==2.32.3 \
     --hash=sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   djangorestframework-stubs
     #   huggingface-hub
     #   markitdown
@@ -2610,7 +2610,7 @@ s3transfer==0.11.4 \
 sentry-sdk[celery,django,openai]==2.25.1 \
     --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
     --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
@@ -2752,7 +2752,7 @@ tiktoken==0.9.0 \
     --hash=sha256:f0968d5beeafbca2a72c595e8385a1a1f8af58feaebb02b227229b69ca5357fd \
     --hash=sha256:f32cc56168eac4851109e9b5d327637f15fd662aa30dd79f964b7c39fbadd26e
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   fh-llm-client
     #   litellm
     #   paper-qa
@@ -2855,13 +2855,13 @@ uvicorn[standard]==0.34.0 \
     --hash=sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4 \
     --hash=sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   sphinx-autobuild
     #   uvicorn-worker
 uvicorn-worker==0.3.0 \
     --hash=sha256:6baeab7b2162ea6b9612cbe149aa670a76090ad65a267ce8e27316ed13c7de7b \
     --hash=sha256:ef0fe8aad27b0290a9e602a256b03f5a5da3a9e5f942414ca587b645ec77dd52
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 uvloop==0.21.0 \
     --hash=sha256:0878c2640cf341b269b7e128b1a5fed890adc4455513ca710d77d5e93aa6d6a0 \
     --hash=sha256:10d66943def5fcb6e7b37310eb6b5639fd2ccbc38df1177262b0640c3ca68c1f \
@@ -3118,7 +3118,7 @@ werkzeug[watchdog]==3.1.3 \
 whitenoise==6.9.0 \
     --hash=sha256:8c4a7c9d384694990c26f3047e118c691557481d624f069b7f7752a2f735d609 \
     --hash=sha256:c8a489049b7ee9889617bb4c274a153f3d979e8f51d2efd0f5b403caf41c57df
-    # via -r /Users/jann/Development/coordnet/requirements/base.in
+    # via -r requirements/base.in
 wrapt==1.17.2 \
     --hash=sha256:08e7ce672e35efa54c5024936e559469436f8b8096253404faeb54d2a878416f \
     --hash=sha256:0a6e821770cf99cc586d33833b2ff32faebdbe886bd6322395606cf55153246c \
@@ -3304,5 +3304,5 @@ setuptools==78.1.0 \
     --hash=sha256:18fd474d4a82a5f83dac888df697af65afa82dec7323d09c3e37d1f14288da54 \
     --hash=sha256:3e386e96793c8702ae83d17b853fb93d3e09ef82ec62722e61da5cd22376dcd8
     # via
-    #   -r /Users/jann/Development/coordnet/requirements/base.in
+    #   -r requirements/base.in
     #   paper-qa
