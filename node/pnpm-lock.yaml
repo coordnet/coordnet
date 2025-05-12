@@ -283,8 +283,8 @@ importers:
         specifier: ^2.14.4
         version: 2.14.4
       tailwind-merge:
-        specifier: ^3.0.2
-        version: 3.0.2
+        specifier: ^3.3.0
+        version: 3.3.0
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
@@ -553,6 +553,10 @@ packages:
 
   '@babel/runtime@7.27.0':
     resolution: {integrity: sha512-VtPOkrdPHZsKc/clNqyi9WUA8TINkZ4cGk63UUE3u4pmB2k+ZMQRDuIOagv8UVd6j7k0T3+RRIb7beKTebNbcw==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.27.1':
+    resolution: {integrity: sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.26.8':
@@ -3621,6 +3625,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  lib0@0.2.107:
+    resolution: {integrity: sha512-2xih/AugT0dJSgeSfsW/bqIPILlsqzEtmw8hXzWEnMLrOz12DTK5z9rjNgUT21/HkBjHSznOQBr67bcZdc8Ltg==}
+    engines: {node: '>=16'}
+    hasBin: true
+
   lib0@0.2.99:
     resolution: {integrity: sha512-vwztYuUf1uf/1zQxfzRfO5yzfNKhTtgOByCruuiQQxWQXnPb8Itaube5ylofcV0oM0aKal9Mv+S1s1Ky0UYP1w==}
     engines: {node: '>=16'}
@@ -3837,6 +3846,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -4711,8 +4721,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  tailwind-merge@3.0.2:
-    resolution: {integrity: sha512-l7z+OYZ7mu3DTqrL88RiKrKIqO3NcpEO8V/Od04bNpvk0kiIFndGEoqfuzvj4yuhRkHKjRkII2z+KS2HfPcSxw==}
+  tailwind-merge@3.3.0:
+    resolution: {integrity: sha512-fyW/pEfcQSiigd5SNn0nApUOxx0zB/dm6UDU/rEwc2c3sX2smWUNbapHv+QRqLGVp9GWX3THIa7MUGPo+YkDzQ==}
 
   tailwindcss-animate@1.0.7:
     resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
@@ -5342,6 +5352,8 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.14.1
 
+  '@babel/runtime@7.27.1': {}
+
   '@babel/template@7.26.8':
     dependencies:
       '@babel/code-frame': 7.26.2
@@ -5524,7 +5536,7 @@ snapshots:
 
   '@gera2ld/jsx-dom@2.2.2':
     dependencies:
-      '@babel/runtime': 7.27.0
+      '@babel/runtime': 7.27.1
 
   '@hocuspocus/common@2.15.2':
     dependencies:
@@ -8743,6 +8755,10 @@ snapshots:
     dependencies:
       isomorphic.js: 0.2.5
 
+  lib0@0.2.107:
+    dependencies:
+      isomorphic.js: 0.2.5
+
   lib0@0.2.99:
     dependencies:
       isomorphic.js: 0.2.5
@@ -8825,7 +8841,7 @@ snapshots:
 
   markmap-common@0.18.9:
     dependencies:
-      '@babel/runtime': 7.27.0
+      '@babel/runtime': 7.27.1
       '@gera2ld/jsx-dom': 2.2.2
       npm2url: 0.2.4
 
@@ -9880,7 +9896,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  tailwind-merge@3.0.2: {}
+  tailwind-merge@3.3.0: {}
 
   tailwindcss-animate@1.0.7(tailwindcss@3.4.17):
     dependencies:
@@ -10292,7 +10308,7 @@ snapshots:
 
   y-protocols@1.0.6(yjs@13.6.24):
     dependencies:
-      lib0: 0.2.104
+      lib0: 0.2.107
       yjs: 13.6.24
 
   yallist@3.1.1: {}
