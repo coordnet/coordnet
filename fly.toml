@@ -11,8 +11,8 @@ swap_size_mb = 1024
 
 [build.args]
   BUILD_ENVIRONMENT = "production"
-  SENTRY_AUTH_TOKEN = "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"
-  SENTRY_DSN = "https://ef991e355620d806412862aa3ce030b2@sentry.lateral.io/19"
+  SENTRY_AUTH_TOKEN = "REDACTED"
+  SENTRY_DSN = "REDACTED"
 
 [deploy]
   release_command = "bash -c '/app/backend/manage.py migrate --noinput'"
