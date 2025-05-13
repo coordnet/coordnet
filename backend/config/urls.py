@@ -14,7 +14,7 @@ home = TemplateView.as_view(
         "api_url": settings.API_URL,
         "websocket_url": settings.WEBSOCKET_URL,
         "crdt_url": settings.CRDT_URL,
-        "available_llms": {
+        "available_llms": lambda: {
             llm.identifier: llm.name
             for llm in llms.models.LLModel.objects.filter(is_available=True)
         },

@@ -14,11 +14,7 @@
         apiUrl: "{{ api_url }}",
         websocketUrl: "{{ websocket_url }}",
         crdtUrl: "{{ crdt_url }}",
-        availableLLMs: {
-          {
-            available_llms | safe
-          }
-        },
+        availableLLMs: {{ available_llms | safe }},
       }
     </script>
     <script type="module" crossorigin src="{% static "index.js" %}"></script>
