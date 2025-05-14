@@ -1,0 +1,138 @@
+[
+  {
+    "model": "llms.llmodel",
+    "pk": 1,
+    "fields": {
+      "public_id": "5c06402a-c2bb-4a1b-91ad-995364897ca4",
+      "created_at": "2025-05-04T13:44:27.216Z",
+      "updated_at": "2025-05-04T13:44:27.216Z",
+      "name": "GPT-3.5",
+      "identifier": "gpt-3.5-turbo-0125",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 2,
+    "fields": {
+      "public_id": "64ea0b4d-3ed3-4b03-aea1-9489bd8b7126",
+      "created_at": "2025-05-04T13:44:41.127Z",
+      "updated_at": "2025-05-04T13:44:41.127Z",
+      "name": "GPT-4",
+      "identifier": "gpt-4-turbo-preview",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 3,
+    "fields": {
+      "public_id": "135de775-e572-48f7-8faa-f02fb5ce42c7",
+      "created_at": "2025-05-04T13:44:56.492Z",
+      "updated_at": "2025-05-04T13:44:56.492Z",
+      "name": "GPT-4o",
+      "identifier": "gpt-4o",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 4,
+    "fields": {
+      "public_id": "8d6c0467-6e25-4330-9e82-6505468f6857",
+      "created_at": "2025-05-04T13:45:08.107Z",
+      "updated_at": "2025-05-04T13:45:08.107Z",
+      "name": "GPT-4o-mini",
+      "identifier": "gpt-4o-mini",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 5,
+    "fields": {
+      "public_id": "a934e9f1-13a9-448f-a6a9-84bf410306bd",
+      "created_at": "2025-05-04T13:45:16.813Z",
+      "updated_at": "2025-05-04T13:45:16.813Z",
+      "name": "GPT-o1",
+      "identifier": "o1",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 6,
+    "fields": {
+      "public_id": "e75136b7-ac63-4e21-ba7c-19c12db03498",
+      "created_at": "2025-05-04T13:45:28.225Z",
+      "updated_at": "2025-05-04T13:45:28.225Z",
+      "name": "GPT-o3-mini",
+      "identifier": "o3-mini",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 7,
+    "fields": {
+      "public_id": "3b55a71a-74de-47e7-b466-21f53559e0e1",
+      "created_at": "2025-05-04T14:49:36.085Z",
+      "updated_at": "2025-05-04T14:49:36.085Z",
+      "name": "GPT-4.5",
+      "identifier": "gpt-4.5-preview",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  },
+  {
+    "model": "llms.llmodel",
+    "pk": 8,
+    "fields": {
+      "public_id": "a21a79c3-d291-4689-956c-faf86cca2fa7",
+      "created_at": "2025-05-04T14:50:43.187Z",
+      "updated_at": "2025-05-04T14:50:43.187Z",
+      "name": "GPT-o4-mini",
+      "identifier": "o4-mini",
+      "description": "",
+      "is_available": true,
+      "replacement": null,
+      "disabled": false,
+      "input_token_limit": null,
+      "output_token_limit": null
+    }
+  }
+]

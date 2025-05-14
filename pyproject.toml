@@ -86,7 +86,7 @@ generate-hashes = true
 blank_line_after_tag = "load,extends"
 close_void_tags = true
 format_css = true
-format_js = true
+format_js = false  # Causes issues with template tags within JS
 # TODO: remove T002 when fixed https://github.com/Riverside-Healthcare/djLint/issues/687
 ignore = "H006,H030,H031,T002"
 include = "H017,H035"
