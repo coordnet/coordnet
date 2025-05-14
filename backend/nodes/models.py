@@ -321,7 +321,7 @@ class Node(BaseNode):
 
     def save(
         self,
-        force_insert: bool = False,  # type: ignore[override] # I can't see what's wrong with this.
+        force_insert: bool = False,
         force_update: bool = False,
         using: str | None = None,
         update_fields: typing.Iterable[str] | None = None,
