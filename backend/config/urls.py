@@ -10,6 +10,7 @@ import config.views
 
 urlpatterns = [
     path("", config.views.HomeView.as_view(), name="home"),
+    path("config.js", config.views.ConfigView.as_view(), name="configuration"),
     path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
