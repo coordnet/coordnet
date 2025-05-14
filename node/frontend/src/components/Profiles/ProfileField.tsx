@@ -150,8 +150,8 @@ const ProfileField: React.FC<{
                   "absolute w-full",
                   isOpen &&
                     results.length &&
-                    `border border-gray-300 bg-white rounded-md mt-1 max-h-[200px] overflow-auto
-                    z-20`
+                    `z-20 mt-1 max-h-[200px] overflow-auto rounded-md border border-gray-300
+                    bg-white`
                 ),
               })}
             >
@@ -163,7 +163,7 @@ const ProfileField: React.FC<{
                         {...getItemProps({
                           item,
                           className: clsx(
-                            "px-3 py-2 flex items-center gap-2 cursor-pointer",
+                            "flex cursor-pointer items-center gap-2 px-3 py-2",
                             index === highlightedIndex && "bg-gray-200"
                           ),
                         })}
