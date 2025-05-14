@@ -7,6 +7,11 @@ from llms.models import LLModel
 class HomeView(TemplateView):
     template_name = "pages/home.html"
 
+
+class ConfigView(TemplateView):
+    template_name = "pages/config.js"
+    content_type = "text/javascript"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["api_url"] = settings.API_URL
