@@ -291,3 +291,11 @@ export interface SkillsRunnerInput {
   content: JSONContent;
   error?: string;
 }
+
+export const PaperQaCollectionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+});
+export type PaperQaCollection = z.infer<typeof PaperQaCollectionSchema>;

@@ -1,7 +1,7 @@
 import * as Y from "yjs";
 
 import { CanvasNode, PaperQAResponse, PaperQAResponsePair, SingleNode, Task } from "../types";
-import { queryPaperQA } from "./api";
+import { queryPaperQA, queryPaperQACollection } from "./api";
 import {
   addToSkillCanvas,
   findSourceNode,
@@ -71,43 +71,7 @@ export const paperQAResponseToMd = (data: PaperQAResponse): string => {
     )
     .join("\n  ");
 
-  return `**Question:** ${session?.question ?? ""}
-
-#### Answer
-${session?.answer ?? ""}
-
----
-
-#### References
-${session?.references ?? ""}
-
----
-
-#### BibTeX Entries
-${bibtexEntries}
-
----
-
-#### Additional Details
-
-- **Has Successful Answer:** ${session?.has_successful_answer ? "Yes" : "No"}
-- **Cost:** ${session?.cost ?? 0}
-- **Token Counts:**
-    ${tokenCounts}
-- **Config MD5:** ${session?.config_md5 ?? ""}
-
----
-
-#### Timing Information
-
-- **Agent Timing (${timingKey ?? ""}):**
-    - **Low:** ${timing?.low ?? 0} seconds
-    - **Mean:** ${timing?.mean ?? 0} seconds
-    - **Max:** ${timing?.max ?? 0} seconds
-    - **Total:** ${timing?.total ?? 0} seconds
-
-- **Overall Duration:** ${duration} seconds
-    `.trim();
+  return `**Question:** ${session?.question ?? ""}\n\n#### Answer\n${session?.answer ?? ""}\n\n---\n\n#### References\n${session?.references ?? ""}\n\n---\n\n#### BibTeX Entries\n${bibtexEntries}\n\n---\n\n#### Additional Details\n\n- **Has Successful Answer:** ${session?.has_successful_answer ? "Yes" : "No"}\n- **Cost:** ${session?.cost ?? 0}\n- **Token Counts:**\n    ${tokenCounts}\n- **Config MD5:** ${session?.config_md5 ?? ""}\n\n---\n\n#### Timing Information\n\n- **Agent Timing (${timingKey ?? ""}):**\n    - **Low:** ${timing?.low ?? 0} seconds\n    - **Mean:** ${timing?.mean ?? 0} seconds\n    - **Max:** ${timing?.max ?? 0} seconds\n    - **Total:** ${timing?.total ?? 0} seconds\n\n- **Overall Duration:** ${duration} seconds\n    `.trim();
 };
 
 /**
@@ -119,7 +83,7 @@ export const executePaperQATask = async (
   query: string,
   skillDoc: Y.Doc,
   nodesMap: Y.Map<CanvasNode>,
-  outputNode: CanvasNode,
+  outputNode: CanvasNode, // outputNode is the main skill output, not task output
   isLastTask: boolean
 ) => {
   try {
@@ -133,30 +97,45 @@ export const executePaperQATask = async (
     } catch (error) {
       console.error("Error formatting PaperQA response", error);
       try {
+        // Attempt to find answer in a known structure if formatting fails
         markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
-      } catch (error) {
-        console.error("Error parsing PaperQA response", error);
+      } catch (parseError) {
+        console.error("Error parsing PaperQA response, stringifying full response", parseError);
         markdown = JSON.stringify(response, null, 2);
       }
     }
 
     const node: SingleNode = { title: "PaperQA Response: " + query, markdown: markdown };
-
     const sourceNode = findSourceNode(task);
 
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-      if (!canvasId) return;
-
-      // If it's a multiple response node
-      if (task.outputNode && isMultipleResponseNode(task.outputNode)) {
-        await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node], sourceNode });
+    // Handle output for the task's specific output node
+    if (task.outputNode?.id) {
+      if (isMultipleResponseNode(task.outputNode)) {
+        await addToSkillCanvas({
+          canvasId: task.outputNode.id,
+          document: skillDoc,
+          nodes: [node],
+          sourceNode,
+        });
       } else {
-        // Otherwise just update the node directly
-        await setSkillNodeTitleAndContent(skillDoc, canvasId, node.title, node.markdown);
+        await setSkillNodeTitleAndContent(skillDoc, task.outputNode.id, node.title, node.markdown);
       }
-    });
+    }
 
-    // Mark the node as done/inactive
+    // If it's the last task, also update the main skill output node
+    if (isLastTask && outputNode?.id && outputNode.id !== task.outputNode?.id) {
+      if (isMultipleResponseNode(outputNode)) {
+        await addToSkillCanvas({
+          canvasId: outputNode.id,
+          document: skillDoc,
+          nodes: [node],
+          sourceNode,
+        });
+      } else {
+        await setSkillNodeTitleAndContent(skillDoc, outputNode.id, node.title, node.markdown);
+      }
+    }
+
     setNodesState([task.promptNode.id], nodesMap, "inactive");
   } catch (error) {
     console.error("Error executing PaperQA task", error);
@@ -164,7 +143,85 @@ export const executePaperQATask = async (
       [task.promptNode.id],
       nodesMap,
       "error",
-      `PaperQA error: ${(error as Error)?.message}`
+      error instanceof Error ? error.message : "Unknown error"
+    );
+  }
+};
+
+export const executePaperQACollectionTask = async (
+  task: Task,
+  query: string,
+  skillDoc: Y.Doc,
+  nodesMap: Y.Map<CanvasNode>,
+  outputNode: CanvasNode,
+  isLastTask: boolean,
+  authentication: string
+) => {
+  try {
+    setNodesState([task.promptNode.id], nodesMap, "executing");
+
+    if (!task.promptNode.data.paperQACollection) {
+      throw Error("No PaperQA collection found in task, getting first");
+    }
+
+    const response = await queryPaperQACollection(
+      task.promptNode.data.paperQACollection,
+      query,
+      authentication
+    );
+
+    let markdown = "";
+    try {
+      markdown = paperQAResponseToMd(formatPaperQAResponse(response));
+    } catch (error) {
+      console.error("Error formatting PaperQA response", error);
+      try {
+        markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
+      } catch (parseError) {
+        console.error("Error parsing PaperQA response, stringifying full response", parseError);
+        markdown = JSON.stringify(response, null, 2);
+      }
+    }
+
+    const node: SingleNode = { title: "PaperQA Collection Response: " + query, markdown: markdown };
+    const sourceNode = findSourceNode(task);
+
+    // Handle output for the task's specific output node
+    if (task.outputNode?.id) {
+      if (isMultipleResponseNode(task.outputNode)) {
+        await addToSkillCanvas({
+          canvasId: task.outputNode.id,
+          document: skillDoc,
+          nodes: [node],
+          sourceNode,
+        });
+      } else {
+        await setSkillNodeTitleAndContent(skillDoc, task.outputNode.id, node.title, node.markdown);
+      }
+    }
+
+    // If it's the last task, also update the main skill output node
+    if (isLastTask && outputNode?.id && outputNode.id !== task.outputNode?.id) {
+      if (isMultipleResponseNode(outputNode)) {
+        await addToSkillCanvas({
+          canvasId: outputNode.id,
+          document: skillDoc,
+          nodes: [node],
+          sourceNode,
+        });
+      } else {
+        await setSkillNodeTitleAndContent(skillDoc, outputNode.id, node.title, node.markdown);
+      }
+    }
+
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
+  } catch (error) {
+    console.error("Error executing PaperQA Collection task", error);
+    setNodesState(
+      [task.promptNode.id],
+      nodesMap,
+      "error",
+      error instanceof Error ? error.message : "Unknown error"
     );
   }
 };

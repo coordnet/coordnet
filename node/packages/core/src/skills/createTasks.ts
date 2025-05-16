@@ -80,7 +80,8 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
     if (
       node.data.type !== NodeType.Prompt &&
       node.data.type !== NodeType.PaperFinder &&
-      node.data.type !== NodeType.PaperQA
+      node.data.type !== NodeType.PaperQA &&
+      node.data.type !== NodeType.PaperQACollection
     ) {
       return;
     }
@@ -133,11 +134,47 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
       const targetNode = canvas.nodes[targetNodeId];
       if (!targetNode) return;
 
-      if (targetNode.data?.type === NodeType.Loop) {
-        // If it's a loop node, process its connections
-        const itemsFromThisLoop = handleLoopNode(targetNode);
-        if (itemsFromThisLoop.length > 0) {
-          loopItemsCollector.push(itemsFromThisLoop);
+      if (node.data.type === NodeType.Prompt) {
+        if (targetNode.data?.type === NodeType.Loop) {
+          // If it's a loop node, process its connections
+          const itemsFromThisLoop = handleLoopNode(targetNode);
+          if (itemsFromThisLoop.length > 0) {
+            loopItemsCollector.push(itemsFromThisLoop);
+          }
+        } else if (isInputNode(targetNode)) {
+          // If it's any other valid direct input
+          baseTask.inputNodes.push(targetNode);
+        } else {
+          console.warn(
+            `Node ${targetNode.id} (${targetNode.data?.type}) connected to Prompt ${node.id} (${node.data?.type}) is not a standard input or loop.`
+          );
+        }
+      } else if (
+        node.data.type === NodeType.PaperFinder ||
+        node.data.type === NodeType.PaperQA ||
+        node.data.type === NodeType.PaperQACollection
+      ) {
+        // Specific check for PaperFinder output type
+        if (
+          node.data.type === NodeType.PaperFinder &&
+          baseTask.outputNode &&
+          baseTask.outputNode.data.type !== NodeType.ResponseMultiple
+        ) {
+          throw new Error("Paper Finder output must be Responses (Many nodes)");
+        } else {
+          // Process inputs for PaperFinder (if no error), PaperQA, PaperQACollection
+          if (targetNode.data?.type === NodeType.Loop) {
+            const itemsFromThisLoop = handleLoopNode(targetNode);
+            if (itemsFromThisLoop.length > 0) {
+              loopItemsCollector.push(itemsFromThisLoop);
+            }
+          } else if (isInputNode(targetNode)) {
+            baseTask.inputNodes.push(targetNode);
+          } else {
+            console.warn(
+              `Node ${targetNode.id} (${targetNode.data?.type}) connected to ${node.data.type} ${node.id} is not a standard input or loop.`
+            );
+          }
         }
       } else if (isInputNode(targetNode)) {
         // If it's any other valid direct input (Default, Response, ExternalData, etc.)

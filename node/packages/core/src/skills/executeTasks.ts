@@ -23,7 +23,7 @@ import { getSkillNodePageContent } from "../utils";
 import { getExternalNode, querySemanticScholar } from "./api";
 import { setExternalData } from "./externalData";
 import { handleMarkMapResponse } from "./markmap";
-import { executePaperQATask } from "./paperQA";
+import { executePaperQACollectionTask, executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
@@ -186,8 +186,7 @@ export const processTasks = async (
           if (dryRun) {
             executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERS" });
           } else {
-            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
-            await executeKeywordTask(currentSubTask, skillDoc, query);
+            await executeKeywordTask(currentSubTask, skillDoc, query, nodesMap);
             taskResultsProcessed = true;
           }
         } else if (currentSubTask.promptNode.data.type === NodeType.PaperQA) {
@@ -195,6 +194,7 @@ export const processTasks = async (
           if (dryRun) {
             executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERQA" });
           } else {
+            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
             await executePaperQATask(
               currentSubTask,
               query,
@@ -202,6 +202,23 @@ export const processTasks = async (
               nodesMap,
               context.outputNode,
               isLastSubTask
+            );
+            taskResultsProcessed = true;
+          }
+        } else if (currentSubTask.promptNode.data.type === NodeType.PaperQACollection) {
+          const query = await collectInputTitles(currentSubTask, skillDoc);
+          if (dryRun) {
+            executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERQA_COLLECTION" });
+          } else {
+            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
+            await executePaperQACollectionTask(
+              currentSubTask,
+              query,
+              skillDoc,
+              nodesMap,
+              context.outputNode,
+              isLastSubTask,
+              context.authentication
             );
             taskResultsProcessed = true;
           }
@@ -216,14 +233,14 @@ export const processTasks = async (
           if (dryRun) {
             executionPlan.tasks.push({ task: currentSubTask, messages, type: "PROMPT" });
           } else {
-            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
             await executePromptTask(
               currentSubTask,
               messages,
               skillDoc,
               taskBuddy,
               context.outputNode,
-              isLastSubTask
+              isLastSubTask,
+              nodesMap
             );
             taskResultsProcessed = true;
           }
@@ -276,61 +293,105 @@ export const executePromptTask = async (
   skillDoc: Y.Doc,
   buddy: Buddy,
   outputNode: CanvasNode,
-  isLastTask: boolean
+  isLastSubTask: boolean,
+  nodesMap: Y.Map<CanvasNode>
 ) => {
-  if (isTableResponseType(task.outputNode)) {
-    await executeTableTask(task, messages, skillDoc, buddy, outputNode, isLastTask);
-    return;
-  }
-
-  const response_model: ResponseModel<z.AnyZodObject> = {
-    schema: MultipleNodesSchema,
-    name: "MultipleNodes",
-  };
-  if (isSingleResponseType(task.outputNode)) {
-    response_model.schema = SingleNodeSchema;
-    response_model.name = "SingleNode";
-  }
-
-  const response = await client.chat.completions.create({
-    messages,
-    model: buddy.model,
-    stream: false,
-    response_model,
-  });
-
-  if (isCancelled(skillDoc)) return;
-
-  const nodes: SingleNode[] = [];
-  if (isSingleResponseType(task.outputNode)) {
-    let extractedNode: SingleNodeResponse = {};
-    extractedNode = response;
-    if (extractedNode) {
-      nodes.push(extractedNode as SingleNode);
+  try {
+    setNodesState([task.promptNode.id], nodesMap, "executing");
+    if (isCancelled(skillDoc)) {
+      setNodesState([task.promptNode.id], nodesMap, "inactive", "Cancelled");
+      return;
     }
-  } else {
-    let extractedData: MultipleNodesResponse = {};
-    extractedData = response;
-    nodes.push(...(extractedData.nodes as SingleNode[]));
-  }
 
-  if (isCancelled(skillDoc)) return;
+    if (isTableResponseType(task.outputNode)) {
+      await executeTableTask(task, messages, skillDoc, buddy, outputNode, isLastSubTask);
+      setNodesState([task.promptNode.id], nodesMap, "inactive"); // executeTableTask doesn't manage promptNode state
+      return;
+    }
 
-  // For the task output node and the final output node if it's the last task
-  [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-    if (!canvasId) return;
+    const response_model: ResponseModel<z.AnyZodObject> = {
+      schema: MultipleNodesSchema,
+      name: "MultipleNodes",
+    };
+    if (isSingleResponseType(task.outputNode)) {
+      response_model.schema = SingleNodeSchema;
+      response_model.name = "SingleNode";
+    }
 
-    // Find the source node info - prioritize from task if available
-    const sourceNode = findSourceNode(task);
+    const response = await client.chat.completions.create({
+      messages,
+      model: buddy.model,
+      stream: false,
+      response_model,
+    });
 
-    if (task.outputNode?.data?.type === NodeType.ResponseMarkMap) {
-      await handleMarkMapResponse(task, nodes, canvasId, skillDoc);
-    } else if (isMultipleResponseNode(task.outputNode)) {
-      await addToSkillCanvas({ canvasId, document: skillDoc, nodes, sourceNode });
+    if (isCancelled(skillDoc)) {
+      setNodesState([task.promptNode.id], nodesMap, "inactive", "Cancelled");
+      return;
+    }
+
+    const nodes: SingleNode[] = [];
+    if (isSingleResponseType(task.outputNode)) {
+      let extractedNode: SingleNodeResponse = {};
+      extractedNode = response;
+      if (extractedNode) {
+        nodes.push(extractedNode as SingleNode);
+      }
     } else {
-      await setSkillNodeTitleAndContent(skillDoc, canvasId, nodes[0].title, nodes[0].markdown);
+      let extractedData: MultipleNodesResponse = {};
+      extractedData = response;
+      nodes.push(...(extractedData.nodes as SingleNode[]));
     }
-  });
+
+    if (isCancelled(skillDoc)) {
+      setNodesState([task.promptNode.id], nodesMap, "inactive", "Cancelled");
+      return;
+    }
+
+    // For the task output node and the final output node if it's the last task
+    // Important: task.outputNode is the direct output of this prompt. outputNode is the overall skill output.
+    const canvasIdsToUpdate = [task.outputNode?.id];
+    if (isLastSubTask && outputNode?.id && outputNode.id !== task.outputNode?.id) {
+      canvasIdsToUpdate.push(outputNode.id);
+    }
+
+    for (const canvasId of canvasIdsToUpdate) {
+      if (!canvasId) continue;
+
+      const sourceNode = findSourceNode(task);
+
+      if (task.outputNode?.data?.type === NodeType.ResponseMarkMap) {
+        await handleMarkMapResponse(task, nodes, canvasId, skillDoc);
+      } else if (
+        isMultipleResponseNode(
+          task.outputNode && canvasId === task.outputNode.id ? task.outputNode : outputNode
+        )
+      ) {
+        // Determine if the target canvasId corresponds to a multi-response node
+        // This logic might need refinement if task.outputNode and outputNode differ significantly in type for the same canvasId
+        await addToSkillCanvas({ canvasId, document: skillDoc, nodes, sourceNode });
+      } else {
+        // Ensure nodes[0] exists, especially if response could be empty
+        if (nodes.length > 0) {
+          await setSkillNodeTitleAndContent(skillDoc, canvasId, nodes[0].title, nodes[0].markdown);
+        } else {
+          // Handle case with no nodes from LLM if necessary, e.g. set to empty or specific message
+          await setSkillNodeTitleAndContent(
+            skillDoc,
+            canvasId,
+            "Response",
+            "(No content from LLM)"
+          );
+        }
+      }
+    }
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
+  } catch (e) {
+    console.error("Error executing Prompt task", e);
+    const errorMessage = e instanceof Error ? e.message : "Prompt task failed";
+    setNodesState([task.promptNode.id], nodesMap, "error", errorMessage.substring(0, 100));
+    throw e; // Rethrow to allow processTasks to also handle if needed
+  }
 };
 
 export const generatePrompt = async (
@@ -380,9 +441,18 @@ export const generatePrompt = async (
   ];
 };
 
-export const executeKeywordTask = async (task: Task, document: Y.Doc, query: string) => {
+export const executeKeywordTask = async (
+  task: Task,
+  document: Y.Doc,
+  query: string,
+  nodesMap: Y.Map<CanvasNode>
+) => {
   try {
-    if (isCancelled(document)) return;
+    setNodesState([task.promptNode.id], nodesMap, "executing");
+    if (isCancelled(document)) {
+      setNodesState([task.promptNode.id], nodesMap, "inactive", "Cancelled");
+      return;
+    }
     const papers = await querySemanticScholar(query);
     const nodes: SingleNode[] = papers.map((paper) => ({
       title: paper.title,
@@ -398,12 +468,18 @@ export const executeKeywordTask = async (task: Task, document: Y.Doc, query: str
 ${paper.abstract}`,
     }));
 
-    if (isCancelled(document)) return;
+    if (isCancelled(document)) {
+      setNodesState([task.promptNode.id], nodesMap, "inactive", "Cancelled");
+      return;
+    }
 
     await addToSkillCanvas({ canvasId: task?.outputNode?.id ?? "", nodes, document });
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
   } catch (e) {
-    console.error(e);
-    console.info("A request to find papers failed, continuing with the next task");
+    console.error("Error executing Keyword task (PaperFinder)", e);
+    const errorMessage = e instanceof Error ? e.message : "Keyword task failed";
+    setNodesState([task.promptNode.id], nodesMap, "error", errorMessage.substring(0, 100));
+    // Optionally rethrow if processTasks should also handle it
   }
 };
 
