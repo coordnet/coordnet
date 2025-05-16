@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   ExecutionPlan,
   NodeType,
+  processTasks,
   RunStatus,
   skillYdocToJson,
 } from "@coordnet/core";
@@ -72,13 +73,16 @@ export const useRunSkill = () => {
 
     // Go to the run page and execute it
     await executeSkillRun(run.id);
-    // window.location.href = `/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/${run.id}`;
     navigate(`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}/runs/${run.id}`);
   }, [buddy, inputNodes.length, navigate, nodes, parent.id, scope, skillId, spaceYDoc, versionId]);
 
   const prepareExecutionPlan = useCallback(async (): Promise<ExecutionPlan | undefined> => {
     if (!buddy) {
       toast.error("Buddy not set, cannot prepare plan");
+      return;
+    }
+    if (!skillId) {
+      toast.error("Skill ID not found");
       return;
     }
     const outputNode = nodes.find((node) => node.data.type === NodeType.Output);
@@ -96,8 +100,8 @@ export const useRunSkill = () => {
     };
     createTasks(canvas, context);
 
-    // return processTasks(context, buddy, spaceYDoc, skill, skillNodesMap, nodesMap, cancelRef, true);
-  }, [buddy, edges, nodes]);
+    return await processTasks(context, buddy, skillId, spaceYDoc, true);
+  }, [buddy, edges, nodes, skillId, spaceYDoc]);
 
   return { runSkill, prepareExecutionPlan, status, error };
 };

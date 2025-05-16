@@ -241,7 +241,14 @@ export interface SemanticScholarPaper {
   isOpenAccess: boolean;
 }
 
-export type RunStatus = "idle" | "pending" | "running" | "cancelled" | "success" | "error";
+export type RunStatus =
+  | "loading"
+  | "idle"
+  | "pending"
+  | "running"
+  | "canceled"
+  | "success"
+  | "error";
 
 export interface RunResult {
   status: RunStatus;

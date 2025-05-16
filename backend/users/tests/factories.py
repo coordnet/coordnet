@@ -31,14 +31,14 @@ class UserFactory(DjangoModelFactory):
                 lower_case=True,
             ).evaluate(None, None, extra={"locale": None})
         )
-        self.set_password(password)
+        self.set_password(password)  # type: ignore[attr-defined]
 
     @classmethod
     def _after_postgeneration(
         cls, instance: User, create: bool, results: Sequence[Any] | None = None
     ) -> None:
         """Save again the instance if creating and at least one hook ran."""
-        if create and results and not cls._meta.skip_postgeneration_save:
+        if create and results and not cls._meta.skip_postgeneration_save:  # type: ignore[attr-defined]
             # Some post-generation hooks ran, and may have modified us.
             instance.save()
 

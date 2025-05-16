@@ -11,4 +11,5 @@ urlpatterns = router.urls
 urlpatterns += [
     path("tools/paperqa/", tools.views.LocalPDFQueryView.as_view(), name="paperqa-local"),
     path("tools/paperqa/external/", tools.views.PaperQAView.as_view(), name="paperqa-external"),
+    path("tools/markitdown/", tools.views.MarkItDownView.as_view(), name="markitdown"),
 ]

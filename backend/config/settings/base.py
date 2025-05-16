@@ -350,6 +350,8 @@ STORAGES = {
             "querystring_expire": env.int("AWS_QUERYSTRING_EXPIRE", 3600 * 12),
             "location": env.str("AWS_LOCATION", ""),
             "custom_domain": env.str("AWS_S3_CUSTOM_DOMAIN", None),
+            "url_protocol": env.str("AWS_S3_URL_PROTOCOL", "https:"),
+            "addressing_style": env.str("AWS_S3_ADDRESSING_STYLE", None),
         },
     },
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},

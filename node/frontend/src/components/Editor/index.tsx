@@ -134,21 +134,23 @@ const Editor = ({ id, className }: EditorProps) => {
         <EditableNode id={id} className="w-full" />
       </div>
       <div className="absolute right-2 top-2 z-10 flex gap-2">
-        <Button
-          variant="outline"
-          className="size-9 p-0 shadow"
-          onClick={() =>
-            editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-          }
-          draggable
-          data-tooltip-id="insert-table"
-          data-tooltip-place="bottom-end"
-          disabled={focus !== "editor"}
-        >
-          <Table strokeWidth={2.8} className="size-4 text-neutral-600" />
-        </Button>
+        {editor?.isEditable && (
+          <Button
+            variant="outline"
+            className="size-9 p-0 shadow"
+            onClick={() =>
+              editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+            draggable
+            data-tooltip-id="insert-table"
+            data-tooltip-place="bottom-end"
+            disabled={focus !== "editor"}
+          >
+            <Table strokeWidth={2.8} className="size-4 text-neutral-600" />
+          </Button>
+        )}
         <Tooltip id="insert-table">Insert Table</Tooltip>
-        {parent.type === BackendEntityType.SPACE && (
+        {editor?.isEditable && parent.type === BackendEntityType.SPACE && (
           <Button
             variant="outline"
             className="size-9 p-0 shadow"

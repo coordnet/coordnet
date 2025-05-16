@@ -27,10 +27,15 @@ swap_size_mb = 1024
   min_machines_running = 1
   max_machines_running = 1
   tls_options = {"alpn"= ["h2", "http/1.1"],  "default_self_signed"= true}
+  processes = ["crdt"]
 
 [http_service.concurrency]
   hard_limit = 2000
   soft_limit = 1750
+
+[processes]
+  crdt = "pnpm start:server"
+  worker = "pnpm start:worker"
 
 [[vm]]
   cpu_kind = "shared"

@@ -1,4 +1,10 @@
-import { CanvasNode, ExportNode, FormatReturnType, getNodeContent } from "@coordnet/core";
+import {
+  CanvasEdge,
+  CanvasNode,
+  ExportNode,
+  FormatReturnType,
+  getNodeContent,
+} from "@coordnet/core";
 import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -171,7 +177,10 @@ export const importNodeCanvas = async (spaceId: string, canvasId: string, node: 
     const source = idMap[edge.source];
     const target = idMap[edge.target];
     const id = `edge-${source}-${target}`;
-    edgesMap.set(id, { id, source, target });
+    const edgeObj: CanvasEdge = { id, source, target };
+    if (edge.targetHandle) edgeObj.targetHandle = edge.targetHandle;
+    if (edge.sourceHandle) edgeObj.sourceHandle = edge.sourceHandle;
+    edgesMap.set(id, edgeObj);
   });
 
   disconnect();
