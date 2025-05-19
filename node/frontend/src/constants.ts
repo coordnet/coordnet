@@ -29,3 +29,8 @@ export const crdtUrl =
   window.__COORDNET_CONFIG__ && window.__COORDNET_CONFIG__.crdtUrl
     ? window.__COORDNET_CONFIG__.crdtUrl
     : import.meta.env.VITE_CRDT_URL;
+
+export const availableLLMs =
+  window.__COORDNET_CONFIG__ && window.__COORDNET_CONFIG__.availableLLMs
+    ? window.__COORDNET_CONFIG__.availableLLMs
+    : {};

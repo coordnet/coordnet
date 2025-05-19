@@ -1,4 +1,3 @@
-import { buddyModels } from "@coordnet/core";
 import clsx from "clsx";
 import { Command as CommandPrimitive } from "cmdk";
 import { Bot, ChevronRight, Plus } from "lucide-react";
@@ -17,6 +16,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { availableLLMs } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
 
 import BuddyForm from "./BuddyForm";
@@ -84,7 +84,7 @@ const Buddies = ({ className, children }: { className?: string; children: React.
                   >
                     <span className="font-medium">{buddy.name}</span>
                     <span className="ml-1 text-xs">
-                      {buddy.model in buddyModels ? buddyModels[buddy.model] : "Unknown"}
+                      {buddy.model in availableLLMs ? availableLLMs[buddy.model] : "Unknown"}
                     </span>
                     <Button
                       variant="ghost"

@@ -6,6 +6,7 @@ declare global {
       apiUrl: string;
       websocketUrl: string;
       crdtUrl: string;
+      availableLLMs: Record<string, string>;
     };
   }
 }

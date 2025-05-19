@@ -510,11 +510,12 @@ AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-p
 
 SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
 
+# Front-end config
+# ------------------------------------------------------------------------------
+API_URL = env("BACKEND_URL", default="https://app.coord.dev")
+WEBSOCKET_URL = env("BACKEND_WS_URL", default="wss://app.coord.dev")
+CRDT_URL = env("CRDT_URL", default="wss://ws.coord.dev")
+
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.
 FRONTEND_URL: str | None = env("FRONTEND_URL", default=None)
-
-# URLs for the front-end
-API_URL = env("VITE_BACKEND_URL", default="https://app.coord.dev")
-WEBSOCKET_URL = env("VITE_BACKEND_WS_URL", default="wss://app.coord.dev")
-CRDT_URL = env("VITE_CRDT_URL", default="wss://ws.coord.dev")

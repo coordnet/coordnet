@@ -142,8 +142,6 @@ services:
     image: coordnet_local_frontend
     container_name: coordnet_local_frontend
     command: ["pnpm", "dev"]
-    env_file:
-      - ./.envs/.local/.frontend
     ports:
       - "5173:5173"
     develop:
