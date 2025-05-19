@@ -35,9 +35,9 @@ data:
 
   # Important: These must be set to the service endpoints
   FRONTEND_URL: "http://localhost:30000"
-  VITE_BACKEND_WS_URL: "ws://localhost:30000"
-  VITE_CRDT_URL: "ws://localhost:30001"
-  VITE_BACKEND_URL: "http://localhost:30000"
+  BACKEND_WS_URL: "ws://localhost:30000"
+  CRDT_URL: "ws://localhost:30001"
+  BACKEND_URL: "http://localhost:30000"
 
   # If you are using a custom OpenAI endpoint then set this
   # OPENAI_API_BASE_URL: ""

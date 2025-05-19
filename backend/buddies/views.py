@@ -13,7 +13,7 @@ from rest_framework.decorators import action, authentication_classes, permission
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
-import utils.llm
+import llms.utils
 from buddies import models, serializers
 from utils import middlewares, views
 
@@ -146,7 +146,7 @@ async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
     validated_data = serializers.OpenAIQuerySerializer(data=request.data)
     validated_data.is_valid(raise_exception=True)
 
-    response = await utils.llm.get_async_openai_client().chat.completions.create(
+    response = await llms.llm.get_async_openai_client().chat.completions.create(
         **validated_data.validated_data
     )
 

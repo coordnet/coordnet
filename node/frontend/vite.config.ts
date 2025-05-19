@@ -18,6 +18,14 @@ export default defineConfig({
 
     sourcemap: true,
   },
+  server: {
+    proxy: {
+      "/config.js": {
+        target: "http://django:8000",
+        changeOrigin: true,
+      },
+    },
+  },
   esbuild: {
     target: "esnext",
   },

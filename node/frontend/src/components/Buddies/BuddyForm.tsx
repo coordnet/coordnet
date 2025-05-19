@@ -1,4 +1,4 @@
-import { buddyModels, BuddySchema } from "@coordnet/core";
+import { BuddySchema } from "@coordnet/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { availableLLMs } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
 
 const formSchema = BuddySchema.pick({
@@ -118,7 +119,7 @@ const CreateBuddy = ({
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent className="z-90">
-                        {Object.entries(buddyModels).map(([key, value]) => (
+                        {Object.entries(availableLLMs).map(([key, value]) => (
                           <SelectItem key={key} value={key}>
                             {value}
                           </SelectItem>
