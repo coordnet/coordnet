@@ -47,6 +47,11 @@ data:
   # AZURE_OPENAI_API_VERSION: ""
 
   # Storage
+  # Uncomment and set the appropriate storage backend
+  # DJANGO_STORAGE_BACKEND: "storages.backends.s3.S3Storage"
+  # DJANGO_STORAGE_BACKEND: "storages.backends.azure_storage.AzureStorage"
+
+  # S3 Storage Configuration
   BUCKET_NAME: "coordnet-static"
   AWS_QUERYSTRING_AUTH: "True"
   AWS_QUERYSTRING_EXPIRE: "43200"
@@ -59,3 +64,18 @@ data:
   MINIO_DEFAULT_BUCKETS: "coordnet-static:download"
   AWS_S3_URL_PROTOCOL: "http:"
   AWS_S3_CUSTOM_DOMAIN: "localhost:30002/coordnet-static"
+
+  # Azure Storage Configuration (only required if using Azure Storage)
+  # AZURE_CONTAINER: "coordnet-static"
+
+  # Required if not using connection string
+  # AZURE_ACCOUNT_NAME: "your-storage-account-name"
+
+  # Optional overrides (leave commented if not used)
+  # AZURE_CUSTOM_DOMAIN: ""
+  # AZURE_SSL: "True"
+  # AZURE_LOCATION: ""
+  # AZURE_CACHE_CONTROL: ""
+  # AZURE_ENDPOINT_SUFFIX: "core.windows.net"
+  # AZURE_OVERWRITE_FILES: "True"
+  # AZURE_URL_EXPIRATION_SECS: "43200"
