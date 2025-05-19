@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Support Azure Blob Storage as object storage backend.
+
 ## [25.5.0] - 2025-05-05
 
 ### Added
