@@ -103,7 +103,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         )
 
         return [
-            {"role": "system", "content": system_prompt},
+            {"role": "developer", "content": system_prompt},
             {"role": "user", "content": query},
         ]
 
