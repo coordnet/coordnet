@@ -987,7 +987,7 @@ class MethodNodeVersion(BaseNode):
         return self.method.has_object_read_permission(request)
 
 
-class MethodNodeRun(utils.models.SoftDeletableBaseModel):
+class MethodNodeRun(permissions.models.MembershipBaseModel):
     method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="runs")
     method_version = models.ForeignKey(
         "MethodNodeVersion", on_delete=models.SET_NULL, null=True, blank=True, related_name="runs"
@@ -1002,6 +1002,51 @@ class MethodNodeRun(utils.models.SoftDeletableBaseModel):
 
     def __str__(self) -> str:
         return f"{self.method.public_id} - {self.created_at}"
+
+    @staticmethod
+    def get_user_has_permission_filter(
+        action: permissions.models.Action,
+        user: "user_typing.AnyUserType | None" = None,
+        prefix: str | None = None,
+    ) -> Q:
+        """
+        Return a Q object that filters whether the user has permission to do <action> on this
+        object.
+        Note: We're not filtering out whether the object itself is deleted, this should be done
+              before calling this method, but we're checking whether memberships are deleted.
+              Roles are not soft-deletable, so those aren't checked either.
+        """
+        user = user or AnonymousUser()
+
+        def permissions_for_role(roles: list[permissions.models.RoleOptions]) -> Q:
+            return Q(
+                **{
+                    prefix_field("members__user", prefix): user,
+                    prefix_field("members__role__role__in", prefix): roles,
+                }
+            )
+
+        if action == permissions.models.READ:
+            queryset_filters = Q(**{prefix_field("is_public", prefix): True})
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions.models.READ_ROLES)
+            return queryset_filters
+        if action in (permissions.models.WRITE, permissions.models.DELETE):
+            queryset_filters = Q(
+                **{
+                    prefix_field("is_public", prefix): True,
+                    prefix_field("is_public_writable", prefix): True,
+                }
+            )
+            if user.is_authenticated:
+                queryset_filters |= permissions_for_role(permissions.models.WRITE_ROLES)
+            return queryset_filters
+        if action == permissions.models.MANAGE:
+            if user.is_authenticated:
+                return permissions_for_role(permissions.models.ADMIN_ROLES)
+            return Q(pk=None)  # That is a false statement, so it will return False.
+
+        raise ValueError("Invalid action type.")
 
     @staticmethod
     @dry_rest_permissions.generics.authenticated_users
@@ -1020,20 +1065,28 @@ class MethodNodeRun(utils.models.SoftDeletableBaseModel):
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
-        """Return False since there is no reason to edit these after creating them."""
+        """
+        Return False since there is no reason to edit these after creating them.
+        However, we allow changing permissions.
+        """
+        # Check if the user has manage permissions (can change permissions)
+        if self.has_object_manage_permission(request=request):
+            return True
         return False
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_destroy_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
-        return self.user == request.user
+        """Return True if the user has admin permissions for this object."""
+        return self.has_object_manage_permission(request=request)
 
-    @dry_rest_permissions.generics.authenticated_users
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
-        return self.user == request.user
+        """
+        Return True if the user has read permissions for this object.
+        This is handled by the MembershipBaseModel.
+        """
+        return super().has_object_read_permission(request)
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_execute_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
-        return self.user == request.user
+        """Return True if the user has write permissions for this object."""
+        return self.has_object_write_permission(request)
