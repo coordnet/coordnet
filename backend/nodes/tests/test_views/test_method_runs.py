@@ -48,9 +48,11 @@ class MethodNodeRunTestCase(BaseTransactionTestCase):
         method_run = factories.MethodNodeRunFactory.create(user=self.owner_user)
         response = self.owner_client.patch(
             reverse("nodes:method-runs-detail", args=[method_run.public_id]),
-            {"name": "new name"},
+            {"is_dev_run": True},
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertFalse(response.data["is_dev_run"])
 
         response = self.viewer_client.patch(
             reverse("nodes:method-runs-detail", args=[method_run.public_id]),

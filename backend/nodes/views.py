@@ -375,7 +375,10 @@ class SearchView(generics.ListAPIView):
     ),
     destroy=extend_schema(description="Delete a skill run.", summary="Delete skill run"),
 )
-class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
+class MethodNodeRunModelViewSet(
+    permissions.views.PermissionViewSetMixin[models.MethodNodeRun],
+    views.BaseModelViewSet[models.MethodNodeRun],
+):
     """API endpoint that allows method node runs to be viewed or edited."""
 
     allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Permissions on Skill runs to allow users to share their results.
+
 ## [25.5.2] - 2025-05-19
 
 ### Fixed
