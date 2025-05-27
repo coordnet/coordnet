@@ -59,7 +59,7 @@ export type FormatReturnType<T extends "plain" | "json"> = T extends "json" ? JS
  */
 export const getNodeContent = <T extends "plain" | "json">(
   xmlFragment: Y.XmlFragment,
-  format: T,
+  format: T
 ): FormatReturnType<T> | undefined => {
   try {
     const json = yXmlFragmentToProsemirrorJSON(xmlFragment);
@@ -80,7 +80,7 @@ export const getNodeContent = <T extends "plain" | "json">(
 export const getSkillNodePageContent = <T extends "plain" | "json" = "plain">(
   id: string,
   document: Y.Doc,
-  format: T = "plain" as T,
+  format: T = "plain" as T
 ): FormatReturnType<T> | undefined => {
   const xml = document.getXmlFragment(`${id}-document`);
   return getNodeContent(xml, format);
