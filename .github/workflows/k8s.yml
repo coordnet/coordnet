@@ -149,7 +149,7 @@ jobs:
           curl -f http://localhost:30100/api/nodes/spaces/ | grep 'results":\[\]' || { echo "Django API health check failed"; kill $DJANGO_PID; exit 1; }
 
           # Test the front-end endpoint
-          curl -f http://localhost:30100/ | grep '__COORDNET_CONFIG_' || { echo "Front-end health check failed"; kill $DJANGO_PID; exit 1; }
+          curl -f http://localhost:30100/ | grep 'config.js' || { echo "Front-end health check failed"; kill $DJANGO_PID; exit 1; }
 
           kill $DJANGO_PID
 

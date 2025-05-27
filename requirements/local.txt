@@ -178,6 +178,16 @@ attrs==25.3.0 \
     #   aiohttp
     #   jsonschema
     #   referencing
+azure-core==1.34.0 \
+    --hash=sha256:0615d3b756beccdb6624d1c0ae97284f38b78fb59a2a9839bf927c66fbbdddd6 \
+    --hash=sha256:bdb544989f246a0ad1c85d72eeb45f2f835afdcbc5b45e43f0dbde7461c81ece
+    # via
+    #   azure-storage-blob
+    #   django-storages
+azure-storage-blob==12.25.1 \
+    --hash=sha256:1f337aab12e918ec3f1b638baada97550673911c4ceed892acc8e4e891b74167 \
+    --hash=sha256:4f294ddc9bc47909ac66b8934bd26b50d2000278b10ad82cc109764fdc6e0e3b
+    # via django-storages
 babel==2.17.0 \
     --hash=sha256:0c54cffb19f690cdcc52a3b50bcbf71e07a808d1c80d549f2459b9d2cf0afb9d \
     --hash=sha256:4d0b53093fdfb4b21c92b5213dba5a1b23885afa8383709427046b21c366e5f2
@@ -595,6 +605,7 @@ cryptography==44.0.3 \
     --hash=sha256:fc3c9babc1e1faefd62704bb46a69f359a9819eb0292e40df3fb6e3574715cd4 \
     --hash=sha256:fe19d8bc5536a91a24a8133328880a41831b6c5df54599a8417b62fe015d3053
     # via
+    #   azure-storage-blob
     #   djangorestframework-simplejwt
     #   pdfminer-six
 cssbeautifier==1.15.4 \
@@ -728,7 +739,7 @@ django-rest-passwordreset==1.5.0 \
     --hash=sha256:6da38dd00e0cdb1ed5c403e66beeb90f10f8a1a73ebc13fdd27f2b5d67d14181 \
     --hash=sha256:862fce99b12198aa1473299aac68febe4f40760a39beabc47f941cff5c9e7280
     # via -r requirements/base.in
-django-storages[s3]==1.14.5 \
+django-storages[azure,s3]==1.14.5 \
     --hash=sha256:5ce9c69426f24f379821fd688442314e4aa03de87ae43183c4e16915f4c165d4 \
     --hash=sha256:ace80dbee311258453e30cd5cfd91096b834180ccf09bc1f4d2cb6d38d68571a
     # via -r requirements/base.in
@@ -1190,6 +1201,10 @@ ipython-pygments-lexers==1.1.1 \
     --hash=sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81 \
     --hash=sha256:a9462224a505ade19a605f71f8fa63c2048833ce50abc86768a0d81d876dc81c
     # via ipython
+isodate==0.7.2 \
+    --hash=sha256:28009937d8031054830160fce6d409ed342816b543597cece116d966c6d99e15 \
+    --hash=sha256:4cd1aa0f43ca76f4a6c6c0292a85f40b35ec2e43e315b59f06e6d32171a953e6
+    # via azure-storage-blob
 jedi==0.19.2 \
     --hash=sha256:4770dc3de41bde3966b02eb84fbcf557fb33cce26ad23da12c742fb50ecb11f0 \
     --hash=sha256:a8ef22bde8490f57fe5c7681a3c83cb58874daf72b4784de3cce5b6ef6edb5b9
@@ -2262,7 +2277,9 @@ pygments==2.19.1 \
 pyjwt==2.9.0 \
     --hash=sha256:3b02fb0f44517787776cf48f2ae25d8e14f300e6d7545a4315cee571a415e850 \
     --hash=sha256:7e1e5b56cc735432a7369cbfa0efe50fa113ebecdc04ae6922deba8b84582d0c
-    # via djangorestframework-simplejwt
+    # via
+    #   djangorestframework-simplejwt
+    #   redis
 pympler==1.1 \
     --hash=sha256:1eaa867cb8992c218430f1708fdaccda53df064144d1c5656b1e6f1ee6000424 \
     --hash=sha256:5b223d6027d0619584116a0cbc28e8d2e378f7a79c1e5e024f9ff3b673c58506
@@ -2372,9 +2389,9 @@ pyyaml==6.0.2 \
     #   pre-commit
     #   pybtex
     #   uvicorn
-redis==5.2.1 \
-    --hash=sha256:16f2e22dff21d5125e8481515e386711a34cbec50f0e44413dd7d9c060a54e0f \
-    --hash=sha256:ee7e1056b9aea0f04c6c2ed59452947f34c4940ee025f5dd83e6a6418b6989e4
+redis==5.3.0 \
+    --hash=sha256:8d69d2dde11a12dc85d0dbf5c45577a5af048e2456f7077d87ad35c1c81c310e \
+    --hash=sha256:f1deeca1ea2ef25c1e4e46b07f4ea1275140526b1feea4c6459c0ec27a10ef83
     # via
     #   -r requirements/base.in
     #   celery
@@ -2488,6 +2505,7 @@ requests==2.32.3 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via
     #   -r requirements/base.in
+    #   azure-core
     #   djangorestframework-stubs
     #   huggingface-hub
     #   markitdown
@@ -2652,6 +2670,7 @@ six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
     # via
+    #   azure-core
     #   cssbeautifier
     #   jsbeautifier
     #   markdownify
@@ -2858,6 +2877,8 @@ typing-extensions==4.13.2 \
     --hash=sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef
     # via
     #   anyio
+    #   azure-core
+    #   azure-storage-blob
     #   beautifulsoup4
     #   coredis
     #   django-stubs
@@ -2901,9 +2922,9 @@ urllib3==2.4.0 \
     #   requests
     #   sentry-sdk
     #   types-requests
-uvicorn[standard]==0.34.0 \
-    --hash=sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4 \
-    --hash=sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9
+uvicorn[standard]==0.34.2 \
+    --hash=sha256:0e929828f6186353a80b58ea719861d2629d766293b6d19baf086ba31d4f3328 \
+    --hash=sha256:deb49af569084536d269fe0a6d67e3754f104cf03aba7c11c40f01aadf33c403
     # via
     #   -r requirements/base.in
     #   sphinx-autobuild

@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [25.5.2] - 2025-05-19
+
+### Fixed
+
+- Fix calling of OpenAI client after refactor.
+- Overflow of text input for skill runner.
+- Buddy dropdown overflow and model names for skill nodes and skill runner.
+
+## [25.5.1] - 2025-05-19
+
+### Added
+
+- Support Azure Blob Storage as object storage backend.
+- Available LLMs can now be configured in the backend.
+
 ## [25.5.0] - 2025-05-05
 
 ### Added
@@ -91,6 +106,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Initial release of the Coordination.network project as built docker image.
 
+[25.5.2]: https://github.com/coordnet/coordnet/compare/v25.5.1...v25.5.2
+[25.5.1]: https://github.com/coordnet/coordnet/compare/v25.5.0...v25.5.1
 [25.5.0]: https://github.com/coordnet/coordnet/compare/v24.11.3...v25.5.0
 [24.11.3]: https://github.com/coordnet/coordnet/compare/v24.11.2...v24.11.3
 [24.11.2]: https://github.com/coordnet/coordnet/compare/v24.11.1...v24.11.2

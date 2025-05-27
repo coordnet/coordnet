@@ -31,7 +31,10 @@ export const TextInputModal: React.FC<TextInputModalProps> = ({
       >
         <DialogTitle>{isEditing ? "Edit Input" : "Add Input"}</DialogTitle>
         <DialogDescription className="hidden">Add or edit input text</DialogDescription>
-        <EditorContent editor={editor} className="prose max-w-none flex-grow" />
+        <EditorContent
+          editor={editor}
+          className="prose h-[500px] max-w-none flex-shrink overflow-auto"
+        />
         <div className="flex justify-between pt-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
