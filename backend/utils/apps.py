@@ -6,5 +6,5 @@ class ApiConfig(AppConfig):
     name = "utils"
 
     def ready(self) -> None:
-        # Import checks to register them, in this case to make sure the OpenAI settings are correct.
-        import utils.checks  # noqa: F401
+        # Import the storage_checks module to register the storage configuration check
+        import utils.storage_checks  # noqa: F401

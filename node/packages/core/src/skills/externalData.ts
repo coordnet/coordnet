@@ -151,7 +151,6 @@ export const setExternalData = async (
         targetNodesMap.set(node.id, node);
         const sourceNode = sourceSpaceMap.get(node.id);
         if (sourceNode) targetSpaceMap.set(node.id, sourceNode);
-        console.log("Added node", node.id);
       }
 
       for (const edge of sourceEdges) {

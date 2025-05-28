@@ -43,7 +43,12 @@ export const logout = (): void => {
 
 export const getToken = async () => {
   console.log("getToken called");
-  return (await refreshTokenIfNeeded(requestRefresh)) as string;
+  try {
+    return (await refreshTokenIfNeeded(requestRefresh)) as string;
+  } catch (error) {
+    console.error("Error getting token:", error);
+    return "public";
+  }
 };
 
 api.interceptors.response.use(

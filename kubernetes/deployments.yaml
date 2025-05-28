@@ -13,14 +13,25 @@ spec:
       labels:
         app: django
     spec:
+      initContainers:
+        - name: migrate
+          image: ghcr.io/coordnet/coordnet_backend:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "manage.py", "migrate"]
+          envFrom:
+            - configMapRef:
+                name: coordnet-config
+            - secretRef:
+                name: coordnet-secrets
       containers:
         - name: django
           image: ghcr.io/coordnet/coordnet_backend:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
           envFrom:
             - configMapRef:
-                name: django-config
+                name: coordnet-config
             - secretRef:
                 name: coordnet-secrets
           command: ["/start-production"]
@@ -66,9 +77,10 @@ spec:
       containers:
         - name: celeryworker
           image: ghcr.io/coordnet/coordnet_backend:latest
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: django-config
+                name: coordnet-config
             - secretRef:
                 name: coordnet-secrets
           command: ["/start-celeryworker"]
@@ -92,9 +104,10 @@ spec:
       containers:
         - name: celerybeat
           image: ghcr.io/coordnet/coordnet_backend:latest
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: django-config
+                name: coordnet-config
             - secretRef:
                 name: coordnet-secrets
           command: ["/start-celerybeat"]
@@ -118,9 +131,10 @@ spec:
       containers:
         - name: pubsub
           image: ghcr.io/coordnet/coordnet_backend:latest
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: django-config
+                name: coordnet-config
             - secretRef:
                 name: coordnet-secrets
           command: ["/start-pubsub-listener"]
@@ -144,8 +158,39 @@ spec:
       containers:
         - name: crdt
           image: ghcr.io/coordnet/coordnet_crdt:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8010
+          envFrom:
+            - configMapRef:
+                name: crdt-config
+            - secretRef:
+                name: coordnet-secrets
+          command: ["pnpm", "start:server"]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodeworker
+  namespace: coordnet
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nodeworker
+  template:
+    metadata:
+      labels:
+        app: nodeworker
+    spec:
+      containers:
+        - name: nodeworker
+          image: ghcr.io/coordnet/coordnet_crdt:latest
+          imagePullPolicy: IfNotPresent
+          command: ["pnpm", "start:worker"]
+          ports:
+            - containerPort: 8080
           envFrom:
             - configMapRef:
                 name: crdt-config

@@ -18,8 +18,17 @@ import { useUser } from "@/hooks";
 
 import SkillManage from "./SkillManage";
 import SkillPermissions from "./SkillPermissions";
+import SkillRunnerDropdown from "./SkillRunnerDropdown";
 
-const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) => {
+const SkillCard = ({
+  skill,
+  disableInteraction = false,
+  className,
+}: {
+  skill: Skill;
+  disableInteraction?: boolean;
+  className?: string;
+}) => {
   const { profile } = useUser();
   const queryClient = useQueryClient();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,8 +37,9 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   const showControls =
-    skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
-    skill?.creator?.id.includes(profile?.id ?? "");
+    !disableInteraction &&
+    (skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+      skill?.creator?.id.includes(profile?.id ?? ""));
 
   const onDelete = async (id: string) => {
     if (
@@ -96,6 +106,9 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
               <Settings2 className="mr-2 size-4" /> Manage Permissions
             </DropdownMenuItem>
 
+            <SkillRunnerDropdown variant="navigate" skillId={skill.id} className="px-4 py-2" />
+            <SkillRunnerDropdown variant="copy" skillId={skill.id} className="px-4 py-2" />
+
             <DropdownMenuItem
               className="flex cursor-pointer items-center px-4 py-2 font-medium text-red-500
                 hover:bg-gray-100"
@@ -118,7 +131,10 @@ const SkillCard = ({ skill, className }: { skill: Skill; className?: string }) =
         </DialogContent>
       </Dialog>
 
-      <Link to={`/skills/${skill.id}`}>
+      <Link
+        to={`/skills/${skill.id}`}
+        className={clsx(disableInteraction ? "pointer-events-none" : "cursor-pointer")}
+      >
         <div
           className="h-20 w-full bg-cover bg-center"
           style={{ backgroundImage: `url("${getProfileCardImage(skill, true, true)}")` }}

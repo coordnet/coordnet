@@ -4,7 +4,7 @@ import typing
 from django.db import models
 from openai.types.chat import ChatCompletionMessageParam
 
-import utils.llm
+import llms.utils
 import utils.tokens
 from utils import models as utils_models
 
@@ -33,7 +33,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
     ) -> typing.Generator[str | None, None, None]:
         """Query the buddy."""
 
-        response = utils.llm.get_openai_client().chat.completions.create(
+        response = llms.llm.get_openai_client().chat.completions.create(
             model=self.model,
             messages=self._get_messages(level, nodes, query),
             stream=True,
@@ -103,7 +103,7 @@ class Buddy(utils_models.SoftDeletableBaseModel):
         )
 
         return [
-            {"role": "system", "content": system_prompt},
+            {"role": "developer", "content": system_prompt},
             {"role": "user", "content": query},
         ]
 

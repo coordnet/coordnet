@@ -4,16 +4,6 @@ import { Edge, Node as XYFlowNode, Position } from "@xyflow/react";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { z } from "zod";
 
-import { buddyModels } from "./constants";
-
-// https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
-export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>
-): z.ZodEnum<[K, ...K[]]> => {
-  const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
-  return z.enum([firstKey, ...otherKeys]);
-};
-
 export enum NodeType {
   Default = "default",
   Loop = "loop",
@@ -223,7 +213,7 @@ export const BuddySchema = z.object({
   created_at: z.date(),
   updated_at: z.date(),
   name: z.string().min(2).max(255),
-  model: zodEnumFromObjKeys(buddyModels),
+  model: z.string().min(2),
   system_message: z.string().min(2).max(10000),
   description: z.string().min(1),
 });
@@ -241,7 +231,14 @@ export interface SemanticScholarPaper {
   isOpenAccess: boolean;
 }
 
-export type RunStatus = "idle" | "pending" | "running" | "cancelled" | "success" | "error";
+export type RunStatus =
+  | "loading"
+  | "idle"
+  | "pending"
+  | "running"
+  | "canceled"
+  | "success"
+  | "error";
 
 export interface RunResult {
   status: RunStatus;

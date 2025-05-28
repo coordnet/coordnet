@@ -4,59 +4,59 @@ const useWindowDrag = () => {
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
 
-  const isFileFromOS = useRef(true);
-  const cachedTarget = useRef<EventTarget | null>(null);
-  const hasDraggedFileOutside = useRef(false);
-
   useEffect(() => {
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       dragCounter.current += 1;
-      cachedTarget.current = e.target;
 
-      if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
+      if (
+        e.dataTransfer?.types &&
+        (e.dataTransfer.types.includes("Files") || e.dataTransfer.types.indexOf("Files") !== -1)
+      ) {
         setIsDragging(true);
       }
     };
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       dragCounter.current -= 1;
 
-      if (dragCounter.current === 0) {
+      if (dragCounter.current <= 0) {
+        dragCounter.current = 0;
         setIsDragging(false);
       }
     };
 
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
+
+      if (isDragging === false) {
+        setIsDragging(true);
+      }
     };
 
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       dragCounter.current = 0;
       setIsDragging(false);
     };
 
-    const handleDragStart = () => {
-      isFileFromOS.current = false;
-      hasDraggedFileOutside.current = false;
-    };
-
-    window.addEventListener("dragenter", handleDragEnter);
-    window.addEventListener("dragleave", handleDragLeave);
-    window.addEventListener("dragover", handleDragOver);
-    window.addEventListener("drop", handleDrop);
-    window.addEventListener("dragstart", handleDragStart);
+    document.addEventListener("dragenter", handleDragEnter);
+    document.addEventListener("dragleave", handleDragLeave);
+    document.addEventListener("dragover", handleDragOver);
+    document.addEventListener("drop", handleDrop);
 
     return () => {
-      window.removeEventListener("dragenter", handleDragEnter);
-      window.removeEventListener("dragleave", handleDragLeave);
-      window.removeEventListener("dragover", handleDragOver);
-      window.removeEventListener("drop", handleDrop);
-      window.removeEventListener("dragstart", handleDragStart);
+      document.removeEventListener("dragenter", handleDragEnter);
+      document.removeEventListener("dragleave", handleDragLeave);
+      document.removeEventListener("dragover", handleDragOver);
+      document.removeEventListener("drop", handleDrop);
     };
-  }, []);
+  }, [isDragging]);
 
   return isDragging;
 };

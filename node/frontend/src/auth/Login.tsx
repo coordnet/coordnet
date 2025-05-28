@@ -68,6 +68,7 @@ function Login() {
             redirectUrl.pathname.startsWith("/spaces/") ||
             redirectUrl.pathname.startsWith("/auth/") ||
             redirectUrl.pathname.startsWith("/skills/") ||
+            redirectUrl.pathname.startsWith("/skills-runner/") ||
             redirectUrl.pathname.startsWith("/profiles/")
           ) {
             dest.pathname = redirectUrl.pathname;

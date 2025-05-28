@@ -9,10 +9,11 @@ spec:
       containers:
         - name: migrate
           image: ghcr.io/coordnet/coordnet_backend:latest
+          imagePullPolicy: IfNotPresent
           command: ["python", "manage.py", "migrate"]
           envFrom:
             - configMapRef:
-                name: django-config
+                name: coordnet-config
             - secretRef:
                 name: coordnet-secrets
       restartPolicy: OnFailure

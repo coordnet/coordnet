@@ -1,4 +1,5 @@
 import { AllowedActionsSchema, Skill, SkillSchema, SubProfile } from "@coordnet/core";
+import { JSONContent } from "@tiptap/core";
 import { z } from "zod";
 
 export interface Me {
@@ -267,4 +268,26 @@ export enum YDocScope {
   READ_ONLY = "readonly",
   READ_ONLY_WITH_INPUT = "readonly-input",
   READ_WRITE = "read-write",
+}
+
+export type SkillsRunnerInputType =
+  | "text"
+  | "pdf"
+  | "doc"
+  | "xls"
+  | "ppt"
+  | "html"
+  | "csv"
+  | "json"
+  | "xml"
+  | "epub"
+  | "txt"
+  | "md";
+
+export interface SkillsRunnerInput {
+  id: string;
+  type: SkillsRunnerInputType;
+  name: string;
+  content: JSONContent;
+  error?: string;
 }

@@ -21,6 +21,7 @@ import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
 import SkillManage from "./SkillManage";
 import SkillPermissions from "./SkillPermissions";
+import SkillRunnerDropdown from "./SkillRunnerDropdown";
 
 const Header = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
@@ -95,6 +96,10 @@ const Header = ({ className }: { className?: string }) => {
           >
             <Settings2 className="mr-2 size-4" /> Manage Permissions
           </DropdownMenuItem>
+
+          <SkillRunnerDropdown variant="navigate" skillId={skill?.id} />
+          <SkillRunnerDropdown variant="copy" skillId={skill?.id} />
+
           <DropdownMenuItem
             className="flex cursor-pointer items-center font-medium text-red-500"
             onClick={onDelete}

@@ -36,7 +36,7 @@ export const loadExtensions = (
   extensions.push(Node);
   extensions.push(BulletList);
   extensions.push(ListItem);
-  extensions.push(Table.configure({ resizable: true }));
+  extensions.push(Table.configure({ cellMinWidth: 100, resizable: true }));
   extensions.push(TableRow);
   extensions.push(TableHeader);
   extensions.push(TableCell);

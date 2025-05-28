@@ -10,12 +10,15 @@ data:
   HOCUSPOCUS_MAXDEBOUNCE: "10000"
   HOCUSPOCUS_QUIET: "false"
   BACKEND_URL: "http://django:5000"
+  HOCUSPOCUS_INTERNAL_URL: "ws://crdt:8010"
+  CELERY_NODE_EXECUTION_QUEUE: "node_execution"
+  CELERY_BROKER_URL: "redis://redis:6379/0"
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: django-config
+  name: coordnet-config
   namespace: coordnet
 data:
   USE_DOCKER: "no"
@@ -25,15 +28,16 @@ data:
   DJANGO_SECURE_SSL_REDIRECT: "False"
   SENTRY_ENVIRONMENT: "production"
   CONN_MAX_AGE: "0"
+  CELERY_NODE_EXECUTION_QUEUE: "node_execution"
 
   # If using Mailgun for email ensure to set this
   MAILGUN_DOMAIN: ""
 
   # Important: These must be set to the service endpoints
   FRONTEND_URL: "http://localhost:30000"
-  VITE_BACKEND_WS_URL: "ws://localhost:30000"
-  VITE_CRDT_URL: "ws://localhost:30001"
-  VITE_BACKEND_URL: "http://localhost:30000"
+  BACKEND_WS_URL: "ws://localhost:30000"
+  CRDT_URL: "ws://localhost:30001"
+  BACKEND_URL: "http://localhost:30000"
 
   # If you are using a custom OpenAI endpoint then set this
   # OPENAI_API_BASE_URL: ""
@@ -41,3 +45,37 @@ data:
   # If you are using Azure OpenAI then set these
   # AZURE_OPENAI_API_ENDPOINT: ""
   # AZURE_OPENAI_API_VERSION: ""
+
+  # Storage
+  # Uncomment and set the appropriate storage backend
+  # DJANGO_STORAGE_BACKEND: "storages.backends.s3.S3Storage"
+  # DJANGO_STORAGE_BACKEND: "storages.backends.azure_storage.AzureStorage"
+
+  # S3 Storage Configuration
+  BUCKET_NAME: "coordnet-static"
+  AWS_QUERYSTRING_AUTH: "True"
+  AWS_QUERYSTRING_EXPIRE: "43200"
+  AWS_LOCATION: ""
+  AWS_REGION: "auto"
+  # AWS_S3_CUSTOM_DOMAIN: "static.coord.dev"
+
+  # Only required if using Minio
+  AWS_ENDPOINT_URL_S3: "http://minio:9000"
+  MINIO_DEFAULT_BUCKETS: "coordnet-static:download"
+  AWS_S3_URL_PROTOCOL: "http:"
+  AWS_S3_CUSTOM_DOMAIN: "localhost:30002/coordnet-static"
+
+  # Azure Storage Configuration (only required if using Azure Storage)
+  # AZURE_CONTAINER: "coordnet-static"
+
+  # Required if not using connection string
+  # AZURE_ACCOUNT_NAME: "your-storage-account-name"
+
+  # Optional overrides (leave commented if not used)
+  # AZURE_CUSTOM_DOMAIN: ""
+  # AZURE_SSL: "True"
+  # AZURE_LOCATION: ""
+  # AZURE_CACHE_CONTROL: ""
+  # AZURE_ENDPOINT_SUFFIX: "core.windows.net"
+  # AZURE_OVERWRITE_FILES: "True"
+  # AZURE_URL_EXPIRATION_SECS: "43200"
