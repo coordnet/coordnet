@@ -415,19 +415,32 @@ export const setSpaceNodePageJson = async (json: JSONContent, id: string, auth: 
 };
 
 export const findSourceNode = (task: Task) => {
-  return (
-    task.sourceNodeInfo ||
-    (task.inputNodes.length > 0 && task.inputNodes.some((n) => n.data?.sourceNode)
-      ? task.inputNodes.find((n) => n.data?.sourceNode)?.data?.sourceNode
-      : task.inputNodes.length > 0 &&
-          task.inputNodes.some((n) => n.data.type === NodeType.ExternalData)
-        ? {
-            id: task.inputNodes.find((n) => n.data.type === NodeType.ExternalData)?.id ?? "",
-            spaceId: task.inputNodes.find((n) => n.data.type === NodeType.ExternalData)?.data
-              ?.externalNode?.spaceId,
-            nodeId: task.inputNodes.find((n) => n.data.type === NodeType.ExternalData)?.data
-              ?.externalNode?.nodeId,
-          }
-        : undefined)
-  );
+  // First check if task already has sourceNodeInfo
+  if (task.sourceNodeInfo) {
+    return task.sourceNodeInfo;
+  }
+
+  // If no input nodes exist return
+  if (task.inputNodes.length === 0) {
+    return undefined;
+  }
+
+  // Then check for input nodes with sourceNode data
+  const nodeWithSourceData = task.inputNodes.find((node) => node.data?.sourceNode);
+  if (nodeWithSourceData) {
+    return nodeWithSourceData.data.sourceNode;
+  }
+
+  // Finally check for ExternalData nodes that can serve as source nodes
+  const externalDataNode = task.inputNodes.find((node) => node.data.type === NodeType.ExternalData);
+  if (externalDataNode) {
+    return {
+      id: externalDataNode.id,
+      spaceId: externalDataNode.data?.externalNode?.spaceId,
+      nodeId: externalDataNode.data?.externalNode?.nodeId,
+    };
+  }
+
+  // No source node found
+  return undefined;
 };

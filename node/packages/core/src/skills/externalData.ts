@@ -1,14 +1,72 @@
 import * as Y from "yjs";
 
-import { CanvasEdge, CanvasNode, ExecutionContext, NodeType, SpaceNode } from "../types";
+import { CanvasEdge, CanvasNode, ExecutionContext, NodeType, SpaceNode, Task } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import {
   createConnectedYDocServer,
   getSkillNodeCanvas,
+  isResponseNode,
   setNodesState,
   setSpaceNodePageJson,
   setSpaceNodeTitle,
 } from "./utils";
+
+export const addExternalDataNodes = async (
+  task: Task,
+  tasks: Task[],
+  inputNode: CanvasNode,
+  context: ExecutionContext,
+  spaceMap: Y.Map<SpaceNode>
+) => {
+  const otherNodes = task.inputNodes.filter(
+    (node) => !isResponseNode(node) && node.data.type !== NodeType.ExternalData
+  );
+
+  const spaceId = inputNode.data?.externalNode?.spaceId ?? "";
+  const [canvasDoc, canvasProvider] = await createConnectedYDocServer(
+    `node-graph-${inputNode.data?.externalNode?.nodeId}`,
+    context.authentication
+  );
+  const nodes = Array.from(canvasDoc.getMap<CanvasNode>("nodes").values());
+
+  const [spaceDoc, spaceProvider] = await createConnectedYDocServer(
+    `space-${inputNode.data?.externalNode?.spaceId}`,
+    context.authentication
+  );
+  const externalSpaceMap = spaceDoc.getMap<SpaceNode>("nodes");
+
+  for (const node of nodes) {
+    const spaceNode = externalSpaceMap.get(node.id);
+    if (!spaceNode) continue;
+    spaceMap.set(node.id, spaceNode);
+
+    // Create source node info with reference to original external node
+    const sourceNodeInfo = {
+      id: inputNode.id,
+      spaceId: inputNode.data?.externalNode?.spaceId,
+      nodeId: node.id,
+    };
+
+    const newSubNode = {
+      ...node,
+      data: {
+        ...node.data,
+        externalNode: { spaceId, nodeId: node.id, depth: 1 },
+        sourceNode: sourceNodeInfo,
+      },
+    };
+
+    tasks.push({
+      ...task,
+      inputNodes: [...otherNodes, newSubNode],
+      sourceNodeInfo: sourceNodeInfo,
+    });
+  }
+
+  // Close connections
+  spaceProvider.disconnect();
+  canvasProvider.disconnect();
+};
 
 export const setExternalData = async (
   outputNodeId: string,

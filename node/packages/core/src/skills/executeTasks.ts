@@ -21,7 +21,7 @@ import {
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import { getExternalNode, querySemanticScholar } from "./api";
-import { setExternalData } from "./externalData";
+import { addExternalDataNodes, setExternalData } from "./externalData";
 import { handleMarkMapResponse } from "./markmap";
 import { executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
@@ -29,7 +29,6 @@ import { nodeTemplate, promptTemplate } from "./templates";
 import {
   addToSkillCanvas,
   baseURL,
-  createConnectedYDocServer,
   findSourceNode,
   getSkillNodeCanvas,
   isCancelled,
@@ -98,6 +97,7 @@ export const processTasks = async (
       );
 
       for (const inputNode of task.inputNodes) {
+        // If it is a normal response node then add the canvas nodes to the input nodes
         if (isResponseNode(inputNode)) {
           const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
           for (const responseNode of inputNodeNodes) {
@@ -114,66 +114,21 @@ export const processTasks = async (
                   }
                 : undefined);
 
-            tasks.push({
-              ...task,
-              inputNodes: [...otherNodes, responseNode],
-              sourceNodeInfo: sourceNodeInfo,
-            });
+            // Add the other input nodes and the response node canvas nodes to the input nodes
+            tasks.push({ ...task, inputNodes: [...otherNodes, responseNode], sourceNodeInfo });
           }
+
+          // If it is an external data node then add the space's canvas nodes to the input nodes
         } else if (inputNode.data.type === NodeType.ExternalData) {
-          const spaceId = inputNode.data?.externalNode?.spaceId ?? "";
-          const [canvasDoc, canvasProvider] = await createConnectedYDocServer(
-            `node-graph-${inputNode.data?.externalNode?.nodeId}`,
-            context.authentication
-          );
-          const nodes = Array.from(canvasDoc.getMap<CanvasNode>("nodes").values());
-
-          const [spaceDoc, spaceProvider] = await createConnectedYDocServer(
-            `space-${inputNode.data?.externalNode?.spaceId}`,
-            context.authentication
-          );
-          const externalSpaceMap = spaceDoc.getMap<SpaceNode>("nodes");
-
-          for (const node of nodes) {
-            const spaceNode = externalSpaceMap.get(node.id);
-            if (!spaceNode) continue;
-            spaceMap.set(node.id, spaceNode);
-
-            // Create source node info with reference to original external node
-            const sourceNodeInfo = {
-              id: inputNode.id,
-              spaceId: inputNode.data?.externalNode?.spaceId,
-              nodeId: node.id,
-            };
-
-            const newSubNode = {
-              ...node,
-              data: {
-                ...node.data,
-                externalNode: { spaceId, nodeId: node.id, depth: 1 },
-                sourceNode: sourceNodeInfo,
-              },
-            };
-
-            tasks.push({
-              ...task,
-              inputNodes: [...otherNodes, newSubNode],
-              sourceNodeInfo: sourceNodeInfo,
-            });
-          }
-
-          // Close connections
-          spaceProvider.disconnect();
-          canvasProvider.disconnect();
+          await addExternalDataNodes(task, tasks, inputNode, context, spaceMap);
         }
-        // const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
-        // for (const responseNode of inputNodeNodes) {
+
         if (isCancelled(skillDoc)) break;
       }
     }
 
-    for await (const currentSubTask of tasks) {
-      const isLastSubTask = currentSubTask === tasks[tasks.length - 1];
+    for await (const task of tasks) {
+      const isLast = task === tasks[tasks.length - 1];
 
       if (isCancelled(skillDoc)) {
         setNodesState(selectedIds, nodesMap, "inactive");
@@ -181,56 +136,44 @@ export const processTasks = async (
       }
 
       try {
-        if (currentSubTask.promptNode.data.type === NodeType.PaperFinder) {
-          const query = await collectInputTitles(currentSubTask, skillDoc);
+        if (task.promptNode.data.type === NodeType.PaperFinder) {
+          const query = await collectInputTitles(task, skillDoc);
           if (dryRun) {
-            executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERS" });
+            executionPlan.tasks.push({ task: task, query, type: "PAPERS" });
           } else {
-            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
-            await executeKeywordTask(currentSubTask, skillDoc, query);
+            setNodesState([task.promptNode.id], nodesMap, "executing");
+            await executeKeywordTask(task, skillDoc, query);
             taskResultsProcessed = true;
           }
-        } else if (currentSubTask.promptNode.data.type === NodeType.PaperQA) {
-          const query = await collectInputTitles(currentSubTask, skillDoc);
+        } else if (task.promptNode.data.type === NodeType.PaperQA) {
+          const query = await collectInputTitles(task, skillDoc);
           if (dryRun) {
-            executionPlan.tasks.push({ task: currentSubTask, query, type: "PAPERQA" });
+            executionPlan.tasks.push({ task: task, query, type: "PAPERQA" });
           } else {
-            await executePaperQATask(
-              currentSubTask,
-              query,
-              skillDoc,
-              nodesMap,
-              context.outputNode,
-              isLastSubTask
-            );
+            await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
             taskResultsProcessed = true;
           }
         } else {
           // Default prompt task
-          const messages = await generatePrompt(
-            currentSubTask,
-            taskBuddy,
-            skillDoc,
-            context.authentication
-          );
+          const messages = await generatePrompt(task, taskBuddy, skillDoc, context.authentication);
           if (dryRun) {
-            executionPlan.tasks.push({ task: currentSubTask, messages, type: "PROMPT" });
+            executionPlan.tasks.push({ task: task, messages, type: "PROMPT" });
           } else {
-            setNodesState([currentSubTask.promptNode.id], nodesMap, "executing");
+            setNodesState([task.promptNode.id], nodesMap, "executing");
             await executePromptTask(
-              currentSubTask,
+              task,
               messages,
               skillDoc,
               taskBuddy,
               context.outputNode,
-              isLastSubTask
+              isLast
             );
             taskResultsProcessed = true;
           }
         }
 
-        if (taskResultsProcessed && currentSubTask.outputNode && !dryRun) {
-          const outputNodeId = currentSubTask.outputNode.id;
+        if (taskResultsProcessed && task.outputNode && !dryRun) {
+          const outputNodeId = task.outputNode.id;
           const connectedEdges = Array.from(edgesMap.values()).filter(
             (edge) => edge.source === outputNodeId
           );
@@ -245,11 +188,11 @@ export const processTasks = async (
         }
       } catch (e: unknown) {
         // Catch errors during execution
-        console.error(`Failed to execute task for node ${currentSubTask.promptNode.id}`);
+        console.error(`Failed to execute task for node ${task.promptNode.id}`);
         console.error(e);
         const errorMessage = e instanceof Error ? e.message : "Task execution failed";
         await setNodesState(
-          [currentSubTask.promptNode.id, ...currentSubTask.inputNodes.map((n) => n.id)],
+          [task.promptNode.id, ...task.inputNodes.map((n) => n.id)],
           nodesMap,
           "error",
           `Execution failed: ${errorMessage.substring(0, 100)}`
@@ -360,7 +303,6 @@ export const generatePrompt = async (
       }
     } else if (canvasNode.data.type === NodeType.ExternalData) {
       if (canvasNode.data?.externalNode?.nodeId) {
-        console.log("adding external node", canvasNode.data?.externalNode?.nodeId);
         const { title } = getNode(canvasNode.id);
         const content = await getExternalNode(
           canvasNode.data?.externalNode?.nodeId,

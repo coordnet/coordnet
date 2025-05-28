@@ -104,20 +104,20 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
           baseTask.outputNode = canvas.nodes[key];
         } else {
           throw new Error(
-            "Prompt, Paper Finder, and PaperQA Nodes must be connected to a Response Node."
+            "Prompt, Paper Finder and PaperQA Nodes must be connected to a Response Node or an External Data Node."
           );
         }
       }
     }
 
-    // Function to handle nodes connected *through* a Loop node
+    // Function to handle nodes connected through a Loop node
     const handleLoopNode = (loopNode: CanvasNode): CanvasNode[] => {
       const itemsInsideLoop =
         canvas.adjacencyList[loopNode.id]
           ?.map((loopTargetNodeId) => canvas.nodes[loopTargetNodeId])
-          .filter(isInputNode) ?? []; // Get valid input nodes connected *to* the Loop node
+          .filter(isInputNode) ?? []; // Get valid input nodes connected to the Loop node
 
-      // Check if *any* item inside this loop requires iteration
+      // Check if any item inside this loop requires iteration
       if (
         itemsInsideLoop.some(
           (item) => isResponseNode(item) || item.data?.type === NodeType.ExternalData
@@ -128,7 +128,7 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
       return itemsInsideLoop; // Return all items found inside this loop connection
     };
 
-    // Iterate over nodes connected *directly* to the Prompt/PaperFinder/PaperQA node
+    // Iterate over nodes connected directly to the Prompt/PaperFinder/PaperQA node
     canvas.adjacencyList[node.id]?.forEach((targetNodeId) => {
       const targetNode = canvas.nodes[targetNodeId];
       if (!targetNode) return;
@@ -147,44 +147,40 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
         console.warn(
           `Node ${targetNode.id} (${targetNode.data?.type}) connected directly to ${node.id} (${node.data?.type}) is not a standard input or loop.`
         );
-        // Decide how to handle unexpected direct connections if needed.
       }
     });
 
-    // Set the loop flag for the task *only* if requiresLooping was set by any Loop node processing
+    // Set the loop flag for the task only if requiresLooping was set by any Loop node processing
     baseTask.loop = requiresLooping;
 
     if (loopItemsCollector.length > 0) {
       // If there were Loop nodes involved, generate tasks recursively.
-      // The baseTask already contains any *direct* inputs found.
-      // The recursive function will *add* the specific loop items for each combination.
+      // The baseTask already contains any direct inputs found.
+      // The recursive function will add the specific loop items for each combination.
       createTasksRecursively(baseTask, loopItemsCollector, 0);
     } else {
       // If no Loop nodes were connected, just add the baseTask if it has inputs.
       if (baseTask.inputNodes.length > 0) {
         context.taskList.push(baseTask);
       } else {
-        // If no loops AND no direct inputs, maybe warn or skip if the node type requires inputs
+        // If no loops AND no direct inputs skip the task
         console.log(`Task for prompt ${node.id} has no inputs and no loops. Adding task anyway.`);
-        // We might still want to run a prompt task even with no inputs.
-        context.taskList.push(baseTask);
       }
     }
   });
 
-  // Filter tasks: Ensure they have an output node.
-  // Re-evaluating the input node filter: A task *might* be valid without inputs,
-  // especially if it's just a generator prompt. Let's remove the input filter
-  // unless specific node types absolutely require input. PaperFinder/PaperQA likely do.
+  // Filter tasks: Ensure they have an output node and input nodes.
   context.taskList = context.taskList.filter((task) => {
     if (!task.outputNode) return false;
 
-    // // Add specific input requirements if needed:
-    // if ((task.promptNode.data.type === NodeType.PaperFinder || task.promptNode.data.type === NodeType.PaperQA)
-    //     && task.inputNodes.length === 0 && !task.loop) {
-    //      console.warn(`Filtering out ${task.promptNode.data.type} task ${task.promptNode.id} due to missing inputs.`);
-    //      return false;
-    // }
+    // Filter out tasks without inputs
+    if (task.inputNodes.length === 0 && !task.loop) {
+      console.warn(
+        `Filtering out ${task.promptNode.data.type} task ${task.promptNode.id} due to missing inputs.`
+      );
+      return false;
+    }
+
     return true;
   });
 };
