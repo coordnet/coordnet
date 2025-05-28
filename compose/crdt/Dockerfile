@@ -11,9 +11,9 @@ WORKDIR /app
 # First copy the package files
 COPY ./node/package.json ./node/pnpm-lock.yaml ./node/pnpm-workspace.yaml ./node/.prettierrc ./
 WORKDIR /app/crdt
-COPY ./node/crdt/package.json ./node/crdt/pnpm-lock.yaml ./
+COPY ./node/crdt/package.json ./
 WORKDIR /app/packages/core
-COPY ./node/packages/core/package.json ./node/packages/core/pnpm-lock.yaml ./
+COPY ./node/packages/core/package.json ./
 
 # Now install dependencies
 WORKDIR /app
