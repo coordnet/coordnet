@@ -6,14 +6,17 @@ import { z, ZodString } from "zod";
 import { Buddy, CanvasNode, SpaceNode, TableResponse, Task } from "../types";
 import { getSkillNodePageContent } from "../utils";
 import { client } from "./executeTasks";
-import { formatTitleToKey, getSkillNodeCanvas, setSkillNodePageContent } from "./utils";
+import {
+  formatTitleToKey,
+  getSkillNodeCanvas,
+  isCancelled,
+  setSkillNodePageContent,
+} from "./utils";
 
 export const executeTableTask = async (
   task: Task,
   messages: ChatCompletionMessageParam[],
   skillDoc: Y.Doc,
-  cancelRef: React.RefObject<boolean | null>,
-  spaceNodesMap: Y.Map<SpaceNode>,
   buddy: Buddy,
   outputNode: CanvasNode,
   isLastTask: boolean
@@ -22,6 +25,8 @@ export const executeTableTask = async (
     console.error("Output node not found");
     return;
   }
+
+  const spaceNodesMap: Y.Map<SpaceNode> = skillDoc.getMap("nodes");
 
   // Get the table columns from the node
   const { nodes } = getSkillNodeCanvas(task.outputNode.id, skillDoc);
@@ -58,12 +63,12 @@ export const executeTableTask = async (
     response_model: { schema: TableSchema, name: "TableSchema" },
   });
 
-  if (cancelRef.current) return;
+  if (isCancelled(skillDoc)) return;
 
   let extractedTableData: TableResponse<typeof TableSchema> = {};
   extractedTableData = response;
 
-  if (cancelRef.current) return;
+  if (isCancelled(skillDoc)) return;
 
   // Get the page content as JSON
   let pageContent: JSONContent = (await getSkillNodePageContent(
