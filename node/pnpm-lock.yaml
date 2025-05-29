@@ -30,8 +30,8 @@ importers:
         specifier: ^2.15.2
         version: 2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
       '@hocuspocus/server':
-        specifier: ^2.15.2
-        version: 2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
+        specifier: ^3.1.1
+        version: 3.1.1(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
       '@hocuspocus/transformer':
         specifier: ^2.15.2
         version: 2.15.2(@tiptap/core@2.12.0(@tiptap/pm@2.12.0))(@tiptap/pm@2.12.0)(y-prosemirror@1.3.5(prosemirror-model@1.25.1)(prosemirror-state@1.4.3)(prosemirror-view@1.39.3)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(yjs@13.6.27)
@@ -802,14 +802,17 @@ packages:
   '@hocuspocus/common@2.15.2':
     resolution: {integrity: sha512-wU1wxXNnQQMXyeL3mdSDYiQsm/r/QyJVjjQhF7sUBrLnjdsN7bA1cvfcSvJBr1ymrMSeYRmUL3UlQmEHEOaP7w==}
 
+  '@hocuspocus/common@3.1.1':
+    resolution: {integrity: sha512-KtDZ8hHfwwjmamVTac6UTnH8nBf6Au33J4yiOxu/jW04MeFuhJQVvyfvO4AasV+/IA3nwHBAfR63X27bgm5yqw==}
+
   '@hocuspocus/provider@2.15.2':
     resolution: {integrity: sha512-mdBurviyaUd7bQx4vMIE39WqRJDTpfFelHOVXr7w/jA8G1E7K7lxQ9/DacSrbg+9o8s+1z1+SerZiUjaToaBJg==}
     peerDependencies:
       y-protocols: ^1.0.6
       yjs: ^13.6.8
 
-  '@hocuspocus/server@2.15.2':
-    resolution: {integrity: sha512-+fLRVswg+bkgfHqJ+wFgywivw3H08WMOtVvJF7dJzWT2ZR/Sc3nDMFh2KqMF6Ygh4z6mt23xr7SKIm3eP1zoLA==}
+  '@hocuspocus/server@3.1.1':
+    resolution: {integrity: sha512-JiOOeDqGrRCu2m9CfXRFilHts7HE9iw7z+M9cKPamI1n4LAaT1+mvrehAXPTZtIQ22WgRz5ui7Uf8fRJwn5qwA==}
     peerDependencies:
       y-protocols: ^1.0.6
       yjs: ^13.6.8
@@ -5494,6 +5497,10 @@ snapshots:
     dependencies:
       lib0: 0.2.108
 
+  '@hocuspocus/common@3.1.1':
+    dependencies:
+      lib0: 0.2.108
+
   '@hocuspocus/provider@2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)':
     dependencies:
       '@hocuspocus/common': 2.15.2
@@ -5506,9 +5513,9 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@hocuspocus/server@2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)':
+  '@hocuspocus/server@3.1.1(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)':
     dependencies:
-      '@hocuspocus/common': 2.15.2
+      '@hocuspocus/common': 3.1.1
       async-lock: 1.4.1
       kleur: 4.1.5
       lib0: 0.2.108
