@@ -75,8 +75,8 @@ importers:
         specifier: ^13.6.27
         version: 13.6.27
       zod:
-        specifier: ^3.25.32
-        version: 3.25.32
+        specifier: ^3.25.42
+        version: 3.25.42
     devDependencies:
       '@eslint/js':
         specifier: 9.27.0
@@ -319,8 +319,8 @@ importers:
         specifier: ^13.6.27
         version: 13.6.27
       zod:
-        specifier: ^3.25.32
-        version: 3.25.32
+        specifier: ^3.25.42
+        version: 3.25.42
     devDependencies:
       '@eslint/js':
         specifier: 9.27.0
@@ -399,7 +399,7 @@ importers:
         version: 2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
       '@instructor-ai/instructor':
         specifier: ^1.7.0
-        version: 1.7.0(openai@4.103.0(ws@8.18.2)(zod@3.25.32))(zod@3.25.32)
+        version: 1.7.0(openai@4.103.0(ws@8.18.2)(zod@3.25.42))(zod@3.25.42)
       '@tiptap/core':
         specifier: ^2.12.0
         version: 2.12.0(@tiptap/pm@2.12.0)
@@ -441,7 +441,7 @@ importers:
         version: 0.18.11(markmap-common@0.18.9)
       openai:
         specifier: ^4.103.0
-        version: 4.103.0(ws@8.18.2)(zod@3.25.32)
+        version: 4.103.0(ws@8.18.2)(zod@3.25.42)
       prosemirror-model:
         specifier: 1.25.1
         version: 1.25.1
@@ -458,8 +458,8 @@ importers:
         specifier: ^13.6.27
         version: 13.6.27
       zod:
-        specifier: ^3.25.32
-        version: 3.25.32
+        specifier: ^3.25.42
+        version: 3.25.42
     devDependencies:
       '@eslint/js':
         specifier: 9.27.0
@@ -5167,8 +5167,8 @@ packages:
     peerDependencies:
       zod: ^3.24.4
 
-  zod@3.25.32:
-    resolution: {integrity: sha512-OSm2xTIRfW8CV5/QKgngwmQW/8aPfGdaQFlrGoErlgg/Epm7cjb6K6VEyExfe65a3VybUOnu381edLb0dfJl0g==}
+  zod@3.25.42:
+    resolution: {integrity: sha512-PcALTLskaucbeHc41tU/xfjfhcz8z0GdhhDcSgrCTmSazUuqnYqiXO63M0QUBVwpBlsLsNVn5qHSC5Dw3KZvaQ==}
 
   zustand@4.5.7:
     resolution: {integrity: sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==}
@@ -5621,12 +5621,12 @@ snapshots:
   '@img/sharp-win32-x64@0.33.5':
     optional: true
 
-  '@instructor-ai/instructor@1.7.0(openai@4.103.0(ws@8.18.2)(zod@3.25.32))(zod@3.25.32)':
+  '@instructor-ai/instructor@1.7.0(openai@4.103.0(ws@8.18.2)(zod@3.25.42))(zod@3.25.42)':
     dependencies:
-      openai: 4.103.0(ws@8.18.2)(zod@3.25.32)
-      zod: 3.25.32
-      zod-stream: 3.0.0(openai@4.103.0(ws@8.18.2)(zod@3.25.32))(zod@3.25.32)
-      zod-validation-error: 3.4.1(zod@3.25.32)
+      openai: 4.103.0(ws@8.18.2)(zod@3.25.42)
+      zod: 3.25.42
+      zod-stream: 3.0.0(openai@4.103.0(ws@8.18.2)(zod@3.25.42))(zod@3.25.42)
+      zod-validation-error: 3.4.1(zod@3.25.42)
 
   '@ioredis/commands@1.2.0': {}
 
@@ -8939,7 +8939,7 @@ snapshots:
     dependencies:
       fn.name: 1.1.0
 
-  openai@4.103.0(ws@8.18.2)(zod@3.25.32):
+  openai@4.103.0(ws@8.18.2)(zod@3.25.42):
     dependencies:
       '@types/node': 18.19.104
       '@types/node-fetch': 2.6.12
@@ -8950,7 +8950,7 @@ snapshots:
       node-fetch: 2.7.0
     optionalDependencies:
       ws: 8.18.2
-      zod: 3.25.32
+      zod: 3.25.42
     transitivePeerDependencies:
       - encoding
 
@@ -9553,10 +9553,10 @@ snapshots:
 
   scheduler@0.26.0: {}
 
-  schema-stream@3.2.2(zod@3.25.32):
+  schema-stream@3.2.2(zod@3.25.42):
     dependencies:
       ramda: 0.29.1
-      zod: 3.25.32
+      zod: 3.25.42
 
   semver@6.3.1: {}
 
@@ -10234,22 +10234,22 @@ snapshots:
       css-what: 6.1.0
       entities: 5.0.0
 
-  zod-stream@3.0.0(openai@4.103.0(ws@8.18.2)(zod@3.25.32))(zod@3.25.32):
+  zod-stream@3.0.0(openai@4.103.0(ws@8.18.2)(zod@3.25.42))(zod@3.25.42):
     dependencies:
-      openai: 4.103.0(ws@8.18.2)(zod@3.25.32)
-      schema-stream: 3.2.2(zod@3.25.32)
-      zod: 3.25.32
-      zod-to-json-schema: 3.24.5(zod@3.25.32)
+      openai: 4.103.0(ws@8.18.2)(zod@3.25.42)
+      schema-stream: 3.2.2(zod@3.25.42)
+      zod: 3.25.42
+      zod-to-json-schema: 3.24.5(zod@3.25.42)
 
-  zod-to-json-schema@3.24.5(zod@3.25.32):
+  zod-to-json-schema@3.24.5(zod@3.25.42):
     dependencies:
-      zod: 3.25.32
+      zod: 3.25.42
 
-  zod-validation-error@3.4.1(zod@3.25.32):
+  zod-validation-error@3.4.1(zod@3.25.42):
     dependencies:
-      zod: 3.25.32
+      zod: 3.25.42
 
-  zod@3.25.32: {}
+  zod@3.25.42: {}
 
   zustand@4.5.7(@types/react@19.1.6)(react@19.1.0):
     dependencies:
