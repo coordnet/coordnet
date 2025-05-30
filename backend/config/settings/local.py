@@ -77,9 +77,9 @@ STORAGES["default"]["OPTIONS"].update(  # type: ignore[index]  # noqa: F405
         "access_key": env.str("MINIO_ROOT_USER"),
         "secret_key": env.str("MINIO_ROOT_PASSWORD"),
         "default_acl": "download",
-        "custom_domain": env.str(
-            "MINIO_CUSTOM_DOMAIN", default=f"localhost:9000/{env.str('BUCKET_NAME')}"
-        ),
+        # "custom_domain": env.str(
+        #     "MINIO_CUSTOM_DOMAIN", default=f"localhost:9000/{env.str('BUCKET_NAME')}"
+        # ),
         "url_protocol": "http:",
     }
 )

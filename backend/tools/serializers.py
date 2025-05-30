@@ -23,7 +23,8 @@ class LocalPDFQuerySerializer(rest_framework.serializers.Serializer):
 class PaperQACollectionSerializer(utils.serializers.BaseSerializer):
     class Meta:
         model = tools.models.PaperQACollection
-        fields = ("id", "name", "created_at", "updated_at")
+        fields = ("id", "name", "state", "created_at", "updated_at")
+        read_only_fields = ("id", "state", "created_at", "updated_at")
 
 
 class MarkItDownSerializer(rest_framework.serializers.Serializer):

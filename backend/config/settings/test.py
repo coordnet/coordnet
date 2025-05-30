@@ -49,3 +49,17 @@ EMAIL_SUBJECT_PREFIX = "[coordnet.dev - TEST]"
 # ------------------------------------------------------------------------------
 # We don't want to actually call OpenAI in tests, but not setting it will trigger a check error.
 OPENAI_API_KEY = "sk-test-123"
+
+# Custom Storage configuration to reuse minio values
+# ------------------------------------------------------------------------------
+STORAGES["default"]["OPTIONS"].update(  # type: ignore[index]  # noqa: F405
+    {
+        "access_key": env.str("MINIO_ROOT_USER"),
+        "secret_key": env.str("MINIO_ROOT_PASSWORD"),
+        "default_acl": "download",
+        # "custom_domain": env.str(
+        #     "MINIO_CUSTOM_DOMAIN", default=f"localhost:9000/{env.str('BUCKET_NAME')}"
+        # ),
+        "url_protocol": "http:",
+    }
+)

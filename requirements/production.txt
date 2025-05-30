@@ -1578,8 +1578,8 @@ pandas==2.2.3 \
     --hash=sha256:f3a255b2c19987fbbe62a9dfd6cff7ff2aa9ccab3fc75218fd4b7530f01efa24 \
     --hash=sha256:fffb8ae78d8af97f849404f21411c95062db1496aeb3e56f146f0355c9989319
     # via markitdown
-paper-qa @ https://github.com/JannKleen/paper-qa/releases/download/v5.20.1/paper_qa-5.20.1.tar.gz \
-    --hash=sha256:7b810ca6effdd60acbc4c2ba6904b271cace4f81bc4bf519e5a7084e609b1b30
+paper-qa @ https://github.com/JannKleen/paper-qa/releases/download/v5.21.1/paper_qa-5.21.1.tar.gz \
+    --hash=sha256:49768db19e57febdaedb13afaafd5a688c655caf6ddf8d0d294e04fa81197b82
     # via
     #   -r requirements/base.in
     #   pqapi

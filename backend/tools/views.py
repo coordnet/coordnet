@@ -9,9 +9,10 @@ import pqapi
 import pqapi.models
 import sentry_sdk
 from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.shortcuts import get_object_or_404
 from markitdown import MarkItDown
 from paperqa import Settings, agent_query
-from paperqa.agents import get_directory_index
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
@@ -23,6 +24,9 @@ import permissions.utils
 import tools.filters
 import tools.models
 import tools.serializers
+import tools.tasks
+import uploads.models
+import uploads.serializers
 from utils import filters as base_filters
 
 if typing.TYPE_CHECKING:
@@ -74,6 +78,154 @@ class PaperQACollectionViewSet(adrf.viewsets.ModelViewSet):
         space = serializer.save()
         space.members.create(user=self.request.user, role=permissions.utils.get_owner_role())
 
+    @action(detail=True, methods=["get"])
+    def files(self, request, public_id=None):
+        """
+        List all files in the collection.
+        """
+        collection = self.get_object()
+        uploaded_files = collection.uploads.all()
+        serializer = uploads.serializers.UserUploadSerializer(uploaded_files, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def add_upload(self, request, public_id=None):
+        """
+        Add an existing UserUpload to the collection.
+
+        Parameters:
+        - upload_id: ID of the upload to add
+        - skip_index_update: If true, don't update the index after adding the upload
+        """
+        collection = self.get_object()
+
+        # Check if the user has write permission
+        if not collection.has_object_write_permission(request):
+            return Response(
+                {"detail": "You do not have permission to add files to this collection."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Get the upload ID from the request
+        upload_id = request.data.get("upload_id")
+        if not upload_id:
+            return Response(
+                {"detail": "No upload_id was provided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get the upload
+        try:
+            upload = uploads.models.UserUpload.objects.get(public_id=upload_id)
+        except uploads.models.UserUpload.DoesNotExist:
+            return Response(
+                {"detail": "The specified upload does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if the user has read permission for the upload
+        if not upload.has_object_read_permission(request):
+            return Response(
+                {"detail": "You do not have permission to access this upload."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Check if the upload is already in the collection
+        if upload in collection.uploads.all():
+            return Response(
+                {"detail": "The specified upload is already in this collection."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if we should skip the index update
+        skip_index_update = request.data.get("skip_index_update", False)
+
+        if not skip_index_update:
+            # Set the collection state to waiting
+            collection.state = tools.models.PaperQACollection.States.WAITING
+            collection.save(update_fields=["state"])
+
+        # Add the upload to the collection
+        collection.uploads.add(upload)
+
+        # Trigger the index update task if not skipped
+        if not skip_index_update:
+            tools.tasks.update_collection_index.delay(collection.id)
+
+        return Response(
+            uploads.serializers.UserUploadSerializer(upload).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["post"])
+    def update_index(self, request, public_id=None):
+        """
+        Manually trigger an update of the collection index.
+        """
+        collection = self.get_object()
+
+        # Check if the user has write permission
+        if not collection.has_object_write_permission(request):
+            return Response(
+                {"detail": "You do not have permission to update this collection's index."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Check if the collection is already being processed
+        if collection.state == tools.models.PaperQACollection.States.PROCESSING:
+            return Response(
+                {"detail": "The collection is already being processed. Please try again later."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # Set the collection state to waiting
+        collection.state = tools.models.PaperQACollection.States.WAITING
+        collection.save(update_fields=["state"])
+
+        # Trigger the index update task
+        tools.tasks.update_collection_index.delay(collection.id)
+
+        return Response(
+            {"detail": "Index update has been triggered."},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+    @action(detail=True, methods=["delete"], url_path="files/(?P<upload_id>[^/.]+)")
+    def remove_upload(self, request, public_id=None, upload_id=None):
+        """
+        Remove a file from the collection.
+        """
+        collection = self.get_object()
+
+        # Check if the user has write permission
+        if not collection.has_object_write_permission(request):
+            return Response(
+                {"detail": "You do not have permission to remove files from this collection."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Get the upload
+        upload = get_object_or_404(uploads.models.UserUpload, public_id=upload_id)
+
+        # Check if the upload is in the collection
+        if upload not in collection.uploads.all():
+            return Response(
+                {"detail": "The specified file is not in this collection."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Set the collection state to waiting
+        collection.state = tools.models.PaperQACollection.States.WAITING
+        collection.save(update_fields=["state"])
+
+        # Remove the upload from the collection
+        collection.uploads.remove(upload)
+
+        # Trigger the index update task
+        tools.tasks.update_collection_index.delay(collection.id)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(  # type: ignore[type-var]
         detail=True, methods=["post"], serializer_class=tools.serializers.LocalPDFQuerySerializer
     )
@@ -83,37 +235,60 @@ class PaperQACollectionViewSet(adrf.viewsets.ModelViewSet):
         """
         collection = await sync_to_async(self.get_object)()
 
-        pdf_dir = (
-            Path(__file__).parent
-            / "paperqa"
-            # / str(request.user.public_id)  # Useful, but more complicated to upload files manually
-            / "pdfs"
-            / collection.name
-        )
-        index_dir = (
-            Path(__file__).parent
-            / "paperqa"
-            # / str(request.user.public_id)  # Useful, but more complicated to upload files manually
-            / "indices"
-            / collection.name
-        )
+        # Check if the collection is in a state where it can be queried
+        if collection.state == tools.models.PaperQACollection.States.PROCESSING:
+            return Response(
+                {"detail": "The collection is currently being processed. Please try again later."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        elif collection.state == tools.models.PaperQACollection.States.WAITING:
+            # Trigger the index update task if it's in waiting state
+            tools.tasks.update_collection_index.delay(collection.id)
+            return Response(
+                {"detail": "The collection is waiting to be processed. Please try again later."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        elif collection.state == tools.models.PaperQACollection.States.ERROR:
+            return Response(
+                {"detail": "The collection is in an error state. Please contact an administrator."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-        # Load index and files from the collection (and unzip them)
-        if collection.files:
-            # Unzip the files and load them into the directory
-            with zipfile.ZipFile(io.BytesIO(collection.files)) as zf:
-                zf.extractall(pdf_dir)
+        # Define the directories for PDFs and indices
+        pdf_dir = Path(settings.MEDIA_ROOT) / "paperqa" / "pdfs" / str(collection.public_id)
+        index_dir = Path(settings.MEDIA_ROOT) / "paperqa" / "indices" / str(collection.public_id)
 
+        # Create directories if they don't exist
+        pdf_dir.mkdir(parents=True, exist_ok=True)
+        index_dir.mkdir(parents=True, exist_ok=True)
+
+        # Fetch and unpack the index if it exists
         if collection.index:
-            # Unzip the index and load it into the directory
             with zipfile.ZipFile(io.BytesIO(collection.index)) as zf:
                 zf.extractall(index_dir)
 
+        # # Download files from object storage to the pdf directory
+        # uploads = await sync_to_async(collection.uploads.all)()
+        # for upload in uploads:
+        #     if upload.content_type == "application/pdf":
+        #         # Get the file URL
+        #         file_url = upload.file.url
+        #
+        #         # Download the file
+        #         response = await sync_to_async(requests.get)(file_url)
+        #         if response.status_code == 200:
+        #             # Save the file to the temporary directory
+        #             file_path = pdf_dir / upload.name
+        #             with open(file_path, 'wb') as f:
+        #                 f.write(response.content)
+
+        # Configure PaperQA settings
         self.paperqa_settings = Settings(
             temperature=0.5,
             paper_directory=str(pdf_dir),
             index_directory=str(index_dir),
         )
+        self.paperqa_settings.agent.rebuild_index = False
 
         try:
             serializer = tools.serializers.LocalPDFQuerySerializer(data=request.data)
@@ -125,26 +300,6 @@ class PaperQACollectionViewSet(adrf.viewsets.ModelViewSet):
                 self.paperqa_settings.summary_llm = validated_data["model"]
             if validated_data.get("embedding_model"):
                 self.paperqa_settings.embedding = validated_data["embedding_model"]
-
-            # Generate the directory index for the PDFs
-            await get_directory_index(settings=self.paperqa_settings)
-
-            # Re-zip the files and index
-            pdf_buffer = io.BytesIO()
-            with zipfile.ZipFile(pdf_buffer, "w") as zf:
-                for pdf_file in pdf_dir.glob("*.pdf"):
-                    zf.write(pdf_file, pdf_file.name)
-            pdf_buffer.seek(0)
-            collection.files = pdf_buffer.getvalue()
-
-            index_buffer = io.BytesIO()
-            with zipfile.ZipFile(index_buffer, "w") as zf:
-                for index_file in index_dir.glob("*"):
-                    zf.write(index_file, index_file.name)
-            index_buffer.seek(0)
-            collection.index = index_buffer.getvalue()
-
-            await collection.asave()
             # Query the PDFs using the ask function directly
             response = await agent_query(
                 query=validated_data["question"],

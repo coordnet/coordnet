@@ -21,7 +21,3 @@ FRONTEND_URL=http://localhost:5173
 CRDT_URL=ws://localhost:8010
 BACKEND_URL=http://localhost:8000
 BACKEND_WS_URL=ws://localhost:8000
-
-# PaperQA
-# ------------------------------------------------------------------------------
-PQA_HOME=/app/backend/tools/paperqa/home
