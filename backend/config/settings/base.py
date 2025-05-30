@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import typing
 import warnings
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -134,7 +135,7 @@ THIRD_PARTY_APPS = [
     "imagekit",
 ]
 
-LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "profiles", "utils", "tools"]
+LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "profiles", "utils", "llms", "tools"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -264,6 +265,7 @@ SIMPLE_JWT = {
     "ALGORITHM": "RS512",
     "SIGNING_KEY": env.str("JWT_SIGNING_KEY", multiline=True),
     "VERIFYING_KEY": env.str("JWT_VERIFYING_KEY", multiline=True),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
 }
 
 # EMAIL
@@ -332,24 +334,55 @@ warnings.simplefilter("always", DeprecationWarning)
 # ------------------------------------------------------------------------------
 # https://django-storages.readthedocs.io/en/latest/#installation
 
+# Get the storage backend
+STORAGE_BACKEND = env.str("DJANGO_STORAGE_BACKEND", "storages.backends.s3.S3Storage")
+
+# Define storage options based on the selected backend
+storage_options = {}
+
+# S3 Storage options
+if STORAGE_BACKEND == "storages.backends.s3.S3Storage":
+    storage_options = {
+        # Fly.io Tigris
+        # The strange environment variable names are based on what Fly.io provides when setting
+        # up Tigris.
+        "endpoint_url": env.str("AWS_ENDPOINT_URL_S3", None),
+        "region_name": env.str("AWS_REGION", None),
+        "bucket_name": env.str("BUCKET_NAME", None),
+        "default_acl": "private",
+        "querystring_auth": env.bool("AWS_QUERYSTRING_AUTH", True),
+        "querystring_expire": env.int("AWS_QUERYSTRING_EXPIRE", 3600 * 12),
+        "location": env.str("AWS_LOCATION", ""),
+        "custom_domain": env.str("AWS_S3_CUSTOM_DOMAIN", None),
+        "url_protocol": env.str("AWS_S3_URL_PROTOCOL", "https:"),
+        "addressing_style": env.str("AWS_S3_ADDRESSING_STYLE", None),
+    }
+# Azure Storage options
+elif STORAGE_BACKEND == "storages.backends.azure_storage.AzureStorage":
+    storage_options = {
+        "azure_container": env.str("AZURE_CONTAINER", None),
+        "account_name": env.str("AZURE_ACCOUNT_NAME", None),
+        "account_key": env.str("AZURE_ACCOUNT_KEY", None),
+        "custom_domain": env.str("AZURE_CUSTOM_DOMAIN", None),
+        "azure_ssl": env.bool("AZURE_SSL", True),
+        "connection_string": env.str("AZURE_CONNECTION_STRING", None),
+        "token_credential": None,  # This needs to be set programmatically if used
+        "overwrite_files": env.bool("AZURE_OVERWRITE_FILES", True),  # We expect this to be true
+        "location": env.str("AZURE_LOCATION", ""),
+        "cache_control": env.str("AZURE_CACHE_CONTROL", None),
+        "endpoint_suffix": env.str("AZURE_ENDPOINT_SUFFIX", None),
+        "expiration_secs": env.int("AZURE_URL_EXPIRATION_SECS", 3600 * 12),
+    }
+
 STORAGES = {
     "default": {
-        "BACKEND": "storages.backends.s3.S3Storage",
-        "OPTIONS": {
-            # Fly.io Tigris
-            # The strange environment variable names are based on what Fly.io provides when setting
-            # up Tigris.
-            "endpoint_url": env.str("AWS_ENDPOINT_URL_S3", None),
-            "region_name": env.str("AWS_REGION"),
-            "bucket_name": env.str("BUCKET_NAME"),
-            "default_acl": "private",
-            "querystring_auth": env.bool("AWS_QUERYSTRING_AUTH", True),
-            "querystring_expire": env.int("AWS_QUERYSTRING_EXPIRE", 3600 * 12),
-            "location": env.str("AWS_LOCATION", ""),
-            "custom_domain": env.str("AWS_S3_CUSTOM_DOMAIN", None),
-            "url_protocol": env.str("AWS_S3_URL_PROTOCOL", "https:"),
-            "addressing_style": env.str("AWS_S3_ADDRESSING_STYLE", None),
-        },
+        # The storage backend can be configured using the DJANGO_STORAGE_BACKEND environment
+        # variable.
+        # Options are:
+        # - "storages.backends.s3.S3Storage" (default)
+        # - "storages.backends.azure_storage.AzureStorage"
+        "BACKEND": STORAGE_BACKEND,
+        "OPTIONS": storage_options,
     },
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
@@ -479,11 +512,12 @@ AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-p
 
 SEMANTIC_API_KEY = env("SEMANTIC_SCHOLAR_API_KEY", default="fake-key")
 
+# Front-end config
+# ------------------------------------------------------------------------------
+API_URL = env("BACKEND_URL", default="https://app.coord.dev")
+WEBSOCKET_URL = env("BACKEND_WS_URL", default="wss://app.coord.dev")
+CRDT_URL = env("CRDT_URL", default="wss://ws.coord.dev")
+
 # This is only needed as an override for local development, in production are hosting the
 # frontend on the same domain as the backend.
 FRONTEND_URL: str | None = env("FRONTEND_URL", default=None)
-
-# URLs for the front-end
-API_URL = env("VITE_BACKEND_URL", default="https://app.coord.dev")
-WEBSOCKET_URL = env("VITE_BACKEND_WS_URL", default="wss://app.coord.dev")
-CRDT_URL = env("VITE_CRDT_URL", default="wss://ws.coord.dev")

@@ -18,6 +18,9 @@ CELERY_FLOWER_PASSWORD=ooxohvaeP6aivoo2Ahsooquoo0ieng2hien8bai0Et1Wae8ceshee1ohs
 # Frontend
 # ------------------------------------------------------------------------------
 FRONTEND_URL=http://localhost:5173
+CRDT_URL=ws://localhost:8010
+BACKEND_URL=http://localhost:8000
+BACKEND_WS_URL=ws://localhost:8000
 
 # PaperQA
 # ------------------------------------------------------------------------------

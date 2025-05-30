@@ -1,17 +1,8 @@
 import { CompletionMeta } from "@instructor-ai/instructor";
+import { JSONContent } from "@tiptap/core";
 import { Edge, Node as XYFlowNode, Position } from "@xyflow/react";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { z } from "zod";
-
-import { buddyModels } from "./constants";
-
-// https://github.com/colinhacks/zod/discussions/839#discussioncomment-8142768
-export const zodEnumFromObjKeys = <K extends string>(
-  obj: Record<K, unknown>
-): z.ZodEnum<[K, ...K[]]> => {
-  const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
-  return z.enum([firstKey, ...otherKeys]);
-};
 
 export enum NodeType {
   Default = "default",
@@ -23,6 +14,7 @@ export enum NodeType {
   ResponseSingle = "response_single",
   ResponseMultiple = "response_multiple",
   ResponseTable = "response_table",
+  ResponseMarkMap = "response_markmap",
   PaperFinder = "paper_finder",
   PaperQA = "paper_qa",
   PaperQACollection = "paper_qa_collection",
@@ -39,6 +31,7 @@ export const nodeTypeMap = {
   [NodeType.ResponseTable]: "Response (table)",
   [NodeType.ResponseSingle]: "Responses (one node)",
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
+  [NodeType.ResponseMarkMap]: "Responses (MarkMap)",
   [NodeType.PaperFinder]: "Paper Finder",
   [NodeType.PaperQA]: "FH API",
   [NodeType.PaperQACollection]: "Paper QA (Collection)",
@@ -48,6 +41,12 @@ export const nodeTypeMap = {
 export type SpaceNode = {
   id: string;
   title: string;
+};
+
+export type SourceNode = {
+  id: string;
+  spaceId?: string;
+  nodeId?: string;
 };
 
 export type CanvasNode = XYFlowNode<
@@ -69,6 +68,7 @@ export type CanvasNode = XYFlowNode<
       spaceId: string;
       depth: number;
     };
+    sourceNode?: SourceNode;
   },
   "GraphNode" | "ExternalNode"
 >;
@@ -81,11 +81,34 @@ export interface Canvas {
   topologicallySortedNodes: string[];
 }
 
+export type ExportNodeSingle = {
+  id: string;
+  width: number | null | undefined;
+  height: number | null | undefined;
+  type?: string;
+  title: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  data?: {
+    borderColor?: string;
+    type?: NodeType;
+  };
+  content?: JSONContent;
+};
+
+export type ExportNode = ExportNodeSingle & {
+  nodes: ExportNodeSingle[];
+  edges: CanvasEdge[];
+};
+
 export interface Task {
   inputNodes: CanvasNode[];
   outputNode: CanvasNode | null;
   promptNode: CanvasNode;
   loop?: boolean;
+  sourceNodeInfo?: SourceNode;
 }
 
 export interface ExecutionContext {
@@ -193,7 +216,7 @@ export const BuddySchema = z.object({
   created_at: z.date(),
   updated_at: z.date(),
   name: z.string().min(2).max(255),
-  model: zodEnumFromObjKeys(buddyModels),
+  model: z.string().min(2),
   system_message: z.string().min(2).max(10000),
   description: z.string().min(1),
 });

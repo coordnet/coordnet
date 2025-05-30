@@ -102,7 +102,12 @@ const SkillCanvasControls = () => {
     if (status === "idle" || status === "pending" || status === "running")
       return (
         <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
-          <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
+          <Link
+            to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}
+            onClick={() => {
+              YDoc?.getMap("meta").set("status", "cancelled");
+            }}
+          >
             <Button
               className={clsx(
                 `group h-16 w-[180px] rounded-full border border-neutral-200 bg-white py-4 pl-8 pr-6

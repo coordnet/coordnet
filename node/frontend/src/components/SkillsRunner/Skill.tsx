@@ -11,6 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { availableLLMs } from "@/constants";
 import useBuddy from "@/hooks/useBuddy";
 
 import SkillCard from "../Skills/SkillCard";
@@ -63,7 +64,11 @@ export const Skill = ({ skill }: { skill?: SkillType }) => {
             {!runId && <ChevronDown className="size-4 text-neutral-500" />}
           </div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="text-neutral-700" sideOffset={8}>
+        <DropdownMenuContent
+          align="end"
+          className="max-h-[315px] overflow-auto text-neutral-700"
+          sideOffset={8}
+        >
           <DropdownMenuLabel className="border-b border-b-neutral-100 p-2 text-sm font-semibold">
             Buddy
           </DropdownMenuLabel>
@@ -76,7 +81,7 @@ export const Skill = ({ skill }: { skill?: SkillType }) => {
                 title={b?.system_message}
               >
                 <div className="mr-1 size-5">{b.id == buddyId && <Check className="size-4" />}</div>
-                {b?.name} ({b?.model})
+                {b?.name} ({b.model in availableLLMs ? availableLLMs[b.model] : "Unknown"})
               </DropdownMenuItem>
             );
           })}

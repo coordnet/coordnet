@@ -1,5 +1,4 @@
 import {
-  CanvasNode,
   createCanvas,
   createTasks,
   ExecutionContext,
@@ -8,12 +7,10 @@ import {
   processTasks,
   RunStatus,
   skillYdocToJson,
-  SpaceNode,
 } from "@coordnet/core";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import * as Y from "yjs";
 
 import { createSkillRun, executeSkillRun } from "@/api";
 import { useCanvas, useYDoc } from "@/hooks";
@@ -89,6 +86,10 @@ export const useRunSkill = () => {
       toast.error("Output node not found");
       return;
     }
+    if (!skillId) {
+      toast.error("Skill ID not found");
+      return;
+    }
 
     const canvas = createCanvas(nodes, edges);
     const context: ExecutionContext = {
@@ -99,10 +100,7 @@ export const useRunSkill = () => {
     };
     createTasks(canvas, context);
 
-    const nodesMap: Y.Map<CanvasNode> = spaceYDoc.getMap(`${skillId}-canvas-nodes`);
-    const spaceMap: Y.Map<SpaceNode> = spaceYDoc.getMap("nodes");
-    const ref = { current: false };
-    return await processTasks(context, buddy, spaceYDoc, spaceMap, nodesMap, ref, true);
+    return await processTasks(context, buddy, skillId, spaceYDoc, true);
   }, [buddy, edges, nodes, skillId, spaceYDoc]);
 
   return { runSkill, prepareExecutionPlan, status, error };
