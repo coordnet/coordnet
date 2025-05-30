@@ -184,3 +184,6 @@ node/frontend/dist
 
 ### k8s
 kubernetes/secrets.yaml
+
+### PaperQA local storage
+backend/tools/paperqa/

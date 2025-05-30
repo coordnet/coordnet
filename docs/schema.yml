@@ -2518,6 +2518,545 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/tools/paperqa/:
+    post:
+      operationId: tools_paperqa_create
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/tools/paperqa-collections/:
+    get:
+      operationId: tools_paperqa_collections_list
+      description: A viewset for managing PaperQA collections.
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaperQACollectionList'
+          description: ''
+    post:
+      operationId: tools_paperqa_collections_create
+      description: A viewset for managing PaperQA collections.
+      tags:
+      - tools
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
+          description: ''
+  /api/tools/paperqa-collections/{public_id}/:
+    get:
+      operationId: tools_paperqa_collections_retrieve
+      description: A viewset for managing PaperQA collections.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
+          description: ''
+    put:
+      operationId: tools_paperqa_collections_update
+      description: A viewset for managing PaperQA collections.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
+          description: ''
+    patch:
+      operationId: tools_paperqa_collections_partial_update
+      description: A viewset for managing PaperQA collections.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperQACollection'
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
+          description: ''
+    delete:
+      operationId: tools_paperqa_collections_destroy
+      description: A viewset for managing PaperQA collections.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/tools/paperqa-collections/{public_id}/add_upload/:
+    post:
+      operationId: tools_paperqa_collections_add_upload_create
+      description: Add an existing UserUpload to the collection.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
+          description: ''
+  /api/tools/paperqa-collections/{public_id}/files/:
+    get:
+      operationId: tools_paperqa_collections_files_retrieve
+      description: List all files in the collection.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
+          description: ''
+  /api/tools/paperqa-collections/{public_id}/files/{upload_id}/:
+    delete:
+      operationId: tools_paperqa_collections_files_destroy
+      description: Remove a file from the collection.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: upload_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - tools
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/tools/paperqa-collections/{public_id}/query/:
+    post:
+      operationId: tools_paperqa_collections_query_create
+      description: Query the PaperQA collection.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LocalPDFQuery'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalPDFQuery'
+          description: ''
+  /api/uploads/:
+    get:
+      operationId: uploads_list
+      description: A viewset for managing user uploads.
+      parameters:
+      - in: query
+        name: content_type
+        schema:
+          type: string
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - uploads
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserUploadList'
+          description: ''
+    post:
+      operationId: uploads_create
+      description: A viewset for managing user uploads.
+      tags:
+      - uploads
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserUpload'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpload'
+          description: ''
+  /api/uploads/{public_id}/:
+    get:
+      operationId: uploads_retrieve
+      description: A viewset for managing user uploads.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpload'
+          description: ''
+    put:
+      operationId: uploads_update
+      description: A viewset for managing user uploads.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserUpload'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpload'
+          description: ''
+    patch:
+      operationId: uploads_partial_update
+      description: A viewset for managing user uploads.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpload'
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpload'
+          description: ''
+    delete:
+      operationId: uploads_destroy
+      description: A viewset for managing user uploads.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/uploads/{public_id}/permissions/:
+    get:
+      operationId: uploads_permissions_list
+      description: List all object permissions
+      summary: List object permissions
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedObjectPermissionModelList'
+          description: ''
+        '404':
+          description: No response body
+    post:
+      operationId: uploads_permissions_create
+      description: Create a new object permission
+      summary: Create object permission
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+        required: true
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectPermissionModel'
+          description: ''
+        '404':
+          description: No response body
+  /api/uploads/{public_id}/permissions/{permission_uuid}/:
+    delete:
+      operationId: uploads_permissions_destroy
+      description: Delete an object permission
+      summary: Delete object permission
+      parameters:
+      - in: path
+        name: permission_uuid
+        schema:
+          type: string
+          format: uuid
+        description: UUID of the permission to delete
+        required: true
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - uploads
+      security:
+      - knoxApiToken: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          description: No response body
   /api/users/:
     get:
       operationId: users_list
@@ -2788,6 +3327,17 @@ components:
           format: email
       required:
       - email
+    LocalPDFQuery:
+      type: object
+      properties:
+        question:
+          type: string
+        model:
+          type: string
+        embedding_model:
+          type: string
+      required:
+      - question
     MethodNodeDetail:
       type: object
       description: |-
@@ -3703,6 +4253,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ObjectPermissionModel'
+    PaginatedPaperQACollectionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaperQACollection'
     PaginatedProfileCardList:
       type: object
       required:
@@ -3795,6 +4368,69 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
+    PaginatedUserUploadList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserUpload'
+    PaperQACollection:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        state:
+          allOf:
+          - $ref: '#/components/schemas/StateEnum'
+          readOnly: true
+          description: |-
+            Current state of the collection
+
+            * `ready` - Ready
+            * `waiting` - Waiting
+            * `processing` - Processing
+            * `error` - Error
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - state
+      - updated_at
     PasswordToken:
       type: object
       properties:
@@ -4032,6 +4668,40 @@ components:
             type: string
             format: uuid
           readOnly: true
+    PatchedPaperQACollection:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        state:
+          allOf:
+          - $ref: '#/components/schemas/StateEnum'
+          readOnly: true
+          description: |-
+            Current state of the collection
+
+            * `ready` - Ready
+            * `waiting` - Waiting
+            * `processing` - Processing
+            * `error` - Error
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
     PatchedProfile:
       type: object
       description: |-
@@ -4247,6 +4917,37 @@ components:
         profile:
           type: string
           format: uuid
+          readOnly: true
+    PatchedUserUpload:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        file:
+          type: string
+          format: uri
+        content_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
           readOnly: true
     Profile:
       type: object
@@ -4504,6 +5205,18 @@ components:
       - node_count
       - title
       - updated_at
+    StateEnum:
+      enum:
+      - ready
+      - waiting
+      - processing
+      - error
+      type: string
+      description: |-
+        * `ready` - Ready
+        * `waiting` - Waiting
+        * `processing` - Processing
+        * `error` - Error
     TokenObtainPair:
       type: object
       properties:
@@ -4572,6 +5285,45 @@ components:
       - email
       - id
       - profile
+    UserUpload:
+      type: object
+      description: |-
+        Base serializer for all serializers in the project.
+        - It makes use of UUIDs as public primary keys to prevent the guessing of IDs.
+        - It enforces 'create-only' fields, which can be set in a POST request, but not changed after.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        file:
+          type: string
+          format: uri
+        content_type:
+          type: string
+          readOnly: true
+        size:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content_type
+      - created_at
+      - file
+      - id
+      - name
+      - size
+      - updated_at
   securitySchemes:
     basicAuth:
       type: http
