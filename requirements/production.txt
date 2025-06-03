@@ -585,9 +585,9 @@ django-pgactivity==1.7.1 \
     --hash=sha256:0cd9e8dbaab7997410bd0fe490417d63f568fa27fd02e548bb3ea8dc73e0e319 \
     --hash=sha256:4d8aad75c2d48e1e79f39d9163b5f134f5867f65c75f08c37fa745d5e8f3d6fa
     # via django-pglock
-django-pglock==1.7.1 \
-    --hash=sha256:15db418fb56bee37fc8707038495b5085af9b8c203ebfa300202572127bdb3f0 \
-    --hash=sha256:69050bdb522fd34585d49bb8a4798dbfbab9ec4754dd1927b1b9eef2ec0edadf
+django-pglock==1.7.2 \
+    --hash=sha256:2f9335527779445fe86507b37e26cfde485a32b91d982a8f80039d3bcd25d596 \
+    --hash=sha256:d1d8521b382a5819e8d14978d0e8e63ab2763cb784f5a6bfdbe5de807da4a61a
     # via -r requirements/base.in
 django-pgtrigger==4.13.3 \
     --hash=sha256:c525f9e81f120d166c4bd5fe8c3770640356f0644edf0fc2b7f6426008e52f77 \

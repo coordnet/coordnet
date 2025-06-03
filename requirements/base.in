@@ -39,7 +39,7 @@ channels==4.2.2  # https://github.com/django/channels
 # Async DRF endpoints
 adrf==0.1.9  # https://github.com/em1208/adrf
 # Postgres lock support
-django-pglock==1.7.1  # https://github.com/Opus10/django-pglock
+django-pglock==1.7.2  # https://github.com/Opus10/django-pglock
 # Storages for S3 support
 django-storages[s3,azure]==1.14.5  # https://github.com/jschneier/django-storages
 # User uploaded images
