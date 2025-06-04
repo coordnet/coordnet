@@ -34,7 +34,7 @@ export const nodeTypeMap = {
   [NodeType.ResponseMarkMap]: "Responses (MarkMap)",
   [NodeType.PaperFinder]: "Paper Finder",
   [NodeType.PaperQA]: "FH API",
-  [NodeType.PaperQACollection]: "Paper QA (Collection)",
+  [NodeType.PaperQACollection]: "Paper QA Collection",
   [NodeType.ExternalData]: "External Data",
 };
 
