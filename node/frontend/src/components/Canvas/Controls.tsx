@@ -7,7 +7,7 @@ import useLocalStorageState from "use-local-storage-state";
 
 import { getNodeVersions } from "@/api";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useCanvas, useYDoc } from "@/hooks";
+import { useCanvas, useUser, useYDoc } from "@/hooks";
 import { BackendEntityType, YDocScope } from "@/types";
 
 import { Button } from "../ui/button";
@@ -15,6 +15,7 @@ import Versions from "./Versions";
 
 const Controls = () => {
   const { id } = useCanvas();
+  const { profile } = useUser();
   const { parent, scope } = useYDoc();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const [miniMapVisible, setMiniMapVisible] = useLocalStorageState("coordnet:miniMapVisible", {
@@ -22,6 +23,10 @@ const Controls = () => {
   });
 
   const isSkill = parent.type === BackendEntityType.SKILL;
+  const skill = isSkill ? parent.data : undefined;
+  const canEdit =
+    skill?.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+    skill?.creator?.id.includes(profile?.id ?? "");
 
   const { data: versions } = useQuery({
     queryKey: ["page-versions", id, "GRAPH", "latest"],
@@ -76,7 +81,10 @@ const Controls = () => {
       {miniMapVisible && (
         <MiniMap
           pannable={true}
-          className={clsx("!right-2 !m-0 !mb-1", isSkill ? "!bottom-40" : "!bottom-12")}
+          className={clsx(
+            "!right-2 !m-0 !mb-1",
+            isSkill ? (canEdit ? "!bottom-40" : "!bottom-12") : "!bottom-12"
+          )}
         />
       )}
     </>

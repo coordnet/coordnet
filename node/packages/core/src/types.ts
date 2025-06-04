@@ -254,6 +254,9 @@ export const SkillRunSchema = z.object({
   updated_at: z.coerce.date(),
   method_data: z.record(z.string(), z.unknown()),
   is_dev_run: z.boolean(),
+  is_public: z.boolean().optional(),
+  is_public_writable: z.boolean().optional(),
+  allowed_actions: z.array(AllowedActionsSchema).optional(),
 });
 export type SkillRun = z.infer<typeof SkillRunSchema>;
 

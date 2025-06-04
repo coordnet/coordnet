@@ -1,4 +1,4 @@
-import { Skill } from "@coordnet/core";
+import { Skill, SkillRun } from "@coordnet/core";
 import { useQuery } from "@tanstack/react-query";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
@@ -16,11 +16,13 @@ import Member from "./Member";
 const List = ({
   space,
   skill,
+  skillRun,
   readOnly = false,
   className,
 }: {
   space?: Space;
   skill?: Skill;
+  skillRun?: SkillRun;
   readOnly?: boolean;
   className?: string;
 }) => {
@@ -28,8 +30,12 @@ const List = ({
   const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
   const { user, isLoading: userLoading } = useUser();
 
-  const model = space ? PermissionModel.Space : PermissionModel.Skill;
-  const data = space ? space : skill;
+  const model = space
+    ? PermissionModel.Space
+    : skillRun
+      ? PermissionModel.SkillRun
+      : PermissionModel.Skill;
+  const data = space ? space : skillRun ? skillRun : skill;
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: [model + "s", data?.id, "permissions"],
@@ -92,6 +98,7 @@ const List = ({
             <Member
               space={space}
               skill={skill}
+              skillRun={skillRun}
               permissionId={selectedPermission}
               setOpen={setMemberOpen}
             />
