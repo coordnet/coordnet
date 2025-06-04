@@ -61,5 +61,5 @@ pqapi==7.2.0  # Closed Source
 https://github.com/JannKleen/paper-qa/releases/download/v5.21.1/paper_qa-5.21.1.tar.gz#egg=paper_qa
 # This is required for the pqapi dependency paper-qa, which seems to requiring it (that's normally not needed)
 # Once this is resolved, this can be removed and also the --allow-unsafe for the pip-compile command
-setuptools==78.1.1  # https://github.com/pypa/setuptools
+setuptools==80.9.0  # https://github.com/pypa/setuptools
 markitdown[pptx,docx,xlsx,xls,pdf,outlook]==0.1.1   # https://github.com/microsoft/markitdown
