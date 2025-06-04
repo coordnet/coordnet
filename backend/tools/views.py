@@ -315,8 +315,11 @@ class PaperQACollectionViewSet(adrf.viewsets.ModelViewSet):
 
             return Response(response)
 
-        except Exception as e:
-            raise PaperQAError(detail=str(e)) from e
+        except Exception as exc:
+            sentry_sdk.capture_exception(exc)
+            raise PaperQAError(
+                detail="An unexpected error occurred. Please try again later."
+            ) from exc
 
 
 # Create a DRF view to convert files using the MarkItDown library.
