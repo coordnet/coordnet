@@ -12,7 +12,10 @@ def content_for_text(text: str) -> list:
     return [{"type": "paragraph", "content": [{"text": text, "type": "text"}]}]
 
 
-class NodeFactory(DjangoModelFactory):
+T = typing.TypeVar("T", default=models.Node)
+
+
+class NodeFactory(DjangoModelFactory[T], typing.Generic[T]):
     """
     Factory for creating nodes.
     Note: The token counts are calculated by splitting the title and text fields by
@@ -41,7 +44,7 @@ class NodeFactory(DjangoModelFactory):
             self.content = content_for_text(str(self.text))
 
 
-class MethodNodeFactory(BaseMembershipModelMixinFactory):
+class MethodNodeFactory(BaseMembershipModelMixinFactory[models.MethodNode]):
     """Factory for creating method nodes."""
 
     title = factory.Faker("sentence", nb_words=6)
@@ -66,7 +69,7 @@ class MethodNodeFactory(BaseMembershipModelMixinFactory):
             self.content = content_for_text(str(self.text))
 
 
-class DocumentFactory(DjangoModelFactory):
+class DocumentFactory(DjangoModelFactory[models.Document]):
     public_id = factory.Faker("uuid4")
     json = factory.Faker("json")
 
@@ -74,19 +77,19 @@ class DocumentFactory(DjangoModelFactory):
         model = "nodes.Document"
 
 
-class SpaceFactory(BaseMembershipModelMixinFactory):
+class SpaceFactory(BaseMembershipModelMixinFactory[models.Space]):
     title = factory.Faker("sentence", nb_words=6)
 
     class Meta:
         model = "nodes.Space"
 
 
-class DocumentEventFactory(DjangoModelFactory):
+class DocumentEventFactory(DjangoModelFactory[models.DocumentEvent]):
     class Meta:
         model = "nodes.DocumentEvent"
 
 
-class DocumentVersionFactory(DjangoModelFactory):
+class DocumentVersionFactory(DjangoModelFactory[models.DocumentVersion]):
     document = factory.SubFactory(DocumentFactory)
     document_type = factory.fuzzy.FuzzyChoice(models.DocumentType.choices, getter=lambda c: c[0])
     json_hash = factory.Faker("sha256")
@@ -95,14 +98,14 @@ class DocumentVersionFactory(DjangoModelFactory):
         model = "nodes.DocumentVersion"
 
 
-class MethodeNodeFactory(NodeFactory):
+class MethodeNodeFactory(NodeFactory[models.MethodNode]):
     buddy = factory.SubFactory(buddies_factories.BuddyFactory)
 
     class Meta:
         model = "nodes.MethodNode"
 
 
-class MethodNodeVersionFactory(DjangoModelFactory):
+class MethodNodeVersionFactory(DjangoModelFactory[models.MethodNodeVersion]):
     method = factory.SubFactory(MethodeNodeFactory)
     version = factory.Sequence(lambda n: n)
     method_data = factory.Faker("json", num_rows=50)
@@ -111,7 +114,7 @@ class MethodNodeVersionFactory(DjangoModelFactory):
         model = "nodes.MethodNodeVersion"
 
 
-class MethodNodeRunFactory(DjangoModelFactory):
+class MethodNodeRunFactory(DjangoModelFactory[models.MethodNodeRun]):
     method = factory.SubFactory(MethodeNodeFactory)
     method_version = factory.SubFactory(MethodNodeVersionFactory)
     user = factory.SubFactory("users.tests.factories.UserFactory")
