@@ -1514,9 +1514,9 @@ onnxruntime==1.21.1 \
     --hash=sha256:ed4f9771233a92edcab9f11f537702371d450fe6cd79a727b672d37b9dab0cde \
     --hash=sha256:f615c05869a523a94d0a4de1f0936d0199a473cf104d630fc26174bebd5759bd
     # via magika
-openai==1.74.0 \
-    --hash=sha256:592c25b8747a7cad33a841958f5eb859a785caea9ee22b9e4f4a2ec062236526 \
-    --hash=sha256:aff3e0f9fb209836382ec112778667027f4fd6ae38bdb2334bc9e173598b092a
+openai==1.75.0 \
+    --hash=sha256:fb3ea907efbdb1bcfd0c44507ad9c961afd7dce3147292b54505ecfd17be8fd1 \
+    --hash=sha256:fe6f932d2ded3b429ff67cc9ad118c71327db32eb9d32dd723de3acfca337125
     # via
     #   -r requirements/base.in
     #   litellm
