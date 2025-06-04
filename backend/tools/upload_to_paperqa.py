@@ -100,8 +100,7 @@ def get_auth_token(hostname: str, protocol: str = "https") -> str:
 
 
 def make_api_request(method, url, protocol, hostname, **kwargs):
-    """Make an API request with protocol fallback."""
-    # Try with the provided protocol first
+    """Make an API request."""
     full_url = f"{protocol}://{hostname}{url}"
     try:
         if method == "get":
@@ -113,28 +112,9 @@ def make_api_request(method, url, protocol, hostname, **kwargs):
 
         response.raise_for_status()
         return response
-    except requests.exceptions.RequestException as e:
-        # If HTTPS fails, try HTTP (only if we were using HTTPS)
-        if protocol == "https":
-            print(f"Request with HTTPS failed: {e}")
-            print("Trying with HTTP instead...")
-            try:
-                full_url = f"http://{hostname}{url}"
-                if method == "get":
-                    response = requests.get(full_url, **kwargs)
-                elif method == "post":
-                    response = requests.post(full_url, **kwargs)
-                else:
-                    raise ValueError(f"Unsupported method: {method}")
-
-                response.raise_for_status()
-                return response
-            except requests.exceptions.RequestException as e2:
-                print(f"Request with HTTP also failed: {e2}")
-                raise
-        else:
-            print(f"Request failed: {e}")
-            raise
+    except requests.exceptions.RequestException as exc:
+        print(f"Request failed: {exc}")
+        raise
 
 
 def get_collection(
@@ -203,7 +183,10 @@ def upload_file(
                 files=files,
                 headers=headers,
             )
-            return response.json()
+            if response.status_code >= 200 and response.status_code < 300:
+                print(f"File {file_path} uploaded successfully.")
+                return response.json()
+            return {}
         except requests.exceptions.RequestException as e:
             print(f"Failed to upload file {file_path}: {e}")
             if hasattr(e, "response") and hasattr(e.response, "text"):
