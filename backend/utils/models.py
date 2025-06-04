@@ -2,8 +2,13 @@ import typing
 import uuid
 
 from django.db import models
+from django.dispatch import Signal
 
 from utils import managers
+
+# Custom signals for soft-deletion
+pre_soft_delete = Signal()
+post_soft_delete = Signal()
 
 try:
     from django_stubs_ext.db.models import TypedModelMeta
@@ -63,11 +68,19 @@ class SoftDeletableBaseModel(BaseModel):
         """
         Soft delete object (set its ``is_removed`` field to True).
         Actually delete object if setting ``soft`` to False.
+        Triggers pre_soft_delete and post_soft_delete signals when soft-deleting.
         TODO: - collect and return the number of objects deleted even for a soft delete.
         """
         if soft:
+            # Send pre_soft_delete signal
+            pre_soft_delete.send(sender=self.__class__, instance=self)
+
             self.is_removed = True
             self.save(using=using, update_fields=["is_removed"])
+
+            # Send post_soft_delete signal
+            post_soft_delete.send(sender=self.__class__, instance=self)
+
             return None
         else:
             return super().delete(using=using, keep_parents=keep_parents)

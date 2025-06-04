@@ -7,6 +7,7 @@ from django.db.models import Q
 
 import permissions.models
 import utils.models
+import utils.storage
 
 if typing.TYPE_CHECKING:
     from django import http
@@ -14,30 +15,25 @@ if typing.TYPE_CHECKING:
     from users import typing as user_typing
 
 
-class PaperQACollection(permissions.models.MembershipBaseModel):
+def user_upload_path(instance, filename):
     """
-    A collection of documents for PaperQA.
+    Return the path where the file should be stored.
+    Files are stored in a folder named after the collection's public_id.
+    """
+    return f"uploads/{instance.public_id}"
+
+
+class UserUpload(permissions.models.MembershipBaseModel):
+    """
+    A file uploaded by a user.
     """
 
-    class States(models.TextChoices):
-        READY = "ready", "Ready"
-        WAITING = "waiting", "Waiting"
-        PROCESSING = "processing", "Processing"
-        ERROR = "error", "Error"
-
-    name = models.SlugField(max_length=255, unique=True)
-    state = models.CharField(
-        max_length=20,
-        choices=States.choices,
-        default=States.READY,
-        help_text="Current state of the collection",
+    name = models.CharField(max_length=255)
+    file = models.FileField(
+        upload_to=user_upload_path, storage=utils.storage.get_storage_class("internal")
     )
-    uploads = models.ManyToManyField(
-        "uploads.UserUpload",
-        related_name="collections",
-        blank=True,
-    )
-    index = models.BinaryField(null=True, blank=True)
+    content_type = models.CharField(max_length=255, blank=True)
+    size = models.PositiveIntegerField(default=0)
 
     class Meta(
         permissions.models.MembershipModelMixin.Meta, utils.models.SoftDeletableBaseModel.Meta
@@ -63,12 +59,11 @@ class PaperQACollection(permissions.models.MembershipBaseModel):
         return True
 
     def has_object_write_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
         """Return True if the user has write permissions for this object."""
         return super().has_object_write_permission(request)
 
     def has_object_read_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user is the owner of the object."""
+        """Return True if the user has read permissions for this object."""
         return super().has_object_read_permission(request)
 
     @staticmethod

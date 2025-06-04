@@ -135,7 +135,17 @@ THIRD_PARTY_APPS = [
     "imagekit",
 ]
 
-LOCAL_APPS = ["users", "nodes", "buddies", "permissions", "profiles", "utils", "llms"]
+LOCAL_APPS = [
+    "users",
+    "nodes",
+    "buddies",
+    "permissions",
+    "profiles",
+    "utils",
+    "llms",
+    "tools",
+    "uploads",
+]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -455,8 +465,8 @@ SOCIALACCOUNT_FORMS = {"signup": "users.forms.UserSocialSignupForm"}
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK: typing.Mapping[str, typing.Any] = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "knox.auth.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "knox.auth.TokenAuthentication",
     ],
     # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
@@ -510,7 +520,7 @@ AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-p
 # API settings
 # ------------------------------------------------------------------------------
 
-SEMANTIC_API_KEY = env("SEMANTIC_API_KEY", default="fake-key")
+SEMANTIC_API_KEY = env("SEMANTIC_SCHOLAR_API_KEY", default="fake-key")
 
 # Front-end config
 # ------------------------------------------------------------------------------

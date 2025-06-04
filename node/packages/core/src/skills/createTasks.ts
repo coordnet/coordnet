@@ -80,7 +80,8 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
     if (
       node.data.type !== NodeType.Prompt &&
       node.data.type !== NodeType.PaperFinder &&
-      node.data.type !== NodeType.PaperQA
+      node.data.type !== NodeType.PaperQA &&
+      node.data.type !== NodeType.PaperQACollection
     ) {
       return;
     }

@@ -41,6 +41,20 @@ export const queryPaperQA = async (question: string): Promise<PaperQAResponsePai
   return response.data;
 };
 
+export const queryPaperQACollection = async (
+  collection: string,
+  question: string,
+  authentication: string
+): Promise<PaperQAResponsePair[]> => {
+  const response = await api.post<PaperQAResponsePair[]>(
+    `api/tools/paperqa-collections/${collection}/query/`,
+    { question },
+    { headers: { Authorization: `Bearer ${authentication}` } }
+  );
+  console.log("PaperQACollection response", response.data);
+  return response.data;
+};
+
 export const getExternalNode = async (
   nodeId: string,
   depth: number,

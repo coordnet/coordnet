@@ -1,7 +1,7 @@
 import * as Y from "yjs";
 
 import { CanvasNode, PaperQAResponse, PaperQAResponsePair, SingleNode, Task } from "../types";
-import { queryPaperQA } from "./api";
+import { queryPaperQA, queryPaperQACollection } from "./api";
 import {
   addToSkillCanvas,
   findSourceNode,
@@ -10,26 +10,50 @@ import {
   setSkillNodeTitleAndContent,
 } from "./utils";
 
-export const formatPaperQAResponse = (data: unknown): PaperQAResponse => {
-  if (
-    Array.isArray(data) &&
-    data.every((item) => Array.isArray(item) && item.length === 2 && typeof item[0] === "string")
-  ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obj: Record<string, any> = {};
-    for (const [key, value] of data) {
-      // Recurse on the value, in case it is itself an array of pairs
-      obj[key] = formatPaperQAResponse(value);
+export const convertPairsToObject = (pairs: unknown): Record<string, unknown> => {
+  if (!Array.isArray(pairs)) {
+    throw new Error("Expected pairs to be an array");
+  }
+  const obj: Record<string, unknown> = {};
+  for (const pair of pairs) {
+    if (Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string") {
+      const key = pair[0];
+      let value = pair[1];
+      // If the value is an array of pairs, recursively convert it.
+      if (
+        Array.isArray(value) &&
+        value.every(
+          (inner) => Array.isArray(inner) && inner.length === 2 && typeof inner[0] === "string"
+        )
+      ) {
+        value = convertPairsToObject(value);
+      }
+      obj[key] = value;
+    } else {
+      console.error("Invalid pair encountered:", pair);
+      throw new Error("Invalid PaperQA response format");
     }
-    return obj as PaperQAResponse;
+  }
+  return obj;
+};
+
+export const formatPaperQAResponse = (data: unknown): PaperQAResponse => {
+  if (Array.isArray(data)) {
+    try {
+      // Convert the nested pairs into an object recursively.
+      return convertPairsToObject(data) as unknown as PaperQAResponse;
+    } catch (error) {
+      console.error("Error converting pairs to object:", error);
+      throw new Error("Failed to format PaperQA response");
+    }
   }
   throw new Error("Invalid PaperQA response format");
 };
 
 export const paperQAResponseToMd = (data: PaperQAResponse): string => {
   const session = data?.session;
-  const bibtex = data?.bibtex;
-  const timing_info = data?.timing_info;
+  const bibtex = data?.bibtex ?? {};
+  const timing_info = data?.timing_info ?? {};
   const duration = data?.duration ?? 0;
 
   const timingKey = Object.keys(timing_info)[0];
@@ -142,5 +166,64 @@ export const executePaperQATask = async (
       "error",
       `PaperQA error: ${(error as Error)?.message}`
     );
+  }
+};
+
+export const executePaperQACollectionTask = async (
+  task: Task,
+  query: string,
+  skillDoc: Y.Doc,
+  nodesMap: Y.Map<CanvasNode>,
+  outputNode: CanvasNode,
+  isLastTask: boolean,
+  authentication: string
+) => {
+  try {
+    setNodesState([task.promptNode.id], nodesMap, "executing");
+
+    if (!task.promptNode.data.paperQACollection) {
+      throw Error("No PaperQA collection found in task, getting first");
+    }
+
+    const response = await queryPaperQACollection(
+      task.promptNode.data.paperQACollection,
+      query,
+      authentication
+    );
+
+    let markdown = "";
+    try {
+      markdown = paperQAResponseToMd(formatPaperQAResponse(response));
+    } catch (error) {
+      console.error("Error formatting PaperQA response", error);
+      try {
+        markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
+      } catch (error) {
+        console.error("Error parsing PaperQA response", error);
+        markdown = JSON.stringify(response, null, 2);
+      }
+    }
+
+    const node: SingleNode = { title: "PaperQA Response: " + query, markdown: markdown };
+
+    const sourceNode = findSourceNode(task);
+
+    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
+      if (!canvasId) return;
+
+      // If it's a multiple response node
+      if (task.outputNode && isMultipleResponseNode(task.outputNode)) {
+        await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node], sourceNode });
+      } else {
+        // Otherwise just update the node directly
+        await setSkillNodeTitleAndContent(skillDoc, canvasId, node.title, node.markdown);
+      }
+    });
+
+    // Mark the node as done/inactive
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
+  } catch (error) {
+    console.error("Error executing PaperQA task", error);
+    setNodesState([task.promptNode.id], nodesMap, "inactive");
   }
 };

@@ -23,7 +23,7 @@ import { getSkillNodePageContent } from "../utils";
 import { getExternalNode, querySemanticScholar } from "./api";
 import { addExternalDataNodes, setExternalData } from "./externalData";
 import { handleMarkMapResponse } from "./markmap";
-import { executePaperQATask } from "./paperQA";
+import { executePaperQACollectionTask, executePaperQATask } from "./paperQA";
 import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
@@ -152,6 +152,21 @@ export const processTasks = async (
           } else {
             await executePaperQATask(task, query, skillDoc, nodesMap, context.outputNode, isLast);
             taskResultsProcessed = true;
+          }
+        } else if (task.promptNode.data.type === NodeType.PaperQACollection) {
+          const query = await collectInputTitles(task, skillDoc);
+          if (dryRun) {
+            executionPlan.tasks.push({ task, query, type: "PAPERQA" });
+          } else {
+            await executePaperQACollectionTask(
+              task,
+              query,
+              skillDoc,
+              nodesMap,
+              context.outputNode,
+              isLast,
+              context.authentication
+            );
           }
         } else {
           // Default prompt task
