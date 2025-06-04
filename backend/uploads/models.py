@@ -7,6 +7,7 @@ from django.db.models import Q
 
 import permissions.models
 import utils.models
+import utils.storage
 
 if typing.TYPE_CHECKING:
     from django import http
@@ -28,7 +29,9 @@ class UserUpload(permissions.models.MembershipBaseModel):
     """
 
     name = models.CharField(max_length=255)
-    file = models.FileField(upload_to=user_upload_path)
+    file = models.FileField(
+        upload_to=user_upload_path, storage=utils.storage.get_storage_class("internal")
+    )
     content_type = models.CharField(max_length=255, blank=True)
     size = models.PositiveIntegerField(default=0)
 

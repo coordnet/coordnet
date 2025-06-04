@@ -72,17 +72,30 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append(  # noqa: F405
 
 # Custom Storage configuration to reuse minio values
 # ------------------------------------------------------------------------------
+# Storage for browser access via signed URLs
+
 STORAGES["default"]["OPTIONS"].update(  # type: ignore[index]  # noqa: F405
     {
         "access_key": env.str("MINIO_ROOT_USER"),
         "secret_key": env.str("MINIO_ROOT_PASSWORD"),
         "default_acl": "download",
-        # "custom_domain": env.str(
-        #     "MINIO_CUSTOM_DOMAIN", default=f"localhost:9000/{env.str('BUCKET_NAME')}"
-        # ),
+        "custom_domain": env.str(
+            "MINIO_CUSTOM_DOMAIN", default=f"localhost:9000/{env.str('BUCKET_NAME')}"
+        ),
         "url_protocol": "http:",
     }
 )
+STORAGES["browser"] = {  # noqa: F405
+    "BACKEND": "utils.storage.BrowserS3Storage",
+    "OPTIONS": STORAGES["default"]["OPTIONS"],  # noqa: F405
+}
+
+# Storage for internal docker network access
+STORAGES["internal"] = {  # noqa: F405
+    "BACKEND": "utils.storage.InternalS3Storage",
+    "OPTIONS": STORAGES["default"]["OPTIONS"],  # noqa: F405
+}
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 EMAIL_SUBJECT_PREFIX = "[coordnet.dev - DEV]"

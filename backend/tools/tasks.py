@@ -2,13 +2,13 @@ import io
 import zipfile
 from pathlib import Path
 
-import requests
 from asgiref.sync import async_to_sync
 from celery import shared_task
 from django.conf import settings
 from paperqa import Settings
 from paperqa.agents import get_directory_index
 
+import utils.storage
 from tools.models import PaperQACollection
 
 
@@ -44,17 +44,19 @@ def update_collection_index(collection_id):
         for upload in uploads:
             print(f"Processing upload: {upload.name} ({upload.content_type})")
             if upload.content_type == "application/pdf":
-                # Get the file URL
-                file_url = upload.file.url
+                # Get the file path in storage
+                file_name = upload.file.name
 
-                # Download the file
-                response = requests.get(file_url)
-                if response.status_code == 200:
-                    print(f"Downloaded {upload.name} successfully.")
+                # Use internal storage to access the file directly
+                if utils.storage.get_storage_class("internal").exists(file_name):
+                    print(f"Accessing {upload.name} from internal storage.")
                     # Save the file to the temporary directory
                     file_path = pdf_dir / upload.name
                     with open(file_path, "wb") as f:
-                        f.write(response.content)
+                        f.write(utils.storage.get_storage_class("internal").open(file_name).read())
+                    print(f"Downloaded {upload.name} successfully.")
+                else:
+                    print(f"File {upload.name} not found in storage.")
 
         # Configure PaperQA settings
         paperqa_settings = Settings(
