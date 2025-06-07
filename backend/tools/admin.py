@@ -1,5 +1,14 @@
-import django.contrib.admin
+from django.contrib import admin
 
-import tools.models
+from tools import models
 
-django.contrib.admin.site.register(tools.models.PaperQACollection)
+
+@admin.register(models.PaperQACollection)
+class PaperQACollectionAdmin(admin.ModelAdmin):
+    """
+    Admin interface for the PaperQACollection model.
+    """
+
+    list_display = ["name", "state", "public_id"]
+    search_fields = ["id", "public_id", "name"]
+    autocomplete_fields = ["uploads"]
