@@ -5,9 +5,9 @@ import profiles.models
 
 
 @factory.django.mute_signals(post_save)
-class ProfileFactory(factory.django.DjangoModelFactory):
+class ProfileFactory(factory.django.DjangoModelFactory[profiles.models.Profile]):
     class Meta:
-        model = profiles.models.Profile
+        model = "profiles.Profile"
         abstract = True
 
     title = factory.Faker("sentence", nb_words=4)
@@ -28,9 +28,9 @@ class SpaceProfileFactory(ProfileFactory):
     space = factory.SubFactory("nodes.tests.factories.SpaceFactory")
 
 
-class ProfileCardFactory(factory.django.DjangoModelFactory):
+class ProfileCardFactory(factory.django.DjangoModelFactory[profiles.models.ProfileCard]):
     class Meta:
-        model = profiles.models.ProfileCard
+        model = "profiles.ProfileCard"
 
     title = factory.Faker("sentence", nb_words=4)
     description = factory.Faker("text")

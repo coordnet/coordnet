@@ -3,20 +3,24 @@ import typing
 import factory
 from factory.django import DjangoModelFactory
 
+import permissions.models
 from permissions import utils
 
 if typing.TYPE_CHECKING:
     from users import models as user_models
 
 
-class ObjectMembershipFactory(DjangoModelFactory):
+class ObjectMembershipFactory(DjangoModelFactory[permissions.models.ObjectMembership]):
     """Factory for creating Permissions of a user on an object."""
 
     class Meta:
         model = "permissions.ObjectMembership"
 
 
-class BaseMembershipModelMixinFactory(DjangoModelFactory):
+T = typing.TypeVar("T")
+
+
+class BaseMembershipModelMixinFactory(DjangoModelFactory[T], typing.Generic[T]):
     """Factory for creating BaseMembershipModelMixin objects."""
 
     is_public = False
