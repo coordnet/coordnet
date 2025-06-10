@@ -20,7 +20,7 @@ import {
   Task,
 } from "../types";
 import { getSkillNodePageContent } from "../utils";
-import { getExternalNode, querySemanticScholar } from "./api";
+import { baseURL, getExternalNode, querySemanticScholar } from "./api";
 import { addExternalDataNodes, setExternalData } from "./externalData";
 import { handleMarkMapResponse } from "./markmap";
 import { executePaperQACollectionTask, executePaperQATask } from "./paperQA";
@@ -28,7 +28,6 @@ import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
   addToSkillCanvas,
-  baseURL,
   findSourceNode,
   getSkillNodeCanvas,
   isCancelled,

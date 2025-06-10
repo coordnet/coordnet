@@ -27,11 +27,10 @@ import {
   Task,
 } from "../types";
 import { findExtremePositions } from "../utils";
+import { getNode } from "./api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const baseURL = (globalThis as any).process?.env?.BACKEND_URL ?? "";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const hocuspocusUrl = (globalThis as any).process?.env?.HOCUSPOCUS_INTERNAL_URL ?? "";
+const hocuspocusUrl = (globalThis as any).process?.env?.HOCUSPOCUS_INTERNAL_URL ?? "";
 
 export const editorExtensions = [StarterKit, Table, TableRow, TableHeader, TableCell, Link];
 export const editorSchema: Schema = getSchema(editorExtensions);
@@ -443,4 +442,43 @@ export const findSourceNode = (task: Task) => {
 
   // No source node found
   return undefined;
+};
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Wait for a node to be available in the API before trying to write to it
+ */
+export const waitForNode = async (
+  nodeId: string,
+  authentication: string,
+  maxRetries = 50,
+  retryDelay = 500
+) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await getNode(nodeId, authentication);
+      return;
+    } catch {
+      console.error(`Node not found yet (${attempt}/${maxRetries}):`, nodeId);
+      if (attempt === maxRetries) {
+        throw new Error(`Failed to retrieve node ${nodeId} after ${maxRetries} attempts`);
+      }
+      await delay(retryDelay);
+    }
+  }
+};
+
+/**
+ * Check if TipTap/ProseMirror content has actual content or is just an empty document
+ */
+export const documentHasContent = (content: JSONContent | null | undefined): boolean => {
+  if (!content || typeof content !== "object") return false;
+
+  // Check if it's an empty TipTap document
+  if (content.type === "doc" && Array.isArray(content.content)) {
+    return content.content.length > 0;
+  }
+
+  return true;
 };
