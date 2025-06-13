@@ -673,9 +673,9 @@ django-appconf==1.1.0 \
     --hash=sha256:7abd5a163ff57557f216e84d3ce9dac36c37ffce1ab9a044d3d53b7c943dd10f \
     --hash=sha256:9fcead372f82a0f21ee189434e7ae9c007cbb29af1118c18251720f3d06243e4
     # via django-imagekit
-django-celery-beat==2.8.0 \
-    --hash=sha256:955bfb3c4b8f1026a8d20144d0da39c941e1eb23acbaee9e12a7e7cc1f74959a \
-    --hash=sha256:f8fd2e1ffbfa8e570ab9439383b2cd15a6642b347662d0de79c62ba6f68d4b38
+django-celery-beat==2.8.1 \
+    --hash=sha256:da2b1c6939495c05a551717509d6e3b79444e114a027f7b77bf3727c2a39d171 \
+    --hash=sha256:dfad0201c0ac50c91a34700ef8fa0a10ee098cc7f3375fe5debed79f2204f80a
     # via -r requirements/base.in
 django-cors-headers==4.7.0 \
     --hash=sha256:6fdf31bf9c6d6448ba09ef57157db2268d515d94fc5c89a0a1028e1fc03ee52b \
