@@ -4,7 +4,7 @@
 
 gunicorn==23.0.0  # https://github.com/benoitc/gunicorn
 psycopg[c]==3.2.6  # https://github.com/psycopg/psycopg
-celery[librabbitmq]==5.5.2  # https://github.com/celery/celery
+celery[librabbitmq]==5.5.3  # https://github.com/celery/celery
 django-celery-results==2.6.0  #  https://github.com/celery/django-celery-results
 
 # Django
