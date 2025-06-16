@@ -3,5 +3,7 @@ packages:
   - packages/*
   - frontend
 onlyBuiltDependencies:
+  - '@sentry-internal/node-cpu-profiler'
   - '@sentry/cli'
   - esbuild
+  - sharp

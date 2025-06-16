@@ -2,11 +2,11 @@ python-slugify==8.0.4  # https://github.com/un33k/python-slugify
 Pillow==11.2.1  # https://github.com/python-pillow/Pillow
 argon2-cffi==23.1.0  # https://github.com/hynek/argon2_cffi
 whitenoise==6.9.0  # https://github.com/evansd/whitenoise
-redis==5.2.1  # https://github.com/redis/redis-py
-hiredis==3.1.0  # https://github.com/redis/hiredis-py
+redis==5.3.0  # https://github.com/redis/redis-py
+hiredis==3.2.1  # https://github.com/redis/hiredis-py
 django-celery-beat==2.8.0  # https://github.com/celery/django-celery-beat
 requests==2.32.3  # https://github.com/psf/requests
-uvicorn[standard]==0.34.2  # https://github.com/encode/uvicorn
+uvicorn[standard]==0.34.3  # https://github.com/encode/uvicorn
 uvicorn-worker==0.3.0  # https://github.com/Kludex/uvicorn-worker
 
 # Django
@@ -14,7 +14,7 @@ uvicorn-worker==0.3.0  # https://github.com/Kludex/uvicorn-worker
 django==5.1.9  # https://www.djangoproject.com/
 django-environ==0.12.0  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth==65.7.0  # https://github.com/pennersr/django-allauth
+django-allauth==65.9.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==2.3  # https://github.com/django-crispy-forms/django-crispy-forms
 crispy-bootstrap5==2025.4  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
@@ -35,13 +35,13 @@ django-rest-passwordreset==1.5.0  # https://github.com/anexia-it/django-rest-pas
 # Django PG trigger for database triggers
 django-pgtrigger==4.13.3  # https://github.com/Opus10/django-pgtrigger
 # Django-Channels
-channels==4.2.0  # https://github.com/django/channels
+channels==4.2.2  # https://github.com/django/channels
 # Async DRF endpoints
 adrf==0.1.9  # https://github.com/em1208/adrf
 # Postgres lock support
-django-pglock==1.7.1  # https://github.com/Opus10/django-pglock
+django-pglock==1.7.2  # https://github.com/Opus10/django-pglock
 # Storages for S3 support
-django-storages[s3,azure]==1.14.5  # https://github.com/jschneier/django-storages
+django-storages[s3,azure]==1.14.6  # https://github.com/jschneier/django-storages
 # User uploaded images
 django-imagekit==5.0.0  # https://github.com/matthewwithanm/django-imagekit/
 
@@ -61,5 +61,5 @@ pqapi==7.2.0  # Closed Source
 https://github.com/JannKleen/paper-qa/releases/download/v5.11.2/paper_qa-5.11.2.tar.gz#egg=paper_qa
 # This is required for the pqapi dependency paper-qa, which seems to requiring it (that's normally not needed)
 # Once this is resolved, this can be removed and also the --allow-unsafe for the pip-compile command
-setuptools==78.1.0  # https://github.com/pypa/setuptools
+setuptools==78.1.1  # https://github.com/pypa/setuptools
 markitdown[pptx,docx,xlsx,xls,pdf,outlook]==0.1.1   # https://github.com/microsoft/markitdown

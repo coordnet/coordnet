@@ -1,3 +1,4 @@
+import { HocuspocusProvider } from "@hocuspocus/provider";
 import { getSchema, JSONContent } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
 import Table from "@tiptap/extension-table";
@@ -13,11 +14,24 @@ import xss from "xss";
 import { prosemirrorJSONToYXmlFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 
-import { Canvas, CanvasNode, NodeType, SingleNode, SkillJson, SkillRun, SpaceNode } from "../types";
+import {
+  Canvas,
+  CanvasEdge,
+  CanvasNode,
+  NodeType,
+  SingleNode,
+  SkillJson,
+  SkillRun,
+  SourceNode,
+  SpaceNode,
+  Task,
+} from "../types";
 import { findExtremePositions } from "../utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const baseURL = (globalThis as any).process?.env?.BACKEND_URL ?? "";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const hocuspocusUrl = (globalThis as any).process?.env?.HOCUSPOCUS_INTERNAL_URL ?? "";
 
 export const editorExtensions = [StarterKit, Table, TableRow, TableHeader, TableCell, Link];
 export const editorSchema: Schema = getSchema(editorExtensions);
@@ -31,10 +45,8 @@ export const setNodesState = async (
   for (const id of nodeIds) {
     const node = nodesMap?.get(id);
     if (node) {
-      console.log("error", error);
       const data: CanvasNode["data"] = { ...node.data, state };
       if (error) data.error = error;
-      console.log("tha data", data);
       await nodesMap?.set(id, { ...node, data });
     }
   }
@@ -45,13 +57,16 @@ export const isResponseNode = (node: CanvasNode) => {
     node?.data?.type === NodeType.ResponseMultiple ||
     node?.data?.type === NodeType.ResponseSingle ||
     node?.data?.type === NodeType.ResponseCombined ||
-    node?.data?.type === NodeType.ResponseTable
+    node?.data?.type === NodeType.ResponseTable ||
+    node?.data?.type === NodeType.ResponseMarkMap
   );
 };
 
 export const isSingleResponseType = (node: CanvasNode | null) => {
   return (
-    node?.data?.type === NodeType.ResponseSingle || node?.data?.type === NodeType.ResponseCombined
+    node?.data?.type === NodeType.ResponseSingle ||
+    node?.data?.type === NodeType.ResponseCombined ||
+    node?.data?.type === NodeType.ResponseMarkMap
   );
 };
 
@@ -61,7 +76,9 @@ export const isTableResponseType = (node: CanvasNode | null) => {
 
 export const isMultipleResponseNode = (node: CanvasNode | null) => {
   return (
-    node?.data?.type === NodeType.ResponseSingle || node?.data?.type === NodeType.ResponseMultiple
+    node?.data?.type === NodeType.ResponseSingle ||
+    node?.data?.type === NodeType.ResponseMultiple ||
+    node?.data?.type === NodeType.ResponseMarkMap
   );
 };
 
@@ -126,7 +143,7 @@ export function formatTitleToKey(title: string): string {
  */
 export const getSkillNodeCanvas = (id: string, document: Y.Doc) => {
   const nodesMap = document.getMap<CanvasNode>(`${id}-canvas-nodes`);
-  const edgesMap = document.getMap<CanvasNode>(`${id}-canvas-edges`);
+  const edgesMap = document.getMap<CanvasEdge>(`${id}-canvas-edges`);
 
   return {
     nodes: Array.from(nodesMap.values()),
@@ -212,10 +229,11 @@ interface AddNodeOptions {
   canvasId: string;
   document: Y.Doc;
   nodes: SingleNode[];
+  sourceNode?: SourceNode;
 }
 
 export const addToSkillCanvas = async (options: AddNodeOptions) => {
-  const { canvasId, nodes, document } = options;
+  const { canvasId, nodes, document, sourceNode } = options;
   const nodesMap = document.getMap<CanvasNode>(`${canvasId}-canvas-nodes`);
   const spaceMap = document.getMap<SpaceNode>("nodes");
   const nodePositions = findExtremePositions(Array.from(nodesMap.values()));
@@ -227,7 +245,7 @@ export const addToSkillCanvas = async (options: AddNodeOptions) => {
       type: "GraphNode",
       position: { x: nodePositions.minX + 210 * i, y: nodePositions.maxY + 120 },
       style: { width: 200, height: 80 },
-      data: {},
+      data: { sourceNode: sourceNode ? { ...sourceNode } : undefined },
     });
     spaceMap.set(id, { id, title: node.title });
 
@@ -306,4 +324,123 @@ export const cleanSkillJson = (skillJson: SkillJson): SkillJson => {
     // Return the original if cleaning failed
     return skillJson;
   }
+};
+
+export const isCancelled = (document: Y.Doc) => {
+  const runMeta = document?.getMap("meta");
+  const status = runMeta?.get("status");
+  if (status === "cancelled") {
+    console.log("Execution cancelled, halting as soon as possible");
+    return true;
+  }
+  return false;
+};
+
+export const createConnectedYDocServer = async (
+  name: string,
+  token: string
+): Promise<[Y.Doc, HocuspocusProvider]> => {
+  return new Promise((resolve, reject) => {
+    const doc = new Y.Doc();
+    const provider = new HocuspocusProvider({
+      url: hocuspocusUrl,
+      name,
+      document: doc,
+      token,
+      preserveConnection: false,
+    });
+
+    let isConnected = false;
+    let isSynced = false;
+
+    const checkReady = () => {
+      if (isConnected && isSynced) {
+        resolve([doc, provider]);
+      }
+    };
+
+    const onStatus = (event: { status: string }) => {
+      if (event.status === "connected") {
+        isConnected = true;
+        checkReady();
+      }
+    };
+
+    const onSynced = () => {
+      if (provider.isSynced) {
+        isSynced = true;
+        checkReady();
+      }
+    };
+
+    const onAuthenticationFailed = () => {
+      provider.disconnect();
+      reject(new Error("Authentication failed"));
+    };
+
+    provider.on("status", onStatus);
+    provider.on("synced", onSynced);
+    provider.on("authenticationFailed", onAuthenticationFailed);
+  });
+};
+
+export const setSpaceNodeTitle = async (
+  title: string,
+  id: string,
+  spaceId: string,
+  auth: string
+) => {
+  const [document, provider] = await createConnectedYDocServer(`space-${spaceId}`, auth);
+  const spaceMap = document.getMap<SpaceNode>("nodes");
+  try {
+    const spaceNode = document.get(id);
+    if (spaceNode) {
+      spaceMap.set(id, { id, title });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  provider.disconnect();
+};
+
+export const setSpaceNodePageJson = async (json: JSONContent, id: string, auth: string) => {
+  const [document, provider] = await createConnectedYDocServer(`node-editor-${id}`, auth);
+  try {
+    const xml = document.getXmlFragment("default");
+    prosemirrorJSONToYXmlFragment(editorSchema, json, xml);
+  } catch (error) {
+    console.error(error);
+  }
+  provider.disconnect();
+};
+
+export const findSourceNode = (task: Task) => {
+  // First check if task already has sourceNodeInfo
+  if (task.sourceNodeInfo) {
+    return task.sourceNodeInfo;
+  }
+
+  // If no input nodes exist return
+  if (task.inputNodes.length === 0) {
+    return undefined;
+  }
+
+  // Then check for input nodes with sourceNode data
+  const nodeWithSourceData = task.inputNodes.find((node) => node.data?.sourceNode);
+  if (nodeWithSourceData) {
+    return nodeWithSourceData.data.sourceNode;
+  }
+
+  // Finally check for ExternalData nodes that can serve as source nodes
+  const externalDataNode = task.inputNodes.find((node) => node.data.type === NodeType.ExternalData);
+  if (externalDataNode) {
+    return {
+      id: externalDataNode.id,
+      spaceId: externalDataNode.data?.externalNode?.spaceId,
+      nodeId: externalDataNode.data?.externalNode?.nodeId,
+    };
+  }
+
+  // No source node found
+  return undefined;
 };

@@ -1,15 +1,6 @@
-import {
-  AllowedActionsSchema,
-  CanvasEdge,
-  NodeType,
-  Skill,
-  SkillSchema,
-  SubProfile,
-} from "@coordnet/core";
+import { AllowedActionsSchema, Skill, SkillSchema, SubProfile } from "@coordnet/core";
 import { JSONContent } from "@tiptap/core";
 import { z } from "zod";
-
-import { Profile } from "./components";
 
 export interface Me {
   id: string;
@@ -31,6 +22,7 @@ export type Permission = z.infer<typeof PermissionSchema>;
 export enum PermissionModel {
   Space = "space",
   Skill = "skill",
+  SkillRun = "skillrun",
 }
 
 export interface ApiError {
@@ -65,28 +57,6 @@ export type Node = z.infer<typeof NodeSchema>;
 export type SpaceNode = {
   id: string;
   title: string;
-};
-
-export type ExportNodeSingle = {
-  id: string;
-  width: number | null | undefined;
-  height: number | null | undefined;
-  type?: string;
-  title: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  data?: {
-    borderColor?: string;
-    type?: NodeType;
-  };
-  content?: JSONContent;
-};
-
-export type ExportNode = ExportNodeSingle & {
-  nodes: ExportNodeSingle[];
-  edges: CanvasEdge[];
 };
 
 export const BackendNodeSchema = z.object({

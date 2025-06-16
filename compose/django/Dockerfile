@@ -1,5 +1,5 @@
 # define an alias for the specific python version used in this file.
-FROM python:3.11.11-slim-bullseye AS python
+FROM python:3.11.12-slim-bullseye AS python
 
 # Python build stage
 FROM python AS python-build-stage
@@ -26,8 +26,8 @@ FROM python AS python-run-stage
 ARG BUILD_ENVIRONMENT=local
 ARG APP_HOME=/app
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR ${APP_HOME}
 
@@ -125,9 +125,9 @@ WORKDIR /app
 # First copy the package files
 COPY ./node/package.json ./node/pnpm-lock.yaml ./node/pnpm-workspace.yaml ./
 WORKDIR /app/frontend
-COPY ./node/frontend/package.json ./node/frontend/pnpm-lock.yaml ./
+COPY ./node/frontend/package.json ./
 WORKDIR /app/packages/core
-COPY ./node/packages/core/package.json ./node/packages/core/pnpm-lock.yaml ./
+COPY ./node/packages/core/package.json ./
 
 # Now install dependencies
 WORKDIR /app
@@ -150,6 +150,6 @@ RUN pnpm build
 
 FROM python-run-stage AS python-run-stage-prod
 ARG GIT_REVISION
-ENV SENTRY_RELEASE ${GIT_REVISION}
+ENV SENTRY_RELEASE=${GIT_REVISION}
 
 COPY --from=frontend-stage-for-copy /app/frontend/dist/static/ /app/backend/coordnet/static/

@@ -11,6 +11,7 @@ import {
   Loader as LoaderIcon,
   Play,
   Settings,
+  Share,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -34,8 +35,9 @@ import ExecutionPlanRenderer from "../Canvas/ExecutionPlan";
 import Loader from "../Loader";
 import { Button } from "../ui/button";
 import SkillRunHistory from "./SkillRunHistory";
+import SkillRunPermissions from "./SkillRunPermissions";
 import SkillVersions from "./SkillVersions";
-import { removeInputNodesAndEdges } from "./utils";
+import { formatSkillRunId, removeInputNodesAndEdges } from "./utils";
 
 const SkillCanvasControls = () => {
   const {
@@ -44,7 +46,7 @@ const SkillCanvasControls = () => {
     canvas: { YDoc },
   } = useYDoc();
   const queryClient = useQueryClient();
-  const { isGuest } = useUser();
+  const { profile, isGuest } = useUser();
   const { nodes, inputNodes } = useCanvas();
   const { runId, versionId } = useParams();
   const { runSkill, status, error } = useRunSkill();
@@ -52,6 +54,12 @@ const SkillCanvasControls = () => {
   const [planOpen, setPlanOpen] = useState(false);
   const isSkill = parent.type === BackendEntityType.SKILL;
   const [loading, setLoading] = useState(false);
+  const [runPermissionsModalOpen, setRunPermissionsModalOpen] = useState(false);
+
+  const skill = parent.type === BackendEntityType.SKILL ? parent.data : undefined;
+  const canEdit =
+    skill?.authors.map((a) => a.id).includes(profile?.id ?? "") ||
+    skill?.creator?.id.includes(profile?.id ?? "");
 
   const publishSkillVersion = async () => {
     const inputNode = nodes.find((n) => n.data?.type === NodeType.Input);
@@ -102,7 +110,12 @@ const SkillCanvasControls = () => {
     if (status === "idle" || status === "pending" || status === "running")
       return (
         <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
-          <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
+          <Link
+            to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}
+            onClick={() => {
+              YDoc?.getMap("meta").set("status", "cancelled");
+            }}
+          >
             <Button
               className={clsx(
                 `group h-16 w-[180px] rounded-full border border-neutral-200 bg-white py-4 pl-8 pr-6
@@ -125,7 +138,23 @@ const SkillCanvasControls = () => {
     else
       return (
         <>
-          <div className="react-flow__panel absolute right-2 top-2 !m-0 !flex items-end gap-2">
+          <div
+            className="react-flow__panel absolute right-2 top-2 !m-0 !flex flex-col items-end gap-2"
+          >
+            {canEdit && (
+              <Button
+                className="hover:bg-purple-700 bg-violet-700 text-white"
+                onClick={() => setRunPermissionsModalOpen(true)}
+              >
+                <Share className="mr-2 size-3" /> Share Run {formatSkillRunId(runId)}
+              </Button>
+            )}
+            <Dialog onOpenChange={setRunPermissionsModalOpen} open={runPermissionsModalOpen}>
+              <DialogContent className="w-[430px] p-0">
+                <SkillRunPermissions id={runId} key={runId} />
+              </DialogContent>
+            </Dialog>
+
             <SkillVersions readOnly />
           </div>
           <div className="react-flow__panel absolute bottom-14 right-2 !m-0 !flex items-end gap-2">
@@ -137,21 +166,24 @@ const SkillCanvasControls = () => {
                 {String(error)}
               </div>
             )}
-            <div className="flex flex-col items-center gap-2">
-              <SkillRunHistory />
-              <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
-                <Button
-                  className={clsx(
-                    `flex h-16 items-center justify-center gap-2.5 rounded-full border
-                    border-neutral-200 bg-white py-4 pl-8 pr-6 text-xl font-medium text-neutral-500`
-                  )}
-                  variant="secondary"
-                >
-                  Edit Skill
-                  <Edit className="size-6" />
-                </Button>
-              </Link>
-            </div>
+            {canEdit && (
+              <div className="flex flex-col items-center gap-2">
+                <SkillRunHistory />
+                <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
+                  <Button
+                    className={clsx(
+                      `flex h-16 items-center justify-center gap-2.5 rounded-full border
+                      border-neutral-200 bg-white py-4 pl-8 pr-6 text-xl font-medium
+                      text-neutral-500`
+                    )}
+                    variant="secondary"
+                  >
+                    Edit Skill
+                    <Edit className="size-6" />
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </>
       );
