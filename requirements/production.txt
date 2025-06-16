@@ -198,9 +198,9 @@ botocore==1.38.8 \
     # via
     #   boto3
     #   s3transfer
-celery[librabbitmq]==5.5.2 \
-    --hash=sha256:4d6930f354f9d29295425d7a37261245c74a32807c45d764bedc286afd0e724e \
-    --hash=sha256:54425a067afdc88b57cd8d94ed4af2ffaf13ab8c7680041ac2c4ac44357bdf4c
+celery[librabbitmq]==5.5.3 \
+    --hash=sha256:0b5761a07057acee94694464ca482416b959568904c9dfa41ce8413a7d65d525 \
+    --hash=sha256:6c972ae7968c2b5281227f01c3a3f984037d21c5129d07bf3550cc2afc6b10a5
     # via
     #   -r requirements/production.in
     #   django-celery-beat
