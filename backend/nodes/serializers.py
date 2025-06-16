@@ -243,7 +243,15 @@ class MethodNodeRunListSerializer(utils.serializers.BaseSoftDeletableSerializer)
 
     def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNodeRun:
         validated_data["user"] = self.context["request"].user
-        return super().create(validated_data)
+
+        obj = super().create(validated_data)
+
+        # Create corresponding permissions for the creator.
+        obj.members.create(
+            user=self.context["request"].user, role=permissions.utils.get_owner_role()
+        )
+
+        return obj
 
 
 class MethodNodeRunDetailSerializer(MethodNodeRunListSerializer):

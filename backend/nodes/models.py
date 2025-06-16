@@ -1095,5 +1095,7 @@ class MethodNodeRun(permissions.models.MembershipBaseModel):
 
     @dry_rest_permissions.generics.authenticated_users
     def has_object_execute_permission(self, request: "http.HttpRequest") -> bool:
-        """Return True if the user has write permissions for this object."""
-        return self.has_object_write_permission(request)
+        """Return True if the user has read permissions for this object.
+        Everyone who can read the method run should be able to execute it.
+        """
+        return self.has_object_read_permission(request)
