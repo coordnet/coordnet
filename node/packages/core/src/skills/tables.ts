@@ -1,4 +1,5 @@
 import { JSONContent } from "@tiptap/core";
+import { decode } from "html-entities";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import * as Y from "yjs";
 import { z, ZodString } from "zod";
@@ -115,7 +116,7 @@ export const executeTableTask = async (
     // Create header row
     const headerCells: JSONContent[] = [];
     for (const key of Object.keys(columnMap)) {
-      const headerText = columnMap[key];
+      const headerText = decode(columnMap[key]);
       const headerCell: JSONContent = {
         type: "tableHeader",
         attrs: { colspan: 1, rowspan: 1 },
@@ -174,7 +175,7 @@ const extractTableHeaders = (table: JSONContent): string[] => {
             }
           }
         }
-        headers.push(cellText.trim());
+        headers.push(decode(cellText.trim()));
       }
     }
   }
@@ -187,7 +188,8 @@ const headersMatch = (tableHeaders: string[], givenHeaders: string[]): boolean =
     return false;
   }
   for (let i = 0; i < tableHeaders.length; i++) {
-    if (tableHeaders[i] !== givenHeaders[i]) {
+    // Decode both headers before comparing to handle HTML entities
+    if (decode(tableHeaders[i]) !== decode(givenHeaders[i])) {
       return false;
     }
   }

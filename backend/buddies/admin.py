@@ -1,5 +1,13 @@
-import django.contrib.admin
+from django.contrib import admin
 
-import buddies.models
+from buddies import models
 
-django.contrib.admin.site.register(buddies.models.Buddy)
+
+@admin.register(models.Buddy)
+class BuddyAdmin(admin.ModelAdmin):
+    """
+    Admin interface for the Buddy model.
+    """
+
+    list_display = ["name", "model", "public_id"]
+    search_fields = ["id", "public_id", "name", "description", "model"]

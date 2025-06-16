@@ -12,6 +12,7 @@ import {
   NodeSearchResult,
   NodeVersion,
   PaginatedApiResponse,
+  PaperQaCollection,
   Permission,
   PermissionModel,
   Profile,
@@ -541,5 +542,12 @@ export const convertWithMarkItDown = async (
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+  return response.data;
+};
+
+export const listPaperQACollections = async (
+  signal?: AbortSignal | undefined
+): Promise<PaginatedApiResponse<PaperQaCollection>> => {
+  const response = await api.get("api/tools/paperqa-collections/", { signal });
   return response.data;
 };

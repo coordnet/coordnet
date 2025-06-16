@@ -1,7 +1,6 @@
 import axios, { AxiosError } from "axios";
 
 import { PaperQAResponsePair, SemanticScholarPaper } from "../types";
-import { baseURL } from "./utils";
 
 const headers: { [key: string]: string } = {
   Accept: "application/json",
@@ -11,6 +10,9 @@ const headers: { [key: string]: string } = {
 export const isAxiosError = <ResponseType>(error: unknown): error is AxiosError<ResponseType> => {
   return axios.isAxiosError(error);
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const baseURL = (globalThis as any).process?.env?.BACKEND_URL ?? "";
 
 export const api = axios.create({ baseURL, headers });
 
@@ -38,6 +40,27 @@ export const querySemanticScholar = async (
 
 export const queryPaperQA = async (question: string): Promise<PaperQAResponsePair[]> => {
   const response = await api.post<PaperQAResponsePair[]>("api/tools/paperqa/", { question });
+  return response.data;
+};
+
+export const queryPaperQACollection = async (
+  collection: string,
+  question: string,
+  authentication: string
+): Promise<PaperQAResponsePair[]> => {
+  const response = await api.post<PaperQAResponsePair[]>(
+    `api/tools/paperqa-collections/${collection}/query/`,
+    { question },
+    { headers: { Authorization: `Bearer ${authentication}` } }
+  );
+  console.log("PaperQACollection response", response.data);
+  return response.data;
+};
+
+export const getNode = async (nodeId: string, authentication: string): Promise<string> => {
+  const response = await api.get<string>(`api/nodes/nodes/${nodeId}/`, {
+    headers: { Authorization: `Bearer ${authentication}` },
+  });
   return response.data;
 };
 

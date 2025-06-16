@@ -5,7 +5,7 @@
 # We also replaced the DNS resolver (udns) with c-ares because we need IPv6 support.
 
 FROM alpine:3.20
-ARG VERSION=1.23.0
+ARG VERSION=1.24.1
 
 # Inspiration from https://github.com/gmr/alpine-pgbouncer/blob/master/Dockerfile
 # hadolint ignore=DL3003,DL3018

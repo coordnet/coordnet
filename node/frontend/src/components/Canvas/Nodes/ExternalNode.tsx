@@ -69,11 +69,11 @@ const ExternalNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps)
   }, [nodeLoadError]);
 
   const loadExternalNode = useCallback(async () => {
+    if (!data?.externalNode?.nodeId) {
+      throw new Error("External Node ID is missing");
+    }
+    const [spaceDoc, provider] = await createConnectedYDoc(`space-${data?.externalNode?.spaceId}`);
     try {
-      if (!data?.externalNode?.nodeId) {
-        throw new Error("External Node ID is missing");
-      }
-      const [spaceDoc] = await createConnectedYDoc(`space-${data?.externalNode?.spaceId}`);
       const nodes = spaceDoc.getMap<SpaceNode>("nodes");
       const node = nodes.get(data?.externalNode?.nodeId);
       setTitle(node?.title ?? "Untitled");
@@ -81,6 +81,8 @@ const ExternalNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps)
       setLoading(false);
     } catch (e) {
       setError(e as Error);
+    } finally {
+      provider.disconnect();
     }
   }, [data?.externalNode?.nodeId, data?.externalNode?.spaceId, id, spaceMap]);
 

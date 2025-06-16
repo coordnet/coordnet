@@ -59,7 +59,7 @@ export type FormatReturnType<T extends "plain" | "json"> = T extends "json" ? JS
  */
 export const getNodeContent = <T extends "plain" | "json">(
   xmlFragment: Y.XmlFragment,
-  format: T,
+  format: T
 ): FormatReturnType<T> | undefined => {
   try {
     const json = yXmlFragmentToProsemirrorJSON(xmlFragment);
@@ -80,8 +80,27 @@ export const getNodeContent = <T extends "plain" | "json">(
 export const getSkillNodePageContent = <T extends "plain" | "json" = "plain">(
   id: string,
   document: Y.Doc,
-  format: T = "plain" as T,
+  format: T = "plain" as T
 ): FormatReturnType<T> | undefined => {
   const xml = document.getXmlFragment(`${id}-document`);
   return getNodeContent(xml, format);
+};
+
+/**
+ * Logs the current memory usage of the Node.js process.
+ * @param type - A string indicating the type of process (e.g., "Server", "Worker").
+ */
+export const logMemoryUsage = (type: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ("process" in (globalThis as any)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nodeProcess = (globalThis as any).process;
+    if (nodeProcess && nodeProcess.memoryUsage) {
+      const { rss, heapUsed, heapTotal } = nodeProcess.memoryUsage();
+      const toMB = (bytes: number) => Math.round(bytes / 1024 / 1024);
+      console.log(
+        `${type} Memory Usage: RSS: ${toMB(rss)}MB, Heap: ${toMB(heapUsed)}/${toMB(heapTotal)}MB`
+      );
+    }
+  }
 };

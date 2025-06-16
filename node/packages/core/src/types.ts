@@ -17,6 +17,7 @@ export enum NodeType {
   ResponseMarkMap = "response_markmap",
   PaperFinder = "paper_finder",
   PaperQA = "paper_qa",
+  PaperQACollection = "paper_qa_collection",
   ExternalData = "external_data",
 }
 
@@ -32,7 +33,8 @@ export const nodeTypeMap = {
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
   [NodeType.ResponseMarkMap]: "Responses (MarkMap)",
   [NodeType.PaperFinder]: "Paper Finder",
-  [NodeType.PaperQA]: "Paper QA",
+  [NodeType.PaperQA]: "FH API",
+  [NodeType.PaperQACollection]: "Paper QA Collection",
   [NodeType.ExternalData]: "External Data",
 };
 
@@ -60,6 +62,7 @@ export type CanvasNode = XYFlowNode<
     error?: string;
     loading?: boolean;
     buddy?: Buddy;
+    paperQACollection?: string;
     externalNode?: {
       nodeId: string;
       spaceId: string;

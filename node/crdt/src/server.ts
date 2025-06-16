@@ -1,6 +1,6 @@
 import "./instrument";
 
-import { editorExtensions } from "@coordnet/core";
+import { editorExtensions, logMemoryUsage } from "@coordnet/core";
 import {
   onAuthenticatePayload,
   onConnectPayload,
@@ -26,10 +26,8 @@ const modelMap = {
 };
 
 setInterval(() => {
-  const memoryUsage = process.memoryUsage();
-  console.log(
-    `Server memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`
-  );
+  logMemoryUsage("CRDT Server");
+  console.log(`Active connections: ${server.getConnectionsCount()}`);
 }, 30000);
 
 export const server = Server.configure({

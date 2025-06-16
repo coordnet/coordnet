@@ -1,6 +1,8 @@
 ### Ignore IDEs
 # Ignore all directories named .idea
 .idea/
+# Also Jetbrains Junie templates
+/.junie/
 
 # Ignore all directories named .vscode
 .vscode/
@@ -184,4 +186,6 @@ node/frontend/dist
 
 ### k8s
 kubernetes/secrets.yaml
-/.junie/
+
+### PaperQA local storage
+backend/tools/paperqa/

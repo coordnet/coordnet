@@ -13,6 +13,7 @@ from django.utils.text import slugify
 import nodes.models
 import profiles.utils
 import utils.models
+import utils.storage
 import utils.typing
 from permissions.models import READ
 
@@ -70,6 +71,7 @@ class Profile(utils.models.BaseModel):
         null=True,
         blank=True,
         validators=[django.core.validators.validate_image_file_extension],
+        storage=utils.storage.get_storage_class("browser"),
     )
     profile_image = imagekit.models.ImageSpecField(
         source="profile_image_original",
@@ -88,6 +90,7 @@ class Profile(utils.models.BaseModel):
         null=True,
         blank=True,
         validators=[django.core.validators.validate_image_file_extension],
+        storage=utils.storage.get_storage_class("browser"),
     )
     banner_image = imagekit.models.ImageSpecField(
         source="banner_image_original",
@@ -261,6 +264,7 @@ class ProfileCard(utils.models.BaseModel):
         null=True,
         blank=True,
         validators=[django.core.validators.validate_image_file_extension],
+        storage=utils.storage.get_storage_class("browser"),
     )
     image = imagekit.models.ImageSpecField(
         source="image_original",

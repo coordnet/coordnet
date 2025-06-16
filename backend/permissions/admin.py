@@ -12,7 +12,34 @@ class ObjectMembershipInline(GenericTabularInline):
 
     model = models.ObjectMembership
     extra = 1
+    autocomplete_fields = ("user", "role")
 
 
-admin.site.register(models.ObjectMembership)
-admin.site.register(models.ObjectMembershipRole)
+@admin.register(models.ObjectMembership)
+class ObjectMembershipAdmin(admin.ModelAdmin):
+    """
+    Admin interface for the ObjectMembership model.
+    """
+
+    list_display = ["user", "role", "content_type", "object_id"]
+    search_fields = [
+        "id",
+        "user__id",
+        "user__public_id",
+        "user__name",
+        "user__email",
+        "role__id",
+        "role__role",
+        "object_id",
+    ]
+    autocomplete_fields = ("user", "role")
+
+
+@admin.register(models.ObjectMembershipRole)
+class ObjectMembershipRoleAdmin(admin.ModelAdmin):
+    """
+    Admin interface for the ObjectMembershipRole model.
+    """
+
+    list_display = ["role"]
+    search_fields = ["id", "role"]

@@ -1,5 +1,14 @@
-import django.contrib.admin
+from django.contrib import admin
 
-import llms.models
+from llms import models
 
-django.contrib.admin.site.register(llms.models.LLModel)
+
+@admin.register(models.LLModel)
+class LLModelAdmin(admin.ModelAdmin):
+    """
+    Admin interface for the LLModel model.
+    """
+
+    list_display = ["name", "identifier", "is_available", "disabled"]
+    search_fields = ["id", "public_id", "name", "identifier", "description"]
+    autocomplete_fields = ["replacement"]
