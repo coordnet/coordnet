@@ -986,6 +986,13 @@ class MethodNodeVersion(BaseNode):
         """Return True if the user is the owner of the object."""
         return self.method.has_object_read_permission(request)
 
+    @dry_rest_permissions.generics.authenticated_users
+    def has_object_execute_permission(self, request: "http.HttpRequest") -> bool:
+        """Return True if the user has read permissions for this object.
+        Everyone who can read the method version should be able to execute it.
+        """
+        return self.has_object_read_permission(request)
+
 
 class MethodNodeRun(permissions.models.MembershipBaseModel):
     method = models.ForeignKey("MethodNode", on_delete=models.CASCADE, related_name="runs")

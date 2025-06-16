@@ -70,3 +70,40 @@ class MethodNodeVersionsTestCase(BaseTransactionTestCase):
         self.assertEqual(response.status_code, 204)
         method_version.refresh_from_db()
         self.assertTrue(method_version.is_removed)
+
+    def test_execute_permissions(self) -> None:
+        """Test that users with read access can execute a method version."""
+
+        # Create a method with the owner user as the owner
+        method = factories.MethodNodeFactory.create(owner=self.owner_user)
+
+        # Create a method version for this method
+        method_version = factories.MethodNodeVersionFactory.create(
+            method=method, version=1, method_data={}
+        )
+
+        # Create a method run for the owner
+        owner_run = factories.MethodNodeRunFactory.create(
+            method=method,
+            method_version=method_version,
+            user=self.owner_user,
+        )
+
+        # The owner should be able to execute the method run
+        response = self.owner_client.post(
+            reverse("nodes:method-runs-execute", args=[owner_run.public_id]), {}
+        )
+        self.assertEqual(response.status_code, 204)
+
+        # Create a method run for the viewer
+        viewer_run = factories.MethodNodeRunFactory.create(
+            method=method,
+            method_version=method_version,
+            user=self.viewer_user,
+        )
+
+        # The viewer should be able to execute the method run
+        response = self.viewer_client.post(
+            reverse("nodes:method-runs-execute", args=[viewer_run.public_id]), {}
+        )
+        self.assertEqual(response.status_code, 204)
