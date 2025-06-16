@@ -64,12 +64,10 @@ const SkillManage = ({
   }, [buddyId, setValue]);
 
   const onSubmit = async (data: SkillUpdateForm) => {
-    console.log("hai");
     if (!profile) return toast.error("Profile not found");
     try {
       if (!skill) {
         const skill = await createSkill({ ...data, authors: [profile.id] });
-        console.log(skill);
         await updateSkillImage(skill.id, croppedBanner);
         queryClient.invalidateQueries({ queryKey: ["skills"] });
         navigate(`/skills/${skill.id}`);

@@ -62,7 +62,6 @@ const SkillRunner = () => {
   }, [isRunning, status, skillOutput]);
 
   useEffect(() => {
-    console.log(user, isLoading);
     if ((!user && isLoading === false) || (user && user.id == "public")) {
       const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
       const loginUrl = `/auth/login?redirect=${currentUrl}`;
@@ -78,7 +77,6 @@ const SkillRunner = () => {
       if (newStatus != status) setStatus(newStatus);
       if (newError != error) setError(newError);
       if (buddyId != newBuddy) {
-        console.log("setting bud");
         setBuddyId(newBuddy);
       }
     };
@@ -130,7 +128,6 @@ const SkillRunner = () => {
 
     const skillData = skillYdocToJson(spaceYDoc);
     if (!(`${skillId}-canvas-nodes` in skillData)) {
-      console.error("found no nodes yet", skillData);
       return;
     }
 

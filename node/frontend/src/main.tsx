@@ -10,7 +10,7 @@ import { Toaster } from "sonner";
 import { QueryParamProvider } from "use-query-params";
 import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 
-import { FocusProvider, QuickViewProvider, YDocProvider } from "@/hooks";
+import { FocusProvider, NodeCopyProvider, QuickViewProvider, YDocProvider } from "@/hooks";
 
 import Login from "./auth/Login";
 import ResetPassword from "./auth/ResetPassword";
@@ -31,7 +31,9 @@ const addProviders = (element: ReactNode) => {
       {/* <SpaceProvider> */}
       <YDocProvider>
         <FocusProvider>
-          <QuickViewProvider>{element}</QuickViewProvider>
+          <NodeCopyProvider>
+            <QuickViewProvider>{element}</QuickViewProvider>
+          </NodeCopyProvider>
         </FocusProvider>
       </YDocProvider>
       {/* </SpaceProvider> */}

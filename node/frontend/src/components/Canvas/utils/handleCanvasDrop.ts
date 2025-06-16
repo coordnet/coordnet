@@ -1,4 +1,4 @@
-import { CanvasNode, ExportNode } from "@coordnet/core";
+import { CanvasEdge, CanvasNode } from "@coordnet/core";
 import { XYPosition } from "@xyflow/react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -6,11 +6,10 @@ import { toast } from "sonner";
 import * as Y from "yjs";
 
 import { ALLOWED_TAGS, FORBID_ATTR } from "@/constants";
-import { importNodeCanvas } from "@/lib/nodes";
 import { readPdf } from "@/lib/pdfjs";
 import { BackendEntityType, BackendParent, SpaceNode } from "@/types";
 
-import { addNodeToCanvas, addNodeToSkillCanvas } from "./";
+import { addNodeToCanvas, addNodeToSkillCanvas, importCoordNodeData } from "./";
 import { importMarkmap } from "./markmapImport";
 
 export const handleCanvasDrop = async (
@@ -22,7 +21,8 @@ export const handleCanvasDrop = async (
   startPos: XYPosition,
   spaceDoc: Y.Doc,
   spaceId: string | undefined,
-  canvasId: string | undefined
+  canvasId: string | undefined,
+  edgesMap?: Y.Map<CanvasEdge>
 ) => {
   const isSkill = parent.type === BackendEntityType.SKILL;
   const transferredHtml = dataTransfer.getData("text/html");
@@ -123,13 +123,8 @@ export const handleCanvasDrop = async (
           // Node import file processing
           else if (!isSkill && file.name.endsWith(".coordnode")) {
             const arrayBuffer = await file.arrayBuffer();
-            const importNode: ExportNode = JSON.parse(new TextDecoder().decode(arrayBuffer));
-            const { title, content, data, nodes } = importNode;
-
-            const id = await addNodeToCanvas(nodesMap, spaceMap, title, pos, content, data);
-            if (nodes.length && parent.type === BackendEntityType.SPACE && parent.data) {
-              await importNodeCanvas(parent.data.id, id, importNode);
-            }
+            const importData = JSON.parse(new TextDecoder().decode(arrayBuffer));
+            await importCoordNodeData(importData, nodesMap, spaceMap, edgesMap, pos, parent);
           }
 
           // Markmap file processing
@@ -156,7 +151,6 @@ export const handleCanvasDrop = async (
         }
       }
 
-      // Show final status
       if (failedFiles.length === 0) {
         toast.success(`Processed all ${total} files successfully`, { id: toastId, duration: 3000 });
       } else {
