@@ -31,10 +31,6 @@ class MarkItDownViewTestCase(BaseTransactionTestCase):
             reverse("tools:markitdown"), {"file": docx_file}, format="multipart"
         )
 
-        # Print response for debugging
-        print(f"Response status: {response.status_code}")
-        print(f"Response data: {response.data}")
-
         # Verify the response
         self.assertEqual(
             response.status_code,
@@ -51,10 +47,6 @@ class MarkItDownViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.post(
             reverse("tools:markitdown"), {"file": xlsx_file}, format="multipart"
         )
-
-        # Print response for debugging
-        print(f"Response status: {response.status_code}")
-        print(f"Response data: {response.data}")
 
         # Verify the response
         self.assertEqual(
