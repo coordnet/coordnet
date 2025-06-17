@@ -88,7 +88,7 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
 
 export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, HocuspocusProvider]> => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve, reject) => {
     const doc = new Y.Doc();
     const provider = new HocuspocusProvider({
       url: crdtUrl,
@@ -123,6 +123,11 @@ export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, Hocuspo
 
     provider.on("status", onStatus);
     provider.on("synced", onSynced);
+    provider.on("authenticationFailed", (error: unknown) => {
+      provider.off("status", onStatus);
+      provider.off("synced", onSynced);
+      reject(error);
+    });
   });
 };
 

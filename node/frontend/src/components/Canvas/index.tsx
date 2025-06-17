@@ -17,11 +17,21 @@ import clsx from "clsx";
 import { DragEvent, useCallback, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
-import { useCanvas, useFocus, useNodesContext, useQuickView, useYDoc } from "@/hooks";
+import {
+  ContextMenuProvider,
+  useCanvas,
+  useContextMenu,
+  useFocus,
+  useNodesContext,
+  useQuickView,
+  useYDoc,
+} from "@/hooks";
 import { BackendEntityType, YDocScope } from "@/types";
 
+import NodeRepositorySelector from "../NodeRepositorySelector";
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
 import ConnectionLine from "./ConnectionLine";
+import CanvasContextMenu from "./ContextMenu";
 import Controls from "./Controls";
 import useUndoRedo from "./hooks/useUndoRedo";
 import useYdocState from "./hooks/useYdocState";
@@ -39,7 +49,7 @@ const onDragOver = (event: DragEvent) => {
 
 const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeComponent };
 
-const Canvas = ({ className }: { className?: string }) => {
+const CanvasComponent = ({ className }: { className?: string }) => {
   const { spaceId, skillId, pageId } = useParams();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const {
@@ -47,13 +57,15 @@ const Canvas = ({ className }: { className?: string }) => {
     scope,
     space: { YDoc: spaceDoc },
   } = useYDoc();
-  const { nodes, edges, nodesMap, setNodesSelection } = useCanvas();
+  const { nodes, edges, nodesMap, edgesMap, setNodesSelection } = useCanvas();
   const { nodesMap: spaceMap } = useNodesContext();
   const { isQuickViewOpen } = useQuickView();
   const [onNodesChange, onEdgesChange, onConnect] = useYdocState();
   const reactFlowInstance = useReactFlow();
   const { undo, redo, canUndo, canRedo, takeSnapshot } = useUndoRedo();
   const { setReactFlowInstance, setNodesMap, setNodes, setFocus, focus } = useFocus();
+  const { onNodeContextMenuHandler, onSelectionContextMenuHandler, handlePaneClick } =
+    useContextMenu();
 
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
 
@@ -97,7 +109,8 @@ const Canvas = ({ className }: { className?: string }) => {
       position,
       spaceDoc,
       spaceId,
-      pageId || spaceModel?.default_node || skillId
+      pageId || spaceModel?.default_node || skillId,
+      edgesMap
     );
   };
 
@@ -194,7 +207,9 @@ const Canvas = ({ className }: { className?: string }) => {
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
           nodesConnectable={scope !== YDocScope.READ_ONLY}
-          // nodesDraggable={!isSkillRun && scope == YDocScope.READ_WRITE}
+          onNodeContextMenu={onNodeContextMenuHandler}
+          onSelectionContextMenu={onSelectionContextMenuHandler}
+          onPaneClick={handlePaneClick}
           minZoom={0.1}
           maxZoom={2}
         >
@@ -206,7 +221,18 @@ const Canvas = ({ className }: { className?: string }) => {
           <Background gap={12} size={1} />
         </ReactFlow>
       </div>
+
+      <CanvasContextMenu nodesMap={nodesMap} spaceMap={spaceMap} />
+      <NodeRepositorySelector />
     </div>
+  );
+};
+
+const Canvas = ({ className }: { className?: string }) => {
+  return (
+    <ContextMenuProvider>
+      <CanvasComponent className={className} />
+    </ContextMenuProvider>
   );
 };
 

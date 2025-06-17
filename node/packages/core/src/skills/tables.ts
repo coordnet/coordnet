@@ -136,9 +136,13 @@ export const executeTableTask = async (
   }
 
   // Set the updated document as the node content
-  [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (id) => {
-    if (id) await setSkillNodePageContent(pageContent, id, skillDoc);
-  });
+  const canvasIds = [task?.outputNode?.id, isLastTask ? outputNode.id : null]
+    .filter((id): id is string => Boolean(id))
+    .filter((id, index, arr) => arr.indexOf(id) === index);
+
+  for (const canvasId of canvasIds) {
+    await setSkillNodePageContent(pageContent, canvasId, skillDoc);
+  }
 };
 
 // Function to find all tables in the document

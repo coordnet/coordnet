@@ -4,6 +4,7 @@ import {
   ExportNode,
   FormatReturnType,
   getNodeContent,
+  getSkillNodeCanvas,
 } from "@coordnet/core";
 import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
@@ -29,6 +30,10 @@ export const getNodePageContent = async <T extends "plain" | "json" = "plain">(
   try {
     const xml = editorDoc.getXmlFragment("default");
     return getNodeContent(xml, format);
+  } catch (error) {
+    console.error("Failed to get node page content:", error);
+    toast.error("Failed to load node page content");
+    return undefined;
   } finally {
     editorProvider.destroy();
   }
@@ -184,4 +189,53 @@ export const importNodeCanvas = async (spaceId: string, canvasId: string, node: 
   });
 
   disconnect();
+};
+
+export const exportSkillNode = async (
+  node: CanvasNode,
+  spaceNode: SpaceNode,
+  skillDoc: Y.Doc,
+  spaceMap?: Y.Map<SpaceNode>,
+  includeSubNodes = false
+): Promise<ExportNode> => {
+  const exportNode: ExportNode = {
+    id: node.id,
+    width: node.measured?.width,
+    height: node.measured?.height,
+    type: node.type,
+    title: spaceNode.title,
+    position: node.position,
+    data: { borderColor: node.data?.borderColor, type: node.data?.type },
+    nodes: [],
+    edges: [],
+  };
+
+  const fieldName = `${node.id}-document`;
+  const xml = skillDoc.getXmlFragment(fieldName);
+  if (xml && xml.length > 0) {
+    try {
+      const content = getNodeContent(xml, "json");
+      if (content) {
+        exportNode.content = content;
+      }
+    } catch (error) {
+      console.warn(`Failed to get content for skill node ${node.id}:`, error);
+    }
+  }
+
+  if (includeSubNodes) {
+    const { nodes: canvasNodes, edges } = await getSkillNodeCanvas(node.id, skillDoc);
+    exportNode.edges = edges;
+    for (const canvasNode of canvasNodes) {
+      const canvasSpaceNode = spaceMap?.get(canvasNode.id);
+      if (!canvasSpaceNode) {
+        toast.error("Failed to copy one subnode, continuing export...");
+        continue;
+      }
+      const subNode = await exportSkillNode(canvasNode, canvasSpaceNode, skillDoc, spaceMap, false);
+      exportNode.nodes?.push(subNode);
+    }
+  }
+
+  return exportNode;
 };

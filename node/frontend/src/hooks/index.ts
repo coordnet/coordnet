@@ -7,10 +7,14 @@ export { default as useBackendParent } from "./useBackendParent";
 export { default as useNodesContext } from "./useNodesContext";
 export { default as useWindowDrag } from "./useWindowDrag";
 export { default as useYDoc } from "./useYDoc";
+export { default as useContextMenu } from "./useContextMenu";
+export { useNodeCopy } from "./useNodeCopy";
 
 export { FocusProvider } from "./useFocus/provider";
+export { NodeCopyProvider } from "./useNodeCopy/provider";
 export { NodeProvider } from "./useNode/provider";
 export { CanvasProvider } from "./useCanvas/provider";
 export { QuickViewProvider } from "./useQuickView/provider";
 export { NodesContextProvider } from "./useNodesContext/provider";
 export { YDocProvider } from "./useYDoc/provider";
+export { ContextMenuProvider } from "./useContextMenu/provider";
