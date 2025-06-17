@@ -4,6 +4,7 @@ import {
   ExportNode,
   FormatReturnType,
   getNodeContent,
+  getSkillNodeCanvas,
 } from "@coordnet/core";
 import { generateJSON, JSONContent } from "@tiptap/core";
 import DOMPurify from "dompurify";
@@ -223,7 +224,7 @@ export const exportSkillNode = async (
   }
 
   if (includeSubNodes) {
-    const { nodes: canvasNodes, edges } = await getCanvas(node.id);
+    const { nodes: canvasNodes, edges } = await getSkillNodeCanvas(node.id, skillDoc);
     exportNode.edges = edges;
     for (const canvasNode of canvasNodes) {
       const canvasSpaceNode = spaceMap?.get(canvasNode.id);
