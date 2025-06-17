@@ -35,10 +35,20 @@ const useConnectedDocument = (): YDocProviderReturn => {
   };
 
   const create = (name: string) => {
+    if (provider) {
+      provider.destroy();
+      setProvider(undefined);
+    }
+
+    // Reset state immediately
+    setSynced(false);
+    setConnected(false);
+    setError(undefined);
+
     YDoc.destroy();
     const newSpaceDoc = new Y.Doc({ guid: name });
     setYDoc(newSpaceDoc);
-    setSynced(false);
+
     const websocketProvider = new HocuspocusProviderWebsocket({
       url: crdtUrl,
       messageReconnectTimeout: 300000,
@@ -60,16 +70,21 @@ const useConnectedDocument = (): YDocProviderReturn => {
       onSynced() {
         setSynced(true);
       },
-      onStatus(data) {
-        setConnected(data.status === "connected");
+      onConnect() {
+        setConnected(true);
+      },
+      onDisconnect() {
+        setConnected(false);
       },
     });
 
+    newProvider.attach();
     setProvider(newProvider);
 
     // Cleanup old provider on unmount or dependency change
     return () => {
       newProvider.destroy();
+      websocketProvider.destroy();
     };
   };
 

@@ -187,3 +187,7 @@ kubernetes/secrets.yaml
 
 ### PaperQA local storage
 backend/tools/paperqa/
+
+
+### Claude
+.claude/

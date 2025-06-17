@@ -7,36 +7,37 @@
     "./skills": "./src/skills/index.ts"
   },
   "dependencies": {
-    "@hocuspocus/provider": "^2.15.2",
+    "@hocuspocus/provider": "^3.1.3",
     "@instructor-ai/instructor": "^1.7.0",
-    "@tiptap/core": "^2.12.0",
-    "@tiptap/extension-link": "^2.12.0",
-    "@tiptap/extension-table": "^2.12.0",
-    "@tiptap/extension-table-cell": "^2.12.0",
-    "@tiptap/extension-table-header": "^2.12.0",
-    "@tiptap/extension-table-row": "^2.12.0",
-    "@tiptap/html": "^2.12.0",
-    "@tiptap/starter-kit": "^2.12.0",
-    "@xyflow/react": "^12.6.4",
-    "axios": "^1.9.0",
+    "@tiptap/core": "^3.0.0-beta.8",
+    "@tiptap/extension-link": "^3.0.0-beta.8",
+    "@tiptap/extension-table": "^3.0.0-beta.8",
+    "@tiptap/extension-table-cell": "^3.0.0-beta.8",
+    "@tiptap/extension-table-header": "^3.0.0-beta.8",
+    "@tiptap/extension-table-row": "^3.0.0-beta.8",
+    "@tiptap/html": "^3.0.0-beta.8",
+    "@tiptap/pm": "^3.0.0-beta.8",
+    "@tiptap/starter-kit": "^3.0.0-beta.8",
+    "@xyflow/react": "^12.7.0",
+    "axios": "^1.10.0",
     "elkjs": "^0.10.0",
     "html-entities": "^2.6.0",
     "marked": "^15.0.12",
-    "markmap-lib": "^0.18.11",
-    "openai": "^4.103.0",
+    "markmap-lib": "^0.18.12",
+    "openai": "^5.5.0",
     "prosemirror-model": "1.25.1",
     "uuid": "^11.1.0",
     "xss": "^1.0.15",
     "y-prosemirror": "^1.3.5",
     "yjs": "^13.6.27",
-    "zod": "^3.25.32"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@eslint/js": "9.27.0",
-    "@types/node": "^22.15.23"
+    "@eslint/js": "9.29.0",
+    "@types/node": "^24.0.3"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.12.1"
 }

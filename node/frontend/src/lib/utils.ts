@@ -95,7 +95,6 @@ export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, Hocuspo
       name,
       document: doc,
       token: getToken,
-      preserveConnection: false,
     });
 
     let isConnected = false;
@@ -107,11 +106,9 @@ export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, Hocuspo
       }
     };
 
-    const onStatus = (event: { status: string }) => {
-      if (event.status === "connected") {
-        isConnected = true;
-        checkReady();
-      }
+    const onConnect = () => {
+      isConnected = true;
+      checkReady();
     };
 
     const onSynced = () => {
@@ -121,7 +118,7 @@ export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, Hocuspo
       }
     };
 
-    provider.on("status", onStatus);
+    provider.on("connect", onConnect);
     provider.on("synced", onSynced);
   });
 };

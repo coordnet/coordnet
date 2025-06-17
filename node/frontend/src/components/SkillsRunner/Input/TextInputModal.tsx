@@ -1,5 +1,4 @@
-import { Editor } from "@tiptap/core";
-import { EditorContent } from "@tiptap/react";
+import { Editor, EditorContent } from "@tiptap/react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";

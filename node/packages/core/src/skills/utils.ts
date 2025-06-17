@@ -346,7 +346,6 @@ export const createConnectedYDocServer = async (
       name,
       document: doc,
       token,
-      preserveConnection: false,
     });
 
     let isConnected = false;
@@ -358,11 +357,9 @@ export const createConnectedYDocServer = async (
       }
     };
 
-    const onStatus = (event: { status: string }) => {
-      if (event.status === "connected") {
-        isConnected = true;
-        checkReady();
-      }
+    const onConnect = () => {
+      isConnected = true;
+      checkReady();
     };
 
     const onSynced = () => {
@@ -377,7 +374,7 @@ export const createConnectedYDocServer = async (
       reject(new Error("Authentication failed"));
     };
 
-    provider.on("status", onStatus);
+    provider.on("connect", onConnect);
     provider.on("synced", onSynced);
     provider.on("authenticationFailed", onAuthenticationFailed);
   });
