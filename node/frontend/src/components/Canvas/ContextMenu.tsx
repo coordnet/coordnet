@@ -14,7 +14,12 @@ import { useCanvas, useContextMenu, useNodeCopy, useYDoc } from "@/hooks";
 import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
 import { NodeSearchResult, SpaceNode } from "@/types";
 
-import { copyNodesToSpace } from "./utils";
+import {
+  copyCanvasNodesToSpaceNode,
+  copyNodesToSpace,
+  copyTitleAndNodePageToSpaceNode,
+  normalizeNodePositions,
+} from "./utils";
 
 interface CanvasContextMenuProps {
   nodesMap: Y.Map<CanvasNode> | undefined;
@@ -73,24 +78,13 @@ const CanvasContextMenu = ({ nodesMap, spaceMap }: CanvasContextMenuProps) => {
         success: (dataArray) => {
           const validData = dataArray.filter((data) => data !== null);
           if (validData.length > 0) {
-            // Calculate relative positions for all nodes
-            const minX = Math.min(...validData.map((node) => node.position.x));
-            const minY = Math.min(...validData.map((node) => node.position.y));
-
-            // Convert absolute positions to relative positions
-            const dataWithRelativePositions = validData.map((node) => ({
-              ...node,
-              position: { x: node.position.x - minX, y: node.position.y - minY },
-            }));
-
-            // Find edges between the selected nodes
             const nodeIdSet = new Set(nodeIds);
-            const relevantEdges = edges.filter(
-              (edge) => nodeIdSet.has(edge.source) && nodeIdSet.has(edge.target)
-            );
-
-            // Create export data with unified format
-            const exportData = { nodes: dataWithRelativePositions, edges: relevantEdges };
+            const exportData = {
+              nodes: normalizeNodePositions(validData),
+              edges: edges.filter(
+                (edge) => nodeIdSet.has(edge.source) && nodeIdSet.has(edge.target)
+              ),
+            };
 
             const blob = new Blob([JSON.stringify(exportData, null, 2)], {
               type: "application/json",
@@ -118,8 +112,6 @@ const CanvasContextMenu = ({ nodesMap, spaceMap }: CanvasContextMenuProps) => {
           return;
         }
 
-        const nodeText = `${nodeIds.length} node${nodeIds.length > 1 ? "s" : ""}`;
-
         toast.promise(
           copyNodesToSpace(
             skillDoc,
@@ -132,7 +124,7 @@ const CanvasContextMenu = ({ nodesMap, spaceMap }: CanvasContextMenuProps) => {
             includeSubNodes
           ),
           {
-            loading: `Copying ${nodeText} to space...`,
+            loading: `Copying ${nodeIds.length} node${nodeIds.length > 1 ? "s" : ""} to space...`,
             success: (processedCount) => {
               return `Successfully copied ${processedCount} node${processedCount > 1 ? "s" : ""} to target space`;
             },
@@ -160,6 +152,82 @@ const CanvasContextMenu = ({ nodesMap, spaceMap }: CanvasContextMenuProps) => {
     ]
   );
 
+  const handleCopyTitleAndNodePageToSpaceNode = useCallback(
+    (nodeId: string) => {
+      const copyHandler = async (targetNode: NodeSearchResult) => {
+        if (!nodesMap || !spaceMap) {
+          toast.error("Copy operation failed: missing data");
+          return;
+        }
+
+        toast.promise(
+          copyTitleAndNodePageToSpaceNode(
+            skillDoc,
+            nodeId,
+            targetNode.space,
+            targetNode.id,
+            nodesMap,
+            spaceMap
+          ),
+          {
+            loading: "Copying title and node page to space node...",
+            success: () => {
+              return "Successfully copied title and node page to space node";
+            },
+            error: (err) => {
+              console.error("Failed to copy title and node page:", err);
+              return "Failed to copy title and node page to space node";
+            },
+          }
+        );
+      };
+
+      // Set the handler and open the selector
+      setOnNodeSelect(() => copyHandler);
+      setIsNodeSelectorOpen(true);
+      setContextMenuData(null);
+    },
+    [setOnNodeSelect, setIsNodeSelectorOpen, setContextMenuData, nodesMap, spaceMap, skillDoc]
+  );
+
+  const handleCopyCanvasNodesToSpaceNode = useCallback(
+    (nodeId: string) => {
+      const copyHandler = async (targetNode: NodeSearchResult) => {
+        if (!nodesMap || !spaceMap) {
+          toast.error("Copy operation failed: missing data");
+          return;
+        }
+
+        toast.promise(
+          copyCanvasNodesToSpaceNode(
+            skillDoc,
+            nodeId,
+            targetNode.space,
+            targetNode.id,
+            nodesMap,
+            spaceMap
+          ),
+          {
+            loading: "Copying canvas nodes to space node...",
+            success: (processedCount) => {
+              return `Successfully copied ${processedCount} canvas nodes to space node`;
+            },
+            error: (err) => {
+              console.error("Failed to copy canvas nodes:", err);
+              return "Failed to copy canvas nodes to space node";
+            },
+          }
+        );
+      };
+
+      // Set the handler and open the selector
+      setOnNodeSelect(() => copyHandler);
+      setIsNodeSelectorOpen(true);
+      setContextMenuData(null);
+    },
+    [setOnNodeSelect, setIsNodeSelectorOpen, setContextMenuData, nodesMap, spaceMap, skillDoc]
+  );
+
   if (
     !currentContextMenuData ||
     (currentContextMenuData.isSkill && !currentContextMenuData.isSkillRun)
@@ -184,24 +252,24 @@ const CanvasContextMenu = ({ nodesMap, spaceMap }: CanvasContextMenuProps) => {
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          className="z-[1000] w-[200px]"
+          className="z-[1000] w-[300px]"
           align="start"
           side="bottom"
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
           {currentContextMenuData.isSkillRun ? (
             <>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (currentContextMenuData) {
-                    handleCopyNodesToSpace(currentContextMenuData.nodeIds, false);
-                  }
-                }}
-              >
-                {currentContextMenuData.isMultiSelection
-                  ? `Copy ${currentContextMenuData.nodeIds.length} Nodes to Space`
-                  : "Copy Node to Space"}
-              </DropdownMenuItem>
+              {!currentContextMenuData.isMultiSelection && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (currentContextMenuData) {
+                      handleCopyTitleAndNodePageToSpaceNode(currentContextMenuData.nodeIds[0]);
+                    }
+                  }}
+                >
+                  Copy title and node page to a space node
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => {
                   if (currentContextMenuData) {
@@ -210,9 +278,20 @@ const CanvasContextMenu = ({ nodesMap, spaceMap }: CanvasContextMenuProps) => {
                 }}
               >
                 {currentContextMenuData.isMultiSelection
-                  ? `Copy ${currentContextMenuData.nodeIds.length} Node Graph Contents to Space`
-                  : "Copy Node Graph Contents to Space"}
+                  ? `Add ${currentContextMenuData.nodeIds.length} nodes to a space node's canvas`
+                  : "Add node to a space node's canvas"}
               </DropdownMenuItem>
+              {!currentContextMenuData.isMultiSelection && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (currentContextMenuData) {
+                      handleCopyCanvasNodesToSpaceNode(currentContextMenuData.nodeIds[0]);
+                    }
+                  }}
+                >
+                  Add canvas nodes to a space node&apos;s canvas
+                </DropdownMenuItem>
+              )}
             </>
           ) : currentContextMenuData.isMultiSelection ? (
             <>

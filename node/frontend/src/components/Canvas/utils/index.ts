@@ -289,6 +289,17 @@ export const importCoordNodeData = async (
   return processedNodes;
 };
 
+export const normalizeNodePositions = (nodes: ExportNode[]) => {
+  if (nodes.length === 0) return nodes;
+
+  const minX = Math.min(...nodes.map((n) => n.position.x));
+  const minY = Math.min(...nodes.map((n) => n.position.y));
+  return nodes.map((node) => ({
+    ...node,
+    position: { x: node.position.x - minX, y: node.position.y - minY },
+  }));
+};
+
 export const copyNodesToSpace = async (
   skillDoc: Y.Doc,
   sourceNodeIds: string[],
@@ -324,6 +335,8 @@ export const copyNodesToSpace = async (
     throw new Error("No nodes could be exported");
   }
 
+  const normalizedNodes = normalizeNodePositions(nodes);
+
   let edges: CanvasEdge[] = [];
   if (sourceEdgesMap) {
     const sourceNodeIdSet = new Set(sourceNodeIds);
@@ -333,20 +346,120 @@ export const copyNodesToSpace = async (
     );
   }
 
-  const {
-    disconnect,
-    nodesMap: targetNodesMap,
-    spaceMap: targetSpaceMap,
-    edgesMap: targetEdgesMap,
-  } = await createConnectedCanvas(targetSpaceId, targetNodeId);
+  const { disconnect, nodesMap, spaceMap, edgesMap } = await createConnectedCanvas(
+    targetSpaceId,
+    targetNodeId
+  );
 
-  const existingNodes = Array.from(targetNodesMap.values());
+  const existingNodes = Array.from(nodesMap.values());
   const nodePositions = findExtremePositions(existingNodes);
+
   const processedNodes = await importCoordNodeData(
-    { nodes, edges },
-    targetNodesMap,
-    targetSpaceMap,
-    targetEdgesMap,
+    { nodes: normalizedNodes, edges },
+    nodesMap,
+    spaceMap,
+    edgesMap,
+    { x: nodePositions.minX, y: nodePositions.maxY + 50 },
+    { type: BackendEntityType.SPACE, data: { id: targetSpaceId } }
+  );
+
+  disconnect();
+  return processedNodes;
+};
+
+export const copyTitleAndNodePageToSpaceNode = async (
+  skillDoc: Y.Doc,
+  sourceNodeId: string,
+  targetSpaceId: string,
+  targetNodeId: string,
+  sourceNodesMap: Y.Map<CanvasNode>,
+  sourceSpaceMap: Y.Map<SpaceNode>
+) => {
+  const sourceNode = sourceNodesMap.get(sourceNodeId);
+  const sourceSpaceNode = sourceSpaceMap.get(sourceNodeId);
+
+  if (!sourceNode || !sourceSpaceNode) {
+    throw new Error(`Could not find source node ${sourceNodeId}`);
+  }
+
+  // Export the source node to get its title and content
+  const exportedNode = await exportSkillNode(
+    sourceNode,
+    sourceSpaceNode,
+    skillDoc,
+    sourceSpaceMap,
+    false
+  );
+
+  // Connect to the target space
+  const { disconnect, spaceMap: targetSpaceMap } = await createConnectedCanvas(
+    targetSpaceId,
+    targetNodeId
+  );
+
+  try {
+    // Update the target node's title in the space
+    const targetSpaceNode = targetSpaceMap.get(targetNodeId);
+    if (targetSpaceNode) {
+      targetSpaceMap.set(targetNodeId, { ...targetSpaceNode, title: exportedNode.title });
+    }
+
+    // Update the target node's content if it exists
+    if (exportedNode.content) {
+      await waitForNode(targetNodeId);
+      await setNodePageContent(exportedNode.content, targetNodeId);
+    }
+
+    return true;
+  } finally {
+    disconnect();
+  }
+};
+
+export const copyCanvasNodesToSpaceNode = async (
+  skillDoc: Y.Doc,
+  sourceNodeId: string,
+  targetSpaceId: string,
+  targetNodeId: string,
+  sourceNodesMap: Y.Map<CanvasNode>,
+  sourceSpaceMap: Y.Map<SpaceNode>
+) => {
+  const sourceNode = sourceNodesMap.get(sourceNodeId);
+  const sourceSpaceNode = sourceSpaceMap.get(sourceNodeId);
+
+  if (!sourceNode || !sourceSpaceNode) {
+    throw new Error(`Could not find source node ${sourceNodeId}`);
+  }
+
+  // Export the source node with canvas nodes to get its sub-nodes
+  const exportedNode = await exportSkillNode(
+    sourceNode,
+    sourceSpaceNode,
+    skillDoc,
+    sourceSpaceMap,
+    true
+  );
+
+  if (!exportedNode.nodes || exportedNode.nodes.length === 0) {
+    throw new Error("No canvas nodes found to copy");
+  }
+
+  const { disconnect, nodesMap, spaceMap, edgesMap } = await createConnectedCanvas(
+    targetSpaceId,
+    targetNodeId
+  );
+
+  const existingNodes = Array.from(nodesMap.values());
+  const nodePositions = findExtremePositions(existingNodes);
+  const normalizedCanvasNodes = normalizeNodePositions(
+    exportedNode.nodes.map((node) => ({ ...node, nodes: [], edges: [] }))
+  );
+
+  const processedNodes = await importCoordNodeData(
+    { nodes: normalizedCanvasNodes, edges: exportedNode.edges },
+    nodesMap,
+    spaceMap,
+    edgesMap,
     { x: nodePositions.minX, y: nodePositions.maxY + 50 },
     { type: BackendEntityType.SPACE, data: { id: targetSpaceId } }
   );
