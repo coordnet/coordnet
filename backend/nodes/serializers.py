@@ -235,6 +235,8 @@ class MethodNodeRunListSerializer(utils.serializers.BaseSoftDeletableSerializer)
     method = AvailableMethodField(required=True)
     method_version = AvailableMethodNodeVersionField(required=False, allow_null=True)
     method_data = serializers.JSONField(required=True, write_only=True)
+    is_owner = serializers.BooleanField(read_only=True)
+    is_shared = serializers.BooleanField(read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNodeRun
