@@ -98,14 +98,11 @@ const ProfileCardManage = ({
       if (!card?.id) {
         const response = await createProfileCard(data);
         await updateProfileCardImage(response.id, croppedBanner);
-        console.log(response);
         const newCards = [...profile.cards.map((card) => card.id), response.id];
         await updateProfileCards(profile.id, newCards);
       } else {
         const response = await updateProfileCard(card.id, data);
         await updateProfileCardImage(response.id, croppedBanner);
-        // const response = await updateProfileCard(profile.id, data);
-        console.log(response);
       }
       queryClient.invalidateQueries({ queryKey: ["profile-cards"] });
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
@@ -330,22 +327,6 @@ const ProfileCardManage = ({
             )}
           </div>
         </div>
-        {/* <div className="flex items-center">
-          <Controller
-            name="public"
-            control={control}
-            defaultValue={true}
-            render={({ field }) => (
-              <Switch id="public" checked={field.value} onCheckedChange={field.onChange} />
-            )}
-          />
-          <label
-            htmlFor="public"
-            className="ml-2 text-neutral-800 text-sm font-medium cursor-pointer"
-          >
-            Public
-          </label>
-        </div> */}
       </form>
     </DialogContent>
   );
