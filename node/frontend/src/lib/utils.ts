@@ -15,38 +15,62 @@ export function cn(...inputs: ClassValue[]) {
  * @param error - The error to get a string representation of
  * @returns A string representation of the error
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getErrorMessage = (error: any): string => {
-  if (typeof error === "string") {
-    return error;
-  }
-
-  // Check if error is an instance of Error
+export const getErrorMessage = (error: unknown): string => {
+  // Handle Error instances
   if (error instanceof Error) {
     return error.message;
   }
 
-  // Handle error objects (like from API responses)
-  const errorObj: { statusText?: string; message?: string } = error;
-  if (errorObj?.statusText) {
-    return errorObj.statusText;
-  }
-  if (errorObj?.message) {
-    return errorObj.message;
-  }
+  // Handle error-like objects
+  if (error && typeof error === "object") {
+    const errorObj = error as Record<string, unknown>;
 
-  // Attempt to stringify the error if it is an object
-  try {
-    const errorString = JSON.stringify(error, null, 2);
-    // Avoid returning empty or non-informative strings
-    if (errorString && errorString !== "{}" && errorString !== '""') {
-      return errorString;
+    // Check for common error properties
+    if (typeof errorObj.message === "string") {
+      return errorObj.message;
     }
-  } catch {
-    // Fallback in case of JSON.stringify failure
+
+    // Handle API error responses
+    if (typeof errorObj.data === "object" && errorObj.data) {
+      const data = errorObj.data as Record<string, unknown>;
+      if (typeof data.message === "string") {
+        return data.message;
+      }
+    }
+
+    // Handle response.data.error patterns
+    if (typeof errorObj.response === "object" && errorObj.response) {
+      const response = errorObj.response as Record<string, unknown>;
+      if (typeof response.data === "object" && response.data) {
+        const data = response.data as Record<string, unknown>;
+        if (typeof data.error === "string") {
+          return data.error;
+        }
+        if (typeof data.message === "string") {
+          return data.message;
+        }
+      }
+    }
+
+    // Try to stringify object errors
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return "[Complex Error Object]";
+    }
   }
 
-  return `An error occurred: ${String(error)}`;
+  // Handle primitive values
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (typeof error === "number") {
+    return `Error code: ${error}`;
+  }
+
+  // Last resort
+  return String(error);
 };
 
 export const title = (title: string = "") => {

@@ -3,7 +3,6 @@ import clsx from "clsx";
 import { Play, PlayCircle } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { serializeError } from "serialize-error";
 import { toast } from "sonner";
 
 import { deleteProfileCard, updateProfileCards } from "@/api";
@@ -18,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useUser from "@/hooks/useUser";
+import { getErrorMessage } from "@/lib/utils";
 import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
 const ProfileSkillCardExpanded = ({
@@ -44,8 +44,9 @@ const ProfileSkillCardExpanded = ({
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       queryClient.invalidateQueries({ queryKey: ["profile-cards"] });
     } catch (error) {
-      const serializedError = serializeError(error);
-      toast.error(serializedError.message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(`Failed to remove card: ${errorMessage}`);
+      console.error("onRemoveCard error: ", error);
     }
   };
 
@@ -55,8 +56,9 @@ const ProfileSkillCardExpanded = ({
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       queryClient.invalidateQueries({ queryKey: ["profile-cards"] });
     } catch (error) {
-      const serializedError = serializeError(error);
-      toast.error(serializedError.message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(`Failed to delete card: ${errorMessage}`);
+      console.error("onDeleteCard error: ", error);
     }
   };
 
