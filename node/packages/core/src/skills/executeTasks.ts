@@ -274,9 +274,11 @@ export const executePromptTask = async (
   if (isCancelled(skillDoc)) return;
 
   // For the task output node and the final output node if it's the last task
-  [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-    if (!canvasId) return;
+  const canvasIds = [task?.outputNode?.id, isLastTask ? outputNode.id : null]
+    .filter((id): id is string => Boolean(id))
+    .filter((id, index, arr) => arr.indexOf(id) === index);
 
+  for (const canvasId of canvasIds) {
     // Find the source node info - prioritize from task if available
     const sourceNode = findSourceNode(task);
 
@@ -287,7 +289,7 @@ export const executePromptTask = async (
     } else {
       await setSkillNodeTitleAndContent(skillDoc, canvasId, nodes[0].title, nodes[0].markdown);
     }
-  });
+  }
 };
 
 export const generatePrompt = async (

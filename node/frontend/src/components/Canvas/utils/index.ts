@@ -1,6 +1,7 @@
 import {
   CanvasEdge,
   CanvasNode,
+  ExportNode,
   findExtremePositions,
   NodeType,
   setSkillNodePageHTML,
@@ -11,10 +12,16 @@ import { XYPosition } from "@xyflow/react";
 import { toast } from "sonner";
 import * as Y from "yjs";
 
-import { setNodePageContent, setNodePageMarkdown, waitForNode } from "@/lib/nodes";
+import {
+  exportSkillNode,
+  importNodeCanvas,
+  setNodePageContent,
+  setNodePageMarkdown,
+  waitForNode,
+} from "@/lib/nodes";
 import { extensions } from "@/lib/readOnlyEditor";
 import { createConnectedYDoc } from "@/lib/utils";
-import { SpaceNode } from "@/types";
+import { BackendEntityType, SpaceNode } from "@/types";
 
 export const createConnectedCanvas = async (spaceId: string, canvasId: string) => {
   const [spaceDoc, spaceProvider] = await createConnectedYDoc(`space-${spaceId}`);
@@ -224,4 +231,239 @@ export const addInputNode = async (
   } else {
     toast.error("Nodes or space map is not available");
   }
+};
+
+export const importCoordNodeData = async (
+  importData: { nodes: ExportNode[]; edges?: CanvasEdge[] },
+  nodesMap: Y.Map<CanvasNode>,
+  spaceMap: Y.Map<SpaceNode>,
+  edgesMap: Y.Map<CanvasEdge> | undefined,
+  startPos: XYPosition,
+  parent?: { type: string; data?: { id: string } }
+) => {
+  // Handle unified format: { nodes: [...], edges: [...] }
+  const { nodes: importNodes, edges: importEdges = [] } = importData;
+  const nodeIdMap = new Map<string, string>(); // Map old IDs to new IDs
+  let processedNodes = 0;
+
+  // Import nodes first
+  for (let nodeIndex = 0; nodeIndex < importNodes.length; nodeIndex++) {
+    const importNode = importNodes[nodeIndex];
+    const { title, content, data, nodes, position } = importNode;
+
+    // Use relative positions from the unified format
+    const nodePos = {
+      x: startPos.x + position.x,
+      y: startPos.y + position.y,
+    };
+
+    const newId = await addNodeToCanvas(nodesMap, spaceMap, title, nodePos, content, data);
+    nodeIdMap.set(importNode.id, newId);
+    processedNodes++;
+
+    // Import sub-canvas if it exists and we're in a space
+    if (nodes && nodes.length && parent?.type === BackendEntityType.SPACE && parent.data) {
+      await waitForNode(newId);
+      await importNodeCanvas(parent.data.id, newId, importNode);
+    }
+  }
+
+  // Import edges after all nodes are created
+  if (importEdges && Array.isArray(importEdges) && edgesMap) {
+    for (const edge of importEdges) {
+      const newSourceId = nodeIdMap.get(edge.source);
+      const newTargetId = nodeIdMap.get(edge.target);
+
+      if (newSourceId && newTargetId) {
+        await addEdge(
+          edgesMap,
+          newSourceId,
+          newTargetId,
+          edge.sourceHandle || undefined,
+          edge.targetHandle || undefined
+        );
+      }
+    }
+  }
+
+  return processedNodes;
+};
+
+export const normalizeNodePositions = (nodes: ExportNode[]) => {
+  if (nodes.length === 0) return nodes;
+
+  const minX = Math.min(...nodes.map((n) => n.position.x));
+  const minY = Math.min(...nodes.map((n) => n.position.y));
+  return nodes.map((node) => ({
+    ...node,
+    position: { x: node.position.x - minX, y: node.position.y - minY },
+  }));
+};
+
+export const copyNodesToSpace = async (
+  skillDoc: Y.Doc,
+  sourceNodeIds: string[],
+  targetSpaceId: string,
+  targetNodeId: string,
+  sourceNodesMap: Y.Map<CanvasNode>,
+  sourceSpaceMap: Y.Map<SpaceNode>,
+  sourceEdgesMap?: Y.Map<CanvasEdge>,
+  includeSubNodes: boolean = false
+) => {
+  const exportPromises = sourceNodeIds.map(async (nodeId) => {
+    const sourceNode = sourceNodesMap.get(nodeId);
+    const sourceSpaceNode = sourceSpaceMap.get(nodeId);
+
+    if (!sourceNode || !sourceSpaceNode) {
+      console.warn(`Could not find node ${nodeId} in source space`);
+      return null;
+    }
+
+    return await exportSkillNode(
+      sourceNode,
+      sourceSpaceNode,
+      skillDoc,
+      sourceSpaceMap,
+      includeSubNodes
+    );
+  });
+
+  const exportedNodes = await Promise.all(exportPromises);
+  const nodes = exportedNodes.filter((node) => node !== null);
+
+  if (nodes.length === 0) {
+    throw new Error("No nodes could be exported");
+  }
+
+  const normalizedNodes = normalizeNodePositions(nodes);
+
+  let edges: CanvasEdge[] = [];
+  if (sourceEdgesMap) {
+    const sourceNodeIdSet = new Set(sourceNodeIds);
+    const allEdges = Array.from(sourceEdgesMap.values());
+    edges = allEdges.filter(
+      (edge) => sourceNodeIdSet.has(edge.source) && sourceNodeIdSet.has(edge.target)
+    );
+  }
+
+  const { disconnect, nodesMap, spaceMap, edgesMap } = await createConnectedCanvas(
+    targetSpaceId,
+    targetNodeId
+  );
+
+  const existingNodes = Array.from(nodesMap.values());
+  const nodePositions = findExtremePositions(existingNodes);
+
+  const processedNodes = await importCoordNodeData(
+    { nodes: normalizedNodes, edges },
+    nodesMap,
+    spaceMap,
+    edgesMap,
+    { x: nodePositions.minX, y: nodePositions.maxY + 50 },
+    { type: BackendEntityType.SPACE, data: { id: targetSpaceId } }
+  );
+
+  disconnect();
+  return processedNodes;
+};
+
+export const copyTitleAndNodePageToSpaceNode = async (
+  skillDoc: Y.Doc,
+  sourceNodeId: string,
+  targetSpaceId: string,
+  targetNodeId: string,
+  sourceNodesMap: Y.Map<CanvasNode>,
+  sourceSpaceMap: Y.Map<SpaceNode>
+) => {
+  const sourceNode = sourceNodesMap.get(sourceNodeId);
+  const sourceSpaceNode = sourceSpaceMap.get(sourceNodeId);
+
+  if (!sourceNode || !sourceSpaceNode) {
+    throw new Error(`Could not find source node ${sourceNodeId}`);
+  }
+
+  // Export the source node to get its title and content
+  const exportedNode = await exportSkillNode(
+    sourceNode,
+    sourceSpaceNode,
+    skillDoc,
+    sourceSpaceMap,
+    false
+  );
+
+  // Connect to the target space
+  const { disconnect, spaceMap: targetSpaceMap } = await createConnectedCanvas(
+    targetSpaceId,
+    targetNodeId
+  );
+
+  try {
+    // Update the target node's title in the space
+    const targetSpaceNode = targetSpaceMap.get(targetNodeId);
+    if (targetSpaceNode) {
+      targetSpaceMap.set(targetNodeId, { ...targetSpaceNode, title: exportedNode.title });
+    }
+
+    // Update the target node's content if it exists
+    if (exportedNode.content) {
+      await waitForNode(targetNodeId);
+      await setNodePageContent(exportedNode.content, targetNodeId);
+    }
+
+    return true;
+  } finally {
+    disconnect();
+  }
+};
+
+export const copyCanvasNodesToSpaceNode = async (
+  skillDoc: Y.Doc,
+  sourceNodeId: string,
+  targetSpaceId: string,
+  targetNodeId: string,
+  sourceNodesMap: Y.Map<CanvasNode>,
+  sourceSpaceMap: Y.Map<SpaceNode>
+) => {
+  const sourceNode = sourceNodesMap.get(sourceNodeId);
+  const sourceSpaceNode = sourceSpaceMap.get(sourceNodeId);
+
+  if (!sourceNode || !sourceSpaceNode) {
+    throw new Error(`Could not find source node ${sourceNodeId}`);
+  }
+
+  // Export the source node with canvas nodes to get its sub-nodes
+  const exportedNode = await exportSkillNode(
+    sourceNode,
+    sourceSpaceNode,
+    skillDoc,
+    sourceSpaceMap,
+    true
+  );
+
+  if (!exportedNode.nodes || exportedNode.nodes.length === 0) {
+    throw new Error("No canvas nodes found to copy");
+  }
+
+  const { disconnect, nodesMap, spaceMap, edgesMap } = await createConnectedCanvas(
+    targetSpaceId,
+    targetNodeId
+  );
+
+  const existingNodes = Array.from(nodesMap.values());
+  const nodePositions = findExtremePositions(existingNodes);
+  const normalizedCanvasNodes = normalizeNodePositions(
+    exportedNode.nodes.map((node) => ({ ...node, nodes: [], edges: [] }))
+  );
+
+  const processedNodes = await importCoordNodeData(
+    { nodes: normalizedCanvasNodes, edges: exportedNode.edges },
+    nodesMap,
+    spaceMap,
+    edgesMap,
+    { x: nodePositions.minX, y: nodePositions.maxY + 50 },
+    { type: BackendEntityType.SPACE, data: { id: targetSpaceId } }
+  );
+
+  disconnect();
+  return processedNodes;
 };
