@@ -166,24 +166,27 @@ const SkillCanvasControls = () => {
                 {String(error)}
               </div>
             )}
-            {canEdit && (
-              <div className="flex flex-col items-center gap-2">
-                <SkillRunHistory />
-                <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
-                  <Button
-                    className={clsx(
-                      `flex h-16 items-center justify-center gap-2.5 rounded-full border
-                      border-neutral-200 bg-white py-4 pl-8 pr-6 text-xl font-medium
-                      text-neutral-500`
-                    )}
-                    variant="secondary"
-                  >
-                    Edit Skill
-                    <Edit className="size-6" />
-                  </Button>
-                </Link>
-              </div>
-            )}
+            <div className="flex flex-col items-center gap-2">
+              <SkillRunHistory />
+              <Link to={`/skills/${parent.id}${versionId ? `/versions/${versionId}` : ""}`}>
+                <Button
+                  className={clsx(
+                    `flex h-16 items-center justify-center gap-2.5 rounded-full border
+                    border-neutral-200 bg-white py-4 pl-8 pr-6 text-xl font-medium text-neutral-500`
+                  )}
+                  variant="secondary"
+                >
+                  {canEdit ? (
+                    <>
+                      Edit Skill
+                      <Edit className="size-6" />
+                    </>
+                  ) : (
+                    "Back to Skill"
+                  )}
+                </Button>
+              </Link>
+            </div>
           </div>
         </>
       );

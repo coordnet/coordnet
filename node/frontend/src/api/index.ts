@@ -474,11 +474,12 @@ export const updateSkillImage = async (id: string, banner: string | null): Promi
 
 export const getSkillRuns = async (
   signal: AbortSignal | undefined,
-  id?: string
+  id?: string,
+  filters?: { own_runs?: boolean; is_public?: boolean }
 ): Promise<PaginatedApiResponse<SkillRun>> => {
-  const response = await api.get("api/nodes/method-runs/", {
+  const response = await api.get("api/nodes/method-runs/?include_permissions=1", {
     signal,
-    params: { method: id, limit: 10000 },
+    params: { method: id, limit: 10000, ...filters },
   });
   return response.data;
 };

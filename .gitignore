@@ -1,11 +1,9 @@
-### Ignore IDEs
-# Ignore all directories named .idea
+### Ignore IDE / LLM config
 .idea/
-# Also Jetbrains Junie templates
 /.junie/
-
-# Ignore all directories named .vscode
 .vscode/
+.claude/
+CLAUDE.md
 
 ### Python template
 # Byte-compiled / optimized / DLL files

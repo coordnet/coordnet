@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { getPermissions, getSkillRun, updateSkillRun } from "@/api";
+import { useYDoc } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { PermissionModel } from "@/types";
 
@@ -17,8 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { formatSkillRunId } from "./utils";
 
 const SkillRunPermissions = ({ id, className }: { id: string; className?: string }) => {
+  const { parent } = useYDoc();
+
   const { data: skillRun, isLoading } = useQuery({
-    queryKey: ["skills", id, "runs"],
+    queryKey: ["skills", parent?.id, "runs"],
     queryFn: () => getSkillRun(id),
     retry: false,
     refetchOnWindowFocus: false,
@@ -29,7 +32,7 @@ const SkillRunPermissions = ({ id, className }: { id: string; className?: string
   const queryClient = useQueryClient();
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
-    queryKey: ["skills", id, "runs", "permissions"],
+    queryKey: ["skills", parent?.id, "runs", "permissions"],
     queryFn: ({ signal }) => getPermissions(signal, PermissionModel.SkillRun, id),
     enabled: Boolean(id),
     initialData: [],
@@ -38,7 +41,7 @@ const SkillRunPermissions = ({ id, className }: { id: string; className?: string
   const { mutate: updateSkillRunMutation } = useMutation({
     mutationFn: (data: Partial<SkillRun>) => updateSkillRun(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["skills", id, "runs"] });
+      queryClient.invalidateQueries({ queryKey: ["skills", parent?.id, "runs"] });
       toast.success("Settings updated successfully");
     },
     onError: () => {

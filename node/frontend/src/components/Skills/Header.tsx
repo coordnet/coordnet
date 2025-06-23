@@ -1,11 +1,11 @@
 import { Skill } from "@coordnet/core";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Edit, EllipsisVertical, Home, Settings2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { deleteSkill, deleteSkillRun } from "@/api";
+import { deleteSkill, deleteSkillRun, getPermissions } from "@/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUser, useYDoc } from "@/hooks";
-import { BackendEntityType } from "@/types";
+import { BackendEntityType, PermissionModel } from "@/types";
 
 import { Loader } from "../";
 import ErrorPage from "../ErrorPage";
@@ -27,7 +27,7 @@ import { formatSkillRunId } from "./utils";
 
 const Header = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
-  const { profile } = useUser();
+  const { profile, user } = useUser();
   const queryClient = useQueryClient();
   const { runId, skillId, versionId } = useParams();
   const {
@@ -39,16 +39,33 @@ const Header = ({ className }: { className?: string }) => {
   const [runPermissionsModalOpen, setRunPermissionsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
+  const { data: permissions } = useQuery({
+    queryKey: ["skills", runId, "runs", "permissions"],
+    queryFn: ({ signal }) => getPermissions(signal, PermissionModel.SkillRun, runId),
+    enabled: Boolean(runId),
+    initialData: [],
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const ownPermissions = permissions?.find((p) => p.user == user?.email);
+
   if (error) return <ErrorPage error={error} />;
   if (!runId && (!synced || parent.isLoading)) return <Loader message="Loading canvas..." />;
   if (!runId && !connected) return <Loader message="Obtaining connection to canvas..." />;
 
   const skill = parent.type === BackendEntityType.SKILL ? parent.data : undefined;
-  const skillTitle = skill?.title ?? "Untitled";
+  const isSharedSkillRun = !skill && runId;
+  const skillTitle = skill?.title
+    ? skill?.title
+    : isSharedSkillRun
+      ? `Run ${formatSkillRunId(runId)}`
+      : "Untitled";
 
-  const canEdit =
+  const canEditSkill =
     skill?.authors.map((a) => a.id).includes(profile?.id ?? "") ||
     skill?.creator?.id.includes(profile?.id ?? "");
+  const canEditRun = ownPermissions?.role?.toLowerCase() === "owner";
 
   const onDelete = async () => {
     if (
@@ -84,10 +101,10 @@ const Header = ({ className }: { className?: string }) => {
         </Link>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center" disabled={!canEdit}>
+          <DropdownMenuTrigger className="flex items-center" disabled={!canEditSkill}>
             <>
               <div className="px-3 text-lg font-medium text-black">{skillTitle}</div>
-              {canEdit && (
+              {canEditSkill && (
                 <Button variant="ghost" className="flex size-6 items-center rounded px-3">
                   <EllipsisVertical className="size-4 flex-shrink-0 text-neutral-500" />
                 </Button>
@@ -132,7 +149,7 @@ const Header = ({ className }: { className?: string }) => {
           </DialogContent>
         </Dialog>
       </div>
-      {runId && (
+      {runId && !isSharedSkillRun && (
         <div
           className={clsx(
             `flex items-center gap-2 rounded border border-neutral-200 bg-gradient-to-r
@@ -141,12 +158,12 @@ const Header = ({ className }: { className?: string }) => {
           )}
         >
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center" disabled={!canEdit}>
+            <DropdownMenuTrigger className="flex items-center" disabled={!canEditRun}>
               <>
                 <div className="px-3 text-lg font-medium text-black">
                   Run {formatSkillRunId(runId)}
                 </div>
-                {canEdit && (
+                {canEditRun && (
                   <Button variant="ghost" className="flex size-6 items-center rounded px-3">
                     <EllipsisVertical className="size-4 flex-shrink-0 text-neutral-500" />
                   </Button>

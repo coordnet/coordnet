@@ -260,6 +260,7 @@ export const SkillRunSchema = z.object({
   is_public: z.boolean().optional(),
   is_public_writable: z.boolean().optional(),
   allowed_actions: z.array(AllowedActionsSchema).optional(),
+  is_shared: z.boolean(),
 });
 export type SkillRun = z.infer<typeof SkillRunSchema>;
 
