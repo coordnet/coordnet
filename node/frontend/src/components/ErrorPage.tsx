@@ -21,7 +21,7 @@ export default function ErrorPage({
 }) {
   const { logout } = useUser();
   const routerError = useRouteError();
-  const parsedError: ErrorObject = serializeError(error ? error : routerError);
+  const parsedError = serializeError(error ? error : routerError) as ErrorObject;
 
   const errorCodes: { [key: string]: ErrorInfo } = {
     ERR_NETWORK: {

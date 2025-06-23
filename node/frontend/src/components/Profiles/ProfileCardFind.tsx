@@ -2,12 +2,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { serializeError } from "serialize-error";
 import { toast } from "sonner";
 import { useDebounceValue } from "usehooks-ts";
 
 import { getProfileCards, updateProfileCards } from "@/api";
 import { DialogContent } from "@/components/ui/dialog";
+import { getErrorMessage } from "@/lib/utils";
 import { Profile, ProfileCard as ProfileCardType } from "@/types";
 
 import { Button } from "../ui/button";
@@ -62,8 +62,9 @@ const ProfileCardFind = ({
       queryClient.invalidateQueries({ queryKey: ["profile-cards"] });
       setOpen(false);
     } catch (error) {
-      const serializedError = serializeError(error);
-      toast.error(serializedError.message);
+      const errorMessage = getErrorMessage(error);
+      toast.error(`Failed to add card: ${errorMessage}`);
+      console.error("onAddCard error: ", error);
     }
   };
 
