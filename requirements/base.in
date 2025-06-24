@@ -63,3 +63,4 @@ https://github.com/JannKleen/paper-qa/releases/download/v5.21.1/paper_qa-5.21.1.
 # Once this is resolved, this can be removed and also the --allow-unsafe for the pip-compile command
 setuptools==78.1.1  # https://github.com/pypa/setuptools
 markitdown[pptx,docx,xlsx,xls,pdf,outlook]==0.1.1   # https://github.com/microsoft/markitdown
+futurehouse-client==0.3.19  # https://pypi.org/project/futurehouse-client/

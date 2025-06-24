@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-import { PaperQAResponsePair, SemanticScholarPaper } from "../types";
+import { FutureHouseResponse, PaperQAResponsePair, SemanticScholarPaper } from "../types";
 
 const headers: { [key: string]: string } = {
   Accept: "application/json",
@@ -54,6 +54,17 @@ export const queryPaperQACollection = async (
     { headers: { Authorization: `Bearer ${authentication}` } }
   );
   console.log("PaperQACollection response", response.data);
+  return response.data;
+};
+
+export const queryFutureHouse = async (
+  question: string,
+  agent_name: string
+): Promise<FutureHouseResponse> => {
+  const response = await api.post<FutureHouseResponse>("api/tools/futurehouse/", {
+    question,
+    agent_name,
+  });
   return response.data;
 };
 

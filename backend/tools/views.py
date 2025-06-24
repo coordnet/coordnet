@@ -5,6 +5,7 @@ from pathlib import Path
 
 import adrf.viewsets
 import dry_rest_permissions.generics as dry_permissions
+import futurehouse_client
 import pqapi
 import pqapi.models
 import sentry_sdk
@@ -52,6 +53,86 @@ class PaperQAView(APIView):
         )
 
         return Response(response)
+
+
+class FutureHouseView(APIView):
+    """
+    A view for querying using the FutureHouse client as an alternative to PaperQA.
+    This doesn't use collections but allows selecting different agents/jobs.
+
+    If an ID is provided, switches to 'async' mode using create_task.
+    Otherwise, uses synchronous mode with run_tasks_until_done.
+    """
+
+    serializer_class = tools.serializers.FutureHouseQuerySerializer
+
+    def post(self, request: "rest_framework.request.Request") -> Response:
+        serializer = tools.serializers.FutureHouseQuerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        try:
+            # Initialize the FutureHouse client
+            client = futurehouse_client.FutureHouseClient(
+                api_key=settings.FUTUREHOUSE_API_KEY,
+            )
+
+            # Create TaskRequest object with optional UUID and existing data
+            task_request = futurehouse_client.TaskRequest(
+                query=validated_data["question"],
+                name=validated_data["agent_name"],
+                id=validated_data.get("task_id"),
+            )
+
+            # Switch between async and sync modes based on UUID presence
+            if validated_data.get("task_id"):
+                # Async mode: create task and return task ID
+                task_id = client.create_task(task_request)
+                return Response(
+                    {
+                        "task_id": task_id,
+                        "status": "created",
+                        "message": "Task created successfully. Use the task_id to check status.",
+                    }
+                )
+            else:
+                # Sync mode: run task until completion
+                response = client.run_tasks_until_done(task_request)
+                return Response(response)
+
+        except Exception as exc:
+            sentry_sdk.capture_exception(exc)
+            return Response(
+                {"error": f"An error occurred while querying FutureHouse: {str(exc)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class FutureHouseTaskStatusView(APIView):
+    """
+    A view for checking the status of a FutureHouse task by task ID.
+    """
+
+    def get(self, request: "rest_framework.request.Request", task_id: str) -> Response:
+        try:
+            client = futurehouse_client.FutureHouseClient(
+                api_key=settings.FUTUREHOUSE_API_KEY,
+            )
+
+            task_response = client.get_task(task_id=task_id).model_dump()
+            return Response(task_response)
+
+        except PermissionError:
+            return Response(
+                {"error": "Permission denied."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        except Exception as exc:
+            sentry_sdk.capture_exception(exc)
+            return Response(
+                {"error": "An unexpected error occurred while checking the task status."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class PaperQACollectionViewSet(adrf.viewsets.ModelViewSet):
@@ -353,7 +434,7 @@ class MarkItDownView(APIView):
                 {
                     "status": "error",
                     "filename": file_obj.name,
-                    "error": str(exc),
+                    "error": "An unexpected error occurred. Please try again later.",
                 },
                 status=400,
             )
