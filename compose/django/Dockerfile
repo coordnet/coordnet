@@ -112,7 +112,7 @@ WORKDIR ${APP_HOME}/backend
 
 ENTRYPOINT ["/entrypoint"]
 
-FROM node:22-slim AS frontend-stage-for-copy
+FROM node:24-slim AS frontend-stage-for-copy
 RUN apt-get update && apt-get install -y procps ca-certificates
 
 # Setup pnpm

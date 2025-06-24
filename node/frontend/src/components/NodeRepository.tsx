@@ -23,9 +23,14 @@ import { BackendEntityType, NodeSearchResult } from "@/types";
 import { addNodeToCanvas } from "./Canvas/utils";
 import { Button } from "./ui/button";
 
-type NodeProps = { className?: string };
+type NodeProps = {
+  className?: string;
+  selectionMode?: boolean;
+  onNodeSelect?: (node: NodeSearchResult) => void;
+  onClose?: () => void;
+};
 
-const NodeRepository = ({ className }: NodeProps) => {
+const NodeRepository = ({ className, selectionMode = false, onNodeSelect, onClose }: NodeProps) => {
   const { parent } = useYDoc();
   const { nodesMap: spaceNodesMap } = useNodesContext();
   const { isQuickViewOpen, showQuickView } = useQuickView();
@@ -67,6 +72,11 @@ const NodeRepository = ({ className }: NodeProps) => {
   }, [handleKeyPress]);
 
   const addNode = (node: NodeSearchResult) => {
+    if (selectionMode && onNodeSelect) {
+      onNodeSelect(node);
+      return;
+    }
+
     if (focus === "canvas") {
       if (!reactFlowInstance) return alert("reactFlowInstance not found");
       if (!nodesMap) return alert("nodesMap not found");
@@ -152,7 +162,17 @@ const NodeRepository = ({ className }: NodeProps) => {
     }
   }, [selectedIndex]);
 
-  return visible && !isQuickViewOpen ? (
+  const shouldShow = selectionMode || (visible && !isQuickViewOpen);
+
+  const handleClose = () => {
+    if (selectionMode && onClose) {
+      onClose();
+    } else {
+      setVisible(false);
+    }
+  };
+
+  return shouldShow ? (
     <div
       className={clsx(
         "fixed inset-0 z-60 flex items-start justify-center bg-black/20 p-4",
@@ -161,7 +181,7 @@ const NodeRepository = ({ className }: NodeProps) => {
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           e.stopPropagation();
-          setVisible(false);
+          handleClose();
         }
       }}
     >
@@ -173,7 +193,7 @@ const NodeRepository = ({ className }: NodeProps) => {
           <Search className="size-4 flex-shrink-0 text-neutral-400/50" strokeWidth={3} />
 
           <input
-            placeholder="Search Content"
+            placeholder={selectionMode ? "Search for target space..." : "Search Content"}
             className="w-full px-0 text-base font-medium placeholder:text-neutral-400/50
               focus:outline-none"
             autoFocus
@@ -191,7 +211,9 @@ const NodeRepository = ({ className }: NodeProps) => {
             }
           )}
         >
-          <div className="px-2 py-1.5 text-sm font-semibold">Nodes</div>
+          <div className="px-2 py-1.5 text-sm font-semibold">
+            {selectionMode ? "Select Target Space" : "Nodes"}
+          </div>
           {results.map((item, index) => (
             <li
               className={clsx(
@@ -297,7 +319,8 @@ const NodeRepository = ({ className }: NodeProps) => {
                       className="flex cursor-pointer items-center font-normal"
                       onClick={() => addNode(item)}
                     >
-                      <Plus className="mr-1 size-3" /> Add to Canvas
+                      <Plus className="mr-1 size-3" />
+                      {selectionMode ? "Select this Space" : "Add to Canvas"}
                       <div className="ml-auto text-xs text-neutral-500">⏎</div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -314,7 +337,7 @@ const NodeRepository = ({ className }: NodeProps) => {
         {Boolean(!isLoading && results?.length == 0 && inputValue.length) && (
           <div className="flex items-center justify-center px-4 py-3">No results</div>
         )}
-        {Boolean(inputValue.length) && (
+        {Boolean(inputValue.length) && !selectionMode && (
           <div
             className={clsx(
               "cursor-pointer px-2 py-1.5 font-medium text-neutral-700",

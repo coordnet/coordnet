@@ -1,34 +1,25 @@
 import { CanvasNode, NodeType } from "@coordnet/core";
 import { Handle, NodeResizer, NodeToolbar, Position } from "@xyflow/react";
 import clsx from "clsx";
-import { saveAs } from "file-saver";
 import { Loader2, LoaderIcon, PlusCircle } from "lucide-react";
 import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import pSBC from "shade-blend-color";
-import { toast } from "sonner";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { EditableNode } from "@/components";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { useCanvas, useNodesContext, useQuickView, useUser, useYDoc } from "@/hooks";
-import { exportNode, slugifyNodeTitle } from "@/lib/nodes";
 import { BackendEntityType } from "@/types";
 
 import { addInputNode } from "../utils";
 import BuddySelect from "./BuddySelect";
 import Footer from "./Footer";
+import FutureHouseAgentSelect from "./FutureHouseAgentSelect";
 import HoverMenu from "./HoverMenu";
 import NodeError from "./NodeError";
 import NodeTypeSelect from "./NodeTypeSelect";
 import PaperQACollectionsSelect from "./PaperQACollectionsSelect";
-import FutureHouseAgentSelect from "./FutureHouseAgentSelect";
 
 const handleStyle: CSSProperties = {
   borderWidth: "3px",
@@ -103,21 +94,6 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
     else setNodePage(id);
   };
 
-  const onExportNode = async (includeSubNodes = false) => {
-    toast.promise(exportNode(id, nodesMap, spaceMap, includeSubNodes), {
-      loading: "Exporting...",
-      success: (data) => {
-        if (data) {
-          const title = slugifyNodeTitle(data.title);
-          const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-          saveAs(blob, `node-${data.id.slice(0, 8)}-${title}.coordnode`);
-        }
-        return "Node exported";
-      },
-      error: "Error exporting node",
-    });
-  };
-
   const nodeStyle: CSSProperties = { background: "", opacity: 1 };
   if (data.borderColor) nodeStyle.borderColor = data.borderColor;
   if (data?.state === "active" || data?.state === "executing") {
@@ -157,114 +133,101 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
       />
       <Handle id="target-top" type="target" position={Position.Top} style={handleStyle} />
       <Handle id="target-left" type="target" position={Position.Left} style={handleStyle} />
-      <ContextMenu>
-        <ContextMenuTrigger disabled={isSkill}>
+
+      <div
+        className={clsx(
+          `CanvasNode flex size-full items-center justify-center overflow-hidden rounded-lg border
+          border-gray-1 bg-white p-3 text-center text-sm`,
+          Boolean(data.borderColor) && "border-2",
+          selected && "shadow-node-selected",
+          canInput && "border-2 !border-blue-light",
+          data.error && "border-red-600 text-red-600"
+        )}
+        style={nodeStyle}
+        ref={nodeRef}
+        onDoubleClick={onDoubleClick}
+      >
+        <NodeError data={data} />
+        <BuddySelect id={id} data={data} />
+        <NodeTypeSelect id={id} data={data} />
+        <PaperQACollectionsSelect id={id} data={data} />
+        <FutureHouseAgentSelect id={id} data={data} />
+
+        {canInput && (
+          <>
+            <div
+              className="absolute -top-[11px] size-6 cursor-pointer rounded-full bg-white"
+              data-tooltip-id="skill-add-input"
+              data-tooltip-place="top"
+              onClick={() => addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes)}
+            >
+              <PlusCircle className="size-6 text-blue-light" />
+            </div>
+            <Tooltip id="skill-add-input">Add input</Tooltip>
+          </>
+        )}
+
+        {data?.syncing && (
+          <>
+            <div
+              className={clsx(
+                `nodrag absolute -top-2 right-2 flex h-4 cursor-default items-center justify-center
+                gap-1 rounded border border-gray-1 bg-white px-1 text-[10px]`
+              )}
+              style={{ borderColor: nodeStyle.borderColor }}
+              data-tooltip-id="syncing"
+              data-tooltip-place="top"
+            >
+              Syncing <Loader2 className="size-2.5 animate-spin" />
+            </div>
+            <Tooltip id="syncing">
+              <div className="w-[180px] text-xs">
+                Some features of a node such as the node page or canvas are only available after the
+                initial sync
+              </div>
+            </Tooltip>
+          </>
+        )}
+
+        {window.location.hostname === "localhost" && (
+          <div className="absolute right-2 top-0 text-[10px]">{String(id).slice(0, 8)}</div>
+        )}
+
+        {Boolean(data?.state && data?.state == "executing") && (
           <div
             className={clsx(
-              `CanvasNode flex size-full items-center justify-center overflow-hidden rounded-lg
-              border border-gray-1 bg-white p-3 text-center text-sm`,
-              Boolean(data.borderColor) && "border-2",
-              selected && "shadow-node-selected",
-              canInput && "border-2 !border-blue-light",
-              data.error && "border-red-600 text-red-600"
+              `nodrag absolute right-2 top-[-7px] flex size-4 cursor-pointer items-center
+              justify-center gap-1 rounded border border-purple bg-white`
             )}
-            style={nodeStyle}
-            ref={nodeRef}
-            onDoubleClick={onDoubleClick}
           >
-            <NodeError data={data} />
-            <BuddySelect id={id} data={data} />
-            <NodeTypeSelect id={id} data={data} />
-            <PaperQACollectionsSelect id={id} data={data} />
-            <FutureHouseAgentSelect id={id} data={data} />
-
-            {canInput && (
-              <>
-                <div
-                  className="absolute -top-[11px] size-6 cursor-pointer rounded-full bg-white"
-                  data-tooltip-id="skill-add-input"
-                  data-tooltip-place="top"
-                  onClick={() => addInputNode(nodes, nodesMap, edgesMap, spaceMap, inputNodes)}
-                >
-                  <PlusCircle className="size-6 text-blue-light" />
-                </div>
-                <Tooltip id="skill-add-input">Add input</Tooltip>
-              </>
-            )}
-
-            {data?.syncing && (
-              <>
-                <div
-                  className={clsx(
-                    `nodrag absolute -top-2 right-2 flex h-4 cursor-default items-center
-                    justify-center gap-1 rounded border border-gray-1 bg-white px-1 text-[10px]`
-                  )}
-                  style={{ borderColor: nodeStyle.borderColor }}
-                  data-tooltip-id="syncing"
-                  data-tooltip-place="top"
-                >
-                  Syncing <Loader2 className="size-2.5 animate-spin" />
-                </div>
-                <Tooltip id="syncing">
-                  <div className="w-[180px] text-xs">
-                    Some features of a node such as the node page or canvas are only available after
-                    the initial sync
-                  </div>
-                </Tooltip>
-              </>
-            )}
-
-            {/* if domain is localhost show the id */}
-            {window.location.hostname === "localhost" && (
-              <div className="absolute right-2 top-0 text-[10px]">{String(id).slice(0, 8)}</div>
-            )}
-
-            {Boolean(data?.state && data?.state == "executing") && (
-              <div
-                className={clsx(
-                  `nodrag absolute right-2 top-[-7px] flex size-4 cursor-pointer items-center
-                  justify-center gap-1 rounded border border-purple bg-white`
-                )}
-              >
-                <LoaderIcon className="size-3 animate-spin text-purple" />
-              </div>
-            )}
-
-            {data?.type === NodeType.Input ? (
-              "Input"
-            ) : data?.type === NodeType.Output && spaceMap?.get(id)?.title == "New node" ? (
-              "Output"
-            ) : (
-              <EditableNode
-                id={id}
-                ref={inputRef}
-                onBlur={() => {
-                  setIsEditing(false);
-                  inputRef?.current?.scrollTo(0, 0);
-                  const node = nodesMap?.get(id);
-                  if (node) nodesMap?.set(id, { ...node, data: { ...node.data, editing: false } });
-                }}
-                contentEditable={isEditing}
-                className={clsx(
-                  "w-full items-center justify-center",
-                  isEditing && "nodrag h-full cursor-text overflow-hidden",
-                  !isEditing && `line-clamp-${lineClamp}`
-                )}
-              />
-            )}
-            <Footer id={id} nodeStyle={nodeStyle} />
+            <LoaderIcon className="size-3 animate-spin text-purple" />
           </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={() => onExportNode(false)}>Export Node</ContextMenuItem>
-          {/* TODO: Fix this */}
-          {hasCanvas && (
-            <ContextMenuItem onClick={() => onExportNode(true)}>
-              Export Node & Canvas Nodes
-            </ContextMenuItem>
-          )}
-        </ContextMenuContent>
-      </ContextMenu>
+        )}
+
+        {data?.type === NodeType.Input ? (
+          "Input"
+        ) : data?.type === NodeType.Output && spaceMap?.get(id)?.title == "New node" ? (
+          "Output"
+        ) : (
+          <EditableNode
+            id={id}
+            ref={inputRef}
+            onBlur={() => {
+              setIsEditing(false);
+              inputRef?.current?.scrollTo(0, 0);
+              const node = nodesMap?.get(id);
+              if (node) nodesMap?.set(id, { ...node, data: { ...node.data, editing: false } });
+            }}
+            contentEditable={isEditing}
+            className={clsx(
+              "w-full items-center justify-center",
+              isEditing && "nodrag h-full cursor-text overflow-hidden",
+              !isEditing && `line-clamp-${lineClamp}`
+            )}
+          />
+        )}
+        <Footer id={id} nodeStyle={nodeStyle} />
+      </div>
 
       <Handle id="target-bottom" type="source" position={Position.Bottom} style={handleStyle} />
       <Handle id="target-right" type="source" position={Position.Right} style={handleStyle} />

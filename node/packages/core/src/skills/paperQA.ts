@@ -190,9 +190,11 @@ export const executePaperQATask = async (
 
     const sourceNode = findSourceNode(task);
 
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-      if (!canvasId) return;
+    const canvasIds = [task?.outputNode?.id, isLastTask ? outputNode.id : null]
+      .filter((id): id is string => Boolean(id))
+      .filter((id, index, arr) => arr.indexOf(id) === index);
 
+    for (const canvasId of canvasIds) {
       // If it's a multiple response node
       if (task.outputNode && isMultipleResponseNode(task.outputNode)) {
         await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node], sourceNode });
@@ -200,7 +202,7 @@ export const executePaperQATask = async (
         // Otherwise just update the node directly
         await setSkillNodeTitleAndContent(skillDoc, canvasId, node.title, node.markdown);
       }
-    });
+    }
 
     // Mark the node as done/inactive
     setNodesState([task.promptNode.id], nodesMap, "inactive");
@@ -254,9 +256,11 @@ export const executePaperQACollectionTask = async (
 
     const sourceNode = findSourceNode(task);
 
-    [task?.outputNode?.id, isLastTask ? outputNode.id : null].forEach(async (canvasId) => {
-      if (!canvasId) return;
+    const canvasIds = [task?.outputNode?.id, isLastTask ? outputNode.id : null]
+      .filter((id): id is string => Boolean(id))
+      .filter((id, index, arr) => arr.indexOf(id) === index);
 
+    for (const canvasId of canvasIds) {
       // If it's a multiple response node
       if (task.outputNode && isMultipleResponseNode(task.outputNode)) {
         await addToSkillCanvas({ canvasId, document: skillDoc, nodes: [node], sourceNode });
@@ -264,7 +268,7 @@ export const executePaperQACollectionTask = async (
         // Otherwise just update the node directly
         await setSkillNodeTitleAndContent(skillDoc, canvasId, node.title, node.markdown);
       }
-    });
+    }
 
     // Mark the node as done/inactive
     setNodesState([task.promptNode.id], nodesMap, "inactive");
