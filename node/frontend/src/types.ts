@@ -239,30 +239,9 @@ export type SkillUpdateForm = z.infer<typeof SkillUpdateFormSchema>;
 
 export const SkillCreateFormSchema = SkillUpdateFormSchema.extend({
   authors: z.array(z.string()),
+  forked_from: z.string().optional(),
 });
 export type SkillCreateForm = z.infer<typeof SkillCreateFormSchema>;
-
-export const SkillVersionSchema = SkillSchema.pick({
-  id: true,
-  created_at: true,
-  updated_at: true,
-  title: true,
-  title_token_count: true,
-  description: true,
-  description_token_count: true,
-  content: true,
-  text: true,
-  text_token_count: true,
-  creator: true,
-  space: true,
-  authors: true,
-  buddy: true,
-}).extend({
-  method: z.string(),
-  version: z.number(),
-  method_data: z.record(z.string(), z.unknown()),
-});
-export type SkillVersion = z.infer<typeof SkillVersionSchema>;
 
 export enum YDocScope {
   READ_ONLY = "readonly",

@@ -178,3 +178,18 @@ export const dataURItoBlob = (dataURI: string): Blob => {
   // Write the ArrayBuffer to a Blob and return it
   return new Blob([ab], { type: mimeString });
 };
+
+export const convertImageToBase64 = async (imageUrl: string) => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Error converting image to base64:", error);
+    return null;
+  }
+};

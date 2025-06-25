@@ -10,7 +10,13 @@ import { Toaster } from "sonner";
 import { QueryParamProvider } from "use-query-params";
 import { ReactRouter6Adapter } from "use-query-params/adapters/react-router-6";
 
-import { FocusProvider, NodeCopyProvider, QuickViewProvider, YDocProvider } from "@/hooks";
+import {
+  FocusProvider,
+  ModalProvider,
+  NodeCopyProvider,
+  QuickViewProvider,
+  YDocProvider,
+} from "@/hooks";
 
 import Login from "./auth/Login";
 import ResetPassword from "./auth/ResetPassword";
@@ -32,7 +38,9 @@ const addProviders = (element: ReactNode) => {
       <YDocProvider>
         <FocusProvider>
           <NodeCopyProvider>
-            <QuickViewProvider>{element}</QuickViewProvider>
+            <ModalProvider>
+              <QuickViewProvider>{element}</QuickViewProvider>
+            </ModalProvider>
           </NodeCopyProvider>
         </FocusProvider>
       </YDocProvider>
@@ -49,7 +57,7 @@ const SpaceRedirect = () => {
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Dashboard />,
+    element: addProviders(<Dashboard />),
     errorElement: <ErrorPage />,
   },
   {
@@ -93,7 +101,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/profiles/:username",
-    element: <Profile />,
+    element: addProviders(<Profile />),
     errorElement: <ErrorPage />,
   },
   {
