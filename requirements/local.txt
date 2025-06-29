@@ -731,9 +731,9 @@ django-pglock==1.7.2 \
     --hash=sha256:2f9335527779445fe86507b37e26cfde485a32b91d982a8f80039d3bcd25d596 \
     --hash=sha256:d1d8521b382a5819e8d14978d0e8e63ab2763cb784f5a6bfdbe5de807da4a61a
     # via -r requirements/base.in
-django-pgtrigger==4.13.3 \
-    --hash=sha256:c525f9e81f120d166c4bd5fe8c3770640356f0644edf0fc2b7f6426008e52f77 \
-    --hash=sha256:d6e4d17021bbd5e425a308f07414b237b9b34423275d86ad756b90c307df3ca4
+django-pgtrigger==4.15.3 \
+    --hash=sha256:235e07487d7953e85d9a9ecd8079d04072650ccad119148da96267cb2be80e09 \
+    --hash=sha256:f710514e6eba28b5db4e5a27ed83abc18eae26cf9a82e0201b0c8d5d29b46c46
     # via -r requirements/base.in
 django-redis==5.4.0 \
     --hash=sha256:6a02abaa34b0fea8bf9b707d2c363ab6adc7409950b2db93602e6cb292818c42 \
@@ -2669,9 +2669,9 @@ s3transfer==0.12.0 \
     --hash=sha256:35b314d7d82865756edab59f7baebc6b477189e6ab4c53050e28c1de4d9cce18 \
     --hash=sha256:8ac58bc1989a3fdb7c7f3ee0918a66b160d038a147c7b5db1500930a607e9a1c
     # via boto3
-sentry-sdk[celery,django,openai]==2.25.1 \
-    --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
-    --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
+sentry-sdk[celery,django,openai]==2.32.0 \
+    --hash=sha256:6cf51521b099562d7ce3606da928c473643abe99b00ce4cb5626ea735f4ec345 \
+    --hash=sha256:9016c75d9316b0f6921ac14c8cd4fb938f26002430ac5be9945ab280f78bec6b
     # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
