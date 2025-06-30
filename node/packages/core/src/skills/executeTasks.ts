@@ -144,7 +144,10 @@ export const processTasks = async (
             await executeKeywordTask(task, skillDoc, query);
             taskResultsProcessed = true;
           }
-        } else if (task.promptNode.data.type === NodeType.PaperQA) {
+        } else if (
+          task.promptNode.data.type === NodeType.PaperQA ||
+          task.promptNode.data.type === NodeType.FutureHouse
+        ) {
           const query = await collectInputTitles(task, skillDoc);
           if (dryRun) {
             executionPlan.tasks.push({ task: task, query, type: "PAPERQA" });

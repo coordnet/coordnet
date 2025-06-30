@@ -13,5 +13,11 @@ router.register(
 urlpatterns = router.urls
 urlpatterns += [
     path("tools/paperqa/", tools.views.PaperQAView.as_view(), name="paperqa-external"),
+    path("tools/futurehouse/", tools.views.FutureHouseView.as_view(), name="futurehouse"),
+    path(
+        "tools/futurehouse/status/<str:task_id>/",
+        tools.views.FutureHouseTaskStatusView.as_view(),
+        name="futurehouse-status",
+    ),
     path("tools/markitdown/", tools.views.MarkItDownView.as_view(), name="markitdown"),
 ]

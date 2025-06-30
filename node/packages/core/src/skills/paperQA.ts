@@ -1,7 +1,14 @@
 import * as Y from "yjs";
 
-import { CanvasNode, PaperQAResponse, PaperQAResponsePair, SingleNode, Task } from "../types";
-import { queryPaperQA, queryPaperQACollection } from "./api";
+import {
+  CanvasNode,
+  FutureHouseResponse,
+  PaperQAResponse,
+  PaperQAResponsePair,
+  SingleNode,
+  Task,
+} from "../types";
+import { queryPaperQA, queryPaperQACollection, queryFutureHouse } from "./api";
 import {
   addToSkillCanvas,
   findSourceNode,
@@ -125,22 +132,61 @@ export const executePaperQATask = async (
   try {
     setNodesState([task.promptNode.id], nodesMap, "executing");
 
-    const response = await queryPaperQA(query);
+    // Check if FutureHouse agent is specified
+    const futureHouseAgent = task.promptNode.data.futureHouseAgent;
+    let response: FutureHouseResponse | PaperQAResponsePair[];
+
+    if (futureHouseAgent) {
+      // Use FutureHouse API
+      response = await queryFutureHouse(query, futureHouseAgent);
+    } else {
+      // Use traditional PaperQA API
+      response = await queryPaperQA(query);
+    }
 
     let markdown = "";
-    try {
-      markdown = paperQAResponseToMd(formatPaperQAResponse(response));
-    } catch (error) {
-      console.error("Error formatting PaperQA response", error);
+
+    if (futureHouseAgent) {
+      // Handle FutureHouse response format
       try {
-        markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
+        // We know this is a FutureHouseResponse when futureHouseAgent is specified
+        const futureHouseResponse = response as FutureHouseResponse;
+        if (typeof futureHouseResponse === "object" && futureHouseResponse.answer) {
+          markdown = futureHouseResponse.answer;
+          if (futureHouseResponse.sources && futureHouseResponse.sources.length > 0) {
+            markdown += "\n\n## Sources\n";
+            futureHouseResponse.sources.forEach((source: string, index: number) => {
+              markdown += `${index + 1}. ${source}\n`;
+            });
+          }
+        } else {
+          markdown = JSON.stringify(futureHouseResponse, null, 2);
+        }
       } catch (error) {
-        console.error("Error parsing PaperQA response", error);
+        console.error("Error formatting FutureHouse response", error);
         markdown = JSON.stringify(response, null, 2);
+      }
+    } else {
+      // Handle traditional PaperQA response format
+      try {
+        const paperQAResponse = response as PaperQAResponsePair[];
+        markdown = paperQAResponseToMd(formatPaperQAResponse(paperQAResponse));
+      } catch (error) {
+        console.error("Error formatting PaperQA response", error);
+        try {
+          const paperQAResponse = response as PaperQAResponsePair[];
+          markdown = paperQAResponse[0][1].find(
+            (pair: PaperQAResponsePair) => pair[0] === "answer"
+          )?.[1];
+        } catch (error) {
+          console.error("Error parsing PaperQA response", error);
+          markdown = JSON.stringify(response, null, 2);
+        }
       }
     }
 
-    const node: SingleNode = { title: "PaperQA Response: " + query, markdown: markdown };
+    const serviceTitle = futureHouseAgent ? `FutureHouse (${futureHouseAgent})` : "PaperQA";
+    const node: SingleNode = { title: `${serviceTitle} Response: ${query}`, markdown: markdown };
 
     const sourceNode = findSourceNode(task);
 

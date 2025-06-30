@@ -521,6 +521,7 @@ AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-09-01-p
 # ------------------------------------------------------------------------------
 
 SEMANTIC_API_KEY = env("SEMANTIC_SCHOLAR_API_KEY", default="fake-key")
+FUTUREHOUSE_API_KEY = env("FUTUREHOUSE_API_KEY", default="fake-key")
 
 # Front-end config
 # ------------------------------------------------------------------------------
