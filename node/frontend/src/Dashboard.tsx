@@ -103,7 +103,7 @@ function Dashboard() {
 
       <div
         className={clsx(
-          "z-30 mx-auto mt-10 w-[90%] max-w-[640px] rounded-lg",
+          "z-20 mx-auto mt-10 w-[90%] max-w-[640px] rounded-lg",
           usersSkills?.length == 0 && publicSkills?.length == 0 && filteredSpaces?.length == 0
             ? "mt-32"
             : ""

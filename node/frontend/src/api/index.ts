@@ -1,4 +1,4 @@
-import { Buddy, Skill, SkillJson, SkillRun } from "@coordnet/core";
+import { Buddy, Skill, SkillJson, SkillRun, SkillVersion } from "@coordnet/core";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
@@ -21,7 +21,6 @@ import {
   ProfileForm,
   SkillCreateForm,
   SkillUpdateForm,
-  SkillVersion,
   Space,
 } from "../types";
 import { api, authApi } from "./jwt";

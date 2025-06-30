@@ -1,24 +1,17 @@
 import { Skill } from "@coordnet/core";
-import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Edit, Ellipsis, Play, Settings2, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Ellipsis, GitFork, Play } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { deleteSkill } from "@/api";
 import { getProfileCardImage, getProfileImage } from "@/components/Profiles/utils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser } from "@/hooks";
 
-import SkillManage from "./SkillManage";
-import SkillPermissions from "./SkillPermissions";
-import SkillRunnerDropdown from "./SkillRunnerDropdown";
+import SkillActionsDropdown from "./SkillActionsDropdown";
 
 const SkillCard = ({
   skill,
@@ -29,33 +22,8 @@ const SkillCard = ({
   disableInteraction?: boolean;
   className?: string;
 }) => {
-  const { profile } = useUser();
-  const queryClient = useQueryClient();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [permissionsModalOpen, setPermissionsModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-
-  const showControls =
-    !disableInteraction &&
-    (skill.authors.map((a) => a.id).includes(profile?.id ?? "") ||
-      skill?.creator?.id.includes(profile?.id ?? ""));
-
-  const onDelete = async (id: string) => {
-    if (
-      window.confirm("Are you sure you want to delete this skill? This cannot be undone.") &&
-      id
-    ) {
-      await deleteSkill(id);
-      queryClient.invalidateQueries({ queryKey: ["skills"] });
-    }
-  };
-
-  useEffect(() => {
-    if ((permissionsModalOpen || editModalOpen) && isMenuOpen) {
-      setIsHovered(false);
-    }
-  }, [permissionsModalOpen, editModalOpen, isMenuOpen]);
 
   return (
     <div
@@ -67,7 +35,7 @@ const SkillCard = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {showControls && (
+      {!disableInteraction && (
         <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} modal={false}>
           <DropdownMenuTrigger asChild>
             <div
@@ -90,46 +58,10 @@ const SkillCard = ({
               block: isHovered || isMenuOpen,
             })}
           >
-            <DropdownMenuItem
-              className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
-                hover:bg-gray-100"
-              onClick={() => setEditModalOpen(true)}
-            >
-              <Edit className="mr-2 size-4" /> Edit Skill
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              className="flex cursor-pointer items-center px-4 py-2 font-medium text-neutral-700
-                hover:bg-gray-100"
-              onClick={() => setPermissionsModalOpen(true)}
-            >
-              <Settings2 className="mr-2 size-4" /> Manage Permissions
-            </DropdownMenuItem>
-
-            <SkillRunnerDropdown variant="navigate" skillId={skill.id} className="px-4 py-2" />
-            <SkillRunnerDropdown variant="copy" skillId={skill.id} className="px-4 py-2" />
-
-            <DropdownMenuItem
-              className="flex cursor-pointer items-center px-4 py-2 font-medium text-red-500
-                hover:bg-gray-100"
-              onClick={() => onDelete(skill.id)}
-            >
-              <Trash2 className="mr-2 size-4" /> Delete
-            </DropdownMenuItem>
+            <SkillActionsDropdown skill={skill} variant="card" />
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-
-      <Dialog onOpenChange={setEditModalOpen} open={editModalOpen}>
-        <DialogContent className="w-[430px] p-0">
-          {skill.id && <SkillManage skill={skill} setOpen={setEditModalOpen} />}
-        </DialogContent>
-      </Dialog>
-      <Dialog onOpenChange={setPermissionsModalOpen} open={permissionsModalOpen}>
-        <DialogContent className="w-[430px] p-0">
-          {skill?.id && <SkillPermissions id={skill?.id} key={skill.id} />}
-        </DialogContent>
-      </Dialog>
 
       <Link
         to={`/skills/${skill.id}`}
@@ -140,11 +72,24 @@ const SkillCard = ({
           style={{ backgroundImage: `url("${getProfileCardImage(skill, true, true)}")` }}
         ></div>
         <div className="relative z-10 flex flex-1 flex-col gap-1 p-2">
-          <div
-            className="inline-block w-fit rounded-[4px] bg-blue-50 px-2 py-1 text-[11px] font-medium
-              leading-none text-neutral-500"
-          >
-            Skill
+          <div className="flex items-center gap-1">
+            <div
+              className="inline-flex h-5 w-fit items-center rounded-[4px] bg-blue-100 px-2 py-1
+                text-[11px] font-medium leading-none text-neutral-600"
+            >
+              Skill
+            </div>
+            {skill?.forked_from && (
+              <Link
+                to={`/skills/${skill.forked_from.method}/versions/${skill.forked_from.id}`}
+                className="inline-flex h-5 w-fit items-center rounded-[4px]
+                  bg-profile-modal-gradient px-2 py-1 text-[11px] font-medium leading-none
+                  text-neutral-600 hover:text-neutral-700"
+              >
+                <GitFork className="mr-1 size-3" />
+                Forked
+              </Link>
+            )}
           </div>
           <h2 className="line-clamp-2 text-sm font-bold leading-tight text-black">
             {skill.title ?? "Untitled"}

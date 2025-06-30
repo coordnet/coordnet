@@ -1,3 +1,4 @@
+import { SkillVersion } from "@coordnet/core";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { format } from "date-fns";
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useYDoc } from "@/hooks";
-import { SkillVersion, YDocScope } from "@/types";
+import { YDocScope } from "@/types";
 
 const SkillVersions = ({
   showDraft = true,

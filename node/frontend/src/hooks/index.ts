@@ -8,6 +8,7 @@ export { default as useNodesContext } from "./useNodesContext";
 export { default as useWindowDrag } from "./useWindowDrag";
 export { default as useYDoc } from "./useYDoc";
 export { default as useContextMenu } from "./useContextMenu";
+export { default as useModal } from "./useModal";
 export { useNodeCopy } from "./useNodeCopy";
 
 export { FocusProvider } from "./useFocus/provider";
@@ -18,3 +19,4 @@ export { QuickViewProvider } from "./useQuickView/provider";
 export { NodesContextProvider } from "./useNodesContext/provider";
 export { YDocProvider } from "./useYDoc/provider";
 export { ContextMenuProvider } from "./useContextMenu/provider";
+export { ModalProvider } from "./useModal/provider";

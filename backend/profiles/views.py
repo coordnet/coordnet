@@ -45,13 +45,20 @@ class ProfileModelViewSet(utils.views.BaseNoCreateDeleteModelViewSet[profiles.mo
                     profiles.models.Profile.get_visible_cards_filter_expression(
                         user=self.request.user
                     )
-                ).distinct(),
+                )
+                .select_related(
+                    "created_by",
+                    "author_profile__user",
+                    "author_profile__space",
+                    "space_profile__space",
+                )
+                .distinct(),
             ),
             models.Prefetch(
                 "members",
                 queryset=profiles.models.Profile.objects.filter(
                     profiles.models.Profile.get_visible_members_filter_expression()
-                ),
+                ).select_related("user", "space"),
             ),
         )
         return queryset
