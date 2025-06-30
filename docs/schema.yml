@@ -12,8 +12,8 @@ paths:
       tags:
       - auth
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -24,8 +24,8 @@ paths:
       tags:
       - auth
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -241,8 +241,8 @@ paths:
               $ref: '#/components/schemas/Register'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -270,8 +270,8 @@ paths:
               $ref: '#/components/schemas/AuthToken'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -286,8 +286,8 @@ paths:
       tags:
       - auth
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -298,8 +298,8 @@ paths:
       tags:
       - auth
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -326,8 +326,8 @@ paths:
       tags:
       - Buddies
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -356,8 +356,8 @@ paths:
               $ref: '#/components/schemas/Buddy'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -382,8 +382,8 @@ paths:
       tags:
       - Buddies
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -419,8 +419,8 @@ paths:
               $ref: '#/components/schemas/Buddy'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -455,8 +455,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedBuddy'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -480,8 +480,8 @@ paths:
       tags:
       - Buddies
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -518,8 +518,8 @@ paths:
               $ref: '#/components/schemas/BuddyQuery'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -558,8 +558,8 @@ paths:
               $ref: '#/components/schemas/BuddyQuery'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -594,8 +594,8 @@ paths:
       tags:
       - Buddies
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -649,6 +649,10 @@ paths:
       description: List available skill runs.
       summary: List skill runs
       parameters:
+      - in: query
+        name: is_public
+        schema:
+          type: boolean
       - name: limit
         required: false
         in: query
@@ -666,14 +670,18 @@ paths:
         schema:
           type: integer
       - in: query
+        name: own_runs
+        schema:
+          type: boolean
+      - in: query
         name: space
         schema:
           type: integer
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -701,8 +709,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeRunList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -726,8 +734,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -762,8 +770,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeRunList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -797,8 +805,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMethodNodeRunList'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -821,8 +829,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -853,8 +861,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeRunList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -863,6 +871,113 @@ paths:
               schema:
                 $ref: '#/components/schemas/MethodNodeRunList'
           description: ''
+  /api/nodes/method-runs/{public_id}/permissions/:
+    get:
+      operationId: nodes_method_runs_permissions_list
+      description: List all object permissions
+      summary: List object permissions
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - jwtAuth: []
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedObjectPermissionModelList'
+          description: ''
+        '404':
+          description: No response body
+    post:
+      operationId: nodes_method_runs_permissions_create
+      description: Create a new object permission
+      summary: Create object permission
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ObjectPermissionModel'
+        required: true
+      security:
+      - jwtAuth: []
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectPermissionModel'
+          description: ''
+        '404':
+          description: No response body
+  /api/nodes/method-runs/{public_id}/permissions/{permission_uuid}/:
+    delete:
+      operationId: nodes_method_runs_permissions_destroy
+      description: Delete an object permission
+      summary: Delete object permission
+      parameters:
+      - in: path
+        name: permission_uuid
+        schema:
+          type: string
+          format: uuid
+        description: UUID of the permission to delete
+        required: true
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Skills
+      security:
+      - jwtAuth: []
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          description: No response body
   /api/nodes/method-runs/decide/:
     post:
       operationId: nodes_method_runs_decide_create
@@ -882,8 +997,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeRunList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -917,8 +1032,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -946,8 +1061,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeVersionList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -971,8 +1086,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1007,8 +1122,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeVersionList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1042,8 +1157,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMethodNodeVersionList'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1066,8 +1181,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -1093,8 +1208,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1122,8 +1237,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -1147,8 +1262,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1183,8 +1298,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1218,8 +1333,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMethodNodeList'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1242,8 +1357,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -1275,8 +1390,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1313,8 +1428,8 @@ paths:
               $ref: '#/components/schemas/ObjectPermissionModel'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -1347,8 +1462,8 @@ paths:
       tags:
       - Skills
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -1376,8 +1491,8 @@ paths:
               $ref: '#/components/schemas/MethodNodeList'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1419,8 +1534,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1444,8 +1559,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1469,8 +1584,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1499,8 +1614,8 @@ paths:
             schema:
               $ref: '#/components/schemas/NodeList'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1552,8 +1667,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -1584,8 +1699,8 @@ paths:
       tags:
       - Spaces
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1613,8 +1728,8 @@ paths:
               $ref: '#/components/schemas/Space'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -1638,8 +1753,8 @@ paths:
       tags:
       - Spaces
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1674,8 +1789,8 @@ paths:
               $ref: '#/components/schemas/Space'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1709,8 +1824,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedSpace'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1733,8 +1848,8 @@ paths:
       tags:
       - Spaces
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -1766,8 +1881,8 @@ paths:
       tags:
       - Spaces
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1804,8 +1919,8 @@ paths:
               $ref: '#/components/schemas/ObjectPermissionModel'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -1838,8 +1953,8 @@ paths:
       tags:
       - Spaces
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -1896,8 +2011,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1921,8 +2036,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1946,8 +2061,8 @@ paths:
       tags:
       - Nodes
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -1991,8 +2106,8 @@ paths:
       tags:
       - Profiles
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2018,8 +2133,8 @@ paths:
               $ref: '#/components/schemas/ProfileCard'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -2043,8 +2158,8 @@ paths:
       tags:
       - Profiles
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2077,8 +2192,8 @@ paths:
               $ref: '#/components/schemas/ProfileCard'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2110,8 +2225,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedProfileCard'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2132,8 +2247,8 @@ paths:
       tags:
       - Profiles
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -2157,8 +2272,8 @@ paths:
               $ref: '#/components/schemas/ProfileCard'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2228,8 +2343,8 @@ paths:
       tags:
       - Profiles
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2253,8 +2368,8 @@ paths:
       tags:
       - Profiles
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2287,8 +2402,8 @@ paths:
               $ref: '#/components/schemas/Profile'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2320,8 +2435,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedProfile'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2349,8 +2464,8 @@ paths:
               $ref: '#/components/schemas/Profile'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2482,8 +2597,8 @@ paths:
       tags:
       - schema
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2511,8 +2626,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -2524,8 +2639,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       - {}
       responses:
@@ -2555,8 +2670,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2572,13 +2687,19 @@ paths:
       - tools
       requestBody:
         content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PaperQACollection'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -2601,8 +2722,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2625,13 +2746,19 @@ paths:
       - tools
       requestBody:
         content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PaperQACollection'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2654,12 +2781,18 @@ paths:
       - tools
       requestBody:
         content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperQACollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperQACollection'
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedPaperQACollection'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2681,8 +2814,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -2690,7 +2823,12 @@ paths:
   /api/tools/paperqa-collections/{public_id}/add_upload/:
     post:
       operationId: tools_paperqa_collections_add_upload_create
-      description: Add an existing UserUpload to the collection.
+      description: |-
+        Add an existing UserUpload to the collection.
+
+        Parameters:
+        - upload_id: ID of the upload to add
+        - skip_index_update: If true, don't update the index after adding the upload
       parameters:
       - in: path
         name: public_id
@@ -2702,13 +2840,19 @@ paths:
       - tools
       requestBody:
         content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PaperQACollection'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2731,8 +2875,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2760,8 +2904,8 @@ paths:
       tags:
       - tools
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -2781,13 +2925,19 @@ paths:
       - tools
       requestBody:
         content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocalPDFQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LocalPDFQuery'
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/LocalPDFQuery'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2795,6 +2945,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LocalPDFQuery'
+          description: ''
+  /api/tools/paperqa-collections/{public_id}/update_index/:
+    post:
+      operationId: tools_paperqa_collections_update_index_create
+      description: Manually trigger an update of the collection index.
+      parameters:
+      - in: path
+        name: public_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tools
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaperQACollection'
+        required: true
+      security:
+      - jwtAuth: []
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperQACollection'
           description: ''
   /api/uploads/:
     get:
@@ -2824,8 +3010,8 @@ paths:
       tags:
       - uploads
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2846,8 +3032,8 @@ paths:
               $ref: '#/components/schemas/UserUpload'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -2870,8 +3056,8 @@ paths:
       tags:
       - uploads
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2899,8 +3085,8 @@ paths:
               $ref: '#/components/schemas/UserUpload'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2927,8 +3113,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedUserUpload'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -2950,8 +3136,8 @@ paths:
       tags:
       - uploads
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -2983,8 +3169,8 @@ paths:
       tags:
       - uploads
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -3015,8 +3201,8 @@ paths:
               $ref: '#/components/schemas/ObjectPermissionModel'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '201':
@@ -3049,8 +3235,8 @@ paths:
       tags:
       - uploads
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '204':
@@ -3076,8 +3262,8 @@ paths:
       tags:
       - users
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -3099,8 +3285,8 @@ paths:
       tags:
       - users
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -3133,8 +3319,8 @@ paths:
               $ref: '#/components/schemas/User'
         required: true
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -3166,8 +3352,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedUser'
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -3182,8 +3368,8 @@ paths:
       tags:
       - users
       security:
-      - knoxApiToken: []
       - jwtAuth: []
+      - knoxApiToken: []
       - cookieAuth: []
       responses:
         '200':
@@ -3570,6 +3756,12 @@ components:
           format: uuid
           nullable: true
         method_data: {}
+        is_owner:
+          type: boolean
+          readOnly: true
+        is_shared:
+          type: boolean
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -3578,11 +3770,19 @@ components:
           type: string
           format: date-time
           readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
         is_dev_run:
           type: boolean
       required:
       - created_at
       - id
+      - is_owner
+      - is_shared
       - method
       - method_data
       - updated_at
@@ -3609,6 +3809,12 @@ components:
           nullable: true
         method_data:
           writeOnly: true
+        is_owner:
+          type: boolean
+          readOnly: true
+        is_shared:
+          type: boolean
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -3617,11 +3823,19 @@ components:
           type: string
           format: date-time
           readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
         is_dev_run:
           type: boolean
       required:
       - created_at
       - id
+      - is_owner
+      - is_shared
       - method
       - method_data
       - updated_at
@@ -4581,6 +4795,12 @@ components:
           nullable: true
         method_data:
           writeOnly: true
+        is_owner:
+          type: boolean
+          readOnly: true
+        is_shared:
+          type: boolean
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -4589,6 +4809,12 @@ components:
           type: string
           format: date-time
           readOnly: true
+        is_public:
+          type: boolean
+          title: Public read access
+        is_public_writable:
+          type: boolean
+          title: Public write access, if public read access is enabled
         is_dev_run:
           type: boolean
     PatchedMethodNodeVersionList:

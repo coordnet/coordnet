@@ -1,9 +1,9 @@
-### Ignore IDEs
-# Ignore all directories named .idea
+### Ignore IDE / LLM config
 .idea/
-
-# Ignore all directories named .vscode
+/.junie/
 .vscode/
+.claude/
+CLAUDE.md
 
 ### Python template
 # Byte-compiled / optimized / DLL files
@@ -187,6 +187,3 @@ kubernetes/secrets.yaml
 
 ### PaperQA local storage
 backend/tools/paperqa/
-
-### Claude
-.claude/
