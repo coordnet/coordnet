@@ -19,10 +19,20 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
         )
         factories.MethodNodeFactory.create_batch(5, creator=self.owner_user, owner=self.owner_user)
 
+        # Create methods with forked_from
+        for _ in range(3):
+            original_method = factories.MethodNodeFactory.create(
+                creator=self.owner_user, owner=self.owner_user
+            )
+            original_version = factories.MethodNodeVersionFactory.create(method=original_method)
+            factories.MethodNodeFactory.create(
+                creator=self.owner_user, owner=self.owner_user, forked_from=original_version
+            )
+
         with self.assertNumQueries(3):
             response = self.owner_client.get(reverse("nodes:methods-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 10)
+        self.assertEqual(response.data["count"], 16)
 
     def test_retrieve(self) -> None:
         node = factories.MethodNodeFactory.create(creator=self.owner_user, owner=self.owner_user)
@@ -144,14 +154,25 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
             creator=self.owner_user, owner=self.owner_user
         )
         original_version = factories.MethodNodeVersionFactory.create(method=original_method)
+        space = factories.SpaceFactory.create(owner=self.owner_user)
 
-        forked_method = factories.MethodNodeFactory.create(
-            creator=self.owner_user, owner=self.owner_user, forked_from=original_version
+        response = self.owner_client.post(
+            reverse("nodes:methods-list"),
+            {
+                "space": str(space.public_id),
+                "forked_from": str(original_version.public_id),
+            },
         )
+        self.assertEqual(response.status_code, 201)
+        forked_method_id = response.data["id"]
 
-        response = self.owner_client.get(
-            reverse("nodes:methods-detail", args=[forked_method.public_id])
-        )
+        # Retrieve and verify forked_from field
+        with self.assertNumQueries(2):
+            response = self.owner_client.get(
+                reverse("nodes:methods-detail", args=[forked_method_id])
+            )
+
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["forked_from"]["id"], str(original_version.public_id))
-        self.assertEqual(response.data["forked_from"]["version"], original_version.version)
+        forked_from = response.data["forked_from"]
+        self.assertEqual(forked_from["id"], str(original_version.public_id))
+        self.assertEqual(forked_from["method_id"], str(original_method.public_id))

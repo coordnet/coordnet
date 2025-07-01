@@ -173,7 +173,7 @@ class MethodNodeModelViewSet(
                 "forked_from__method_data",
                 "forked_from__search_vector",
             )
-            .select_related("space__profile", "creator__profile", "buddy", "forked_from")
+            .select_related("space__profile", "creator__profile", "buddy", "forked_from__method")
             .prefetch_related(
                 django_models.Prefetch(
                     "authors", queryset=users.models.User.objects.select_related("profile")

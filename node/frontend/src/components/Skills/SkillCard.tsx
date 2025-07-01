@@ -81,7 +81,7 @@ const SkillCard = ({
             </div>
             {skill?.forked_from && (
               <Link
-                to={`/skills/${skill.forked_from.method}/versions/${skill.forked_from.id}`}
+                to={`/skills/${skill.forked_from.method_id}/versions/${skill.forked_from.id}`}
                 className="inline-flex h-5 w-fit items-center rounded-[4px]
                   bg-profile-modal-gradient px-2 py-1 text-[11px] font-medium leading-none
                   text-neutral-600 hover:text-neutral-700"

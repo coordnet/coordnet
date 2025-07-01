@@ -119,6 +119,15 @@ class AvailableMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
         ).distinct()
 
 
+class ForkedFromMethodNodeVersionSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
+    method_id = serializers.UUIDField(source="method.public_id", read_only=True)
+
+    class Meta:
+        model = models.MethodNodeVersion
+        fields = ["id", "method_id"]
+
+
 @extend_schema_field(uuid.UUID)
 class ForkedFromMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
     def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeVersion]":
@@ -142,7 +151,7 @@ class ForkedFromMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
         return {str(item.public_id): self.display_value(item) for item in queryset}
 
     def to_representation(self, value: "models.MethodNodeVersion") -> dict:  # type: ignore[override]
-        return MethodNodeVersionListSerializer(value, context=self.context).data
+        return ForkedFromMethodNodeVersionSerializer(value, context=self.context).data
 
     def to_internal_value(self, data: str) -> "models.MethodNodeVersion":  # type: ignore[override]
         try:

@@ -230,7 +230,12 @@ export const SkillSchema = z.object({
   }),
   buddy: z.string(),
   run_count: z.number(),
-  forked_from: SkillVersionSchema.nullable(),
+  forked_from: z
+    .object({
+      id: z.string(),
+      method_id: z.string(),
+    })
+    .nullable(),
 });
 export type Skill = z.infer<typeof SkillSchema>;
 
