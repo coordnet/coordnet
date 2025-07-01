@@ -2655,9 +2655,9 @@ scipy==1.16.0 \
     --hash=sha256:f56296fefca67ba605fd74d12f7bd23636267731a72cb3947963e76b8c0a25db \
     --hash=sha256:f91b87e1689f0370690e8470916fe1b2308e5b2061317ff76977c8f836452a47
     # via networkx
-sentry-sdk[celery,django,openai]==2.25.1 \
-    --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
-    --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
+sentry-sdk[celery,django,openai]==2.32.0 \
+    --hash=sha256:6cf51521b099562d7ce3606da928c473643abe99b00ce4cb5626ea735f4ec345 \
+    --hash=sha256:9016c75d9316b0f6921ac14c8cd4fb938f26002430ac5be9945ab280f78bec6b
     # via -r requirements/base.in
 simsimd==6.4.9 \
     --hash=sha256:07e2e70ca916f758b229394164f5d9f087fd65307a9e12959750756670ed843f \
