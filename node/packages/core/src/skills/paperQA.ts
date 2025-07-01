@@ -8,7 +8,12 @@ import {
   SingleNode,
   Task,
 } from "../types";
-import { queryPaperQA, queryPaperQACollection, queryFutureHouse } from "./api";
+import {
+  createFutureHouseTask,
+  getFutureHouseTaskStatus,
+  queryPaperQA,
+  queryPaperQACollection,
+} from "./api";
 import {
   addToSkillCanvas,
   findSourceNode,
@@ -121,6 +126,23 @@ ${bibtexEntries}
  * Executes a PaperQA task by calling the new Django endpoint.
  * For now, it simply puts the server's response in the output node's markdown field.
  */
+const pollFutureHouseTask = async (
+  taskId: string,
+  maxAttempts: number = 150,
+  interval: number = 2000
+): Promise<FutureHouseResponse> => {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const taskStatus = await getFutureHouseTaskStatus(taskId);
+    if (taskStatus.status === "success" || taskStatus.status === "failed") {
+      return taskStatus;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+
+  throw new Error("Task polling timeout - task did not complete within 5 minutes");
+};
+
 export const executePaperQATask = async (
   task: Task,
   query: string,
@@ -137,8 +159,12 @@ export const executePaperQATask = async (
     let response: FutureHouseResponse | PaperQAResponsePair[];
 
     if (futureHouseAgent) {
-      // Use FutureHouse API
-      response = await queryFutureHouse(query, futureHouseAgent);
+      // Use FutureHouse API with async task creation
+      const taskId = crypto.randomUUID();
+      const taskCreationResponse = await createFutureHouseTask(query, futureHouseAgent, taskId);
+
+      // Poll for task completion using the returned task ID
+      response = await pollFutureHouseTask(taskCreationResponse.task_id);
     } else {
       // Use traditional PaperQA API
       response = await queryPaperQA(query);

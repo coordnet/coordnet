@@ -1,6 +1,11 @@
 import axios, { AxiosError } from "axios";
 
-import { FutureHouseResponse, PaperQAResponsePair, SemanticScholarPaper } from "../types";
+import {
+  FutureHouseResponse,
+  FutureHouseTaskCreationResponse,
+  PaperQAResponsePair,
+  SemanticScholarPaper,
+} from "../types";
 
 const headers: { [key: string]: string } = {
   Accept: "application/json",
@@ -65,6 +70,24 @@ export const queryFutureHouse = async (
     question,
     agent_name,
   });
+  return response.data;
+};
+
+export const createFutureHouseTask = async (
+  question: string,
+  agent_name: string,
+  task_id: string
+): Promise<FutureHouseTaskCreationResponse> => {
+  const response = await api.post<FutureHouseTaskCreationResponse>("api/tools/futurehouse/", {
+    question,
+    agent_name,
+    task_id,
+  });
+  return response.data;
+};
+
+export const getFutureHouseTaskStatus = async (task_id: string): Promise<FutureHouseResponse> => {
+  const response = await api.get<FutureHouseResponse>(`api/tools/futurehouse/status/${task_id}/`);
   return response.data;
 };
 

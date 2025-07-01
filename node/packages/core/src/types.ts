@@ -36,7 +36,7 @@ export const nodeTypeMap = {
   [NodeType.PaperFinder]: "Paper Finder",
   [NodeType.PaperQA]: "Paper QA",
   [NodeType.PaperQACollection]: "Paper QA Collection",
-  [NodeType.FutureHouse]: "FH API",
+  [NodeType.FutureHouse]: "FutureHouse Agent",
   [NodeType.ExternalData]: "External Data",
 };
 
@@ -315,4 +315,10 @@ export interface FutureHouseResponse {
   total_cost: number | null;
   total_queries: number | null;
   sources?: string[];
+}
+
+export interface FutureHouseTaskCreationResponse {
+  task_id: string;
+  status: string;
+  message: string;
 }
