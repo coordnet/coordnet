@@ -1,7 +1,19 @@
 import * as Y from "yjs";
 
-import { CanvasNode, PaperQAResponse, PaperQAResponsePair, SingleNode, Task } from "../types";
-import { queryPaperQA, queryPaperQACollection } from "./api";
+import {
+  CanvasNode,
+  FutureHouseResponse,
+  PaperQAResponse,
+  PaperQAResponsePair,
+  SingleNode,
+  Task,
+} from "../types";
+import {
+  createFutureHouseTask,
+  getFutureHouseTaskStatus,
+  queryPaperQA,
+  queryPaperQACollection,
+} from "./api";
 import {
   addToSkillCanvas,
   findSourceNode,
@@ -114,6 +126,23 @@ ${bibtexEntries}
  * Executes a PaperQA task by calling the new Django endpoint.
  * For now, it simply puts the server's response in the output node's markdown field.
  */
+const pollFutureHouseTask = async (
+  taskId: string,
+  maxAttempts: number = 150,
+  interval: number = 2000
+): Promise<FutureHouseResponse> => {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const taskStatus = await getFutureHouseTaskStatus(taskId);
+    if (taskStatus.status === "success" || taskStatus.status === "failed") {
+      return taskStatus;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+
+  throw new Error("Task polling timeout - task did not complete within 5 minutes");
+};
+
 export const executePaperQATask = async (
   task: Task,
   query: string,
@@ -125,22 +154,65 @@ export const executePaperQATask = async (
   try {
     setNodesState([task.promptNode.id], nodesMap, "executing");
 
-    const response = await queryPaperQA(query);
+    // Check if FutureHouse agent is specified
+    const futureHouseAgent = task.promptNode.data.futureHouseAgent;
+    let response: FutureHouseResponse | PaperQAResponsePair[];
+
+    if (futureHouseAgent) {
+      // Use FutureHouse API with async task creation
+      const taskId = crypto.randomUUID();
+      const taskCreationResponse = await createFutureHouseTask(query, futureHouseAgent, taskId);
+
+      // Poll for task completion using the returned task ID
+      response = await pollFutureHouseTask(taskCreationResponse.task_id);
+    } else {
+      // Use traditional PaperQA API
+      response = await queryPaperQA(query);
+    }
 
     let markdown = "";
-    try {
-      markdown = paperQAResponseToMd(formatPaperQAResponse(response));
-    } catch (error) {
-      console.error("Error formatting PaperQA response", error);
+
+    if (futureHouseAgent) {
+      // Handle FutureHouse response format
       try {
-        markdown = response[0][1].find((pair: PaperQAResponsePair) => pair[0] === "answer")?.[1];
+        // We know this is a FutureHouseResponse when futureHouseAgent is specified
+        const futureHouseResponse = response as FutureHouseResponse;
+        if (typeof futureHouseResponse === "object" && futureHouseResponse.answer) {
+          markdown = futureHouseResponse.answer;
+          if (futureHouseResponse.sources && futureHouseResponse.sources.length > 0) {
+            markdown += "\n\n## Sources\n";
+            futureHouseResponse.sources.forEach((source: string, index: number) => {
+              markdown += `${index + 1}. ${source}\n`;
+            });
+          }
+        } else {
+          markdown = JSON.stringify(futureHouseResponse, null, 2);
+        }
       } catch (error) {
-        console.error("Error parsing PaperQA response", error);
+        console.error("Error formatting FutureHouse response", error);
         markdown = JSON.stringify(response, null, 2);
+      }
+    } else {
+      // Handle traditional PaperQA response format
+      try {
+        const paperQAResponse = response as PaperQAResponsePair[];
+        markdown = paperQAResponseToMd(formatPaperQAResponse(paperQAResponse));
+      } catch (error) {
+        console.error("Error formatting PaperQA response", error);
+        try {
+          const paperQAResponse = response as PaperQAResponsePair[];
+          markdown = paperQAResponse[0][1].find(
+            (pair: PaperQAResponsePair) => pair[0] === "answer"
+          )?.[1];
+        } catch (error) {
+          console.error("Error parsing PaperQA response", error);
+          markdown = JSON.stringify(response, null, 2);
+        }
       }
     }
 
-    const node: SingleNode = { title: "PaperQA Response: " + query, markdown: markdown };
+    const serviceTitle = futureHouseAgent ? `FutureHouse (${futureHouseAgent})` : "PaperQA";
+    const node: SingleNode = { title: `${serviceTitle} Response: ${query}`, markdown: markdown };
 
     const sourceNode = findSourceNode(task);
 

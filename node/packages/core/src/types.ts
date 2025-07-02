@@ -18,6 +18,7 @@ export enum NodeType {
   PaperFinder = "paper_finder",
   PaperQA = "paper_qa",
   PaperQACollection = "paper_qa_collection",
+  FutureHouse = "future_house",
   ExternalData = "external_data",
 }
 
@@ -33,8 +34,9 @@ export const nodeTypeMap = {
   [NodeType.ResponseMultiple]: "Responses (many nodes)",
   [NodeType.ResponseMarkMap]: "Responses (MarkMap)",
   [NodeType.PaperFinder]: "Paper Finder",
-  [NodeType.PaperQA]: "FH API",
+  [NodeType.PaperQA]: "Paper QA",
   [NodeType.PaperQACollection]: "Paper QA Collection",
+  [NodeType.FutureHouse]: "FutureHouse Agent",
   [NodeType.ExternalData]: "External Data",
 };
 
@@ -63,6 +65,7 @@ export type CanvasNode = XYFlowNode<
     loading?: boolean;
     buddy?: Buddy;
     paperQACollection?: string;
+    futureHouseAgent?: string;
     externalNode?: {
       nodeId: string;
       spaceId: string;
@@ -291,4 +294,31 @@ export interface PaperQAResponse {
     };
   };
   duration: number;
+}
+
+export interface FutureHouseResponse {
+  status: string;
+  query: string;
+  user: string | null;
+  created_at: string;
+  job_name: string;
+  public: boolean;
+  shared_with: string[];
+  build_owner: string;
+  environment_name: string;
+  agent_name: string;
+  task_id: string;
+  answer: string;
+  formatted_answer: string;
+  answer_reasoning: string;
+  has_successful_answer: boolean;
+  total_cost: number | null;
+  total_queries: number | null;
+  sources?: string[];
+}
+
+export interface FutureHouseTaskCreationResponse {
+  task_id: string;
+  status: string;
+  message: string;
 }

@@ -81,7 +81,8 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
       node.data.type !== NodeType.Prompt &&
       node.data.type !== NodeType.PaperFinder &&
       node.data.type !== NodeType.PaperQA &&
-      node.data.type !== NodeType.PaperQACollection
+      node.data.type !== NodeType.PaperQACollection &&
+      node.data.type !== NodeType.FutureHouse
     ) {
       return;
     }
@@ -105,7 +106,7 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
           baseTask.outputNode = canvas.nodes[key];
         } else {
           throw new Error(
-            "Prompt, Paper Finder and PaperQA Nodes must be connected to a Response Node or an External Data Node."
+            "Prompt, Paper Finder, PaperQA, and FutureHouse Nodes must be connected to a Response Node or an External Data Node."
           );
         }
       }
