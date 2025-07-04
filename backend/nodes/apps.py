@@ -6,5 +6,5 @@ class NodesConfig(AppConfig):
     name = "nodes"
 
     def ready(self) -> None:
-        import nodes.signals
-        import nodes.tasks  # noqa: F401
+        import nodes.signals  # noqa: PLC0415
+        import nodes.tasks  # noqa: F401, PLC0415

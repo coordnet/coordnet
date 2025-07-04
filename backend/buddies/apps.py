@@ -6,5 +6,5 @@ class BuddiesConfig(AppConfig):
     name = "buddies"
 
     def ready(self) -> None:
-        import buddies.signals
-        import buddies.tasks  # noqa: F401
+        import buddies.signals  # noqa: PLC0415
+        import buddies.tasks  # noqa: F401, PLC0415
