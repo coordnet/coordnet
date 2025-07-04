@@ -6,4 +6,4 @@ class ProfilesConfig(AppConfig):
     name = "profiles"
 
     def ready(self) -> None:
-        import profiles.signals  # noqa: F401
+        import profiles.signals  # noqa: F401, PLC0415
