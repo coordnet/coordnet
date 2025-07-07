@@ -6,6 +6,7 @@ from openai.types.chat import ChatCompletionMessageParam
 
 import llms.utils
 import utils.tokens
+from llms.models import LLModel
 from utils import models as utils_models
 
 if typing.TYPE_CHECKING:
@@ -33,25 +34,31 @@ class Buddy(utils_models.SoftDeletableBaseModel):
     ) -> typing.Generator[str | None, None, None]:
         """Query the buddy."""
 
-        response = llms.llm.get_openai_client().chat.completions.create(
-            model=self.model,
-            messages=self._get_messages(level, nodes, query),
-            stream=True,
-            timeout=180,
-        )
+        try:
+            llm_model = llms.utils.get_llm_model(self.model)
+        except LLModel.DoesNotExist:
+            # Fallback to default model if the specified model doesn't exist
+            logger.warning(f"Model {self.model} not found, using default model")
+            llm_model = llms.utils.get_default_llm_model()
 
         try:
+            response = llm_model.get_litellm_completion(
+                messages=self._get_messages(level, nodes, query),
+                stream=True,
+                timeout=180,
+            )
+
             for chunk in response:
                 try:
                     if (chunk_content := chunk.choices[0].delta.content) is not None:
                         yield chunk_content
                 except IndexError:
-                    # Chunk choices are empty, for example when an Azure endpoint returns
+                    # Chunk choices are empty, for example when an endpoint returns
                     # content moderation information instead.
                     continue
                 except AttributeError:
                     logger.exception(
-                        "Unexpected format from OpenAI API, skipping chunk...",
+                        "Unexpected format from LLM API, skipping chunk...",
                         exc_info=True,
                     )
                     continue

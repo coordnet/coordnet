@@ -1,12 +1,13 @@
 import typing
 
-import openai
 from django.conf import settings
 from django.core.checks import Error, register
 
+from llms.models import LLModel
 
-@register("OpenAI")
-def check_openai_credentials(app_configs: typing.Any, **kwargs: typing.Any) -> list[Error]:
+
+@register("LLM")
+def check_llm_credentials(app_configs: typing.Any, **kwargs: typing.Any) -> list[Error]:
     errors = []
     if settings.OPENAI_API_KEY is None and (
         settings.AZURE_OPENAI_API_KEY is None or settings.AZURE_OPENAI_ENDPOINT is None
@@ -15,39 +16,54 @@ def check_openai_credentials(app_configs: typing.Any, **kwargs: typing.Any) -> l
             Error(
                 "Either OPENAI_API_KEY or AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT"
                 " need to be provided.",
-                id="OpenAI.E001",
+                id="LLM.E001",
             )
         )
     return errors
 
 
-def get_openai_client() -> openai.OpenAI | openai.AzureOpenAI:
+def get_llm_model(model_identifier: str) -> LLModel:
     """
-    Get an OpenAI client, depending on the settings.
-    We will prefer the Azure OpenAI client if both are set, since we assume that the user prefers
-    to use their own endpoint.
+    Get an LLModel instance by its identifier.
+    If the model is not available, it will return a replacement model if one is configured.
+
+    Args:
+        model_identifier: The identifier of the model to get
+
+    Returns:
+        An LLModel instance that should be used
+
+    Raises:
+        LLModel.DoesNotExist: If the model does not exist or is disabled with no replacement
     """
-    if settings.AZURE_OPENAI_API_KEY and settings.AZURE_OPENAI_ENDPOINT:
-        return openai.AzureOpenAI(
-            api_key=settings.AZURE_OPENAI_API_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_API_VERSION,
-        )
+    try:
+        model = LLModel.objects.get(identifier=model_identifier)
+        model_to_use = model.model_to_use
+        if model_to_use is None:
+            raise LLModel.DoesNotExist(
+                f"Model {model_identifier} is disabled and has no valid replacement"
+            )
+        return model_to_use
+    except LLModel.DoesNotExist:
+        # Try to find a model with the given identifier as a fallback
+        try:
+            return LLModel.objects.get(identifier=model_identifier, disabled=False)
+        except LLModel.DoesNotExist as exc:
+            raise LLModel.DoesNotExist(f"Model {model_identifier} does not exist") from exc
 
-    return openai.OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
 
-
-def get_async_openai_client() -> openai.AsyncOpenAI | openai.AsyncAzureOpenAI:
+def get_default_llm_model() -> LLModel:
     """
-    Get an OpenAI client, depending on the settings.
-    We will prefer the Azure OpenAI client if both are set, since we assume that the user prefers
-    to use their own endpoint.
-    """
-    if settings.AZURE_OPENAI_API_KEY and settings.AZURE_OPENAI_ENDPOINT:
-        return openai.AsyncAzureOpenAI(
-            api_key=settings.AZURE_OPENAI_API_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_API_VERSION,
-        )
+    Get the default LLModel instance.
+    This will be the first available model that is not disabled.
 
-    return openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
+    Returns:
+        An LLModel instance that should be used
+
+    Raises:
+        LLModel.DoesNotExist: If no available models exist
+    """
+    model = LLModel.objects.filter(is_available=True, disabled=False).first()
+    if model is None:
+        raise LLModel.DoesNotExist("No available LLM models found")
+    return model

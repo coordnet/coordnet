@@ -9,6 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 import buddies.models
 import buddies.serializers
 import llms.utils
+from llms.models import LLModel
 
 logger = logging.getLogger(__name__)
 
@@ -58,14 +59,21 @@ class QueryConsumer(AsyncWebsocketConsumer):
             messages = await database_sync_to_async(buddy._get_messages)(level, nodes, message)
 
             try:
-                response = await llms.utils.get_async_openai_client().chat.completions.create(
-                    model=buddy.model,
+                # Get the LLModel instance for the buddy's model
+                llm_model = await database_sync_to_async(llms.utils.get_llm_model)(buddy.model)
+            except LLModel.DoesNotExist:
+                # Fallback to default model if the specified model doesn't exist
+                logger.warning(f"Model {buddy.model} not found, using default model")
+                llm_model = await database_sync_to_async(llms.utils.get_default_llm_model)()
+
+            try:
+                response = await llm_model.get_async_litellm_completion(
                     messages=messages,
                     stream=True,
                     timeout=180,
                 )
             except Exception as e:
-                logger.exception(f"Error while sending messages to OpenAI: {e}")
+                logger.exception(f"Error while sending messages to LLM: {e}")
                 await self.close(code=1011)
                 return
 

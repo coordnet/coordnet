@@ -1098,6 +1098,7 @@ litellm==1.68.0 \
     --hash=sha256:3bca38848b1a5236b11aa6b70afa4393b60880198c939e582273f51a542d4759 \
     --hash=sha256:9fb24643db84dfda339b64bafca505a2eef857477afbc6e98fb56512c24dbbfa
     # via
+    #   -r requirements/base.in
     #   fhaviary
     #   fhlmi
 lxml==5.4.0 \
@@ -2295,9 +2296,9 @@ s3transfer==0.12.0 \
     --hash=sha256:35b314d7d82865756edab59f7baebc6b477189e6ab4c53050e28c1de4d9cce18 \
     --hash=sha256:8ac58bc1989a3fdb7c7f3ee0918a66b160d038a147c7b5db1500930a607e9a1c
     # via boto3
-sentry-sdk[celery,django,openai]==2.25.1 \
-    --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
-    --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
+sentry-sdk[celery,django,openai]==2.32.0 \
+    --hash=sha256:6cf51521b099562d7ce3606da928c473643abe99b00ce4cb5626ea735f4ec345 \
+    --hash=sha256:9016c75d9316b0f6921ac14c8cd4fb938f26002430ac5be9945ab280f78bec6b
     # via -r requirements/base.in
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \

@@ -20,6 +20,7 @@ import users.models
 import utils.managers
 import utils.pagination
 import utils.parsers
+from llms.models import LLModel
 from nodes import filters, models, serializers
 from utils import filters as base_filters
 from utils import views
@@ -470,11 +471,16 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
             # Invert the list to get the oldest messages first.
             return parsed_messages[::-1], saved_attachments
 
-        client = llms.llm.get_openai_client()
+        try:
+            # Use a specific model for method recommendations
+            llm_model = llms.utils.get_llm_model("o3-mini")
+        except LLModel.DoesNotExist:
+            # Fallback to default model if o3-mini doesn't exist
+            llm_model = llms.utils.get_default_llm_model()
+
         parsed_messages, attachments = parse_messages(request.data)
 
-        completion_response = client.chat.completions.create(
-            model="o3-mini",
+        completion_response = llm_model.get_litellm_completion(
             tools=filter(
                 None,
                 [

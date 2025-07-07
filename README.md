@@ -73,6 +73,34 @@ cp .envs/.local/.secrets.example .envs/.local/.secrets
      openssl rsa -in private-key.pem -pubout -out public-key.pem
      ```
 
+### LLM API Keys
+
+The application supports multiple LLM providers through the litellm library. Configure the following environment variables in `.envs/.local/.secrets` based on the providers you want to use:
+
+#### OpenAI
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `OPENAI_BASE_URL` (optional): Custom base URL for OpenAI API
+
+#### Azure OpenAI
+- `AZURE_API_KEY`: Your Azure OpenAI API key
+- `AZURE_API_BASE`: Your Azure OpenAI endpoint URL
+- `AZURE_API_VERSION`: API version (e.g., "2023-05-15")
+
+#### Anthropic
+- `ANTHROPIC_API_KEY`: Your Anthropic API key
+
+#### Google
+- `GEMINI_API_KEY`: Your Google AI API key
+
+#### Cohere
+- `COHERE_API_KEY`: Your Cohere API key
+
+#### Mistral AI
+- `MISTRAL_API_KEY`: Your Mistral AI API key
+
+#### Other Providers
+For other providers supported by litellm, refer to the [litellm documentation](https://docs.litellm.ai/docs/providers) for the required environment variables.
+
 ### Local Development
 
 1. Build the Docker images:

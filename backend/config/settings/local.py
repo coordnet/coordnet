@@ -101,3 +101,7 @@ STORAGES["internal"] = {  # noqa: F405
 EMAIL_SUBJECT_PREFIX = "[coordnet.dev - DEV]"
 CORS_ORIGIN_ALLOW_ALL = True  # TODO: Fix this later
 CORS_ALLOW_HEADERS = ["*"]
+
+# ASGI support through Daphne
+ASGI_APPLICATION = "config.asgi.application"
+INSTALLED_APPS = ["daphne"] + INSTALLED_APPS

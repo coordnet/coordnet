@@ -1,20 +1,22 @@
 import logging
 import typing
 
+import litellm.litellm_core_utils.streaming_handler
+import litellm.types.utils
 import requests
 from adrf.decorators import api_view
+from channels.db import database_sync_to_async
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from openai import AsyncStream
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
 import llms.utils
 from buddies import models, serializers
+from llms.models import LLModel
 from utils import middlewares, views
 
 if typing.TYPE_CHECKING:
@@ -132,8 +134,8 @@ class BuddyModelViewSet(views.BaseModelViewSet):
 
 @extend_schema(
     tags=["Buddies"],
-    summary="OpenAI Proxy",
-    description="Proxy to OpenAI's chat API.",
+    summary="LLM Proxy",
+    description="Proxy to LLM chat API using litellm.",
     request=serializers.OpenAIQuerySerializer,
     responses={200: OpenApiTypes.STR, 400: None, 500: None},
     deprecated=True,
@@ -146,21 +148,56 @@ async def proxy_to_openai(request: "Request") -> StreamingHttpResponse:
     validated_data = serializers.OpenAIQuerySerializer(data=request.data)
     validated_data.is_valid(raise_exception=True)
 
-    response = await llms.utils.get_async_openai_client().chat.completions.create(
-        **validated_data.validated_data
-    )
+    # TODO: Set a default model in settings or use a specific model from the request
+    model_identifier = validated_data.validated_data.get("model", "")
+
+    try:
+        # Get the LLModel instance for the specified model
+        llm_model = await database_sync_to_async(llms.utils.get_llm_model)(model_identifier)
+    except LLModel.DoesNotExist:
+        # Fallback to default model if the specified model doesn't exist
+        logger.warning(f"Model {model_identifier} not found, using default model")
+        llm_model = llms.utils.get_default_llm_model()
+
+    # Remove model from kwargs as it will be provided by the LLModel instance
+    kwargs = validated_data.validated_data.copy()
+    if "model" in kwargs:
+        del kwargs["model"]
+
+    response = await llm_model.get_async_litellm_completion(**kwargs)
 
     async def generate(
-        resp: ChatCompletion | AsyncStream[ChatCompletionChunk],
+        resp: (
+            litellm.types.utils.ModelResponse
+            | litellm.litellm_core_utils.streaming_handler.CustomStreamWrapper
+        ),
     ) -> typing.AsyncGenerator[str, None]:
-        if isinstance(resp, ChatCompletion):
+        if isinstance(resp, litellm.types.utils.ModelResponse):
             yield resp.model_dump_json()
             return
 
-        async for chunk in resp:
-            data = chunk.model_dump_json(exclude_unset=True)
-            yield f"data: {data}\n\n"
-        yield "data: [DONE]\n\n"
+        try:
+            async for chunk in resp:
+                data = chunk.model_dump_json(exclude_unset=True)
+                yield f"data: {data}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            logger.exception(f"Error while streaming response: {e}", exc_info=True)
+            # Try to recover if possible
+            try:
+                await resp.response.aread()
+                async for chunk in resp:
+                    try:
+                        data = chunk.model_dump_json(exclude_unset=True)
+                        yield f"data: {data}\n\n"
+                    except (AttributeError, IndexError, KeyError) as e:
+                        logger.exception(f"Error processing chunk in recovery: {e}", exc_info=True)
+                        continue
+                yield "data: [DONE]\n\n"
+            except Exception as e:
+                logger.exception(f"Failed to recover streaming: {e}", exc_info=True)
+                yield f'data: {{"error": "Streaming failed: {str(e)}"}}\n\n'
+                yield "data: [DONE]\n\n"
 
     return StreamingHttpResponse(
         generate(response), content_type="text/event-stream", charset="utf-8"
