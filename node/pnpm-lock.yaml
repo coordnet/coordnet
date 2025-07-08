@@ -30,8 +30,8 @@ importers:
         specifier: ^2.15.2
         version: 2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
       '@hocuspocus/server':
-        specifier: ^2.15.2
-        version: 2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
+        specifier: ^3.1.10
+        version: 3.1.10(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
       '@hocuspocus/transformer':
         specifier: ^2.15.2
         version: 2.15.2(@tiptap/core@2.22.3(@tiptap/pm@2.22.3))(@tiptap/pm@2.22.3)(y-prosemirror@1.3.6(prosemirror-model@1.25.1)(prosemirror-state@1.4.3)(prosemirror-view@1.40.0)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(yjs@13.6.27)
@@ -399,7 +399,7 @@ importers:
         version: 2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
       '@instructor-ai/instructor':
         specifier: ^1.7.0
-        version: 1.7.0(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67)
+        version: 1.7.0(openai@5.6.0(ws@8.18.3)(zod@3.25.67))(zod@3.25.67)
       '@tiptap/core':
         specifier: ^2.22.3
         version: 2.22.3(@tiptap/pm@2.22.3)
@@ -444,7 +444,7 @@ importers:
         version: 0.18.12(markmap-common@0.18.9)
       openai:
         specifier: ^5.6.0
-        version: 5.6.0(ws@8.18.2)(zod@3.25.67)
+        version: 5.6.0(ws@8.18.3)(zod@3.25.67)
       prosemirror-model:
         specifier: 1.25.1
         version: 1.25.1
@@ -574,6 +574,10 @@ packages:
 
   '@babel/runtime@7.27.3':
     resolution: {integrity: sha512-7EYtGezsdiDMyY80+65EzwiGmcJqpmcZCojSXaRgdrBaGtWTgDZKq69cPIVped6MkIM78cTQ2GOiEYjwOlG4xw==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.27.6':
+    resolution: {integrity: sha512-vbavdySgbTTrmFE+EsiqUTzlOr5bzlnJtUv9PynGCAKvfQqjIXbvFdumPM/GxMDfyuGMJaJAU6TO4zc1Jf1i8Q==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
@@ -822,14 +826,17 @@ packages:
   '@hocuspocus/common@2.15.2':
     resolution: {integrity: sha512-wU1wxXNnQQMXyeL3mdSDYiQsm/r/QyJVjjQhF7sUBrLnjdsN7bA1cvfcSvJBr1ymrMSeYRmUL3UlQmEHEOaP7w==}
 
+  '@hocuspocus/common@3.1.10':
+    resolution: {integrity: sha512-ZXl4xnipa/KJI54i43U7dJpFMJXN+R1GQvB2daGQOArJnSgXwnT2qP6JQyqf+FaB82noC/tPe4QrE0pok4x+8g==}
+
   '@hocuspocus/provider@2.15.2':
     resolution: {integrity: sha512-mdBurviyaUd7bQx4vMIE39WqRJDTpfFelHOVXr7w/jA8G1E7K7lxQ9/DacSrbg+9o8s+1z1+SerZiUjaToaBJg==}
     peerDependencies:
       y-protocols: ^1.0.6
       yjs: ^13.6.8
 
-  '@hocuspocus/server@2.15.2':
-    resolution: {integrity: sha512-+fLRVswg+bkgfHqJ+wFgywivw3H08WMOtVvJF7dJzWT2ZR/Sc3nDMFh2KqMF6Ygh4z6mt23xr7SKIm3eP1zoLA==}
+  '@hocuspocus/server@3.1.10':
+    resolution: {integrity: sha512-q1iIAt47vAFAwtR2AEEG+Zpjb+dQoNgcZGnIr/M/Fz60pBotXai9dgoNYDTQOlfuw7qZm6FlFnGmCZTapzlQjw==}
     peerDependencies:
       y-protocols: ^1.0.6
       yjs: ^13.6.8
@@ -5114,6 +5121,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xss@1.0.15:
     resolution: {integrity: sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==}
     engines: {node: '>= 0.10.0'}
@@ -5353,6 +5372,8 @@ snapshots:
 
   '@babel/runtime@7.27.3': {}
 
+  '@babel/runtime@7.27.6': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -5550,11 +5571,15 @@ snapshots:
 
   '@gera2ld/jsx-dom@2.2.2':
     dependencies:
-      '@babel/runtime': 7.27.3
+      '@babel/runtime': 7.27.6
 
   '@hocuspocus/common@2.15.2':
     dependencies:
       lib0: 0.2.108
+
+  '@hocuspocus/common@3.1.10':
+    dependencies:
+      lib0: 0.2.109
 
   '@hocuspocus/provider@2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)':
     dependencies:
@@ -5568,14 +5593,14 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@hocuspocus/server@2.15.2(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)':
+  '@hocuspocus/server@3.1.10(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)':
     dependencies:
-      '@hocuspocus/common': 2.15.2
+      '@hocuspocus/common': 3.1.10
       async-lock: 1.4.1
       kleur: 4.1.5
-      lib0: 0.2.108
+      lib0: 0.2.109
       uuid: 11.1.0
-      ws: 8.18.2
+      ws: 8.18.3
       y-protocols: 1.0.6(yjs@13.6.27)
       yjs: 13.6.27
     transitivePeerDependencies:
@@ -5683,11 +5708,11 @@ snapshots:
   '@img/sharp-win32-x64@0.33.5':
     optional: true
 
-  '@instructor-ai/instructor@1.7.0(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67)':
+  '@instructor-ai/instructor@1.7.0(openai@5.6.0(ws@8.18.3)(zod@3.25.67))(zod@3.25.67)':
     dependencies:
-      openai: 5.6.0(ws@8.18.2)(zod@3.25.67)
+      openai: 5.6.0(ws@8.18.3)(zod@3.25.67)
       zod: 3.25.67
-      zod-stream: 3.0.0(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67)
+      zod-stream: 3.0.0(openai@5.6.0(ws@8.18.3)(zod@3.25.67))(zod@3.25.67)
       zod-validation-error: 3.4.1(zod@3.25.67)
 
   '@ioredis/commands@1.2.0': {}
@@ -8802,7 +8827,7 @@ snapshots:
 
   markmap-common@0.18.9:
     dependencies:
-      '@babel/runtime': 7.27.3
+      '@babel/runtime': 7.27.6
       '@gera2ld/jsx-dom': 2.2.2
       npm2url: 0.2.4
 
@@ -8993,9 +9018,9 @@ snapshots:
     dependencies:
       fn.name: 1.1.0
 
-  openai@5.6.0(ws@8.18.2)(zod@3.25.67):
+  openai@5.6.0(ws@8.18.3)(zod@3.25.67):
     optionalDependencies:
-      ws: 8.18.2
+      ws: 8.18.3
       zod: 3.25.67
 
   optionator@0.9.4:
@@ -10240,6 +10265,8 @@ snapshots:
 
   ws@8.18.2: {}
 
+  ws@8.18.3: {}
+
   xss@1.0.15:
     dependencies:
       commander: 2.20.3
@@ -10276,9 +10303,9 @@ snapshots:
       css-what: 6.1.0
       entities: 5.0.0
 
-  zod-stream@3.0.0(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67):
+  zod-stream@3.0.0(openai@5.6.0(ws@8.18.3)(zod@3.25.67))(zod@3.25.67):
     dependencies:
-      openai: 5.6.0(ws@8.18.2)(zod@3.25.67)
+      openai: 5.6.0(ws@8.18.3)(zod@3.25.67)
       schema-stream: 3.2.2(zod@3.25.67)
       zod: 3.25.67
       zod-to-json-schema: 3.24.5(zod@3.25.67)

@@ -10,7 +10,7 @@
   "dependencies": {
     "@coordnet/core": "workspace:*",
     "@hocuspocus/provider": "^2.15.2",
-    "@hocuspocus/server": "^2.15.2",
+    "@hocuspocus/server": "^3.1.10",
     "@hocuspocus/transformer": "^2.15.2",
     "@prd-thanhnguyenhoang/celery.node": "^1.0.56",
     "@sentry/node": "^9.30.0",
