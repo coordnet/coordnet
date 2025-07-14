@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+import buddies.tests.factories as buddies_factories
 import permissions.tests.factories as permission_factories
 import permissions.utils
 from nodes.tests import factories
@@ -11,11 +12,27 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
         response = self.owner_client.get(reverse("nodes:methods-list"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
-        factories.MethodNodeFactory.create_batch(10, creator=self.owner_user, owner=self.owner_user)
+
+        buddy = buddies_factories.BuddyFactory.create()
+        factories.MethodNodeFactory.create_batch(
+            5, creator=self.owner_user, owner=self.owner_user, buddy=buddy
+        )
+        factories.MethodNodeFactory.create_batch(5, creator=self.owner_user, owner=self.owner_user)
+
+        # Create methods with forked_from
+        for _ in range(3):
+            original_method = factories.MethodNodeFactory.create(
+                creator=self.owner_user, owner=self.owner_user
+            )
+            original_version = factories.MethodNodeVersionFactory.create(method=original_method)
+            factories.MethodNodeFactory.create(
+                creator=self.owner_user, owner=self.owner_user, forked_from=original_version
+            )
+
         with self.assertNumQueries(3):
             response = self.owner_client.get(reverse("nodes:methods-list"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 10)
+        self.assertEqual(response.data["count"], 16)
 
     def test_retrieve(self) -> None:
         node = factories.MethodNodeFactory.create(creator=self.owner_user, owner=self.owner_user)
@@ -130,3 +147,32 @@ class MethodNodesViewTestCase(BaseTransactionTestCase):
             {"space": str(space.public_id), "authors": [str(self.owner_user.profile.public_id)]},
         )
         self.assertEqual(response.status_code, 201, response.data)
+
+    def test_forked_from(self) -> None:
+        """Test that forked_from can be set and retrieved correctly."""
+        original_method = factories.MethodNodeFactory.create(
+            creator=self.owner_user, owner=self.owner_user
+        )
+        original_version = factories.MethodNodeVersionFactory.create(method=original_method)
+        space = factories.SpaceFactory.create(owner=self.owner_user)
+
+        response = self.owner_client.post(
+            reverse("nodes:methods-list"),
+            {
+                "space": str(space.public_id),
+                "forked_from": str(original_version.public_id),
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        forked_method_id = response.data["id"]
+
+        # Retrieve and verify forked_from field
+        with self.assertNumQueries(2):
+            response = self.owner_client.get(
+                reverse("nodes:methods-detail", args=[forked_method_id])
+            )
+
+        self.assertEqual(response.status_code, 200)
+        forked_from = response.data["forked_from"]
+        self.assertEqual(forked_from["id"], str(original_version.public_id))
+        self.assertEqual(forked_from["method_id"], str(original_method.public_id))
