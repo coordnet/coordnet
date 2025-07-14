@@ -7,4 +7,4 @@ class ApiConfig(AppConfig):
 
     def ready(self) -> None:
         # Import the storage_checks module to register the storage configuration check
-        import utils.storage_checks  # noqa: F401
+        import utils.storage_checks  # noqa: F401, PLC0415

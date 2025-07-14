@@ -9,6 +9,8 @@ Both classes inherit from django-storages S3Storage and point to the same bucket
 but with different endpoint configurations.
 """
 
+import re
+
 from django.core.files.storage import InvalidStorageError, storages
 from storages.backends.s3 import S3Storage
 
@@ -44,8 +46,6 @@ class InternalS3Storage(S3Storage):
         if "endpoint_url" in settings and settings["endpoint_url"]:
             # If we have a custom endpoint URL, use it but replace any localhost/127.0.0.1
             # with 'minio' for internal access
-            import re
-
             self.endpoint_url = re.sub(
                 r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
                 "http://minio:9000",

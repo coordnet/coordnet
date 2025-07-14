@@ -6,4 +6,4 @@ class ToolsConfig(AppConfig):
     name = "tools"
 
     def ready(self):
-        import tools.signals  # noqa: F401
+        import tools.signals  # noqa: F401, PLC0415

@@ -8,6 +8,6 @@ class UsersConfig(AppConfig):
 
     def ready(self) -> None:
         try:
-            import users.signals  # noqa: F401
+            import users.signals  # noqa: F401, PLC0415
         except ImportError:
             pass
