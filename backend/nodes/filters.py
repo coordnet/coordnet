@@ -9,6 +9,7 @@ from rest_framework import request, views
 import utils.filters
 from nodes import models
 from permissions.models import READ
+from utils.parsers import is_truthy
 
 if typing.TYPE_CHECKING:
     import users.models
@@ -189,20 +190,49 @@ class MethodNodeRunPermissionFilterBackend(DRYPermissionFiltersBase):
     def filter_list_queryset(
         self, request: request.Request, queryset: QuerySet, view: views.APIView
     ) -> "QuerySet[models.MethodNodeRun]":
-        """Only return nodes that the user has access to."""
+        """Return runs that the user has access to."""
         if not request.user or not request.user.is_authenticated:
             return queryset.none()
 
-        return queryset.filter(user=request.user).distinct()
+        # Default behavior: return all runs the user has access to
+        return queryset.filter(
+            models.MethodNodeRun.get_user_has_permission_filter(action="read", user=request.user)
+        ).distinct()
 
 
 class MethodNodeRunFilterSet(filters.FilterSet):
     space = utils.filters.UUIDModelChoiceFilter(queryset=get_space_queryset)
     method = utils.filters.UUIDModelChoiceFilter(queryset=get_method_queryset)
+    own_runs = filters.BooleanFilter(method="filter_own_runs")
+    is_public = filters.BooleanFilter(method="filter_is_public")
 
     class Meta:
         model = models.MethodNodeRun
-        fields = ["space", "method"]
+        fields = ["space", "method", "own_runs", "is_public"]
+
+    def filter_own_runs(
+        self, queryset: QuerySet[models.MethodNodeRun], name: str, value: bool
+    ) -> QuerySet[models.MethodNodeRun]:
+        """Filter to show only the current user's runs when requested."""
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none()
+
+        if is_truthy(value):
+            # Explicitly filter for user's own runs
+            return queryset.filter(user=user)
+        else:
+            # When own_runs=false, return runs where the user isn't the owner
+            return queryset.exclude(user=user)
+
+    def filter_is_public(
+        self, queryset: QuerySet[models.MethodNodeRun], name: str, value: bool
+    ) -> QuerySet[models.MethodNodeRun]:
+        """Filter to show only public or non-public runs."""
+        if is_truthy(value):
+            return queryset.filter(is_public=True)
+        else:
+            return queryset.filter(is_public=False)
 
 
 class MethodNodeVersionPermissionFilterBackend(DRYPermissionFiltersBase):

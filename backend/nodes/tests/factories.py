@@ -5,6 +5,7 @@ from factory.django import DjangoModelFactory
 
 import buddies.tests.factories as buddies_factories
 from nodes import models
+from permissions import utils
 from permissions.tests.factories import BaseMembershipModelMixinFactory
 
 
@@ -111,7 +112,7 @@ class MethodNodeVersionFactory(DjangoModelFactory):
         model = "nodes.MethodNodeVersion"
 
 
-class MethodNodeRunFactory(DjangoModelFactory):
+class MethodNodeRunFactory(BaseMembershipModelMixinFactory):
     method = factory.SubFactory(MethodeNodeFactory)
     method_version = factory.SubFactory(MethodNodeVersionFactory)
     user = factory.SubFactory("users.tests.factories.UserFactory")
@@ -121,3 +122,17 @@ class MethodNodeRunFactory(DjangoModelFactory):
 
     class Meta:
         model = "nodes.MethodNodeRun"
+
+    @factory.post_generation
+    def post_create(self, create: bool, extracted: typing.Any, **kwargs: typing.Any) -> None:
+        """
+        Set the user as the owner if no owner was explicitly provided.
+        This ensures backward compatibility with existing tests.
+        """
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        # If no owner was explicitly provided, use the user field as the owner
+        if not self.members.filter(role__role="owner").exists():
+            self.members.create(user=self.user, role=utils.get_owner_role())
