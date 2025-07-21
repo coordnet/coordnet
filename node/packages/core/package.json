@@ -7,7 +7,7 @@
     "./skills": "./src/skills/index.ts"
   },
   "dependencies": {
-    "@hocuspocus/provider": "^2.15.2",
+    "@hocuspocus/provider": "^3.2.1",
     "@instructor-ai/instructor": "^1.7.0",
     "@tiptap/core": "^2.22.3",
     "@tiptap/extension-link": "^2.22.3",
