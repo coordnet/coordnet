@@ -40,7 +40,7 @@
     "@tiptap/react": "^2.22.3",
     "@tiptap/starter-kit": "^2.22.3",
     "@xyflow/react": "^12.7.1",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "axios-jwt": "^4.0.3",
     "blockies-ts": "^1.0.0",
     "class-variance-authority": "^0.7.1",
