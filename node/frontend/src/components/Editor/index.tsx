@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { EditorContent, useEditor as useEditorTipTap } from "@tiptap/react";
 import * as blockies from "blockies-ts";
 import clsx from "clsx";
-import ColorThief from "colorthief";
 import { History, Search, Table, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Tooltip } from "react-tooltip";
@@ -13,7 +12,6 @@ import { getNodeVersions } from "@/api";
 import { EditableNode, Loader } from "@/components";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useCanvas, useFocus, useUser, useYDoc } from "@/hooks";
-import { rgbToHex } from "@/lib/utils";
 import { BackendEntityType, YDocScope } from "@/types";
 
 import ErrorPage from "../ErrorPage";
@@ -21,8 +19,6 @@ import { Button } from "../ui/button";
 import { loadExtensions } from "./extensions";
 import { MenuBar } from "./MenuBar";
 import Versions from "./Versions";
-
-const colorThief = new ColorThief();
 
 type EditorProps = { id: string; className?: string };
 
@@ -77,12 +73,7 @@ const Editor = ({ id, className }: EditorProps) => {
       const img = document.createElement("img");
       img.src = image;
       img.addEventListener("load", function () {
-        const [r, g, b] = colorThief.getColor(img);
-        editor.commands.updateUser({
-          displayName: user?.name || user?.email,
-          image: image,
-          color: rgbToHex(r, g, b),
-        });
+        editor.commands.updateUser({ name: user?.name || user?.email });
       });
     }
   }, [user, editor]);

@@ -1,4 +1,4 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import * as Y from "yjs";
@@ -98,29 +98,20 @@ export const metaKey = (shortcut: string | number) => {
   }
 };
 
-export const rgbToHex = (r: number, g: number, b: number): string => {
-  return (
-    "#" +
-    [r, g, b]
-      .map((x) => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-      })
-      .join("")
-  );
-};
-
 export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, HocuspocusProvider]> => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return new Promise((resolve, reject) => {
     const doc = new Y.Doc();
-    const provider = new HocuspocusProvider({
+    const websocketProvider = new HocuspocusProviderWebsocket({
       url: crdtUrl,
+      messageReconnectTimeout: 300000,
+    });
+    const provider = new HocuspocusProvider({
       name,
+      websocketProvider,
       document: doc,
       token: getToken,
-      preserveConnection: false,
     });
+    provider.attach();
 
     let isConnected = false;
     let isSynced = false;
@@ -131,11 +122,9 @@ export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, Hocuspo
       }
     };
 
-    const onStatus = (event: { status: string }) => {
-      if (event.status === "connected") {
-        isConnected = true;
-        checkReady();
-      }
+    const onConnect = () => {
+      isConnected = true;
+      checkReady();
     };
 
     const onSynced = () => {
@@ -145,10 +134,10 @@ export const createConnectedYDoc = async (name: string): Promise<[Y.Doc, Hocuspo
       }
     };
 
-    provider.on("status", onStatus);
+    provider.on("connect", onConnect);
     provider.on("synced", onSynced);
     provider.on("authenticationFailed", (error: unknown) => {
-      provider.off("status", onStatus);
+      provider.off("connect", onConnect);
       provider.off("synced", onSynced);
       reject(error);
     });

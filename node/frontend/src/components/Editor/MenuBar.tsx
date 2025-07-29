@@ -1,7 +1,5 @@
-import "tippy.js/dist/tippy.css";
-import "tippy.js/themes/light-border.css";
-
-import { BubbleMenu, Editor, isTextSelection } from "@tiptap/react";
+import { Editor, isTextSelection } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import {
   BetweenHorizonalEnd,
   BetweenHorizonalStart,
@@ -63,12 +61,8 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
   return (
     <BubbleMenu
       editor={editor}
-      tippyOptions={{
-        duration: 100,
-        theme: "light-border",
-        maxWidth: 1000,
-      }}
-      className="flex flex-col gap-2"
+      className="flex max-w-[1000px] flex-col gap-2 rounded-md border border-gray-200 bg-white p-2
+        px-3 shadow-md"
       shouldShow={({ view, state, from, to }) => {
         const { doc, selection } = state;
         const { empty } = selection;
@@ -89,13 +83,13 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
     >
       {/* Text Formatting buttons */}
       <div className="flex gap-3">
-        <button onClick={() => editor.chain().focus().toggleBold().run()}>
+        <button onClick={() => editor.chain().focus().toggleMark("bold").run()}>
           <Bold className="size-4" strokeWidth={editor.isActive("bold") ? 3 : 2.5} />
         </button>
-        <button onClick={() => editor.chain().focus().toggleItalic().run()}>
+        <button onClick={() => editor.chain().focus().toggleMark("italic").run()}>
           <Italic className="size-4" strokeWidth={editor.isActive("italic") ? 3 : 2.5} />
         </button>
-        <button onClick={() => editor.chain().focus().toggleStrike().run()}>
+        <button onClick={() => editor.chain().focus().toggleMark("strike").run()}>
           <Strikethrough className="size-4" strokeWidth={editor.isActive("strike") ? 3 : 2.5} />
         </button>
 
@@ -111,16 +105,16 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
 
         <div className="px-1 text-slate-400">|</div>
 
-        <button onClick={() => editor?.chain().focus().setParagraph().run()}>
+        <button onClick={() => editor?.chain().focus().setNode("paragraph").run()}>
           <RemoveFormatting className="size-4" />
         </button>
-        <button onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}>
+        <button onClick={() => editor?.chain().focus().setNode("heading", { level: 1 }).run()}>
           <Heading1 className="size-4" />
         </button>
-        <button onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>
+        <button onClick={() => editor?.chain().focus().setNode("heading", { level: 2 }).run()}>
           <Heading2 className="size-4" />
         </button>
-        <button onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>
+        <button onClick={() => editor?.chain().focus().setNode("heading", { level: 3 }).run()}>
           <Heading3 className="size-4" />
         </button>
         <button onClick={() => editor?.chain().focus().toggleBulletList().run()}>

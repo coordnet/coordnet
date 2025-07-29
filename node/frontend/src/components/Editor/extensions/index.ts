@@ -1,16 +1,13 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import Link from "@tiptap/extension-link";
-import Table from "@tiptap/extension-table";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import { Extensions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
 
 import { BulletList } from "./BulletList";
-import { CollaborationCursor } from "./CollaborationCursor";
 import { ListItem } from "./ListItem";
 import { Node } from "./Node";
 
@@ -24,13 +21,15 @@ export const loadExtensions = (
 
   // Register collaboration if set
   if (ydoc) {
-    extensions.push(StarterKit.configure({ history: false, bulletList: false, listItem: false }));
+    extensions.push(
+      StarterKit.configure({ undoRedo: false, bulletList: false, listItem: false, link: false })
+    );
     extensions.push(Collaboration.configure({ document: ydoc, field }));
-    if (!readOnly && provider) extensions.push(CollaborationCursor.configure({ provider }));
+    if (!readOnly && provider) extensions.push(CollaborationCaret.configure({ provider }));
 
     // Otherwise just add starter kit
   } else {
-    extensions.push(StarterKit.configure({ bulletList: false, listItem: false }));
+    extensions.push(StarterKit.configure({ bulletList: false, listItem: false, link: false }));
   }
 
   extensions.push(Node);

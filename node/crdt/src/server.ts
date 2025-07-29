@@ -2,11 +2,10 @@ import "./instrument";
 
 import { editorExtensions, logMemoryUsage } from "@coordnet/core";
 import {
+  Hocuspocus,
   onAuthenticatePayload,
-  onConnectPayload,
   onLoadDocumentPayload,
   onStoreDocumentPayload,
-  Server,
 } from "@hocuspocus/server";
 import { TiptapTransformer } from "@hocuspocus/transformer";
 import * as Y from "yjs";
@@ -30,12 +29,9 @@ setInterval(() => {
   console.log(`Active connections: ${server.getConnectionsCount()}`);
 }, 30000);
 
-export const server = Server.configure({
+export const server = new Hocuspocus({
   name: "coordnet-crdt",
   ...hocuspocusSettings,
-  async onConnect({ connection }: onConnectPayload) {
-    connection.requiresAuthentication = true;
-  },
   async onAuthenticate(data: onAuthenticatePayload) {
     const { documentName, token } = data;
     console.log("Authenticating for document", documentName);
@@ -71,7 +67,7 @@ export const server = Server.configure({
       // Otherwise check if the user has write access
       const response = await request.json();
       if (!response.allowed_actions.includes("write")) {
-        data.connection.readOnly = true;
+        data.connectionConfig.readOnly = true;
       }
     } else {
       console.log("Invalid document type", documentType);
