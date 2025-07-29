@@ -7,6 +7,7 @@ import { z } from "zod";
 export enum NodeType {
   Default = "default",
   Loop = "loop",
+  LoopTableRows = "loop_table_rows",
   Input = "input",
   Output = "output",
   Prompt = "prompt",
@@ -24,6 +25,7 @@ export enum NodeType {
 export const nodeTypeMap = {
   [NodeType.Default]: "Default",
   [NodeType.Loop]: "Loop",
+  [NodeType.LoopTableRows]: "Loop (table rows)",
   [NodeType.Input]: "Input",
   [NodeType.Output]: "Output",
   [NodeType.Prompt]: "Prompt",
@@ -69,6 +71,7 @@ export type CanvasNode = XYFlowNode<
       depth: number;
     };
     sourceNode?: SourceNode;
+    tableRowData?: Record<string, string>;
   },
   "GraphNode" | "ExternalNode"
 >;

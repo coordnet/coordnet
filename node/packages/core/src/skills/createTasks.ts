@@ -129,6 +129,21 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
       return itemsInsideLoop; // Return all items found inside this loop connection
     };
 
+    // Function to handle nodes connected through a LoopTableRows node
+    const handleLoopTableRowsNode = (loopNode: CanvasNode): CanvasNode[] => {
+      const itemsInsideLoop =
+        canvas.adjacencyList[loopNode.id]
+          ?.map((loopTargetNodeId) => canvas.nodes[loopTargetNodeId])
+          .filter(isInputNode) ?? []; // Get valid input nodes connected to the LoopTableRows node
+
+      // For table row loops, we always require looping if there are connected nodes
+      if (itemsInsideLoop.length > 0) {
+        requiresLooping = true;
+      }
+
+      return itemsInsideLoop;
+    };
+
     // Iterate over nodes connected directly to the Prompt/PaperFinder/PaperQA node
     canvas.adjacencyList[node.id]?.forEach((targetNodeId) => {
       const targetNode = canvas.nodes[targetNodeId];
@@ -137,6 +152,12 @@ export const createTasks = (canvas: Canvas, context: ExecutionContext) => {
       if (targetNode.data?.type === NodeType.Loop) {
         // If it's a loop node, process its connections
         const itemsFromThisLoop = handleLoopNode(targetNode);
+        if (itemsFromThisLoop.length > 0) {
+          loopItemsCollector.push(itemsFromThisLoop);
+        }
+      } else if (targetNode.data?.type === NodeType.LoopTableRows) {
+        // If it's a table rows loop node, process its connections
+        const itemsFromThisLoop = handleLoopTableRowsNode(targetNode);
         if (itemsFromThisLoop.length > 0) {
           loopItemsCollector.push(itemsFromThisLoop);
         }

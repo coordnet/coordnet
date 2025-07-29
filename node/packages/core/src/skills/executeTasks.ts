@@ -28,6 +28,7 @@ import { executeTableTask } from "./tables";
 import { nodeTemplate, promptTemplate } from "./templates";
 import {
   addToSkillCanvas,
+  extractTablesFromNode,
   findSourceNode,
   getSkillNodeCanvas,
   isCancelled,
@@ -95,34 +96,82 @@ export const processTasks = async (
         (node) => !isResponseNode(node) && node.data.type !== NodeType.ExternalData
       );
 
-      for (const inputNode of task.inputNodes) {
-        // If it is a normal response node then add the canvas nodes to the input nodes
-        if (isResponseNode(inputNode)) {
-          const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
-          for (const responseNode of inputNodeNodes) {
-            if (isCancelled(skillDoc)) break;
+      // Check if this task involves table row loops
+      const edgesArray = Array.from(edgesMap.values());
+      const isTableRowLoop = edgesArray.some((edge) => {
+        const sourceNode = nodesMap.get(edge.source);
+        const targetNode = nodesMap.get(edge.target);
+        return (
+          sourceNode?.data?.type === NodeType.LoopTableRows && targetNode?.id === task.promptNode.id
+        );
+      });
 
-            // Preserve source node information if it exists
-            const sourceNodeInfo =
-              responseNode.data?.sourceNode ||
-              (inputNode.data.type === NodeType.ExternalData
-                ? {
-                    id: inputNode.id,
-                    spaceId: inputNode.data?.externalNode?.spaceId,
-                    nodeId: inputNode.data?.externalNode?.nodeId,
-                  }
-                : undefined);
+      if (isTableRowLoop) {
+        // Handle table row loop processing
+        for (const inputNode of task.inputNodes) {
+          if (isCancelled(skillDoc)) break;
 
-            // Add the other input nodes and the response node canvas nodes to the input nodes
-            tasks.push({ ...task, inputNodes: [...otherNodes, responseNode], sourceNodeInfo });
+          // Extract table rows from the input node
+          const tableRows = await extractTablesFromNode(inputNode.id, skillDoc);
+
+          if (tableRows.length > 0) {
+            // Create a task for each table row
+            for (const rowData of tableRows) {
+              if (isCancelled(skillDoc)) break;
+
+              // Create a virtual node containing the row data
+              const rowNode: CanvasNode = {
+                id: `${inputNode.id}_row_${rowData._rowIndex}`,
+                type: "GraphNode",
+                position: { x: 0, y: 0 },
+                data: {
+                  type: NodeType.Default,
+                  tableRowData: rowData, // Store the row data for prompt generation
+                },
+              };
+
+              tasks.push({
+                ...task,
+                inputNodes: [...otherNodes, rowNode],
+                sourceNodeInfo: {
+                  id: inputNode.id,
+                  nodeId: inputNode.id,
+                },
+              });
+            }
+          }
+        }
+      } else {
+        // Handle regular loop processing
+        for (const inputNode of task.inputNodes) {
+          // If it is a normal response node then add the canvas nodes to the input nodes
+          if (isResponseNode(inputNode)) {
+            const { nodes: inputNodeNodes } = getSkillNodeCanvas(inputNode.id, skillDoc);
+            for (const responseNode of inputNodeNodes) {
+              if (isCancelled(skillDoc)) break;
+
+              // Preserve source node information if it exists
+              const sourceNodeInfo =
+                responseNode.data?.sourceNode ||
+                (inputNode.data.type === NodeType.ExternalData
+                  ? {
+                      id: inputNode.id,
+                      spaceId: inputNode.data?.externalNode?.spaceId,
+                      nodeId: inputNode.data?.externalNode?.nodeId,
+                    }
+                  : undefined);
+
+              // Add the other input nodes and the response node canvas nodes to the input nodes
+              tasks.push({ ...task, inputNodes: [...otherNodes, responseNode], sourceNodeInfo });
+            }
+
+            // If it is an external data node then add the space's canvas nodes to the input nodes
+          } else if (inputNode.data.type === NodeType.ExternalData) {
+            await addExternalDataNodes(task, tasks, inputNode, context, spaceMap);
           }
 
-          // If it is an external data node then add the space's canvas nodes to the input nodes
-        } else if (inputNode.data.type === NodeType.ExternalData) {
-          await addExternalDataNodes(task, tasks, inputNode, context, spaceMap);
+          if (isCancelled(skillDoc)) break;
         }
-
-        if (isCancelled(skillDoc)) break;
       }
     }
 
@@ -327,6 +376,20 @@ export const generatePrompt = async (
         );
         nodes.push(nodeTemplate({ title, content }));
       }
+    } else if (canvasNode.data.tableRowData) {
+      // Handle table row data - convert to formatted string
+      const rowData = canvasNode.data.tableRowData;
+      const formattedContent = Object.entries(rowData)
+        .filter(([key]) => key !== "_rowIndex")
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n");
+
+      nodes.push(
+        nodeTemplate({
+          title: `Table Row ${rowData._rowIndex}`,
+          content: formattedContent,
+        })
+      );
     } else {
       nodes.push(nodeTemplate(getNode(canvasNode.id)));
     }
