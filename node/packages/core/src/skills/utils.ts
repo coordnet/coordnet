@@ -1,11 +1,7 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { getSchema, JSONContent } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
-import Table from "@tiptap/extension-table";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
-import { generateJSON } from "@tiptap/html";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import StarterKit from "@tiptap/starter-kit";
 import { Edge } from "@xyflow/react";
 import { marked } from "marked";
@@ -14,6 +10,7 @@ import xss from "xss";
 import { prosemirrorJSONToYXmlFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 
+import { generateJSON } from "../generateJSON";
 import {
   Canvas,
   CanvasEdge,
@@ -32,7 +29,14 @@ import { getNode } from "./api";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const hocuspocusUrl = (globalThis as any).process?.env?.HOCUSPOCUS_INTERNAL_URL ?? "";
 
-export const editorExtensions = [StarterKit, Table, TableRow, TableHeader, TableCell, Link];
+export const editorExtensions = [
+  Link,
+  StarterKit.configure({ link: false }),
+  Table,
+  TableRow,
+  TableHeader,
+  TableCell,
+];
 export const editorSchema: Schema = getSchema(editorExtensions);
 
 export const setNodesState = async (
@@ -185,7 +189,7 @@ export const setSkillNodePageContent = async (
 export const setSkillNodePageMarkdown = async (markdown: string, id: string, document: Y.Doc) => {
   try {
     const html = xss(await marked.parse(markdown));
-    const json = generateJSON(html, editorExtensions);
+    const json = await generateJSON(html, editorExtensions);
     await setSkillNodePageContent(json, id, document);
   } catch (error) {
     console.error(error);
@@ -204,7 +208,7 @@ export const setSkillNodePageMarkdown = async (markdown: string, id: string, doc
  */
 export const setSkillNodePageHTML = async (html: string, id: string, document: Y.Doc) => {
   try {
-    const json = generateJSON(html, editorExtensions);
+    const json = await generateJSON(html, editorExtensions);
     await setSkillNodePageContent(json, id, document);
   } catch (error) {
     console.error(error);
@@ -341,13 +345,17 @@ export const createConnectedYDocServer = async (
 ): Promise<[Y.Doc, HocuspocusProvider]> => {
   return new Promise((resolve, reject) => {
     const doc = new Y.Doc();
-    const provider = new HocuspocusProvider({
+    const websocketProvider = new HocuspocusProviderWebsocket({
       url: hocuspocusUrl,
+      messageReconnectTimeout: 300000,
+    });
+    const provider = new HocuspocusProvider({
       name,
+      websocketProvider,
       document: doc,
       token,
-      preserveConnection: false,
     });
+    provider.attach();
 
     let isConnected = false;
     let isSynced = false;
@@ -358,11 +366,9 @@ export const createConnectedYDocServer = async (
       }
     };
 
-    const onStatus = (event: { status: string }) => {
-      if (event.status === "connected") {
-        isConnected = true;
-        checkReady();
-      }
+    const onConnect = () => {
+      isConnected = true;
+      checkReady();
     };
 
     const onSynced = () => {
@@ -377,7 +383,7 @@ export const createConnectedYDocServer = async (
       reject(new Error("Authentication failed"));
     };
 
-    provider.on("status", onStatus);
+    provider.on("connect", onConnect);
     provider.on("synced", onSynced);
     provider.on("authenticationFailed", onAuthenticationFailed);
   });
