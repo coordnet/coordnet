@@ -7,7 +7,7 @@
     {
       "files": ["**/*.{jsx,tsx}"],
       "options": {
-        "endingPosition": "absolute-with-indent",
+        "endingPosition": "absolute",
         "plugins": [
           "prettier-plugin-tailwindcss",
           "prettier-plugin-classnames",

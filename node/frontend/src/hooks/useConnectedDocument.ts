@@ -60,10 +60,14 @@ const useConnectedDocument = (): YDocProviderReturn => {
       onSynced() {
         setSynced(true);
       },
-      onStatus(data) {
-        setConnected(data.status === "connected");
+      onConnect() {
+        setConnected(true);
+      },
+      onDisconnect() {
+        setConnected(false);
       },
     });
+    newProvider.attach();
 
     setProvider(newProvider);
 

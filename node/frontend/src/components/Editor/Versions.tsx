@@ -44,7 +44,7 @@ const Versions = ({ editor, className }: { editor: Editor | null; className?: st
   const revertVersion = () => {
     if (!currentVersionYdoc || !editor) return;
     const json = yDocToProsemirrorJSON(currentVersionYdoc, "default");
-    editor.commands.setContent(json, true);
+    editor.commands.setContent(json, { emitUpdate: true });
     toast("Editor updated to selected version");
   };
 

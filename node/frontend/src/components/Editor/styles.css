@@ -77,7 +77,7 @@
 }
 
 /* Give a remote user a caret */
-.collaboration-cursor__caret {
+.collaboration-carets__caret {
   border-left: 1px solid #0d0d0d;
   border-right: 1px solid #0d0d0d;
   margin-left: -1px;
@@ -88,38 +88,19 @@
 }
 
 /* Render the username above the caret */
-.collaboration-cursor__wrapper {
+.collaboration-carets__label {
   border-radius: 3px 3px 3px 0;
-  left: -1px;
-  line-height: normal;
-  padding: 0;
-  position: absolute;
-  top: -18px;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  height: 18px;
-}
-
-.collaboration-cursor__wrapper img {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  padding: 0;
-  border-top-left-radius: 5px;
-}
-.collaboration-cursor__wrapper .collaboration-cursor__label {
-  padding-left: 3px;
   color: #0d0d0d;
   font-size: 12px;
-  line-height: 18px;
-  height: 18px;
   font-style: normal;
   font-weight: 600;
-  display: block;
-  border-bottom-right-radius: 5px;
-  border-top-right-radius: 5px;
-  padding-right: 3px;
+  left: -1px;
+  line-height: normal;
+  padding: 0.1rem 0.3rem;
+  position: absolute;
+  top: -1.4em;
+  user-select: none;
+  white-space: nowrap;
 }
 
 .draggable-handle {
