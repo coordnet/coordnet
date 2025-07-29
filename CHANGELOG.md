@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded Tiptap and Hocuspocus from v2 to v3.
+
 ### Added
 
 - Ability for Skills to write to Spaces (using External Nodes).

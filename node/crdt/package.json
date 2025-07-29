@@ -9,33 +9,34 @@
   },
   "dependencies": {
     "@coordnet/core": "workspace:*",
-    "@hocuspocus/provider": "^2.15.2",
-    "@hocuspocus/server": "^2.15.2",
-    "@hocuspocus/transformer": "^2.15.2",
-    "@prd-thanhnguyenhoang/celery.node": "^1.0.56",
-    "@sentry/node": "^9.30.0",
-    "@sentry/profiling-node": "^9.30.0",
-    "@tiptap/core": "^2.22.3",
-    "@tiptap/starter-kit": "^2.22.3",
-    "dotenv": "^16.5.0",
-    "envalid": "^8.0.0",
+    "@hocuspocus/provider": "^3.2.2",
+    "@hocuspocus/server": "^3.2.2",
+    "@hocuspocus/transformer": "^3.2.2",
+    "@prd-thanhnguyenhoang/celery.node": "^1.0.57",
+    "@sentry/node": "^9.42.1",
+    "@sentry/profiling-node": "^9.42.1",
+    "@tiptap/core": "^3.0.7",
+    "@tiptap/pm": "^3.0.7",
+    "@tiptap/starter-kit": "^3.0.7",
+    "dotenv": "^17.2.1",
+    "envalid": "^8.1.0",
     "express": "^5.1.0",
     "express-ws": "^5.0.2",
     "knex": "^3.1.0",
-    "pg": "^8.16.2",
-    "y-prosemirror": "^1.3.6",
+    "pg": "^8.16.3",
+    "y-prosemirror": "^1.3.7",
     "yjs": "^13.6.27",
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@eslint/js": "9.29.0",
+    "@eslint/js": "9.32.0",
     "@types/express": "^5.0.3",
     "@types/express-ws": "^3.0.5",
-    "@types/node": "^24.0.3",
+    "@types/node": "^24.1.0",
     "tsx": "^4.20.3"
   },
   "prettier": {
     "printWidth": 100
   },
-  "packageManager": "pnpm@10.12.2"
+  "packageManager": "pnpm@10.13.1"
 }
