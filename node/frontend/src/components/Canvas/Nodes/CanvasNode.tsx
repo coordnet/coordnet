@@ -15,6 +15,7 @@ import { BackendEntityType } from "@/types";
 import { addInputNode } from "../utils";
 import BuddySelect from "./BuddySelect";
 import Footer from "./Footer";
+import FutureHouseAgentSelect from "./FutureHouseAgentSelect";
 import HoverMenu from "./HoverMenu";
 import NodeError from "./NodeError";
 import NodeTypeSelect from "./NodeTypeSelect";
@@ -150,6 +151,7 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
         <BuddySelect id={id} data={data} />
         <NodeTypeSelect id={id} data={data} />
         <PaperQACollectionsSelect id={id} data={data} />
+        <FutureHouseAgentSelect id={id} data={data} />
 
         {canInput && (
           <>
