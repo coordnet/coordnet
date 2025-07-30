@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@coordnet/core": "workspace:*",
-    "@floating-ui/dom": "^1.7.2",
+    "@floating-ui/dom": "^1.7.3",
     "@fontsource/roboto": "^5.2.6",
     "@hocuspocus/provider": "^3.2.2",
     "@hookform/resolvers": "^5.2.0",
