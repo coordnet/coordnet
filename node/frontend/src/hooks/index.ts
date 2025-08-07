@@ -8,6 +8,7 @@ export { default as useNodesContext } from "./useNodesContext";
 export { default as useWindowDrag } from "./useWindowDrag";
 export { default as useYDoc } from "./useYDoc";
 export { default as useContextMenu } from "./useContextMenu";
+export { useKeyboardState } from "./useKeyboardState";
 export { useNodeCopy } from "./useNodeCopy";
 
 export { FocusProvider } from "./useFocus/provider";

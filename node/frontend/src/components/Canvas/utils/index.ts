@@ -40,19 +40,35 @@ export const createConnectedCanvas = async (spaceId: string, canvasId: string) =
   };
 };
 
+import { AutoAlignmentOptions } from "../AutoAlignment";
+
 export const addNodeToCanvas = async (
   nodesMap: Y.Map<CanvasNode>,
   spaceMap: Y.Map<SpaceNode>,
   title = "New node",
   position: XYPosition = { x: 100, y: 100 },
   content?: string | JSONContent | undefined,
-  data?: CanvasNode["data"]
+  data?: CanvasNode["data"],
+  autoAlignmentOptions?: AutoAlignmentOptions
 ): Promise<string> => {
+  // Apply auto-alignment if enabled
+  let finalPosition = position;
+  if (autoAlignmentOptions?.enabled) {
+    const existingNodes = Array.from(nodesMap.values()) as CanvasNode[];
+    try {
+      const { useAutoAlignment } = await import("../AutoAlignment");
+      const { calculateAutoAlignment } = useAutoAlignment();
+      finalPosition = calculateAutoAlignment(existingNodes, position, autoAlignmentOptions);
+    } catch (error) {
+      console.warn("Auto-alignment failed, using original position:", error);
+    }
+  }
+
   const id = crypto.randomUUID();
   const newNode: CanvasNode = {
     id,
     type: "GraphNode",
-    position,
+    position: finalPosition,
     style: { width: 200, height: 80 },
     data: { syncing: content ? true : false, ...(data ? data : {}) },
   };
@@ -351,7 +367,7 @@ export const copyNodesToSpace = async (
     targetNodeId
   );
 
-  const existingNodes = Array.from(nodesMap.values());
+  const existingNodes = Array.from(nodesMap.values()) as CanvasNode[];
   const nodePositions = findExtremePositions(existingNodes);
 
   const processedNodes = await importCoordNodeData(
@@ -449,7 +465,7 @@ export const copyCanvasNodesToSpaceNode = async (
     targetNodeId
   );
 
-  const existingNodes = Array.from(nodesMap.values());
+  const existingNodes = Array.from(nodesMap.values()) as CanvasNode[];
   const nodePositions = findExtremePositions(existingNodes);
   const normalizedCanvasNodes = normalizeNodePositions(
     exportedNode.nodes.map((node) => ({ ...node, nodes: [], edges: [] }))

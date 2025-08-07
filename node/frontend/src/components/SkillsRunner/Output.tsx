@@ -1,5 +1,4 @@
 import { RunStatus } from "@coordnet/core";
-// @ts-expect-error No types for turndown-plugin-gfm
 import { gfm } from "@joplin/turndown-plugin-gfm";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { EditorContent, JSONContent, useEditor as useEditorTipTap } from "@tiptap/react";

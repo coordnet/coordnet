@@ -7,6 +7,7 @@ import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
+import { useState } from "react";
 
 import { getSpaceProfile } from "@/api";
 import { useYDoc } from "@/hooks";
@@ -17,6 +18,8 @@ import { Canvas, Loader } from "./";
 import ErrorPage from "./ErrorPage";
 import { getProfileImage } from "./Profiles/utils";
 import { Button } from "./ui/button";
+import { AlignmentSettings } from "./Canvas/AlignmentSettings";
+import { AutoAlignmentOptions } from "./Canvas/AutoAlignment";
 
 type NodeProps = { id: string; className?: string };
 
@@ -29,6 +32,26 @@ const Node = ({ id, className }: NodeProps) => {
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
+
+  // Alignment settings state
+  const [showAlignmentGuides, setShowAlignmentGuides] = useState(true);
+  const [showPixelDistances, setShowPixelDistances] = useState(true);
+  const [autoAlignmentOptions, setAutoAlignmentOptions] = useState<AutoAlignmentOptions>({
+    enabled: false,
+    mode: "horizontal",
+    spacing: 20,
+    startPosition: { x: 100, y: 100 },
+  });
+  const [enableMultiSelect, setEnableMultiSelect] = useState(true);
+  const [enableSmartSnapping, setEnableSmartSnapping] = useState(true);
+  const [gridSize, setGridSize] = useState(20);
+  const [snapThreshold, setSnapThreshold] = useState(10);
+  const [showMeasurements, setShowMeasurements] = useState(true);
+  const [enableSmartGuides, setEnableSmartGuides] = useState(true);
+  const [enableDistributionGuides, setEnableDistributionGuides] = useState(true);
+  const [enableSpacingGuides, setEnableSpacingGuides] = useState(true);
+  const [enableAdvancedAlignment, setEnableAdvancedAlignment] = useState(true);
+  const [enableCenterSnapping, setEnableCenterSnapping] = useState(true);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", parent?.id],
@@ -82,8 +105,49 @@ const Node = ({ id, className }: NodeProps) => {
           <FileText strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="show-editor">Node Page</Tooltip>
+        
+        {/* Alignment Settings */}
+        <AlignmentSettings
+          autoAlignmentOptions={autoAlignmentOptions}
+          onAutoAlignmentChange={setAutoAlignmentOptions}
+          showAlignmentGuides={showAlignmentGuides}
+          onShowAlignmentGuidesChange={setShowAlignmentGuides}
+          showPixelDistances={showPixelDistances}
+          onShowPixelDistancesChange={setShowPixelDistances}
+          enableMultiSelect={enableMultiSelect}
+          onEnableMultiSelectChange={setEnableMultiSelect}
+          enableSmartSnapping={enableSmartSnapping}
+          onEnableSmartSnappingChange={setEnableSmartSnapping}
+          gridSize={gridSize}
+          onGridSizeChange={setGridSize}
+          snapThreshold={snapThreshold}
+          onSnapThresholdChange={setSnapThreshold}
+          showMeasurements={showMeasurements}
+          onShowMeasurementsChange={setShowMeasurements}
+          enableSmartGuides={enableSmartGuides}
+          onEnableSmartGuidesChange={setEnableSmartGuides}
+          enableDistributionGuides={enableDistributionGuides}
+          onEnableDistributionGuidesChange={setEnableDistributionGuides}
+          enableSpacingGuides={enableSpacingGuides}
+          onEnableSpacingGuidesChange={setEnableSpacingGuides}
+          enableAdvancedAlignment={enableAdvancedAlignment}
+          onEnableAdvancedAlignmentChange={setEnableAdvancedAlignment}
+          enableCenterSnapping={enableCenterSnapping}
+          onEnableCenterSnappingChange={setEnableCenterSnapping}
+        />
       </div>
-      <Canvas />
+      <Canvas
+        showAlignmentGuides={showAlignmentGuides}
+        showPixelDistances={showPixelDistances}
+        autoAlignmentOptions={autoAlignmentOptions}
+        snapThreshold={snapThreshold}
+        showMeasurements={showMeasurements}
+        enableSmartGuides={enableSmartGuides}
+        enableDistributionGuides={enableDistributionGuides}
+        enableSpacingGuides={enableSpacingGuides}
+        enableAdvancedAlignment={enableAdvancedAlignment}
+        enableCenterSnapping={enableCenterSnapping}
+      />
     </div>
   );
 };

@@ -14,7 +14,7 @@ import {
   XYPosition,
 } from "@xyflow/react";
 import clsx from "clsx";
-import { DragEvent, useCallback, useEffect, useRef } from "react";
+import { DragEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
@@ -27,6 +27,7 @@ import {
   useYDoc,
 } from "@/hooks";
 import { BackendEntityType, YDocScope } from "@/types";
+import { useKeyboardState } from "@/hooks";
 
 import NodeRepositorySelector from "../NodeRepositorySelector";
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
@@ -41,6 +42,10 @@ import ExternalNodeComponent from "./Nodes/ExternalNode";
 import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import { handleCanvasDrop } from "./utils/handleCanvasDrop";
+import { AlignmentGuides } from "./AlignmentGuides";
+import { PixelDistances } from "./PixelDistances";
+import { AutoAlignmentOptions } from "./AutoAlignment";
+import { useMultiSelectResize, MultiSelectOverlay } from "./MultiSelectResize";
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -49,9 +54,40 @@ const onDragOver = (event: DragEvent) => {
 
 const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeComponent };
 
-const CanvasComponent = ({ className }: { className?: string }) => {
+interface CanvasProps {
+  className?: string;
+  showAlignmentGuides?: boolean;
+  showPixelDistances?: boolean;
+  autoAlignmentOptions?: AutoAlignmentOptions;
+  snapThreshold?: number;
+  showMeasurements?: boolean;
+  enableSmartGuides?: boolean;
+  enableDistributionGuides?: boolean;
+  enableSpacingGuides?: boolean;
+  enableAdvancedAlignment?: boolean;
+  enableCenterSnapping?: boolean;
+}
+
+const CanvasComponent = ({
+  className,
+  showAlignmentGuides = true,
+  showPixelDistances = true,
+  autoAlignmentOptions = {
+    enabled: false,
+    mode: "horizontal",
+    spacing: 20,
+    startPosition: { x: 100, y: 100 },
+  },
+  snapThreshold = 10,
+  showMeasurements = true,
+  enableSmartGuides = true,
+  enableDistributionGuides = true,
+  enableSpacingGuides = true,
+  enableAdvancedAlignment = true,
+  enableCenterSnapping = true,
+}: CanvasProps) => {
   const { spaceId, skillId, pageId } = useParams();
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const {
     parent,
     scope,
@@ -66,6 +102,27 @@ const CanvasComponent = ({ className }: { className?: string }) => {
   const { setReactFlowInstance, setNodesMap, setNodes, setFocus, focus } = useFocus();
   const { onNodeContextMenuHandler, onSelectionContextMenuHandler, handlePaneClick } =
     useContextMenu();
+
+  // Alignment features state
+  const { isAltPressed, isShiftPressed } = useKeyboardState();
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | undefined>(undefined);
+  // Alignment settings now handled in Node.tsx component
+
+  // Multi-select and resize hooks
+  const {
+    isMultiSelecting,
+    selectionBox,
+    startMultiSelect,
+    updateSelectionBox,
+    endMultiSelect,
+    getNodesInSelectionBox,
+    // resizeSelectedNodes,
+    // moveSelectedNodes,
+  } = useMultiSelectResize();
+
+  // Auto alignment hook (available for future use)
+  // const { calculateAutoAlignment } = useAutoAlignment();
 
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
 
@@ -110,13 +167,21 @@ const CanvasComponent = ({ className }: { className?: string }) => {
       spaceDoc,
       spaceId,
       pageId || spaceModel?.default_node || skillId,
-      edgesMap
+      edgesMap,
+      autoAlignmentOptions
     );
   };
 
-  const onNodeDragStart: OnNodeDrag = useCallback(() => {
+  const onNodeDragStart: OnNodeDrag = useCallback((_, node) => {
     takeSnapshot();
+    setIsDragging(true);
+    setDraggingNodeId(node.id);
   }, [takeSnapshot]);
+
+  const onNodeDragStop: OnNodeDrag = useCallback(() => {
+    setIsDragging(false);
+    setDraggingNodeId(undefined);
+  }, []);
 
   const onSelectionDragStart: SelectionDragHandler = useCallback(() => {
     takeSnapshot();
@@ -182,6 +247,57 @@ const CanvasComponent = ({ className }: { className?: string }) => {
     return () => document.removeEventListener("keydown", keyDownHandler);
   }, [focus, nodes, setNodesSelection]);
 
+  // Multi-select mouse handlers
+  useEffect(() => {
+    const handleMouseDown = (event: MouseEvent) => {
+      if (focus !== "canvas" || event.button !== 0) return; // Left click only
+      
+      const target = event.target as HTMLElement;
+      if (target.closest('.react-flow__node') || target.closest('.react-flow__edge')) {
+        return; // Don't start selection if clicking on nodes or edges
+      }
+
+      if (isShiftPressed) {
+        const rect = wrapperRef.current?.getBoundingClientRect();
+        if (rect) {
+          const startX = event.clientX - rect.left;
+          const startY = event.clientY - rect.top;
+          startMultiSelect(startX, startY);
+        }
+      }
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (isMultiSelecting && wrapperRef.current) {
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const endX = event.clientX - rect.left;
+        const endY = event.clientY - rect.top;
+        updateSelectionBox(endX, endY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isMultiSelecting) {
+        const selectedNodes = selectionBox ? getNodesInSelectionBox(nodes, selectionBox) : [];
+        if (selectedNodes.length > 0) {
+          const selectedIds = new Set(selectedNodes.map(node => node.id));
+          setNodesSelection(selectedIds);
+        }
+        endMultiSelect();
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [focus, isShiftPressed, isMultiSelecting, selectionBox, nodes, getNodesInSelectionBox, setNodesSelection, startMultiSelect, updateSelectionBox, endMultiSelect]);
+
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("canvas")}>
       <Sidebar
@@ -190,7 +306,10 @@ const CanvasComponent = ({ className }: { className?: string }) => {
         onLayoutNodes={onLayoutNodes}
       />
       <MultiNodeToolbar />
-      <div className="Canvas h-full grow" ref={wrapperRef}>
+      
+
+
+      <div className="Canvas h-full grow relative" ref={wrapperRef}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -202,6 +321,7 @@ const CanvasComponent = ({ className }: { className?: string }) => {
           connectionLineComponent={ConnectionLine}
           nodeTypes={nodeTypes}
           onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
           onSelectionDragStart={onSelectionDragStart}
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
@@ -220,6 +340,35 @@ const CanvasComponent = ({ className }: { className?: string }) => {
           )}
           <Background gap={12} size={1} />
         </ReactFlow>
+
+        {/* Alignment Guides Overlay */}
+        {showAlignmentGuides && (
+          <AlignmentGuides
+            nodes={nodes}
+            draggingNodeId={draggingNodeId}
+            isDragging={isDragging}
+            snapThreshold={snapThreshold}
+            enableHapticFeedback={true}
+            showMeasurements={showMeasurements}
+            enableSmartGuides={enableSmartGuides}
+            enableDistributionGuides={enableDistributionGuides}
+            enableSpacingGuides={enableSpacingGuides}
+            enableAdvancedAlignment={enableAdvancedAlignment}
+            enableCenterSnapping={enableCenterSnapping}
+          />
+        )}
+
+        {/* Pixel Distances Overlay */}
+        {showPixelDistances && (
+          <PixelDistances
+            nodes={nodes}
+            isAltPressed={isAltPressed}
+            selectedNodeId={draggingNodeId}
+          />
+        )}
+
+        {/* Multi-select Overlay */}
+        <MultiSelectOverlay selectionBox={selectionBox} />
       </div>
 
       <CanvasContextMenu nodesMap={nodesMap} spaceMap={spaceMap} />
@@ -228,10 +377,10 @@ const CanvasComponent = ({ className }: { className?: string }) => {
   );
 };
 
-const Canvas = ({ className }: { className?: string }) => {
+const Canvas = (props: CanvasProps) => {
   return (
     <ContextMenuProvider>
-      <CanvasComponent className={className} />
+      <CanvasComponent {...props} />
     </ContextMenuProvider>
   );
 };
