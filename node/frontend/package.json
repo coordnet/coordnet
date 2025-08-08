@@ -52,7 +52,7 @@
     "dompurify": "^3.2.6",
     "downshift": "^9.0.10",
     "file-saver": "^2.0.5",
-    "lucide-react": "^0.533.0",
+    "lucide-react": "^0.539.0",
     "marked": "^16.1.1",
     "markmap-lib": "^0.18.12",
     "match-sorter": "^8.1.0",
