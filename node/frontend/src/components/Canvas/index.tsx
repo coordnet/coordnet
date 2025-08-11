@@ -14,8 +14,9 @@ import {
   XYPosition,
 } from "@xyflow/react";
 import clsx from "clsx";
-import { DragEvent, useCallback, useEffect, useRef } from "react";
+import { DragEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { AlignmentLayer } from "./AlignmentLayer";
 
 import {
   ContextMenuProvider,
@@ -67,6 +68,9 @@ const CanvasComponent = ({ className }: { className?: string }) => {
   const { onNodeContextMenuHandler, onSelectionContextMenuHandler, handlePaneClick } =
     useContextMenu();
 
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | undefined>(undefined);
+
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
 
   useEffect(() => {
@@ -113,10 +117,16 @@ const CanvasComponent = ({ className }: { className?: string }) => {
       edgesMap
     );
   };
+const onNodeDragStart: OnNodeDrag = useCallback((_, node) => {
+  takeSnapshot();
+  setIsDragging(true);
+  setDraggingNodeId(node.id);
+}, [takeSnapshot]);
 
-  const onNodeDragStart: OnNodeDrag = useCallback(() => {
-    takeSnapshot();
-  }, [takeSnapshot]);
+const onNodeDragStop: OnNodeDrag = useCallback(() => {
+  setIsDragging(false);
+  setDraggingNodeId(undefined);
+}, []);
 
   const onSelectionDragStart: SelectionDragHandler = useCallback(() => {
     takeSnapshot();
@@ -203,6 +213,7 @@ const CanvasComponent = ({ className }: { className?: string }) => {
           nodeTypes={nodeTypes}
           onNodeDragStart={onNodeDragStart}
           onSelectionDragStart={onSelectionDragStart}
+          onNodeDragStop={onNodeDragStop}
           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
@@ -219,6 +230,11 @@ const CanvasComponent = ({ className }: { className?: string }) => {
             <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
           )}
           <Background gap={12} size={1} />
+           <AlignmentLayer 
+    nodes={nodes} 
+    draggingNodeId={draggingNodeId} 
+    isDragging={isDragging} 
+  />
         </ReactFlow>
       </div>
 

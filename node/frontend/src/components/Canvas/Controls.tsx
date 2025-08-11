@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { History, Map, Maximize, ZoomIn, ZoomOut } from "lucide-react";
 import { format as formatTimeAgo } from "timeago.js";
 import useLocalStorageState from "use-local-storage-state";
+import { AlignmentSettings } from './AlignmentSettings';
 
 import { getNodeVersions } from "@/api";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -71,6 +72,7 @@ const Controls = () => {
               Saved {formatTimeAgo(versions.results[0].created_at)}
             </div>
           )}
+          <AlignmentSettings />
         </Panel>
       )}
       {miniMapVisible && (
