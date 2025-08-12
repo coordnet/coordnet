@@ -12,7 +12,6 @@ import { BackendEntityType, BackendParent, SpaceNode } from "@/types";
 import { addNodeToCanvas, addNodeToSkillCanvas, importCoordNodeData } from "./";
 import { importMarkmap } from "./markmapImport";
 
-// Removed AutoAlignment import - feature removed
 
 export const handleCanvasDrop = async (
   dataTransfer: React.DragEvent<Element>["dataTransfer"],
@@ -25,7 +24,6 @@ export const handleCanvasDrop = async (
   spaceId: string | undefined,
   canvasId: string | undefined,
   edgesMap?: Y.Map<CanvasEdge>,
-  // Removed autoAlignmentOptions parameter - feature removed
 ) => {
   const isSkill = parent.type === BackendEntityType.SKILL;
   const transferredHtml = dataTransfer.getData("text/html");

@@ -12,6 +12,7 @@ import {
   SelectionDragHandler,
   useReactFlow,
   XYPosition,
+  Node,
 } from "@xyflow/react";
 import clsx from "clsx";
 import { DragEvent, useCallback, useEffect, useRef, useState } from "react";
@@ -43,7 +44,7 @@ import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import { handleCanvasDrop } from "./utils/handleCanvasDrop";
 import { AlignmentGuides } from "./AlignmentGuides";
-import { useMultiSelectResize, MultiSelectOverlay } from "./MultiSelectResize";
+
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -55,8 +56,7 @@ const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeCo
 interface CanvasProps {
   className?: string;
   showAlignmentGuides?: boolean;
-  // Removed showPixelDistances prop - feature removed
-  // Removed autoAlignmentOptions prop - feature removed
+  
   snapThreshold?: number;
   showMeasurements?: boolean;
   enableSmartGuides?: boolean;
@@ -71,7 +71,7 @@ interface CanvasProps {
 const CanvasComponent = ({
   className,
   showAlignmentGuides = true,
-  // Removed showPixelDistances and autoAlignmentOptions parameters - features removed
+  
   snapThreshold = 10,
   showMeasurements = true,
   enableSmartGuides = true,
@@ -100,22 +100,14 @@ const CanvasComponent = ({
     useContextMenu();
 
   // Alignment features state
-  const { isAltPressed, isShiftPressed } = useKeyboardState();
+  const { isAltPressed } = useKeyboardState();
   const [isDragging, setIsDragging] = useState(false);
   const [draggingNodeId, setDraggingNodeId] = useState<string | undefined>(undefined);
   // Alignment settings now handled in Node.tsx component
 
-  // Multi-select and resize hooks
-  const {
-    isMultiSelecting,
-    selectionBox,
-    startMultiSelect,
-    updateSelectionBox,
-    endMultiSelect,
-    getNodesInSelectionBox,
-    // resizeSelectedNodes,
-    // moveSelectedNodes,
-  } = useMultiSelectResize();
+
+
+
 
   // Auto alignment hook (available for future use)
   // const { calculateAutoAlignment } = useAutoAlignment();
@@ -164,7 +156,7 @@ const CanvasComponent = ({
       spaceId,
       pageId || spaceModel?.default_node || skillId,
       edgesMap,
-      // Removed autoAlignmentOptions parameter
+
     );
   };
 
@@ -182,6 +174,20 @@ const CanvasComponent = ({
   const onSelectionDragStart: SelectionDragHandler = useCallback(() => {
     takeSnapshot();
   }, [takeSnapshot]);
+
+  // Multi-select selection change handler
+  const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node[] }) => {
+    if (selectedNodes.length > 1) {
+      // Enable multi-select mode when multiple nodes are selected
+      console.log('Multi-select started with', selectedNodes.length, 'nodes');
+    }
+  }, []);
+
+
+
+
+
+
 
   const onNodesDelete: OnNodesDelete = useCallback(() => {
     takeSnapshot();
@@ -243,56 +249,7 @@ const CanvasComponent = ({
     return () => document.removeEventListener("keydown", keyDownHandler);
   }, [focus, nodes, setNodesSelection]);
 
-  // Multi-select mouse handlers
-  useEffect(() => {
-    const handleMouseDown = (event: MouseEvent) => {
-      if (focus !== "canvas" || event.button !== 0) return; // Left click only
 
-      const target = event.target as HTMLElement;
-      if (target.closest('.react-flow__node') || target.closest('.react-flow__edge')) {
-        return; // Don't start selection if clicking on nodes or edges
-      }
-
-      if (isShiftPressed) {
-        const rect = wrapperRef.current?.getBoundingClientRect();
-        if (rect) {
-          const startX = event.clientX - rect.left;
-          const startY = event.clientY - rect.top;
-          startMultiSelect(startX, startY);
-        }
-      }
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (isMultiSelecting && wrapperRef.current) {
-        const rect = wrapperRef.current.getBoundingClientRect();
-        const endX = event.clientX - rect.left;
-        const endY = event.clientY - rect.top;
-        updateSelectionBox(endX, endY);
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (isMultiSelecting) {
-        const selectedNodes = selectionBox ? getNodesInSelectionBox(nodes, selectionBox) : [];
-        if (selectedNodes.length > 0) {
-          const selectedIds = new Set(selectedNodes.map(node => node.id));
-          setNodesSelection(selectedIds);
-        }
-        endMultiSelect();
-      }
-    };
-
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [focus, isShiftPressed, isMultiSelecting, selectionBox, nodes, getNodesInSelectionBox, setNodesSelection, startMultiSelect, updateSelectionBox, endMultiSelect]);
 
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("canvas")}>
@@ -310,7 +267,7 @@ const CanvasComponent = ({
           nodes={nodes}
           edges={edges}
           onEdgesChange={onEdgesChange}
-          onNodesChange={onNodesChange}
+                     onNodesChange={onNodesChange}
           onConnect={onConnectWithUndo}
           onDrop={onDrop}
           onDragOver={onDragOver}
@@ -319,7 +276,8 @@ const CanvasComponent = ({
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onSelectionDragStart={onSelectionDragStart}
-          onNodesDelete={onNodesDelete}
+                     onSelectionChange={onSelectionChange}
+           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
           nodesConnectable={scope !== YDocScope.READ_ONLY}
@@ -344,7 +302,7 @@ const CanvasComponent = ({
             draggingNodeId={draggingNodeId}
             isDragging={isDragging}
             snapThreshold={snapThreshold}
-            enableHapticFeedback={true}
+    
             showMeasurements={showMeasurements}
             enableSmartGuides={enableSmartGuides}
 
@@ -356,10 +314,9 @@ const CanvasComponent = ({
           />
         )}
 
-        {/* Removed Pixel Distances Overlay - feature removed */}
 
-        {/* Multi-select Overlay */}
-        <MultiSelectOverlay selectionBox={selectionBox} />
+
+        
       </div>
 
       <CanvasContextMenu nodesMap={nodesMap} spaceMap={spaceMap} />

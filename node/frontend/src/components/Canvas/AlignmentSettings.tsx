@@ -7,20 +7,20 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  // Removed DropdownMenuItem - used in removed AutoAlignment section
+  
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-// Removed AutoAlignment import - feature removed
+
 
 interface AlignmentSettingsProps {
-  // Removed autoAlignmentOptions props - feature removed
+  
   showAlignmentGuides: boolean;
   onShowAlignmentGuidesChange: (show: boolean) => void;
-  // Removed showPixelDistances - feature removed
+  
   enableMultiSelect: boolean;
   onEnableMultiSelectChange: (enable: boolean) => void;
   enableSmartSnapping: boolean;
@@ -48,11 +48,10 @@ interface AlignmentSettingsProps {
 }
 
 export const AlignmentSettings = ({
-  // Removed autoAlignmentOptions parameter
-  // Removed onAutoAlignmentChange parameter
+
   showAlignmentGuides,
   onShowAlignmentGuidesChange,
-  // Removed showPixelDistances parameters
+
   enableMultiSelect,
   onEnableMultiSelectChange,
   enableSmartSnapping,
@@ -80,9 +79,7 @@ export const AlignmentSettings = ({
 }: AlignmentSettingsProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Removed alignmentModeIcons - used in removed AutoAlignment section
 
-  // Removed IconComponent - used in removed AutoAlignment section
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -108,7 +105,7 @@ export const AlignmentSettings = ({
               />
             </div>
 
-            {/* Removed Pixel Distances feature */}
+    
 
             {/* Distance Measurements */}
             {onShowMeasurementsChange && (
@@ -125,7 +122,7 @@ export const AlignmentSettings = ({
             )}
           </div>
 
-          {/* Removed Auto Alignment section - feature removed to avoid confusion with existing auto-layout */}
+  
 
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Advanced Features</h4>

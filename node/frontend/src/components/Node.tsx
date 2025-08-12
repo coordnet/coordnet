@@ -7,10 +7,9 @@ import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
-import { useState } from "react";
 
 import { getSpaceProfile } from "@/api";
-import { useYDoc } from "@/hooks";
+import { useYDoc, useAlignment } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { BackendEntityType } from "@/types";
 
@@ -19,6 +18,7 @@ import ErrorPage from "./ErrorPage";
 import { getProfileImage } from "./Profiles/utils";
 import { Button } from "./ui/button";
 import { AlignmentSettings } from "./Canvas/AlignmentSettings";
+import { AlignmentProvider } from "@/hooks";
 
 type NodeProps = { id: string; className?: string };
 
@@ -32,17 +32,29 @@ const Node = ({ id, className }: NodeProps) => {
     removeDefaultsFromUrl: true,
   });
 
-  // Alignment settings state
-  const [showAlignmentGuides, setShowAlignmentGuides] = useState(true);
-  const [enableMultiSelect, setEnableMultiSelect] = useState(true);
-  const [enableSmartSnapping, setEnableSmartSnapping] = useState(true);
-  const [gridSize, setGridSize] = useState(20);
-  const [snapThreshold, setSnapThreshold] = useState(10);
-  const [showMeasurements, setShowMeasurements] = useState(true);
-  const [enableSmartGuides, setEnableSmartGuides] = useState(true);
-  const [enableSpacingGuides, setEnableSpacingGuides] = useState(true);
-  const [enableAdvancedAlignment, setEnableAdvancedAlignment] = useState(true);
-  const [enableCenterSnapping, setEnableCenterSnapping] = useState(true);
+  // Alignment settings from hook
+  const {
+    showAlignmentGuides,
+    setShowAlignmentGuides,
+    enableMultiSelect,
+    setEnableMultiSelect,
+    enableSmartSnapping,
+    setEnableSmartSnapping,
+    gridSize,
+    setGridSize,
+    snapThreshold,
+    setSnapThreshold,
+    showMeasurements,
+    setShowMeasurements,
+    enableSmartGuides,
+    setEnableSmartGuides,
+    enableSpacingGuides,
+    setEnableSpacingGuides,
+    enableAdvancedAlignment,
+    setEnableAdvancedAlignment,
+    enableCenterSnapping,
+    setEnableCenterSnapping,
+  } = useAlignment();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", parent?.id],
@@ -139,7 +151,9 @@ const Node = ({ id, className }: NodeProps) => {
 const NodeOuter = ({ id, ...props }: NodeProps) => {
   return (
     <ReactFlowProvider>
-      <Node id={id} {...props} />
+      <AlignmentProvider>
+        <Node id={id} {...props} />
+      </AlignmentProvider>
     </ReactFlowProvider>
   );
 };

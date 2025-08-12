@@ -1,6 +1,6 @@
 import { CanvasNode } from "@coordnet/core";
 import { useReactFlow } from "@xyflow/react";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface AlignmentGuide {
   id: string;
@@ -44,7 +44,6 @@ interface AlignmentGuidesProps {
   draggingNodeId?: string;
   isDragging: boolean;
   snapThreshold?: number;
-  enableHapticFeedback?: boolean;
   enableSmartGuides?: boolean;
   enableSpacingGuides?: boolean;
   showMeasurements?: boolean;
@@ -57,7 +56,7 @@ interface AlignmentGuidesProps {
 const DEFAULT_SNAP_THRESHOLD = 8; // pixels - more sensitive
 const GUIDE_COLOR = "#3b82f6";
 const GUIDE_WIDTH = 2;
-// Removed jarring red snap color - keeping soft colors only
+
 const CENTER_SNAP_COLOR = "#10b981"; // Green for center snapping
 
 const SPACING_GUIDE_COLOR = "#f59e0b"; // Amber for spacing
@@ -76,7 +75,7 @@ export const AlignmentGuides = ({
   draggingNodeId,
   isDragging,
   snapThreshold = DEFAULT_SNAP_THRESHOLD,
-  enableHapticFeedback = true,
+
   enableSmartGuides = true,
   enableSpacingGuides = true,
   showMeasurements = true,
@@ -90,7 +89,6 @@ export const AlignmentGuides = ({
   const [smartGuides, setSmartGuides] = useState<SmartGuide[]>([]);
 
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
-  const lastSnapTime = useRef<number>(0);
   // const [hoveredGuide, setHoveredGuide] = useState<string | null>(null); // Reserved for future hover interactions
   const [keyboardModifiers, setKeyboardModifiers] = useState({
     shift: false,
@@ -100,23 +98,23 @@ export const AlignmentGuides = ({
 
   const calculateNodeBounds = useCallback(
     (node: CanvasNode) => {
-      const reactFlowNode = getNode(node.id);
-      if (!reactFlowNode) return null;
+    const reactFlowNode = getNode(node.id);
+    if (!reactFlowNode) return null;
 
-      const { position } = reactFlowNode;
+    const { position } = reactFlowNode;
 
-      // Use the actual measured dimensions from the CanvasNode, fallback to ReactFlow dimensions, then defaults
-      const width = node.measured?.width || reactFlowNode.width || 150;
-      const height = node.measured?.height || reactFlowNode.height || 100;
+    // Use the actual measured dimensions from the CanvasNode, fallback to ReactFlow dimensions, then defaults
+    const width = node.measured?.width || reactFlowNode.width || 150;
+    const height = node.measured?.height || reactFlowNode.height || 100;
 
-      return {
-        left: position.x,
-        right: position.x + width,
-        top: position.y,
-        bottom: position.y + height,
-        centerX: position.x + width / 2,
-        centerY: position.y + height / 2,
-      };
+    return {
+      left: position.x,
+      right: position.x + width,
+      top: position.y,
+      bottom: position.y + height,
+      centerX: position.x + width / 2,
+      centerY: position.y + height / 2,
+    };
     },
     [getNode],
   );
@@ -242,60 +240,60 @@ export const AlignmentGuides = ({
   // Enhanced spacing detection for smart guides
   const findSpacingGuides = useCallback(
     (draggingNode: CanvasNode, otherNodes: CanvasNode[]) => {
-      if (!enableSpacingGuides) return [];
+    if (!enableSpacingGuides) return [];
 
-      const draggingBounds = calculateNodeBounds(draggingNode);
-      if (!draggingBounds) return [];
+    const draggingBounds = calculateNodeBounds(draggingNode);
+    if (!draggingBounds) return [];
 
-      const spacingGuides: SmartGuide[] = [];
+    const spacingGuides: SmartGuide[] = [];
 
-      // Find consistent spacing patterns
-      const sortedNodes = otherNodes
+    // Find consistent spacing patterns
+    const sortedNodes = otherNodes
         .map((node) => ({ node, bounds: calculateNodeBounds(node) }))
         .filter((item) => item.bounds)
-        .sort((a, b) => a.bounds!.left - b.bounds!.left);
+      .sort((a, b) => a.bounds!.left - b.bounds!.left);
 
-      for (let i = 0; i < sortedNodes.length - 1; i++) {
-        const current = sortedNodes[i].bounds!;
-        const next = sortedNodes[i + 1].bounds!;
-        const spacing = next.left - current.right;
+    for (let i = 0; i < sortedNodes.length - 1; i++) {
+      const current = sortedNodes[i].bounds!;
+      const next = sortedNodes[i + 1].bounds!;
+      const spacing = next.left - current.right;
 
-        // Check if dragging node would create consistent spacing
+      // Check if dragging node would create consistent spacing
         const dragToCurrentSpacing = Math.abs(draggingBounds.left - current.right - spacing);
         const dragFromNextSpacing = Math.abs(next.left - draggingBounds.right - spacing);
 
-        if (dragToCurrentSpacing < snapThreshold) {
-          spacingGuides.push({
-            id: `spacing-${i}`,
-            type: "spacing",
-            nodes: [sortedNodes[i].node.id, draggingNode.id],
-            measurement: spacing,
-            position: {
-              start: { x: current.right, y: current.centerY },
+      if (dragToCurrentSpacing < snapThreshold) {
+        spacingGuides.push({
+          id: `spacing-${i}`,
+          type: "spacing",
+          nodes: [sortedNodes[i].node.id, draggingNode.id],
+          measurement: spacing,
+          position: {
+            start: { x: current.right, y: current.centerY },
               end: { x: current.right + spacing, y: current.centerY },
-            },
-            label: `${spacing.toFixed(0)}px`,
+          },
+          label: `${spacing.toFixed(0)}px`,
             color: SPACING_GUIDE_COLOR,
-          });
-        }
-
-        if (dragFromNextSpacing < snapThreshold) {
-          spacingGuides.push({
-            id: `spacing-${i}-next`,
-            type: "spacing",
-            nodes: [draggingNode.id, sortedNodes[i + 1].node.id],
-            measurement: spacing,
-            position: {
-              start: { x: draggingBounds.right, y: draggingBounds.centerY },
-              end: { x: draggingBounds.right + spacing, y: draggingBounds.centerY },
-            },
-            label: `${spacing.toFixed(0)}px`,
-            color: SPACING_GUIDE_COLOR,
-          });
-        }
+        });
       }
 
-      return spacingGuides;
+      if (dragFromNextSpacing < snapThreshold) {
+        spacingGuides.push({
+          id: `spacing-${i}-next`,
+          type: "spacing",
+          nodes: [draggingNode.id, sortedNodes[i + 1].node.id],
+          measurement: spacing,
+          position: {
+            start: { x: draggingBounds.right, y: draggingBounds.centerY },
+              end: { x: draggingBounds.right + spacing, y: draggingBounds.centerY },
+          },
+          label: `${spacing.toFixed(0)}px`,
+            color: SPACING_GUIDE_COLOR,
+        });
+      }
+    }
+
+    return spacingGuides;
     },
     [calculateNodeBounds, enableSpacingGuides, snapThreshold],
   );
@@ -305,8 +303,8 @@ export const AlignmentGuides = ({
     (draggingNode: CanvasNode, otherNodes: CanvasNode[]) => {
       if (!enableDiagonalGuides) return [];
 
-      const draggingBounds = calculateNodeBounds(draggingNode);
-      if (!draggingBounds) return [];
+    const draggingBounds = calculateNodeBounds(draggingNode);
+    if (!draggingBounds) return [];
 
       const diagonalGuides: AlignmentGuide[] = [];
 
@@ -478,109 +476,109 @@ export const AlignmentGuides = ({
   // Center snapping detection (snap to canvas origin 0,0)
   const findCenterSnapping = useCallback(
     (draggingNode: CanvasNode) => {
-      if (!enableCenterSnapping) return [];
+    if (!enableCenterSnapping) return [];
 
-      const draggingBounds = calculateNodeBounds(draggingNode);
-      if (!draggingBounds) return [];
+    const draggingBounds = calculateNodeBounds(draggingNode);
+    if (!draggingBounds) return [];
 
-      const guides: AlignmentGuide[] = [];
+    const guides: AlignmentGuide[] = [];
 
-      // Check distance to center origin (0,0)
-      const distanceToHorizontalCenter = Math.abs(draggingBounds.centerX);
-      const distanceToVerticalCenter = Math.abs(draggingBounds.centerY);
-      const distanceToLeftEdge = Math.abs(draggingBounds.left);
-      const distanceToTopEdge = Math.abs(draggingBounds.top);
+    // Check distance to center origin (0,0)
+    const distanceToHorizontalCenter = Math.abs(draggingBounds.centerX);
+    const distanceToVerticalCenter = Math.abs(draggingBounds.centerY);
+    const distanceToLeftEdge = Math.abs(draggingBounds.left);
+    const distanceToTopEdge = Math.abs(draggingBounds.top);
 
-      // Get viewport-aware bounds for guide extents
-      const visibleBounds = getVisibleBounds();
+    // Get viewport-aware bounds for guide extents
+    const visibleBounds = getVisibleBounds();
 
-      // Extend bounds to ensure guides are visible
-      const extendedBounds = {
-        left: visibleBounds.left,
-        right: visibleBounds.right,
-        top: visibleBounds.top,
-        bottom: visibleBounds.bottom,
-      };
+    // Extend bounds to ensure guides are visible
+    const extendedBounds = {
+      left: visibleBounds.left,
+      right: visibleBounds.right,
+      top: visibleBounds.top,
+      bottom: visibleBounds.bottom,
+    };
 
-      // Vertical center line (x = 0)
-      if (distanceToHorizontalCenter < CENTER_SNAP_THRESHOLD) {
+    // Vertical center line (x = 0)
+    if (distanceToHorizontalCenter < CENTER_SNAP_THRESHOLD) {
         const strength = 1 - distanceToHorizontalCenter / CENTER_SNAP_THRESHOLD;
-        const isSnapping = distanceToHorizontalCenter < 3;
-        guides.push({
+      const isSnapping = distanceToHorizontalCenter < 3;
+      guides.push({
           id: "center-vertical",
           type: "center-vertical",
-          position: 0,
-          start: extendedBounds.top,
-          end: extendedBounds.bottom,
-          strength,
-          isSnapping,
-          distance: distanceToHorizontalCenter,
+        position: 0,
+        start: extendedBounds.top,
+        end: extendedBounds.bottom,
+        strength,
+        isSnapping,
+        distance: distanceToHorizontalCenter,
           label: showMeasurements
             ? `Center X: ${distanceToHorizontalCenter.toFixed(1)}px`
             : undefined,
-        });
-      }
+      });
+    }
 
-      // Horizontal center line (y = 0)
-      if (distanceToVerticalCenter < CENTER_SNAP_THRESHOLD) {
+    // Horizontal center line (y = 0)
+    if (distanceToVerticalCenter < CENTER_SNAP_THRESHOLD) {
         const strength = 1 - distanceToVerticalCenter / CENTER_SNAP_THRESHOLD;
-        const isSnapping = distanceToVerticalCenter < 3;
-        guides.push({
+      const isSnapping = distanceToVerticalCenter < 3;
+      guides.push({
           id: "center-horizontal",
           type: "center-horizontal",
-          position: 0,
-          start: extendedBounds.left,
-          end: extendedBounds.right,
-          strength,
-          isSnapping,
-          distance: distanceToVerticalCenter,
+        position: 0,
+        start: extendedBounds.left,
+        end: extendedBounds.right,
+        strength,
+        isSnapping,
+        distance: distanceToVerticalCenter,
           label: showMeasurements
             ? `Center Y: ${distanceToVerticalCenter.toFixed(1)}px`
             : undefined,
-        });
-      }
+      });
+    }
 
-      // Left edge to origin (x = 0)
+    // Left edge to origin (x = 0)
       if (
         distanceToLeftEdge < CENTER_SNAP_THRESHOLD &&
         distanceToLeftEdge < distanceToHorizontalCenter
       ) {
         const strength = 1 - distanceToLeftEdge / CENTER_SNAP_THRESHOLD;
-        const isSnapping = distanceToLeftEdge < 3;
-        guides.push({
+      const isSnapping = distanceToLeftEdge < 3;
+      guides.push({
           id: "origin-left",
           type: "edge-left",
-          position: 0,
-          start: extendedBounds.top,
-          end: extendedBounds.bottom,
-          strength,
-          isSnapping,
-          distance: distanceToLeftEdge,
-          label: showMeasurements ? `Origin X: ${distanceToLeftEdge.toFixed(1)}px` : undefined,
-        });
-      }
+        position: 0,
+        start: extendedBounds.top,
+        end: extendedBounds.bottom,
+        strength,
+        isSnapping,
+        distance: distanceToLeftEdge,
+        label: showMeasurements ? `Origin X: ${distanceToLeftEdge.toFixed(1)}px` : undefined,
+      });
+    }
 
-      // Top edge to origin (y = 0)
+    // Top edge to origin (y = 0)
       if (
         distanceToTopEdge < CENTER_SNAP_THRESHOLD &&
         distanceToTopEdge < distanceToVerticalCenter
       ) {
         const strength = 1 - distanceToTopEdge / CENTER_SNAP_THRESHOLD;
-        const isSnapping = distanceToTopEdge < 3;
-        guides.push({
+      const isSnapping = distanceToTopEdge < 3;
+      guides.push({
           id: "origin-top",
           type: "edge-top",
-          position: 0,
-          start: extendedBounds.left,
-          end: extendedBounds.right,
-          strength,
-          isSnapping,
-          distance: distanceToTopEdge,
-          label: showMeasurements ? `Origin Y: ${distanceToTopEdge.toFixed(1)}px` : undefined,
-        });
-      }
+        position: 0,
+        start: extendedBounds.left,
+        end: extendedBounds.right,
+        strength,
+        isSnapping,
+        distance: distanceToTopEdge,
+        label: showMeasurements ? `Origin Y: ${distanceToTopEdge.toFixed(1)}px` : undefined,
+      });
+    }
 
-      return guides;
+    return guides;
     },
     [calculateNodeBounds, showMeasurements, enableCenterSnapping, getVisibleBounds],
   );
@@ -749,23 +747,7 @@ export const AlignmentGuides = ({
     ],
   );
 
-  // Haptic feedback effect
-  const triggerHapticFeedback = useCallback(() => {
-    if (!enableHapticFeedback) return;
 
-    const now = Date.now();
-    if (now - lastSnapTime.current > 100) {
-      // Prevent too frequent feedback
-      lastSnapTime.current = now;
-
-      // Try to trigger haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50); // Short vibration
-      }
-
-      // Removed visual feedback animation since we're not using jarring effects
-    }
-  }, [enableHapticFeedback]);
 
   useEffect(() => {
     if (!isDragging || !draggingNodeId) {
@@ -807,11 +789,7 @@ export const AlignmentGuides = ({
       ...(enableDistanceMeasurements ? findDistanceGuides(draggingNode, otherNodes) : []),
     ];
 
-    // Check if we have snapping guides (strong alignment)
-    const hasSnapping = newGuides.some((guide) => guide.isSnapping);
-    if (hasSnapping) {
-      triggerHapticFeedback();
-    }
+
 
     setGuides(newGuides);
     setSmartGuides(newSmartGuides);
@@ -824,7 +802,6 @@ export const AlignmentGuides = ({
     findSpacingGuides,
     findDiagonalGuides,
     findDistanceGuides,
-    triggerHapticFeedback,
     enableSmartGuides,
     enableCenterSnapping,
     enableDiagonalGuides,
@@ -842,7 +819,7 @@ export const AlignmentGuides = ({
       style={{ width: "100%", height: "100%" }}
     >
       <g transform={`translate(${x}, ${y}) scale(${zoom})`}>
-        {guides.map((guide) => {
+      {guides.map((guide) => {
           // Handle diagonal guides separately
           if (guide.type === "diagonal") {
             const strokeColor = DIAGONAL_GUIDE_COLOR;
@@ -850,10 +827,10 @@ export const AlignmentGuides = ({
             const opacity = guide.strength * 0.7;
             const strokeDasharray = "6,6";
 
-            return (
-              <g key={guide.id}>
+        return (
+          <g key={guide.id}>
                 {/* Diagonal guide line */}
-                <line
+            <line
                   x1={guide.startX}
                   y1={guide.startY}
                   x2={guide.endX}
@@ -861,8 +838,8 @@ export const AlignmentGuides = ({
                   stroke={strokeColor}
                   strokeWidth={strokeWidth}
                   strokeDasharray={strokeDasharray}
-                  opacity={opacity}
-                  style={{
+              opacity={opacity}
+              style={{
                     filter: "drop-shadow(0 0 2px rgba(139, 92, 246, 0.4))",
                     transition: "all 0.15s ease-out",
                   }}
@@ -882,25 +859,25 @@ export const AlignmentGuides = ({
                       rx="3"
                       opacity="0.95"
                     />
-                    <text
+                <text
                       x={(guide.startX! + guide.endX!) / 2}
                       y={(guide.startY! + guide.endY!) / 2 + 4}
                       fill={strokeColor}
                       fontSize="10"
-                      fontFamily="system-ui, -apple-system, sans-serif"
-                      fontWeight="600"
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                  fontWeight="600"
                       textAnchor="middle"
-                      style={{
+                  style={{
                         userSelect: "none",
                         pointerEvents: "none",
-                      }}
-                    >
+                  }}
+                >
                       {guide.label}
-                    </text>
-                  </g>
-                )}
+                </text>
+              </g>
+            )}
 
-                {/* Removed jarring snap indicators */}
+        
               </g>
             );
           }
@@ -931,126 +908,124 @@ export const AlignmentGuides = ({
                 strokeWidth={strokeWidth}
                 strokeDasharray={strokeDasharray}
                 opacity={opacity}
-                style={{
+                  style={{
                   filter: filter,
                   transition: "all 0.15s ease-out",
                 }}
               />
 
-              {/* Center origin indicator removed */}
 
-              {/* Origin edge indicator removed */}
 
-              {/* Distance label */}
+            {/* Distance label */}
               {guide.label &&
                 showMeasurements &&
                 !guide.id.includes("center-") &&
                 !guide.id.includes("origin-") && (
-                  <text
-                    x={isVertical ? guide.position + 8 : (guide.start + guide.end) / 2}
-                    y={isVertical ? (guide.start + guide.end) / 2 : guide.position - 8}
+              <text
+                x={isVertical ? guide.position + 8 : (guide.start + guide.end) / 2}
+                y={isVertical ? (guide.start + guide.end) / 2 : guide.position - 8}
                     fill={strokeColor}
-                    fontSize="11"
-                    fontFamily="system-ui, -apple-system, sans-serif"
-                    opacity={opacity * 0.9}
-                    style={{
+                fontSize="11"
+                fontFamily="system-ui, -apple-system, sans-serif"
+                opacity={opacity * 0.9}
+                style={{
                       userSelect: "none",
                       pointerEvents: "none",
                       textShadow: "0 1px 2px rgba(255,255,255,0.8)",
-                    }}
-                  >
-                    {guide.label}
-                  </text>
-                )}
+                }}
+              >
+                {guide.label}
+              </text>
+            )}
 
-              {/* Removed snap indicator dots and animation pulse - keeping soft guides only */}
-            </g>
-          );
-        })}
+      
+          </g>
+        );
+      })}
 
         {/* Smart Guides - Spacing */}
-        {smartGuides.map((smartGuide) => (
-          <g key={smartGuide.id}>
-            {/* Smart guide line */}
-            <line
-              x1={smartGuide.position.start.x}
-              y1={smartGuide.position.start.y}
-              x2={smartGuide.position.end.x}
-              y2={smartGuide.position.end.y}
-              stroke={smartGuide.color}
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              opacity="0.7"
-              style={{
-                filter: `drop-shadow(0 0 2px ${smartGuide.color}40)`,
+      {smartGuides.map((smartGuide) => (
+        <g key={smartGuide.id}>
+          {/* Smart guide line */}
+        <line
+            x1={smartGuide.position.start.x}
+            y1={smartGuide.position.start.y}
+            x2={smartGuide.position.end.x}
+            y2={smartGuide.position.end.y}
+            stroke={smartGuide.color}
+            strokeWidth={1.5}
+            strokeDasharray="3,3"
+            opacity="0.7"
+            style={{
+              filter: `drop-shadow(0 0 2px ${smartGuide.color}40)`,
                 transition: "all 0.15s ease-out",
-              }}
+            }}
+          />
+
+          {/* Measurement arrows */}
+          <g>
+            {/* Start arrow */}
+            <polygon
+              points={`${smartGuide.position.start.x},${smartGuide.position.start.y - 3} ${smartGuide.position.start.x + 4},${smartGuide.position.start.y} ${smartGuide.position.start.x},${smartGuide.position.start.y + 3}`}
+              fill={smartGuide.color}
+              opacity="0.8"
             />
+            {/* End arrow */}
+            <polygon
+              points={`${smartGuide.position.end.x},${smartGuide.position.end.y - 3} ${smartGuide.position.end.x - 4},${smartGuide.position.end.y} ${smartGuide.position.end.x},${smartGuide.position.end.y + 3}`}
+              fill={smartGuide.color}
+              opacity="0.8"
+            />
+          </g>
 
-            {/* Measurement arrows */}
+          {/* Smart guide label */}
+          {showMeasurements && (
             <g>
-              {/* Start arrow */}
-              <polygon
-                points={`${smartGuide.position.start.x},${smartGuide.position.start.y - 3} ${smartGuide.position.start.x + 4},${smartGuide.position.start.y} ${smartGuide.position.start.x},${smartGuide.position.start.y + 3}`}
-                fill={smartGuide.color}
-                opacity="0.8"
-              />
-              {/* End arrow */}
-              <polygon
-                points={`${smartGuide.position.end.x},${smartGuide.position.end.y - 3} ${smartGuide.position.end.x - 4},${smartGuide.position.end.y} ${smartGuide.position.end.x},${smartGuide.position.end.y + 3}`}
-                fill={smartGuide.color}
-                opacity="0.8"
-              />
-            </g>
-
-            {/* Smart guide label */}
-            {showMeasurements && (
-              <g>
-                {/* Label background */}
-                <rect
+              {/* Label background */}
+              <rect
                   x={
                     (smartGuide.position.start.x + smartGuide.position.end.x) / 2 -
                     smartGuide.label.length * 3
                   }
-                  y={smartGuide.position.start.y - 15}
-                  width={smartGuide.label.length * 6}
-                  height="12"
-                  fill="white"
-                  stroke={smartGuide.color}
-                  strokeWidth="0.5"
-                  rx="2"
-                  opacity="0.9"
-                />
-                {/* Label text */}
-                <text
-                  x={(smartGuide.position.start.x + smartGuide.position.end.x) / 2}
-                  y={smartGuide.position.start.y - 7}
-                  fill={smartGuide.color}
-                  fontSize="10"
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                  textAnchor="middle"
-                  fontWeight="500"
-                  style={{
+                y={smartGuide.position.start.y - 15}
+                width={smartGuide.label.length * 6}
+                height="12"
+                fill="white"
+                stroke={smartGuide.color}
+                strokeWidth="0.5"
+                rx="2"
+                opacity="0.9"
+              />
+              {/* Label text */}
+              <text
+                x={(smartGuide.position.start.x + smartGuide.position.end.x) / 2}
+                y={smartGuide.position.start.y - 7}
+                fill={smartGuide.color}
+                fontSize="10"
+                fontFamily="system-ui, -apple-system, sans-serif"
+                textAnchor="middle"
+                fontWeight="500"
+                style={{
                     userSelect: "none",
                     pointerEvents: "none",
-                  }}
-                >
-                  {smartGuide.label}
-                </text>
-              </g>
-            )}
-          </g>
-        ))}
+                }}
+              >
+                {smartGuide.label}
+              </text>
+            </g>
+          )}
+        </g>
+      ))}
 
-        {/* CSS Animation for pulse effect */}
-        <style>
-          {`
+      {/* CSS Animation for pulse effect */}
+      <style>
+        {`
           @keyframes pulse {
             0% { opacity: 0.8; stroke-width: ${GUIDE_WIDTH + 4}; }
             100% { opacity: 0; stroke-width: ${GUIDE_WIDTH + 2}; }
           }
         `}
-        </style>
+      </style>
       </g>
     </svg>
   );
