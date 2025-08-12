@@ -43,8 +43,6 @@ import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import { handleCanvasDrop } from "./utils/handleCanvasDrop";
 import { AlignmentGuides } from "./AlignmentGuides";
-import { PixelDistances } from "./PixelDistances";
-import { AutoAlignmentOptions } from "./AutoAlignment";
 import { useMultiSelectResize, MultiSelectOverlay } from "./MultiSelectResize";
 
 const onDragOver = (event: DragEvent) => {
@@ -57,34 +55,32 @@ const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeCo
 interface CanvasProps {
   className?: string;
   showAlignmentGuides?: boolean;
-  showPixelDistances?: boolean;
-  autoAlignmentOptions?: AutoAlignmentOptions;
+  // Removed showPixelDistances prop - feature removed
+  // Removed autoAlignmentOptions prop - feature removed
   snapThreshold?: number;
   showMeasurements?: boolean;
   enableSmartGuides?: boolean;
-  enableDistributionGuides?: boolean;
+
   enableSpacingGuides?: boolean;
   enableAdvancedAlignment?: boolean;
   enableCenterSnapping?: boolean;
+  enableDiagonalGuides?: boolean;
+  enableDistanceMeasurements?: boolean;
 }
 
 const CanvasComponent = ({
   className,
   showAlignmentGuides = true,
-  showPixelDistances = true,
-  autoAlignmentOptions = {
-    enabled: false,
-    mode: "horizontal",
-    spacing: 20,
-    startPosition: { x: 100, y: 100 },
-  },
+  // Removed showPixelDistances and autoAlignmentOptions parameters - features removed
   snapThreshold = 10,
   showMeasurements = true,
   enableSmartGuides = true,
-  enableDistributionGuides = true,
+
   enableSpacingGuides = true,
   enableAdvancedAlignment = true,
   enableCenterSnapping = true,
+  enableDiagonalGuides = true,
+  enableDistanceMeasurements = false,
 }: CanvasProps) => {
   const { spaceId, skillId, pageId } = useParams();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -168,7 +164,7 @@ const CanvasComponent = ({
       spaceId,
       pageId || spaceModel?.default_node || skillId,
       edgesMap,
-      autoAlignmentOptions
+      // Removed autoAlignmentOptions parameter
     );
   };
 
@@ -251,7 +247,7 @@ const CanvasComponent = ({
   useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
       if (focus !== "canvas" || event.button !== 0) return; // Left click only
-      
+
       const target = event.target as HTMLElement;
       if (target.closest('.react-flow__node') || target.closest('.react-flow__edge')) {
         return; // Don't start selection if clicking on nodes or edges
@@ -306,7 +302,7 @@ const CanvasComponent = ({
         onLayoutNodes={onLayoutNodes}
       />
       <MultiNodeToolbar />
-      
+
 
 
       <div className="Canvas h-full grow relative" ref={wrapperRef}>
@@ -351,21 +347,16 @@ const CanvasComponent = ({
             enableHapticFeedback={true}
             showMeasurements={showMeasurements}
             enableSmartGuides={enableSmartGuides}
-            enableDistributionGuides={enableDistributionGuides}
+
             enableSpacingGuides={enableSpacingGuides}
             enableAdvancedAlignment={enableAdvancedAlignment}
             enableCenterSnapping={enableCenterSnapping}
+            enableDiagonalGuides={enableDiagonalGuides}
+            enableDistanceMeasurements={enableDistanceMeasurements || isAltPressed}
           />
         )}
 
-        {/* Pixel Distances Overlay */}
-        {showPixelDistances && (
-          <PixelDistances
-            nodes={nodes}
-            isAltPressed={isAltPressed}
-            selectedNodeId={draggingNodeId}
-          />
-        )}
+        {/* Removed Pixel Distances Overlay - feature removed */}
 
         {/* Multi-select Overlay */}
         <MultiSelectOverlay selectionBox={selectionBox} />

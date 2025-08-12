@@ -40,8 +40,6 @@ export const createConnectedCanvas = async (spaceId: string, canvasId: string) =
   };
 };
 
-import { AutoAlignmentOptions } from "../AutoAlignment";
-
 export const addNodeToCanvas = async (
   nodesMap: Y.Map<CanvasNode>,
   spaceMap: Y.Map<SpaceNode>,
@@ -49,20 +47,8 @@ export const addNodeToCanvas = async (
   position: XYPosition = { x: 100, y: 100 },
   content?: string | JSONContent | undefined,
   data?: CanvasNode["data"],
-  autoAlignmentOptions?: AutoAlignmentOptions
 ): Promise<string> => {
-  // Apply auto-alignment if enabled
-  let finalPosition = position;
-  if (autoAlignmentOptions?.enabled) {
-    const existingNodes = Array.from(nodesMap.values()) as CanvasNode[];
-    try {
-      const { useAutoAlignment } = await import("../AutoAlignment");
-      const { calculateAutoAlignment } = useAutoAlignment();
-      finalPosition = calculateAutoAlignment(existingNodes, position, autoAlignmentOptions);
-    } catch (error) {
-      console.warn("Auto-alignment failed, using original position:", error);
-    }
-  }
+  const finalPosition = position;
 
   const id = crypto.randomUUID();
   const newNode: CanvasNode = {

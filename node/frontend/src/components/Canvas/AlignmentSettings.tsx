@@ -1,8 +1,5 @@
-import { 
-  Settings, 
-  Grid, 
-  AlignHorizontalDistributeCenter, 
-  AlignVerticalDistributeCenter
+import {
+  Settings,
 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -10,22 +7,20 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  // Removed DropdownMenuItem - used in removed AutoAlignment section
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-import { AutoAlignmentOptions } from "./AutoAlignment";
+// Removed AutoAlignment import - feature removed
 
 interface AlignmentSettingsProps {
-  autoAlignmentOptions: AutoAlignmentOptions;
-  onAutoAlignmentChange: (options: AutoAlignmentOptions) => void;
+  // Removed autoAlignmentOptions props - feature removed
   showAlignmentGuides: boolean;
   onShowAlignmentGuidesChange: (show: boolean) => void;
-  showPixelDistances: boolean;
-  onShowPixelDistancesChange: (show: boolean) => void;
+  // Removed showPixelDistances - feature removed
   enableMultiSelect: boolean;
   onEnableMultiSelectChange: (enable: boolean) => void;
   enableSmartSnapping: boolean;
@@ -39,23 +34,25 @@ interface AlignmentSettingsProps {
   onShowMeasurementsChange?: (show: boolean) => void;
   enableSmartGuides?: boolean;
   onEnableSmartGuidesChange?: (enable: boolean) => void;
-  enableDistributionGuides?: boolean;
-  onEnableDistributionGuidesChange?: (enable: boolean) => void;
+
   enableSpacingGuides?: boolean;
   onEnableSpacingGuidesChange?: (enable: boolean) => void;
   enableAdvancedAlignment?: boolean;
   onEnableAdvancedAlignmentChange?: (enable: boolean) => void;
   enableCenterSnapping?: boolean;
   onEnableCenterSnappingChange?: (enable: boolean) => void;
+  enableDiagonalGuides?: boolean;
+  onEnableDiagonalGuidesChange?: (enable: boolean) => void;
+  enableDistanceMeasurements?: boolean;
+  onEnableDistanceMeasurementsChange?: (enable: boolean) => void;
 }
 
 export const AlignmentSettings = ({
-  autoAlignmentOptions,
-  onAutoAlignmentChange,
+  // Removed autoAlignmentOptions parameter
+  // Removed onAutoAlignmentChange parameter
   showAlignmentGuides,
   onShowAlignmentGuidesChange,
-  showPixelDistances,
-  onShowPixelDistancesChange,
+  // Removed showPixelDistances parameters
   enableMultiSelect,
   onEnableMultiSelectChange,
   enableSmartSnapping,
@@ -69,24 +66,23 @@ export const AlignmentSettings = ({
   onShowMeasurementsChange,
   enableSmartGuides = true,
   onEnableSmartGuidesChange,
-  enableDistributionGuides = true,
-  onEnableDistributionGuidesChange,
+
   enableSpacingGuides = true,
   onEnableSpacingGuidesChange,
   enableAdvancedAlignment = true,
   onEnableAdvancedAlignmentChange,
   enableCenterSnapping = true,
   onEnableCenterSnappingChange,
+  enableDiagonalGuides = true,
+  onEnableDiagonalGuidesChange,
+  enableDistanceMeasurements = false,
+  onEnableDistanceMeasurementsChange,
 }: AlignmentSettingsProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const alignmentModeIcons = {
-    horizontal: AlignHorizontalDistributeCenter,
-    vertical: AlignVerticalDistributeCenter,
-    grid: Grid,
-  };
+  // Removed alignmentModeIcons - used in removed AutoAlignment section
 
-  const IconComponent = alignmentModeIcons[autoAlignmentOptions.mode];
+  // Removed IconComponent - used in removed AutoAlignment section
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -99,7 +95,7 @@ export const AlignmentSettings = ({
         <div className="p-4 space-y-4">
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Alignment Features</h4>
-            
+
             {/* Alignment Guides */}
             <div className="flex items-center justify-between">
               <Label htmlFor="alignment-guides" className="text-sm">
@@ -112,17 +108,7 @@ export const AlignmentSettings = ({
               />
             </div>
 
-            {/* Pixel Distances */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="pixel-distances" className="text-sm">
-                Show pixel distances (Alt key)
-              </Label>
-              <Switch
-                id="pixel-distances"
-                checked={showPixelDistances}
-                onCheckedChange={onShowPixelDistancesChange}
-              />
-            </div>
+            {/* Removed Pixel Distances feature */}
 
             {/* Distance Measurements */}
             {onShowMeasurementsChange && (
@@ -139,91 +125,11 @@ export const AlignmentSettings = ({
             )}
           </div>
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Auto Alignment</h4>
-            
-            {/* Auto Alignment Toggle */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="auto-alignment" className="text-sm">
-                Enable auto alignment
-              </Label>
-              <Switch
-                id="auto-alignment"
-                checked={autoAlignmentOptions.enabled}
-                onCheckedChange={(enabled: boolean) =>
-                  onAutoAlignmentChange({ ...autoAlignmentOptions, enabled })
-                }
-              />
-            </div>
-
-            {/* Alignment Mode */}
-            <div className="space-y-1">
-              <Label className="text-sm">Alignment mode</Label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full justify-between">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4" />
-                      <span className="capitalize">{autoAlignmentOptions.mode}</span>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      onAutoAlignmentChange({ ...autoAlignmentOptions, mode: "horizontal" })
-                    }
-                  >
-                    <AlignHorizontalDistributeCenter className="mr-2 h-4 w-4" />
-                    Horizontal
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      onAutoAlignmentChange({ ...autoAlignmentOptions, mode: "vertical" })
-                    }
-                  >
-                    <AlignVerticalDistributeCenter className="mr-2 h-4 w-4" />
-                    Vertical
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      onAutoAlignmentChange({ ...autoAlignmentOptions, mode: "grid" })
-                    }
-                  >
-                    <Grid className="mr-2 h-4 w-4" />
-                    Grid
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Spacing */}
-            <div className="space-y-1">
-              <Label htmlFor="spacing" className="text-sm">
-                Spacing: {autoAlignmentOptions.spacing}px
-              </Label>
-              <input
-                id="spacing"
-                type="range"
-                min="10"
-                max="100"
-                value={autoAlignmentOptions.spacing}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  onAutoAlignmentChange({
-                    ...autoAlignmentOptions,
-                    spacing: parseInt(e.target.value),
-                  })
-                }
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          <DropdownMenuSeparator />
+          {/* Removed Auto Alignment section - feature removed to avoid confusion with existing auto-layout */}
 
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Advanced Features</h4>
-            
+
             {/* Multi-Select */}
             <div className="flex items-center justify-between">
               <Label htmlFor="multi-select" className="text-sm">
@@ -289,7 +195,7 @@ export const AlignmentSettings = ({
           <DropdownMenuSeparator />
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Desktop Enhancements</h4>
-            
+
             {/* Advanced Alignment */}
             {onEnableAdvancedAlignmentChange && (
               <div className="flex items-center justify-between">
@@ -322,7 +228,7 @@ export const AlignmentSettings = ({
             {onEnableSmartGuidesChange && (
               <div className="flex items-center justify-between">
                 <Label htmlFor="smart-guides" className="text-sm">
-                  Smart spacing & distribution
+                  Smart spacing
                 </Label>
                 <Switch
                   id="smart-guides"
@@ -346,26 +252,128 @@ export const AlignmentSettings = ({
               </div>
             )}
 
-            {/* Distribution Guides */}
-            {onEnableDistributionGuidesChange && (
+            {/* Diagonal Guides */}
+            {onEnableDiagonalGuidesChange && (
               <div className="flex items-center justify-between">
-                <Label htmlFor="distribution-guides" className="text-sm">
-                  Distribution pattern guides
+                <Label htmlFor="diagonal-guides" className="text-sm">
+                  Diagonal guides (45°, 60°, etc.)
                 </Label>
                 <Switch
-                  id="distribution-guides"
-                  checked={enableDistributionGuides}
-                  onCheckedChange={onEnableDistributionGuidesChange}
+                  id="diagonal-guides"
+                  checked={enableDiagonalGuides}
+                  onCheckedChange={onEnableDiagonalGuidesChange}
                 />
               </div>
             )}
 
-            <div className="text-xs text-gray-500 pt-2">
-              💡 Hold <strong>Shift</strong> for high-precision alignment (1px)
+            {/* Distance Measurements */}
+            {onEnableDistanceMeasurementsChange && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="distance-measurements" className="text-sm">
+                  Distance measurements
+                </Label>
+                <Switch
+                  id="distance-measurements"
+                  checked={enableDistanceMeasurements}
+                  onCheckedChange={onEnableDistanceMeasurementsChange}
+                />
+              </div>
+            )}
+
+            <DropdownMenuSeparator />
+
+            {/* Quick Presets */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Quick Presets</h4>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    // Designer preset - all features enabled
+                    onEnableSmartGuidesChange?.(true);
+                    onEnableSpacingGuidesChange?.(true);
+                    onEnableDiagonalGuidesChange?.(true);
+                    onEnableDistanceMeasurementsChange?.(true);
+                    onEnableCenterSnappingChange?.(true);
+                    onEnableAdvancedAlignmentChange?.(true);
+                    onShowMeasurementsChange?.(true);
+                    onSnapThresholdChange(5);
+                  }}
+                  className="p-2 text-xs bg-blue-50 hover:bg-blue-100 rounded border transition-colors"
+                >
+                  🎨 Designer
+                  <div className="text-xs text-gray-500">All guides</div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    // Simple preset - basic alignment only
+                    onEnableSmartGuidesChange?.(true);
+                    onEnableSpacingGuidesChange?.(false);
+                    onEnableDiagonalGuidesChange?.(false);
+                    onEnableDistanceMeasurementsChange?.(false);
+                    onEnableCenterSnappingChange?.(true);
+                    onEnableAdvancedAlignmentChange?.(true);
+                    onShowMeasurementsChange?.(false);
+                    onSnapThresholdChange(10);
+                  }}
+                  className="p-2 text-xs bg-green-50 hover:bg-green-100 rounded border transition-colors"
+                >
+                  ⚡ Simple
+                  <div className="text-xs text-gray-500">Basic only</div>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    // Developer preset - measurements focused
+                    onEnableSmartGuidesChange?.(true);
+                    onEnableSpacingGuidesChange?.(true);
+                    onEnableDiagonalGuidesChange?.(false);
+                    onEnableDistanceMeasurementsChange?.(true);
+                    onEnableCenterSnappingChange?.(true);
+                    onEnableAdvancedAlignmentChange?.(true);
+                    onShowMeasurementsChange?.(true);
+                    onSnapThresholdChange(1);
+                  }}
+                  className="p-2 text-xs bg-purple-50 hover:bg-purple-100 rounded border transition-colors"
+                >
+                  🔧 Developer
+                  <div className="text-xs text-gray-500">Precise</div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    // Minimal preset - disabled
+                    onEnableSmartGuidesChange?.(false);
+                    onEnableSpacingGuidesChange?.(false);
+                    onEnableDiagonalGuidesChange?.(false);
+                    onEnableDistanceMeasurementsChange?.(false);
+                    onEnableCenterSnappingChange?.(false);
+                    onEnableAdvancedAlignmentChange?.(false);
+                    onShowMeasurementsChange?.(false);
+                  }}
+                  className="p-2 text-xs bg-gray-50 hover:bg-gray-100 rounded border transition-colors"
+                >
+                  🚫 Minimal
+                  <div className="text-xs text-gray-500">Disabled</div>
+                </button>
+              </div>
+            </div>
+
+            <div className="text-xs text-gray-500 pt-2 space-y-1">
+              <div>
+                💡 Hold <strong>Shift</strong> for high-precision alignment (1px)
+              </div>
+              <div>
+                📏 Hold <strong>Alt</strong> for distance measurements
+              </div>
+              <div>🎯 Diagonal guides help with angular alignment</div>
             </div>
           </div>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}; 
+};

@@ -12,7 +12,7 @@ import { BackendEntityType, BackendParent, SpaceNode } from "@/types";
 import { addNodeToCanvas, addNodeToSkillCanvas, importCoordNodeData } from "./";
 import { importMarkmap } from "./markmapImport";
 
-import { AutoAlignmentOptions } from "../AutoAlignment";
+// Removed AutoAlignment import - feature removed
 
 export const handleCanvasDrop = async (
   dataTransfer: React.DragEvent<Element>["dataTransfer"],
@@ -25,7 +25,7 @@ export const handleCanvasDrop = async (
   spaceId: string | undefined,
   canvasId: string | undefined,
   edgesMap?: Y.Map<CanvasEdge>,
-  autoAlignmentOptions?: AutoAlignmentOptions
+  // Removed autoAlignmentOptions parameter - feature removed
 ) => {
   const isSkill = parent.type === BackendEntityType.SKILL;
   const transferredHtml = dataTransfer.getData("text/html");
@@ -45,12 +45,12 @@ export const handleCanvasDrop = async (
         tempDiv.innerHTML = li.innerHTML;
         tempDiv.querySelectorAll("ul, ol").forEach((subList) => subList.remove());
         const cleaned = DOMPurify.sanitize(tempDiv, { ALLOWED_TAGS, FORBID_ATTR });
-        addNodeToCanvas(nodesMap, spaceMap, cleaned, liPosition, undefined, undefined, autoAlignmentOptions);
+        addNodeToCanvas(nodesMap, spaceMap, cleaned, liPosition, undefined, undefined);
       });
     } else {
       // Normal HTML content
       const cleaned = DOMPurify.sanitize(transferredHtml, { ALLOWED_TAGS, FORBID_ATTR });
-      addNodeToCanvas(nodesMap, spaceMap, cleaned, startPos, undefined, undefined, autoAlignmentOptions);
+      addNodeToCanvas(nodesMap, spaceMap, cleaned, startPos, undefined, undefined);
     }
     return;
   }
@@ -58,7 +58,7 @@ export const handleCanvasDrop = async (
   // If no files or HTML, create a new empty node
   if (!dataTransfer.files.length && !transferredHtml) {
     takeSnapshot();
-    addNodeToCanvas(nodesMap, spaceMap, "New node", startPos, "", { editing: true }, autoAlignmentOptions);
+    addNodeToCanvas(nodesMap, spaceMap, "New node", startPos, "", { editing: true });
     return;
   }
 
@@ -128,11 +128,11 @@ export const handleCanvasDrop = async (
             const arrayBuffer = await file.arrayBuffer();
             const importData = JSON.parse(new TextDecoder().decode(arrayBuffer));
             await importCoordNodeData(
-              importData, 
-              nodesMap, 
-              spaceMap, 
-              edgesMap, 
-              pos, 
+              importData,
+              nodesMap,
+              spaceMap,
+              edgesMap,
+              pos,
               parent?.data?.id ? { type: parent.type, data: { id: parent.data.id } } : undefined
             );
           }

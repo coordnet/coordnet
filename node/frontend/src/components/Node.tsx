@@ -19,7 +19,6 @@ import ErrorPage from "./ErrorPage";
 import { getProfileImage } from "./Profiles/utils";
 import { Button } from "./ui/button";
 import { AlignmentSettings } from "./Canvas/AlignmentSettings";
-import { AutoAlignmentOptions } from "./Canvas/AutoAlignment";
 
 type NodeProps = { id: string; className?: string };
 
@@ -35,20 +34,12 @@ const Node = ({ id, className }: NodeProps) => {
 
   // Alignment settings state
   const [showAlignmentGuides, setShowAlignmentGuides] = useState(true);
-  const [showPixelDistances, setShowPixelDistances] = useState(true);
-  const [autoAlignmentOptions, setAutoAlignmentOptions] = useState<AutoAlignmentOptions>({
-    enabled: false,
-    mode: "horizontal",
-    spacing: 20,
-    startPosition: { x: 100, y: 100 },
-  });
   const [enableMultiSelect, setEnableMultiSelect] = useState(true);
   const [enableSmartSnapping, setEnableSmartSnapping] = useState(true);
   const [gridSize, setGridSize] = useState(20);
   const [snapThreshold, setSnapThreshold] = useState(10);
   const [showMeasurements, setShowMeasurements] = useState(true);
   const [enableSmartGuides, setEnableSmartGuides] = useState(true);
-  const [enableDistributionGuides, setEnableDistributionGuides] = useState(true);
   const [enableSpacingGuides, setEnableSpacingGuides] = useState(true);
   const [enableAdvancedAlignment, setEnableAdvancedAlignment] = useState(true);
   const [enableCenterSnapping, setEnableCenterSnapping] = useState(true);
@@ -105,15 +96,11 @@ const Node = ({ id, className }: NodeProps) => {
           <FileText strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="show-editor">Node Page</Tooltip>
-        
+
         {/* Alignment Settings */}
         <AlignmentSettings
-          autoAlignmentOptions={autoAlignmentOptions}
-          onAutoAlignmentChange={setAutoAlignmentOptions}
           showAlignmentGuides={showAlignmentGuides}
           onShowAlignmentGuidesChange={setShowAlignmentGuides}
-          showPixelDistances={showPixelDistances}
-          onShowPixelDistancesChange={setShowPixelDistances}
           enableMultiSelect={enableMultiSelect}
           onEnableMultiSelectChange={setEnableMultiSelect}
           enableSmartSnapping={enableSmartSnapping}
@@ -126,8 +113,7 @@ const Node = ({ id, className }: NodeProps) => {
           onShowMeasurementsChange={setShowMeasurements}
           enableSmartGuides={enableSmartGuides}
           onEnableSmartGuidesChange={setEnableSmartGuides}
-          enableDistributionGuides={enableDistributionGuides}
-          onEnableDistributionGuidesChange={setEnableDistributionGuides}
+
           enableSpacingGuides={enableSpacingGuides}
           onEnableSpacingGuidesChange={setEnableSpacingGuides}
           enableAdvancedAlignment={enableAdvancedAlignment}
@@ -138,12 +124,10 @@ const Node = ({ id, className }: NodeProps) => {
       </div>
       <Canvas
         showAlignmentGuides={showAlignmentGuides}
-        showPixelDistances={showPixelDistances}
-        autoAlignmentOptions={autoAlignmentOptions}
         snapThreshold={snapThreshold}
         showMeasurements={showMeasurements}
         enableSmartGuides={enableSmartGuides}
-        enableDistributionGuides={enableDistributionGuides}
+
         enableSpacingGuides={enableSpacingGuides}
         enableAdvancedAlignment={enableAdvancedAlignment}
         enableCenterSnapping={enableCenterSnapping}

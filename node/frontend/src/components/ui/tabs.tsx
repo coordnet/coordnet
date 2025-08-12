@@ -44,7 +44,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
   ({ className, value: triggerValue, ...props }, ref) => {
     const context = React.useContext(TabsContext);
     const isActive = context?.value === triggerValue;
-    
+
     return (
       <button
         ref={ref}
@@ -69,9 +69,9 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
   ({ className, value: contentValue, ...props }, ref) => {
     const context = React.useContext(TabsContext);
     const isActive = context?.value === contentValue;
-    
+
     if (!isActive) return null;
-    
+
     return (
       <div
         ref={ref}

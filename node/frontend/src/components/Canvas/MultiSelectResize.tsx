@@ -63,11 +63,11 @@ export const useMultiSelectResize = () => {
     ) => {
       return selectedNodes.map((node) => ({
         ...node,
-        width: resizeDirection === "width" || resizeDirection === "both" 
-          ? newSize.width || node.width 
+        width: resizeDirection === "width" || resizeDirection === "both"
+          ? newSize.width || node.width
           : node.width,
-        height: resizeDirection === "height" || resizeDirection === "both" 
-          ? newSize.height || node.height 
+        height: resizeDirection === "height" || resizeDirection === "both"
+          ? newSize.height || node.height
           : node.height,
       }));
     },
@@ -115,14 +115,14 @@ export const useMultiSelectResize = () => {
 
   const alignSelectedNodes = useCallback((alignment: 'left' | 'right' | 'top' | 'bottom' | 'center' | 'middle') => {
     if (selectedNodes.length < 2) return;
-    
+
     // Implementation for aligning selected nodes
     console.log(`Aligning nodes to ${alignment}`);
   }, [selectedNodes]);
 
   const distributeSelectedNodes = useCallback((direction: 'horizontal' | 'vertical') => {
     if (selectedNodes.length < 3) return;
-    
+
     // Implementation for distributing selected nodes
     console.log(`Distributing nodes ${direction}ly`);
   }, [selectedNodes]);
@@ -149,13 +149,11 @@ export const useMultiSelectResize = () => {
   };
 };
 
-import React from "react";
-
-export const MultiSelectOverlay = ({ 
-  selectionBox, 
+export const MultiSelectOverlay = ({
+  selectionBox,
   selectedNodes = [],
-  isResizing = false 
-}: { 
+  isResizing = false
+}: {
   selectionBox: {
     startX: number;
     startY: number;
@@ -177,8 +175,8 @@ export const MultiSelectOverlay = ({
       {/* Selection Box */}
       <div
         className={`absolute border-2 pointer-events-none z-40 ${
-          isResizing 
-            ? 'border-orange-500 bg-orange-100 bg-opacity-30' 
+          isResizing
+            ? 'border-orange-500 bg-orange-100 bg-opacity-30'
             : 'border-blue-500 bg-blue-100 bg-opacity-20'
         }`}
         style={{
@@ -188,7 +186,7 @@ export const MultiSelectOverlay = ({
           height,
         }}
       />
-      
+
       {/* Selection Count Badge */}
       {selectedNodes.length > 0 && (
         <div
@@ -203,4 +201,4 @@ export const MultiSelectOverlay = ({
       )}
     </>
   );
-}; 
+};

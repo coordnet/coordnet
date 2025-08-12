@@ -1,4 +1,3 @@
-import React from "react";
 import { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { NodeViewWrapper } from "@tiptap/react";
 import clsx from "clsx";
