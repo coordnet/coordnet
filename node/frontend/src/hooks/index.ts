@@ -8,7 +8,9 @@ export { default as useNodesContext } from "./useNodesContext";
 export { default as useWindowDrag } from "./useWindowDrag";
 export { default as useYDoc } from "./useYDoc";
 export { default as useContextMenu } from "./useContextMenu";
+export { useKeyboardState } from "./useKeyboardState";
 export { useNodeCopy } from "./useNodeCopy";
+export { default as useAlignment } from "./useAlignment";
 
 export { FocusProvider } from "./useFocus/provider";
 export { NodeCopyProvider } from "./useNodeCopy/provider";
@@ -18,3 +20,4 @@ export { QuickViewProvider } from "./useQuickView/provider";
 export { NodesContextProvider } from "./useNodesContext/provider";
 export { YDocProvider } from "./useYDoc/provider";
 export { ContextMenuProvider } from "./useContextMenu/provider";
+export { AlignmentProvider } from "./useAlignment/provider";

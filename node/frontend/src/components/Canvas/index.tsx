@@ -12,9 +12,10 @@ import {
   SelectionDragHandler,
   useReactFlow,
   XYPosition,
+  Node,
 } from "@xyflow/react";
 import clsx from "clsx";
-import { DragEvent, useCallback, useEffect, useRef } from "react";
+import { DragEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
@@ -27,6 +28,7 @@ import {
   useYDoc,
 } from "@/hooks";
 import { BackendEntityType, YDocScope } from "@/types";
+import { useKeyboardState } from "@/hooks";
 
 import NodeRepositorySelector from "../NodeRepositorySelector";
 import SkillCanvasControls from "../Skills/SkillCanvasControls";
@@ -41,6 +43,8 @@ import ExternalNodeComponent from "./Nodes/ExternalNode";
 import Sidebar from "./Sidebar";
 import UndoRedo from "./UndoRedo";
 import { handleCanvasDrop } from "./utils/handleCanvasDrop";
+import { AlignmentGuides } from "./AlignmentGuides";
+
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault();
@@ -49,9 +53,37 @@ const onDragOver = (event: DragEvent) => {
 
 const nodeTypes = { GraphNode: CanvasNodeComponent, ExternalNode: ExternalNodeComponent };
 
-const CanvasComponent = ({ className }: { className?: string }) => {
+interface CanvasProps {
+  className?: string;
+  showAlignmentGuides?: boolean;
+  
+  snapThreshold?: number;
+  showMeasurements?: boolean;
+  enableSmartGuides?: boolean;
+
+  enableSpacingGuides?: boolean;
+  enableAdvancedAlignment?: boolean;
+  enableCenterSnapping?: boolean;
+  enableDiagonalGuides?: boolean;
+  enableDistanceMeasurements?: boolean;
+}
+
+const CanvasComponent = ({
+  className,
+  showAlignmentGuides = true,
+  
+  snapThreshold = 10,
+  showMeasurements = true,
+  enableSmartGuides = true,
+
+  enableSpacingGuides = true,
+  enableAdvancedAlignment = true,
+  enableCenterSnapping = true,
+  enableDiagonalGuides = true,
+  enableDistanceMeasurements = false,
+}: CanvasProps) => {
   const { spaceId, skillId, pageId } = useParams();
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const {
     parent,
     scope,
@@ -66,6 +98,19 @@ const CanvasComponent = ({ className }: { className?: string }) => {
   const { setReactFlowInstance, setNodesMap, setNodes, setFocus, focus } = useFocus();
   const { onNodeContextMenuHandler, onSelectionContextMenuHandler, handlePaneClick } =
     useContextMenu();
+
+  // Alignment features state
+  const { isAltPressed } = useKeyboardState();
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | undefined>(undefined);
+  // Alignment settings now handled in Node.tsx component
+
+
+
+
+
+  // Auto alignment hook (available for future use)
+  // const { calculateAutoAlignment } = useAutoAlignment();
 
   const spaceModel = parent?.type === BackendEntityType.SPACE ? parent.data : undefined;
 
@@ -110,17 +155,39 @@ const CanvasComponent = ({ className }: { className?: string }) => {
       spaceDoc,
       spaceId,
       pageId || spaceModel?.default_node || skillId,
-      edgesMap
+      edgesMap,
+
     );
   };
 
-  const onNodeDragStart: OnNodeDrag = useCallback(() => {
+  const onNodeDragStart: OnNodeDrag = useCallback((_, node) => {
     takeSnapshot();
+    setIsDragging(true);
+    setDraggingNodeId(node.id);
   }, [takeSnapshot]);
+
+  const onNodeDragStop: OnNodeDrag = useCallback(() => {
+    setIsDragging(false);
+    setDraggingNodeId(undefined);
+  }, []);
 
   const onSelectionDragStart: SelectionDragHandler = useCallback(() => {
     takeSnapshot();
   }, [takeSnapshot]);
+
+  // Multi-select selection change handler
+  const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node[] }) => {
+    if (selectedNodes.length > 1) {
+      // Enable multi-select mode when multiple nodes are selected
+      console.log('Multi-select started with', selectedNodes.length, 'nodes');
+    }
+  }, []);
+
+
+
+
+
+
 
   const onNodesDelete: OnNodesDelete = useCallback(() => {
     takeSnapshot();
@@ -182,6 +249,8 @@ const CanvasComponent = ({ className }: { className?: string }) => {
     return () => document.removeEventListener("keydown", keyDownHandler);
   }, [focus, nodes, setNodesSelection]);
 
+
+
   return (
     <div className={clsx("h-full select-none", className)} onClick={() => setFocus("canvas")}>
       <Sidebar
@@ -190,20 +259,25 @@ const CanvasComponent = ({ className }: { className?: string }) => {
         onLayoutNodes={onLayoutNodes}
       />
       <MultiNodeToolbar />
-      <div className="Canvas h-full grow" ref={wrapperRef}>
+
+
+
+      <div className="Canvas h-full grow relative" ref={wrapperRef}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onEdgesChange={onEdgesChange}
-          onNodesChange={onNodesChange}
+                     onNodesChange={onNodesChange}
           onConnect={onConnectWithUndo}
           onDrop={onDrop}
           onDragOver={onDragOver}
           connectionLineComponent={ConnectionLine}
           nodeTypes={nodeTypes}
           onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
           onSelectionDragStart={onSelectionDragStart}
-          onNodesDelete={onNodesDelete}
+                     onSelectionChange={onSelectionChange}
+           onNodesDelete={onNodesDelete}
           onEdgesDelete={onEdgesDelete}
           attributionPosition="bottom-left"
           nodesConnectable={scope !== YDocScope.READ_ONLY}
@@ -220,6 +294,29 @@ const CanvasComponent = ({ className }: { className?: string }) => {
           )}
           <Background gap={12} size={1} />
         </ReactFlow>
+
+        {/* Alignment Guides Overlay */}
+        {showAlignmentGuides && (
+          <AlignmentGuides
+            nodes={nodes}
+            draggingNodeId={draggingNodeId}
+            isDragging={isDragging}
+            snapThreshold={snapThreshold}
+    
+            showMeasurements={showMeasurements}
+            enableSmartGuides={enableSmartGuides}
+
+            enableSpacingGuides={enableSpacingGuides}
+            enableAdvancedAlignment={enableAdvancedAlignment}
+            enableCenterSnapping={enableCenterSnapping}
+            enableDiagonalGuides={enableDiagonalGuides}
+            enableDistanceMeasurements={enableDistanceMeasurements || isAltPressed}
+          />
+        )}
+
+
+
+        
       </div>
 
       <CanvasContextMenu nodesMap={nodesMap} spaceMap={spaceMap} />
@@ -228,10 +325,10 @@ const CanvasComponent = ({ className }: { className?: string }) => {
   );
 };
 
-const Canvas = ({ className }: { className?: string }) => {
+const Canvas = (props: CanvasProps) => {
   return (
     <ContextMenuProvider>
-      <CanvasComponent className={className} />
+      <CanvasComponent {...props} />
     </ContextMenuProvider>
   );
 };

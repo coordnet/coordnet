@@ -12,6 +12,7 @@ import { BackendEntityType, BackendParent, SpaceNode } from "@/types";
 import { addNodeToCanvas, addNodeToSkillCanvas, importCoordNodeData } from "./";
 import { importMarkmap } from "./markmapImport";
 
+
 export const handleCanvasDrop = async (
   dataTransfer: React.DragEvent<Element>["dataTransfer"],
   takeSnapshot: () => void,
@@ -22,7 +23,7 @@ export const handleCanvasDrop = async (
   spaceDoc: Y.Doc,
   spaceId: string | undefined,
   canvasId: string | undefined,
-  edgesMap?: Y.Map<CanvasEdge>
+  edgesMap?: Y.Map<CanvasEdge>,
 ) => {
   const isSkill = parent.type === BackendEntityType.SKILL;
   const transferredHtml = dataTransfer.getData("text/html");
@@ -42,12 +43,12 @@ export const handleCanvasDrop = async (
         tempDiv.innerHTML = li.innerHTML;
         tempDiv.querySelectorAll("ul, ol").forEach((subList) => subList.remove());
         const cleaned = DOMPurify.sanitize(tempDiv, { ALLOWED_TAGS, FORBID_ATTR });
-        addNodeToCanvas(nodesMap, spaceMap, cleaned, liPosition);
+        addNodeToCanvas(nodesMap, spaceMap, cleaned, liPosition, undefined, undefined);
       });
     } else {
       // Normal HTML content
       const cleaned = DOMPurify.sanitize(transferredHtml, { ALLOWED_TAGS, FORBID_ATTR });
-      addNodeToCanvas(nodesMap, spaceMap, cleaned, startPos);
+      addNodeToCanvas(nodesMap, spaceMap, cleaned, startPos, undefined, undefined);
     }
     return;
   }
@@ -124,7 +125,14 @@ export const handleCanvasDrop = async (
           else if (!isSkill && file.name.endsWith(".coordnode")) {
             const arrayBuffer = await file.arrayBuffer();
             const importData = JSON.parse(new TextDecoder().decode(arrayBuffer));
-            await importCoordNodeData(importData, nodesMap, spaceMap, edgesMap, pos, parent);
+            await importCoordNodeData(
+              importData,
+              nodesMap,
+              spaceMap,
+              edgesMap,
+              pos,
+              parent?.data?.id ? { type: parent.type, data: { id: parent.data.id } } : undefined
+            );
           }
 
           // Markmap file processing

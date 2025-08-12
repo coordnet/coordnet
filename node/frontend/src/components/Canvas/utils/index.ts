@@ -46,13 +46,15 @@ export const addNodeToCanvas = async (
   title = "New node",
   position: XYPosition = { x: 100, y: 100 },
   content?: string | JSONContent | undefined,
-  data?: CanvasNode["data"]
+  data?: CanvasNode["data"],
 ): Promise<string> => {
+  const finalPosition = position;
+
   const id = crypto.randomUUID();
   const newNode: CanvasNode = {
     id,
     type: "GraphNode",
-    position,
+    position: finalPosition,
     style: { width: 200, height: 80 },
     data: { syncing: content ? true : false, ...(data ? data : {}) },
   };
@@ -351,7 +353,7 @@ export const copyNodesToSpace = async (
     targetNodeId
   );
 
-  const existingNodes = Array.from(nodesMap.values());
+  const existingNodes = Array.from(nodesMap.values()) as CanvasNode[];
   const nodePositions = findExtremePositions(existingNodes);
 
   const processedNodes = await importCoordNodeData(
@@ -449,7 +451,7 @@ export const copyCanvasNodesToSpaceNode = async (
     targetNodeId
   );
 
-  const existingNodes = Array.from(nodesMap.values());
+  const existingNodes = Array.from(nodesMap.values()) as CanvasNode[];
   const nodePositions = findExtremePositions(existingNodes);
   const normalizedCanvasNodes = normalizeNodePositions(
     exportedNode.nodes.map((node) => ({ ...node, nodes: [], edges: [] }))

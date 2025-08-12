@@ -9,7 +9,7 @@ import { Tooltip } from "react-tooltip";
 import { StringParam, useQueryParam, withDefault } from "use-query-params";
 
 import { getSpaceProfile } from "@/api";
-import { useYDoc } from "@/hooks";
+import { useYDoc, useAlignment } from "@/hooks";
 import useUser from "@/hooks/useUser";
 import { BackendEntityType } from "@/types";
 
@@ -17,6 +17,8 @@ import { Canvas, Loader } from "./";
 import ErrorPage from "./ErrorPage";
 import { getProfileImage } from "./Profiles/utils";
 import { Button } from "./ui/button";
+import { AlignmentSettings } from "./Canvas/AlignmentSettings";
+import { AlignmentProvider } from "@/hooks";
 
 type NodeProps = { id: string; className?: string };
 
@@ -29,6 +31,30 @@ const Node = ({ id, className }: NodeProps) => {
   const [nodePage, setNodePage] = useQueryParam<string>("nodePage", withDefault(StringParam, ""), {
     removeDefaultsFromUrl: true,
   });
+
+  // Alignment settings from hook
+  const {
+    showAlignmentGuides,
+    setShowAlignmentGuides,
+    enableMultiSelect,
+    setEnableMultiSelect,
+    enableSmartSnapping,
+    setEnableSmartSnapping,
+    gridSize,
+    setGridSize,
+    snapThreshold,
+    setSnapThreshold,
+    showMeasurements,
+    setShowMeasurements,
+    enableSmartGuides,
+    setEnableSmartGuides,
+    enableSpacingGuides,
+    setEnableSpacingGuides,
+    enableAdvancedAlignment,
+    setEnableAdvancedAlignment,
+    enableCenterSnapping,
+    setEnableCenterSnapping,
+  } = useAlignment();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", parent?.id],
@@ -82,8 +108,42 @@ const Node = ({ id, className }: NodeProps) => {
           <FileText strokeWidth={2.8} className="size-4 text-neutral-600" />
         </Button>
         <Tooltip id="show-editor">Node Page</Tooltip>
+
+        {/* Alignment Settings */}
+        <AlignmentSettings
+          showAlignmentGuides={showAlignmentGuides}
+          onShowAlignmentGuidesChange={setShowAlignmentGuides}
+          enableMultiSelect={enableMultiSelect}
+          onEnableMultiSelectChange={setEnableMultiSelect}
+          enableSmartSnapping={enableSmartSnapping}
+          onEnableSmartSnappingChange={setEnableSmartSnapping}
+          gridSize={gridSize}
+          onGridSizeChange={setGridSize}
+          snapThreshold={snapThreshold}
+          onSnapThresholdChange={setSnapThreshold}
+          showMeasurements={showMeasurements}
+          onShowMeasurementsChange={setShowMeasurements}
+          enableSmartGuides={enableSmartGuides}
+          onEnableSmartGuidesChange={setEnableSmartGuides}
+
+          enableSpacingGuides={enableSpacingGuides}
+          onEnableSpacingGuidesChange={setEnableSpacingGuides}
+          enableAdvancedAlignment={enableAdvancedAlignment}
+          onEnableAdvancedAlignmentChange={setEnableAdvancedAlignment}
+          enableCenterSnapping={enableCenterSnapping}
+          onEnableCenterSnappingChange={setEnableCenterSnapping}
+        />
       </div>
-      <Canvas />
+      <Canvas
+        showAlignmentGuides={showAlignmentGuides}
+        snapThreshold={snapThreshold}
+        showMeasurements={showMeasurements}
+        enableSmartGuides={enableSmartGuides}
+
+        enableSpacingGuides={enableSpacingGuides}
+        enableAdvancedAlignment={enableAdvancedAlignment}
+        enableCenterSnapping={enableCenterSnapping}
+      />
     </div>
   );
 };
@@ -91,7 +151,9 @@ const Node = ({ id, className }: NodeProps) => {
 const NodeOuter = ({ id, ...props }: NodeProps) => {
   return (
     <ReactFlowProvider>
-      <Node id={id} {...props} />
+      <AlignmentProvider>
+        <Node id={id} {...props} />
+      </AlignmentProvider>
     </ReactFlowProvider>
   );
 };
