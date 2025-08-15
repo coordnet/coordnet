@@ -113,6 +113,15 @@ const CanvasNodeComponent = ({ id, data, selected }: CanvasNodeComponentProps) =
     nodeStyle.borderColor = "rgb(73 222 128)";
     nodeStyle.borderWidth = "2px";
   }
+  if (data?.type === NodeType.Loop) {
+    nodeStyle.borderColor = "rgb(168 85 247)";
+    nodeStyle.borderWidth = "2px";
+  }
+  if (data?.type === NodeType.LoopTableRows) {
+    nodeStyle.borderColor = "rgb(168 85 247)";
+    nodeStyle.borderWidth = "2px";
+    nodeStyle.borderStyle = "dashed";
+  }
 
   return (
     <>
