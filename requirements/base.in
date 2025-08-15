@@ -56,7 +56,7 @@ sentry-sdk[openai,django,celery]==2.32.0  # https://github.com/getsentry/sentry-
 
 # External APIs and Tooling
 # ------------------------------------------------------------------------------
-pqapi==7.2.0  # Closed Source
+pqapi==7.3.0  # Closed Source
 # This is necessary because the paper-qa library didn't actually work with the pqapi lbrary when we were testing it.
 https://github.com/JannKleen/paper-qa/releases/download/v5.21.1/paper_qa-5.21.1.tar.gz#egg=paper_qa
 # This is required for the pqapi dependency paper-qa, which seems to requiring it (that's normally not needed)
