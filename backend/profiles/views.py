@@ -1,3 +1,4 @@
+import logging
 import typing
 
 import dry_rest_permissions.generics as dry_permissions
@@ -17,6 +18,8 @@ from profiles import serializers
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
     from rest_framework.request import Request
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema(
@@ -64,11 +67,40 @@ class ProfileModelViewSet(utils.views.BaseNoCreateDeleteModelViewSet[profiles.mo
     )
     def upload_images(self, request: "Request", public_id: str | None = None) -> Response:
         profile = self.get_object()
+        
         for key in ["profile_image", "banner_image"]:
             if key in request.FILES:
-                setattr(profile, f"{key}_original", request.FILES[key])
-        profile.save()
-        return Response({"status": "success"})
+                old_field_name = f"{key}_original"
+                old_file = getattr(profile, old_field_name)
+                
+                # Check if old file exists and clean up if it doesn't
+                if old_file and old_file.name:
+                    try:
+                        # Try to check if file exists in storage
+                        if not old_file.storage.exists(old_file.name):
+                            # File doesn't exist, clear the field reference
+                            logger.warning(f"Orphaned file reference found for profile {profile.public_id}: {old_file.name}")
+                            setattr(profile, old_field_name, None)
+                            profile.save(update_fields=[old_field_name])
+                    except Exception as e:
+                        # Log the error but continue with upload
+                        logger.warning(f"Error checking file existence for {old_file.name}: {e}")
+                        # Clear the field reference to avoid conflicts
+                        setattr(profile, old_field_name, None)
+                        profile.save(update_fields=[old_field_name])
+                
+                # Now set the new file
+                setattr(profile, old_field_name, request.FILES[key])
+        
+        try:
+            profile.save()
+            return Response({"status": "success"})
+        except Exception as e:
+            logger.error(f"Error saving profile images for profile {profile.public_id}: {e}")
+            return Response(
+                {"status": "error", "message": "Failed to upload images"}, 
+                status=500
+            )
 
 
 @extend_schema(
@@ -108,7 +140,35 @@ class ProfileCardModelViewSet(utils.views.BaseModelViewSet[profiles.models.Profi
     )
     def upload_images(self, request: "Request", public_id: str | None = None) -> Response:
         profile_card = self.get_object()
+        
         if "image" in request.FILES:
+            old_file = profile_card.image_original
+            
+            # Check if old file exists and clean up if it doesn't
+            if old_file and old_file.name:
+                try:
+                    # Try to check if file exists in storage
+                    if not old_file.storage.exists(old_file.name):
+                        # File doesn't exist, clear the field reference
+                        logger.warning(f"Orphaned file reference found for profile card {profile_card.public_id}: {old_file.name}")
+                        profile_card.image_original = None
+                        profile_card.save(update_fields=['image_original'])
+                except Exception as e:
+                    # Log the error but continue with upload
+                    logger.warning(f"Error checking file existence for {old_file.name}: {e}")
+                    # Clear the field reference to avoid conflicts
+                    profile_card.image_original = None
+                    profile_card.save(update_fields=['image_original'])
+            
+            # Now set the new file
             profile_card.image_original = request.FILES["image"]
+        
+        try:
             profile_card.save()
-        return Response({"status": "success"})
+            return Response({"status": "success"})
+        except Exception as e:
+            logger.error(f"Error saving profile card image for card {profile_card.public_id}: {e}")
+            return Response(
+                {"status": "error", "message": "Failed to upload image"}, 
+                status=500
+            )
