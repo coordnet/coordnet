@@ -10,12 +10,14 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useWindowDrag } from "@/hooks";
 import { Profile, ProfileForm, ProfileFormSchema } from "@/types";
+import { socialMediaValidators } from "@/utils/socialMediaValidation";
 
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { profilesIconMap } from "./constants";
 import ImageUpload from "./ImageUpload";
 import ProfileField from "./ProfileField";
+import ValidationIndicator from "./ValidationIndicator";
 import { getProfileBannerImage, getProfileImage } from "./utils";
 
 const EditProfile = ({
@@ -44,6 +46,7 @@ const EditProfile = ({
     handleSubmit,
     register,
     setError,
+    watch,
     formState: { errors },
   } = useForm<ProfileForm>({
     resolver: zodResolver(ProfileFormSchema),
@@ -240,6 +243,7 @@ const EditProfile = ({
               {Object.entries(profilesIconMap).map(([key, { component: Icon, title }]) => {
                 const field = key as keyof typeof profilesIconMap;
                 const error = errors && errors[field];
+                const validator = socialMediaValidators[field];
 
                 return (
                   <div key={key}>
@@ -252,11 +256,27 @@ const EditProfile = ({
                     >
                       <Icon className="mr-3 size-4" color="#A3A3A3" />
                       <input
-                        placeholder={title}
+                        placeholder={validator ? `${title} (${validator.example})` : title}
                         className="h-full w-full py-4 focus:outline-none"
-                        {...register(field, { required: false })}
+                        {...register(field, { 
+                          required: false,
+                          validate: (value) => {
+                            if (!value || value === "") return true; // Empty is valid
+                            if (validator) {
+                              return validator.pattern.test(value) || validator.message;
+                            }
+                            return true;
+                          }
+                        })}
                         aria-invalid={error ? "true" : "false"}
                       />
+                      {validator && (
+                        <ValidationIndicator 
+                          value={watch(field) || ""} 
+                          platform={field}
+                          className="ml-2"
+                        />
+                      )}
                     </div>
                     {error && (
                       <p key={key} className="mt-1 text-xs text-red-600" role="alert">

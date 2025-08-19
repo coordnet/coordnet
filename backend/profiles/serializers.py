@@ -12,6 +12,7 @@ import profiles.models
 import users.models
 import utils.serializers
 from utils.serializers import AvailableUserField
+from profiles.validation import SocialMediaValidator
 
 if typing.TYPE_CHECKING:
     from django.db import models as django_models
@@ -282,6 +283,18 @@ class ProfileSerializer(utils.serializers.BaseSerializer[profiles.models.Profile
             "banner_image_original",
         ]
         read_only_fields = ["profile_image", "profile_image_2x", "banner_image", "banner_image_2x"]
+
+    def validate_telegram_url(self, value: str) -> str:
+        """Validate Telegram URL format"""
+        return SocialMediaValidator.validate_url(value, 'telegram_url')
+    
+    def validate_bluesky_url(self, value: str) -> str:
+        """Validate Bluesky URL format"""
+        return SocialMediaValidator.validate_url(value, 'bluesky_url')
+    
+    def validate_twitter_url(self, value: str) -> str:
+        """Validate Twitter/X URL format"""
+        return SocialMediaValidator.validate_url(value, 'twitter_url')
 
     def update(
         self, instance: "profiles.models.Profile", validated_data: dict

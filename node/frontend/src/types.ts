@@ -171,9 +171,33 @@ export const ProfileSchema = z.object({
   description: z.union([z.null(), z.string(), z.literal("")]),
   draft: z.boolean(),
   website: z.union([z.null(), z.literal(""), z.string().url("Website must be a valid URL")]),
-  telegram_url: z.union([z.null(), z.literal(""), z.string().url("Telegram must be a valid URL")]),
-  bluesky_url: z.union([z.null(), z.literal(""), z.string().url("Bluesky must be a valid URL")]),
-  twitter_url: z.union([z.null(), z.literal(""), z.string().url("X must be a valid URL")]),
+  telegram_url: z.union([
+    z.null(), 
+    z.literal(""), 
+    z.string()
+      .url("Must be a valid URL")
+      .regex(/^https:\/\/(t\.me|telegram\.me)\/[a-zA-Z0-9_]{5,32}$/, {
+        message: "Must be a valid Telegram profile URL (e.g., https://t.me/username)"
+      })
+  ]),
+  bluesky_url: z.union([
+    z.null(), 
+    z.literal(""), 
+    z.string()
+      .url("Must be a valid URL")
+      .regex(/^https:\/\/bsky\.app\/profile\/[a-zA-Z0-9._-]+$/, {
+        message: "Must be a valid Bluesky profile URL (e.g., https://bsky.app/profile/username.bsky.social)"
+      })
+  ]),
+  twitter_url: z.union([
+    z.null(), 
+    z.literal(""), 
+    z.string()
+      .url("Must be a valid URL")
+      .regex(/^https:\/\/(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}$/, {
+        message: "Must be a valid X/Twitter profile URL (e.g., https://x.com/username)"
+      })
+  ]),
   eth_address: z.union([
     z.null(),
     z.literal(""),
