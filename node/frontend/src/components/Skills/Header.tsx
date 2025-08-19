@@ -1,40 +1,27 @@
-import { Skill } from "@coordnet/core";
-import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Edit, EllipsisVertical, Home, Settings2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { EllipsisVertical, Home } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { deleteSkill } from "@/api";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser, useYDoc } from "@/hooks";
+import { useYDoc } from "@/hooks";
 import { BackendEntityType } from "@/types";
 
 import { Loader } from "../";
 import ErrorPage from "../ErrorPage";
 import { Button } from "../ui/button";
-import SkillManage from "./SkillManage";
-import SkillPermissions from "./SkillPermissions";
-import SkillRunnerDropdown from "./SkillRunnerDropdown";
+import SkillActionsDropdown from "./SkillActionsDropdown";
 
 const Header = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
-  const { profile } = useUser();
-  const queryClient = useQueryClient();
   const { runId } = useParams();
   const {
     parent,
     canvas: { error, connected, synced },
   } = useYDoc();
-
-  const [permissionsModalOpen, setPermissionsModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
 
   if (error) return <ErrorPage error={error} />;
   if (!runId && (!synced || parent.isLoading)) return <Loader message="Loading canvas..." />;
@@ -43,19 +30,8 @@ const Header = ({ className }: { className?: string }) => {
   const skill = parent.type === BackendEntityType.SKILL ? parent.data : undefined;
   const skillTitle = skill?.title ?? "Untitled";
 
-  const canEdit =
-    skill?.authors.map((a) => a.id).includes(profile?.id ?? "") ||
-    skill?.creator?.id.includes(profile?.id ?? "");
-
-  const onDelete = async () => {
-    if (
-      window.confirm("Are you sure you want to delete this skill? This cannot be undone") &&
-      parent?.data
-    ) {
-      await deleteSkill(parent?.data.id);
-      queryClient.invalidateQueries({ queryKey: ["skills"] });
-      navigate("/");
-    }
+  const handleNavigateAfterDelete = () => {
+    navigate("/");
   };
 
   return (
@@ -73,53 +49,22 @@ const Header = ({ className }: { className?: string }) => {
       </Link>
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center" disabled={!canEdit}>
-          <>
-            <div className="px-3 text-lg font-medium text-black">{skillTitle}</div>
-            {canEdit && (
-              <Button variant="ghost" className="flex size-6 items-center rounded px-3">
-                <EllipsisVertical className="size-4 flex-shrink-0 text-neutral-500" />
-              </Button>
-            )}
-          </>
+        <DropdownMenuTrigger className="flex items-center">
+          <div className="px-3 text-lg font-medium text-black">{skillTitle}</div>
+          <Button variant="ghost" className="flex size-6 items-center rounded px-3">
+            <EllipsisVertical className="size-4 flex-shrink-0 text-neutral-500" />
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem
-            className="flex cursor-pointer items-center font-medium text-neutral-700"
-            onClick={() => setEditModalOpen(true)}
-          >
-            <Edit className="mr-2 size-4" /> Edit Skill
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="flex cursor-pointer items-center font-medium text-neutral-700"
-            onClick={() => setPermissionsModalOpen(true)}
-          >
-            <Settings2 className="mr-2 size-4" /> Manage Permissions
-          </DropdownMenuItem>
-
-          <SkillRunnerDropdown variant="navigate" skillId={skill?.id} />
-          <SkillRunnerDropdown variant="copy" skillId={skill?.id} />
-
-          <DropdownMenuItem
-            className="flex cursor-pointer items-center font-medium text-red-500"
-            onClick={onDelete}
-          >
-            <Trash2 className="mr-2 size-4" /> Delete
-          </DropdownMenuItem>
+          {skill && (
+            <SkillActionsDropdown
+              skill={skill}
+              variant="header"
+              onNavigate={handleNavigateAfterDelete}
+            />
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Dialog onOpenChange={setEditModalOpen} open={editModalOpen}>
-        <DialogContent className="w-[430px] p-0">
-          {parent?.data?.id && (
-            <SkillManage skill={parent?.data as Skill} setOpen={setEditModalOpen} />
-          )}
-        </DialogContent>
-      </Dialog>
-      <Dialog onOpenChange={setPermissionsModalOpen} open={permissionsModalOpen}>
-        <DialogContent className="w-[430px] p-0">
-          {parent?.data?.id && <SkillPermissions id={parent?.data?.id} key={parent?.data.id} />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

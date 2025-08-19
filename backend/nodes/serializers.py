@@ -119,6 +119,58 @@ class AvailableMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
         ).distinct()
 
 
+class ForkedFromMethodNodeVersionSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="public_id", read_only=True)
+    method_id = serializers.UUIDField(source="method.public_id", read_only=True)
+
+    class Meta:
+        model = models.MethodNodeVersion
+        fields = ["id", "method_id"]
+
+
+@extend_schema_field(uuid.UUID)
+class ForkedFromMethodNodeVersionField(utils.serializers.PublicIdRelatedField):
+    def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeVersion]":
+        user = self.context["request"].user
+        return models.MethodNodeVersion.available_objects.filter(
+            models.MethodNode.get_user_has_permission_filter(
+                action=permissions.models.READ, user=user, prefix="method"
+            )
+        ).distinct()
+
+    def get_choices(self, cutoff: int | None = None) -> dict[str, str]:
+        queryset = self.get_queryset()
+        if queryset is None:
+            # Ensure that field.choices returns something sensible
+            # even when accessed with a read-only field.
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return {str(item.public_id): self.display_value(item) for item in queryset}
+
+    def to_representation(self, value: "models.MethodNodeVersion") -> dict:  # type: ignore[override]
+        return ForkedFromMethodNodeVersionSerializer(value, context=self.context).data
+
+    def to_internal_value(self, data: str) -> "models.MethodNodeVersion":  # type: ignore[override]
+        try:
+            version_id = uuid.UUID(data)
+        except ValueError as exc:
+            raise serializers.ValidationError("Invalid UUID format") from exc
+
+        try:
+            user = self.context["request"].user
+            return models.MethodNodeVersion.available_objects.filter(
+                models.MethodNode.get_user_has_permission_filter(
+                    action=permissions.models.READ, user=user, prefix="method"
+                ),
+                public_id=version_id,
+            ).first()
+        except models.MethodNodeVersion.DoesNotExist as exc:
+            raise serializers.ValidationError("Method version not found") from exc
+
+
 class NodeSearchQuerySerializer(serializers.Serializer):
     q = serializers.CharField(required=True)
     space = AvailableSpaceField(required=False)
@@ -173,6 +225,7 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
     image_thumbnail_2x = serializers.ImageField(read_only=True)
     buddy = buddies.serializers.AvailableBuddyField(required=False, allow_null=True)
     run_count = serializers.IntegerField(read_only=True)
+    forked_from = ForkedFromMethodNodeVersionField(required=False, allow_null=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNode
@@ -191,7 +244,6 @@ class MethodNodeListSerializer(utils.serializers.BaseSoftDeletableSerializer[mod
             "text",
             "graph_document",
             "editor_document",
-            "forked_from",
             "image_original",
             "subnodes",
             "search_vector",

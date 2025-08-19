@@ -173,6 +173,28 @@ export const SubProfile = z.object({
   user: z.union([z.string().uuid(), z.null()]),
 });
 
+export const SkillVersionSchema = z.object({
+  id: z.string(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+  title: z.string(),
+  title_token_count: z.null(),
+  description: z.string(),
+  description_token_count: z.null(),
+  content: z.null(),
+  text: z.string().nullish(),
+  text_token_count: z.null(),
+  creator: SubProfile.nullable(),
+  space: z.null(),
+  authors: z.array(SubProfile),
+  buddy: z.string(),
+  run_count: z.number(),
+  method: z.string(),
+  version: z.number(),
+  method_data: z.record(z.string(), z.unknown()),
+});
+export type SkillVersion = z.infer<typeof SkillVersionSchema>;
+
 export const SkillSchema = z.object({
   id: z.string(),
   created_at: z.coerce.date(),
@@ -208,6 +230,12 @@ export const SkillSchema = z.object({
   }),
   buddy: z.string(),
   run_count: z.number(),
+  forked_from: z
+    .object({
+      id: z.string(),
+      method_id: z.string(),
+    })
+    .nullable(),
 });
 export type Skill = z.infer<typeof SkillSchema>;
 
