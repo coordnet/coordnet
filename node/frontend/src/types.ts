@@ -22,6 +22,7 @@ export type Permission = z.infer<typeof PermissionSchema>;
 export enum PermissionModel {
   Space = "space",
   Skill = "skill",
+  SkillRun = "skillrun",
 }
 
 export interface ApiError {

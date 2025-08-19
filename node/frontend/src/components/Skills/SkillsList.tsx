@@ -22,7 +22,9 @@ const SkillsList = ({
       </div>
 
       <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 min-[640px]:grid-cols-3">
-        {skills?.map((skill) => <SkillCard key={`dashboard-skill-${skill.id}`} skill={skill} />)}
+        {skills?.map((skill) => (
+          <SkillCard key={`dashboard-skill-${skill.id}`} skill={skill} />
+        ))}
 
         {Array.from({ length: placeholderCount(skills?.length ?? 0) }).map((_, idx) => (
           <div

@@ -1,4 +1,4 @@
-import { Skill } from "@coordnet/core";
+import { Skill, SkillRun } from "@coordnet/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as blockies from "blockies-ts";
@@ -32,12 +32,14 @@ type FormType = z.infer<typeof formSchema>;
 const Member = ({
   space,
   skill,
+  skillRun,
   permissionId,
   setOpen,
   className,
 }: {
   space?: Space;
   skill?: Skill;
+  skillRun?: SkillRun;
   permissionId?: string;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   className?: string;
@@ -45,8 +47,18 @@ const Member = ({
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
 
-  const model = space ? PermissionModel.Space : PermissionModel.Skill;
-  const data = space ? space : skill;
+  const model = space
+    ? PermissionModel.Space
+    : skillRun
+      ? PermissionModel.SkillRun
+      : PermissionModel.Skill;
+
+  const data = space ? space : skillRun ? skillRun : skill;
+  const entityTitle = skillRun
+    ? `Skill Run ${skillRun.id.slice(-8)}`
+    : space
+      ? space.title
+      : skill?.title || "";
 
   const { data: permissions, isLoading: permissionsLoading } = useQuery({
     queryKey: [model + "s", data?.id, "permissions"],
@@ -116,9 +128,9 @@ const Member = ({
           )}
           <div>
             <div className="mb-2 text-lg font-semibold">
-              {permission ? "Manage Member" : "Invite to " + model}
+              {permission ? "Manage Member" : "Invite to " + (skillRun ? "Skill Run" : model)}
             </div>
-            <div className="text-sm text-neutral-500">{data?.title}</div>
+            <div className="text-sm text-neutral-500">{entityTitle}</div>
           </div>
         </div>
         <div className="flex flex-col gap-4">
@@ -150,8 +162,12 @@ const Member = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="z-90">
-                        <SelectItem value="owner">Owner</SelectItem>
-                        <SelectItem value="member">Member</SelectItem>
+                        {model !== PermissionModel.SkillRun && (
+                          <>
+                            <SelectItem value="owner">Owner</SelectItem>
+                            <SelectItem value="member">Member</SelectItem>
+                          </>
+                        )}
                         <SelectItem value="viewer">Viewer</SelectItem>
                       </SelectContent>
                     </Select>
@@ -176,7 +192,7 @@ const Member = ({
                   if (
                     permission?.user == user?.email &&
                     confirm(
-                      `If you remove yourself from the ${model} you will no longer ` +
+                      `If you remove yourself from the ${skillRun ? "skill run" : model} you will no longer ` +
                         "have access to it. Are you sure you want to continue?"
                     )
                   ) {

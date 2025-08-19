@@ -2,12 +2,15 @@ import json
 import typing
 import uuid
 
+import django.contrib.contenttypes.models
 import django.contrib.postgres.search as pg_search
+import django.db.models
 import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
 import sentry_sdk
 from django import http
 from django.db import models as django_models
+from django.db.models import BooleanField, Case, Value, When
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, parsers, response
 
@@ -400,7 +403,10 @@ class SearchView(generics.ListAPIView):
     ),
     destroy=extend_schema(description="Delete a skill run.", summary="Delete skill run"),
 )
-class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
+class MethodNodeRunModelViewSet(
+    permissions.views.PermissionViewSetMixin[models.MethodNodeRun],
+    views.BaseModelViewSet[models.MethodNodeRun],
+):
     """API endpoint that allows method node runs to be viewed or edited."""
 
     allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]
@@ -408,6 +414,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         "method_version",
         "method",
         "space",
+        "user",
     ).defer("method_version__method_data", "method__content")
     serializer_class = serializers.MethodNodeRunListSerializer
     filterset_class = filters.MethodNodeRunFilterSet
@@ -415,9 +422,46 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeRun]":
+        queryset = self.queryset
+
+        # Add is_owner annotation to avoid N+1 queries
+        if hasattr(self, "request") and self.request.user and self.request.user.is_authenticated:
+            method_node_run_content_type = (
+                django.contrib.contenttypes.models.ContentType.objects.get_for_model(
+                    models.MethodNodeRun
+                )
+            )
+
+            queryset = queryset.annotate(
+                is_owner=Case(
+                    When(user=self.request.user, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+                # Run is shared if there's at least one other user with access
+                is_shared=Case(
+                    When(
+                        django.db.models.Exists(
+                            permissions.models.ObjectMembership.objects.filter(
+                                content_type=method_node_run_content_type,
+                                object_id=django.db.models.OuterRef("pk"),
+                            ).exclude(user=self.request.user)
+                        ),
+                        then=Value(True),
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+        else:
+            queryset = queryset.annotate(
+                is_owner=Value(False, output_field=BooleanField()),
+                is_shared=Value(False, output_field=BooleanField()),
+            )
+
         if self.action in ("list", "decide"):
-            return self.queryset.defer("method_data")
-        return self.queryset
+            return queryset.defer("method_data")
+        return queryset
 
     def get_serializer_class(self) -> type[serializers.MethodNodeRunListSerializer]:
         if self.action == "retrieve":

@@ -101,7 +101,7 @@ export const Output = ({
           {status !== "loading" && (
             <span
               className={`rounded-full border border-neutral-200 px-2 py-1 text-sm capitalize ${
-              status === "success" && hasError
+                status === "success" && hasError
                   ? "bg-red-100 text-red-800"
                   : status === "success"
                     ? "bg-green-100 text-green-800"

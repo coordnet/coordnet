@@ -287,6 +287,8 @@ class MethodNodeRunListSerializer(utils.serializers.BaseSoftDeletableSerializer)
     method = AvailableMethodField(required=True)
     method_version = AvailableMethodNodeVersionField(required=False, allow_null=True)
     method_data = serializers.JSONField(required=True, write_only=True)
+    is_owner = serializers.BooleanField(read_only=True)
+    is_shared = serializers.BooleanField(read_only=True)
 
     class Meta(utils.serializers.BaseSoftDeletableSerializer.Meta):
         model = models.MethodNodeRun
@@ -295,7 +297,15 @@ class MethodNodeRunListSerializer(utils.serializers.BaseSoftDeletableSerializer)
 
     def create(self, validated_data: dict[str, typing.Any]) -> models.MethodNodeRun:
         validated_data["user"] = self.context["request"].user
-        return super().create(validated_data)
+
+        obj = super().create(validated_data)
+
+        # Create corresponding permissions for the creator.
+        obj.members.create(
+            user=self.context["request"].user, role=permissions.utils.get_owner_role()
+        )
+
+        return obj
 
 
 class MethodNodeRunDetailSerializer(MethodNodeRunListSerializer):
