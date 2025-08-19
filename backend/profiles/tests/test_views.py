@@ -53,6 +53,13 @@ class ProfileViewTestCase(BaseTransactionTestCase):
         user_profile.draft = False
         user_profile.save()
 
+        profile_factories.ProfileCardFactory.create_batch(
+            5, author_profile=user_profile, created_by=self.owner_user
+        )
+        member_profiles = profile_factories.UserProfileFactory.create_batch(5, draft=False)
+        for member_profile in member_profiles:
+            user_profile.members.add(member_profile)
+
         with self.assertNumQueries(3):
             response = self.owner_client.get(
                 reverse("profiles:profiles-detail", args=[user_profile.public_id])

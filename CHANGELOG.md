@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Ability for Skills to write to Spaces (using External Nodes).
 - Add API support for creating and managing PaperQA collections.
+- Skills can now be forked in the UI.
 - Permissions on Skill runs to allow users to share their results.
 
 ### Fixed

@@ -165,8 +165,18 @@ class MethodNodeModelViewSet(
             self.queryset.annotate_user_permissions(  # type: ignore[attr-defined]
                 request=self.request
             )
-            .defer("content", "text", "graph_document", "editor_document", "search_vector")
-            .select_related("space__profile", "creator__profile")
+            .defer(
+                "content",
+                "text",
+                "graph_document",
+                "editor_document",
+                "search_vector",
+                "forked_from__content",
+                "forked_from__text",
+                "forked_from__method_data",
+                "forked_from__search_vector",
+            )
+            .select_related("space__profile", "creator__profile", "buddy", "forked_from__method")
             .prefetch_related(
                 django_models.Prefetch(
                     "authors", queryset=users.models.User.objects.select_related("profile")
@@ -245,9 +255,24 @@ class SpaceModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.Space]":
-        queryset = models.Space.available_objects.annotate(
-            node_count=django_models.Count("nodes", filter=~django_models.Q(nodes__is_removed=True))
-        ).select_related("default_node")
+        queryset = (
+            models.Space.available_objects.annotate(
+                node_count=django_models.Subquery(
+                    models.Node.objects.filter(space=django_models.OuterRef("pk"), is_removed=False)
+                    .values("space")
+                    .annotate(count=django_models.Count("id"))
+                    .values("count")
+                )
+            )
+            .select_related("default_node")
+            .defer(
+                "default_node__content",
+                "default_node__text",
+                "default_node__search_vector",
+                "default_node__editor_document",
+                "default_node__graph_document",
+            )
+        )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset.annotate_user_permissions(request=self.request)
 

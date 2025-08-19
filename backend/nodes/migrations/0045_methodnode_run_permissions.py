@@ -59,7 +59,7 @@ def reverse_methodnode_run_owners(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("nodes", "0043_remove_methodnoderun_nodes_metho_public__89eb37_idx_and_more"),
+        ("nodes", "0044_remove_methodnoderun_nodes_metho_public__89eb37_idx_and_more"),
         ("permissions", "0001_initial"),
     ]
 

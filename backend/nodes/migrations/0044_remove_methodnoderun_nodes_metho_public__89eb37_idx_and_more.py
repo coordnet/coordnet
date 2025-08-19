@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("nodes", "0042_alter_methodnode_managers_methodnode_buddy_and_more"),
+        ("nodes", "0043_node_node_is_removed_idx"),
     ]
 
     operations = [

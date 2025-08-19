@@ -1,8 +1,14 @@
-import { CanvasEdge, CanvasNode, SkillJson, skillJsonToYdoc, SkillRun } from "@coordnet/core";
+import {
+  CanvasEdge,
+  CanvasNode,
+  SkillJson,
+  skillJsonToYdoc,
+  SkillRun,
+  SkillVersion,
+} from "@coordnet/core";
 import * as Y from "yjs";
 
 import { getSkillRun, getSkillVersion } from "@/api";
-import { SkillVersion } from "@/types";
 
 export const formatSkillRunId = (id: string): string => {
   return id.split("-")[0];
@@ -18,6 +24,42 @@ export const addVersionToYdoc = async (versionId: string, document: Y.Doc): Prom
   const version = (await getSkillVersion(versionId)) as SkillVersion;
   await skillJsonToYdoc(version.method_data, document);
   return document;
+};
+
+// Function to recursively replace method ID references in the method_data
+export const forkMethodData = (
+  obj: unknown,
+  originalMethodId: string,
+  newMethodId: string
+): unknown => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (typeof obj === "string") {
+    // Replace any occurrence of the original method ID with the new one
+    return obj.includes(originalMethodId)
+      ? obj.replace(new RegExp(originalMethodId, "g"), newMethodId)
+      : obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => forkMethodData(item, originalMethodId, newMethodId));
+  }
+
+  if (typeof obj === "object") {
+    const result: { [key: string]: unknown } = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Replace method ID in both keys and values
+      const newKey = key.includes(originalMethodId)
+        ? key.replace(new RegExp(originalMethodId, "g"), newMethodId)
+        : key;
+      result[newKey] = forkMethodData(value, originalMethodId, newMethodId);
+    }
+    return result;
+  }
+
+  return obj;
 };
 
 /**
