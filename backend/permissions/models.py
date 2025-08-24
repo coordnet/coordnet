@@ -32,28 +32,28 @@ DELETE: typing.Final = "delete"
 OWNER: typing.Final = "owner"
 MEMBER: typing.Final = "member"
 VIEWER: typing.Final = "viewer"
+WRITER: typing.Final = "writer"
 
 Action = typing.Literal["read", "write", "manage", "delete"]
-Role = typing.Literal["owner", "member", "viewer"]
+Role = typing.Literal["owner", "member", "viewer", "writer"]
 
 
 class RoleOptions(models.TextChoices):
     OWNER = OWNER, "Owner"
     MEMBER = MEMBER, "Member"
     VIEWER = VIEWER, "Viewer"
+    WRITER = WRITER, "Writer"
 
 
-READ_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.VIEWER]
-WRITE_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER]
+READ_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.VIEWER, RoleOptions.WRITER]
+WRITE_ROLES = [RoleOptions.OWNER, RoleOptions.MEMBER, RoleOptions.WRITER]
 ADMIN_ROLES = [RoleOptions.OWNER]
 
-# TODO: Add writer here for public_writable objects.
-#       (see: https://github.com/coordnet/coordnet/issues/310)
 ACTION_TO_ROLES: dict[Action, list[RoleOptions]] = {
     "read": READ_ROLES,
     "write": WRITE_ROLES,
     "manage": ADMIN_ROLES,
-    "delete": ADMIN_ROLES,
+    "delete": WRITE_ROLES,  # Writers can delete, but not manage
 }
 
 
