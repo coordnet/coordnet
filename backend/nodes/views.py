@@ -2,12 +2,15 @@ import json
 import typing
 import uuid
 
+import django.contrib.contenttypes.models
 import django.contrib.postgres.search as pg_search
+import django.db.models
 import dry_rest_permissions.generics as dry_permissions
 import rest_framework.filters
 import sentry_sdk
 from django import http
 from django.db import models as django_models
+from django.db.models import BooleanField, Case, Value, When
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, parsers, response
 
@@ -162,8 +165,18 @@ class MethodNodeModelViewSet(
             self.queryset.annotate_user_permissions(  # type: ignore[attr-defined]
                 request=self.request
             )
-            .defer("content", "text", "graph_document", "editor_document", "search_vector")
-            .select_related("space__profile", "creator__profile")
+            .defer(
+                "content",
+                "text",
+                "graph_document",
+                "editor_document",
+                "search_vector",
+                "forked_from__content",
+                "forked_from__text",
+                "forked_from__method_data",
+                "forked_from__search_vector",
+            )
+            .select_related("space__profile", "creator__profile", "buddy", "forked_from__method")
             .prefetch_related(
                 django_models.Prefetch(
                     "authors", queryset=users.models.User.objects.select_related("profile")
@@ -242,9 +255,24 @@ class SpaceModelViewSet(
     def get_queryset(
         self,
     ) -> "permissions.managers.SoftDeletableMembershipModelQuerySet[models.Space]":
-        queryset = models.Space.available_objects.annotate(
-            node_count=django_models.Count("nodes", filter=~django_models.Q(nodes__is_removed=True))
-        ).select_related("default_node")
+        queryset = (
+            models.Space.available_objects.annotate(
+                node_count=django_models.Subquery(
+                    models.Node.objects.filter(space=django_models.OuterRef("pk"), is_removed=False)
+                    .values("space")
+                    .annotate(count=django_models.Count("id"))
+                    .values("count")
+                )
+            )
+            .select_related("default_node")
+            .defer(
+                "default_node__content",
+                "default_node__text",
+                "default_node__search_vector",
+                "default_node__editor_document",
+                "default_node__graph_document",
+            )
+        )
         assert isinstance(queryset, permissions.managers.SoftDeletableMembershipModelQuerySet)
         return queryset.annotate_user_permissions(request=self.request)
 
@@ -375,7 +403,10 @@ class SearchView(generics.ListAPIView):
     ),
     destroy=extend_schema(description="Delete a skill run.", summary="Delete skill run"),
 )
-class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
+class MethodNodeRunModelViewSet(
+    permissions.views.PermissionViewSetMixin[models.MethodNodeRun],
+    views.BaseModelViewSet[models.MethodNodeRun],
+):
     """API endpoint that allows method node runs to be viewed or edited."""
 
     allowed_methods = ["GET", "POST", "DELETE", "HEAD", "OPTIONS"]
@@ -383,6 +414,7 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
         "method_version",
         "method",
         "space",
+        "user",
     ).defer("method_version__method_data", "method__content")
     serializer_class = serializers.MethodNodeRunListSerializer
     filterset_class = filters.MethodNodeRunFilterSet
@@ -390,9 +422,46 @@ class MethodNodeRunModelViewSet(views.BaseModelViewSet[models.MethodNodeRun]):
     permission_classes = (dry_permissions.DRYObjectPermissions,)
 
     def get_queryset(self) -> "django_models.QuerySet[models.MethodNodeRun]":
+        queryset = self.queryset
+
+        # Add is_owner annotation to avoid N+1 queries
+        if hasattr(self, "request") and self.request.user and self.request.user.is_authenticated:
+            method_node_run_content_type = (
+                django.contrib.contenttypes.models.ContentType.objects.get_for_model(
+                    models.MethodNodeRun
+                )
+            )
+
+            queryset = queryset.annotate(
+                is_owner=Case(
+                    When(user=self.request.user, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+                # Run is shared if there's at least one other user with access
+                is_shared=Case(
+                    When(
+                        django.db.models.Exists(
+                            permissions.models.ObjectMembership.objects.filter(
+                                content_type=method_node_run_content_type,
+                                object_id=django.db.models.OuterRef("pk"),
+                            ).exclude(user=self.request.user)
+                        ),
+                        then=Value(True),
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+        else:
+            queryset = queryset.annotate(
+                is_owner=Value(False, output_field=BooleanField()),
+                is_shared=Value(False, output_field=BooleanField()),
+            )
+
         if self.action in ("list", "decide"):
-            return self.queryset.defer("method_data")
-        return self.queryset
+            return queryset.defer("method_data")
+        return queryset
 
     def get_serializer_class(self) -> type[serializers.MethodNodeRunListSerializer]:
         if self.action == "retrieve":

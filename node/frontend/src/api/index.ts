@@ -1,4 +1,4 @@
-import { Buddy, Skill, SkillJson, SkillRun } from "@coordnet/core";
+import { Buddy, Skill, SkillJson, SkillRun, SkillVersion } from "@coordnet/core";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
@@ -21,7 +21,6 @@ import {
   ProfileForm,
   SkillCreateForm,
   SkillUpdateForm,
-  SkillVersion,
   Space,
 } from "../types";
 import { api, authApi } from "./jwt";
@@ -92,14 +91,18 @@ export const getPermissions = async (
     const response = await api.get(`api/nodes/methods/${id}/permissions/`, { signal });
     return response.data;
   }
+  if (type == PermissionModel.SkillRun) {
+    const response = await api.get(`api/nodes/method-runs/${id}/permissions/`, { signal });
+    return response.data;
+  }
   return [];
 };
 
 export const createPermission = async (
   type: PermissionModel,
   id: string,
-  data: Pick<Permission, "role" | "user">
-): Promise<Permission[]> => {
+  data: { user: string; role: string }
+): Promise<Permission> => {
   if (type == PermissionModel.Space) {
     const response = await api.post(`api/nodes/spaces/${id}/permissions/`, data);
     return response.data;
@@ -108,23 +111,27 @@ export const createPermission = async (
     const response = await api.post(`api/nodes/methods/${id}/permissions/`, data);
     return response.data;
   }
-  return [];
+  if (type == PermissionModel.SkillRun) {
+    const response = await api.post(`api/nodes/method-runs/${id}/permissions/`, data);
+    return response.data;
+  }
+  throw new Error("Invalid permission model");
 };
 
 export const deletePermission = async (
   type: PermissionModel,
-  modelId: string,
-  id: string
-): Promise<Permission[]> => {
+  id: string,
+  permissionId: string
+): Promise<void> => {
   if (type == PermissionModel.Space) {
-    const response = await api.delete(`api/nodes/spaces/${modelId}/permissions/${id}/`);
-    return response.data;
+    await api.delete(`api/nodes/spaces/${id}/permissions/${permissionId}/`);
+  } else if (type == PermissionModel.Skill) {
+    await api.delete(`api/nodes/methods/${id}/permissions/${permissionId}/`);
+  } else if (type == PermissionModel.SkillRun) {
+    await api.delete(`api/nodes/method-runs/${id}/permissions/${permissionId}/`);
+  } else {
+    throw new Error("Invalid permission model");
   }
-  if (type == PermissionModel.Skill) {
-    const response = await api.delete(`api/nodes/methods/${modelId}/permissions/${id}/`);
-    return response.data;
-  }
-  return [];
 };
 
 export const getNode = async (
@@ -466,11 +473,12 @@ export const updateSkillImage = async (id: string, banner: string | null): Promi
 
 export const getSkillRuns = async (
   signal: AbortSignal | undefined,
-  id?: string
+  id?: string,
+  filters?: { own_runs?: boolean; is_public?: boolean }
 ): Promise<PaginatedApiResponse<SkillRun>> => {
-  const response = await api.get("api/nodes/method-runs/", {
+  const response = await api.get("api/nodes/method-runs/?include_permissions=1", {
     signal,
-    params: { method: id, limit: 10000 },
+    params: { method: id, limit: 10000, ...filters },
   });
   return response.data;
 };
@@ -481,7 +489,17 @@ export const createSkillRun = async (data: Partial<SkillRun>): Promise<SkillRun>
 };
 
 export const getSkillRun = async (id?: string): Promise<SkillRun> => {
-  const response = await api.get(`api/nodes/method-runs/${id}/`);
+  const response = await api.get(`api/nodes/method-runs/${id}/?show_permissions=1`);
+  return response.data;
+};
+
+export const updateSkillRun = async (id: string, data: Partial<SkillRun>): Promise<SkillRun> => {
+  const response = await api.patch(`api/nodes/method-runs/${id}/`, data);
+  return response.data;
+};
+
+export const deleteSkillRun = async (id: string): Promise<SkillRun> => {
+  const response = await api.delete(`api/nodes/method-runs/${id}/`);
   return response.data;
 };
 
