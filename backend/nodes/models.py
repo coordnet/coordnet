@@ -490,6 +490,13 @@ class Node(BaseNode):
         indexes = utils.models.SoftDeletableBaseModel.Meta.indexes + [
             pg_indexes.GinIndex("search_vector", name="search_vector_idx"),
             models.Index(fields=["is_removed"], name="node_is_removed_idx"),
+            pg_indexes.GinIndex(
+                pg_search.SearchRank(
+                    "search_vector",
+                    pg_search.SearchQuery("")
+                ),
+                name="search_vector_rank_idx"
+            ),
         ]
         triggers = [
             pgtrigger.Trigger(
