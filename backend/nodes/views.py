@@ -11,6 +11,8 @@ import sentry_sdk
 from django import http
 from django.db import models as django_models
 from django.db.models import BooleanField, Case, Value, When
+from django.core.cache import cache
+from django.utils.crypto import md5
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import decorators, generics, parsers, response
 
@@ -74,17 +76,27 @@ class NodeModelViewSet(views.BaseReadOnlyModelViewSet[models.Node]):
         )
 
         if self.action == "retrieve":
+            subnode_queryset = (
+                models.Node.available_objects
+                .only(
+                    "id", "public_id", "title", "description",
+                    "space_id", "node_type"
+                )
+                .annotate(
+                    has_subnodes=django_models.Exists(
+                        models.Node.available_objects.filter(
+                            parents=django_models.OuterRef("pk"),
+                        )
+                    ),
+                    subnode_count=django_models.Count("subnodes", distinct=True)
+                )
+            )
+            
             queryset = queryset.prefetch_related(
                 django_models.Prefetch(
                     "subnodes",
                     to_attr="available_subnodes",
-                    queryset=queryset.annotate(
-                        has_subnodes=django_models.Exists(
-                            models.Node.available_objects.filter(
-                                parents=django_models.OuterRef("pk"),
-                            )
-                        )
-                    ),
+                    queryset=subnode_queryset
                 )
             )
 
@@ -326,6 +338,18 @@ class SearchView(generics.ListAPIView):
         parameters=[serializers.NodeSearchQuerySerializer],
         responses={200: serializers.NodeSearchResultSerializer},
     )
+    def _get_cache_key(self, request: "request.Request", query: str, space_id: str | None = None, node_type: str | None = None) -> str:
+        """Generate a unique cache key for the search query."""
+        user_id = request.user.id if request.user.is_authenticated else "anonymous"
+        key_parts = [
+            "node_search",
+            str(user_id),
+            query,
+            str(space_id) if space_id else "all",
+            str(node_type) if node_type else "all"
+        ]
+        return f"search:{md5(':'.join(key_parts).encode()).hexdigest()}"
+
     def get(
         self, request: "request.Request", *args: typing.Any, **kwargs: typing.Any
     ) -> response.Response:
@@ -334,37 +358,47 @@ class SearchView(generics.ListAPIView):
         )
         search_query_serializer.is_valid(raise_exception=True)
 
+        cache_key = self._get_cache_key(
+            request,
+            search_query_serializer.validated_data["q"],
+            search_query_serializer.validated_data.get("space"),
+            search_query_serializer.validated_data.get("node_type")
+        )
+
+        cached_results = cache.get(cache_key)
+        if cached_results is not None:
+            return response.Response(cached_results)
+
+        search_query = pg_search.SearchQuery(search_query_serializer.validated_data["q"])
+        
+        base_permission_filter = django_models.Q(
+            models.Node.get_user_has_permission_filter(
+                permissions.models.READ, request.user
+            ),
+            node_type=models.NodeType.DEFAULT,
+        ) | django_models.Q(
+            models.MethodNode.get_user_has_permission_filter(
+                permissions.models.READ, request.user, prefix="methodnode"
+            ),
+        )
+
         nodes = (
-            models.Node.available_objects.filter(
-                django_models.Q(
-                    models.Node.get_user_has_permission_filter(
-                        permissions.models.READ, request.user
-                    ),
-                    node_type=models.NodeType.DEFAULT,
-                )
-                | django_models.Q(
-                    models.MethodNode.get_user_has_permission_filter(
-                        permissions.models.READ, request.user, prefix="methodnode"
-                    ),
-                ),
-            )
+            models.Node.available_objects
+            .filter(base_permission_filter)
+            .filter(search_vector=search_query)
             .select_related("space")
-            .prefetch_related(
-                django_models.Prefetch(
-                    "parents", queryset=models.Node.available_objects.only("id", "public_id")
-                ),
+            .only(
+                "id", "public_id", "title", "description",
+                "space__id", "space__public_id", "space__title"
             )
             .annotate(
                 rank=pg_search.SearchRank(
                     "search_vector",
-                    pg_search.SearchQuery(search_query_serializer.validated_data["q"]),
+                    search_query,
+                    cover_density=True
                 )
             )
-            .filter(
-                search_vector=pg_search.SearchQuery(search_query_serializer.validated_data["q"])
-            )
-            .order_by("-rank")
-            .distinct()
+            .order_by("-rank", "id")  # Add id to make ordering deterministic
         )
 
         if "space" in search_query_serializer.validated_data:
@@ -378,12 +412,16 @@ class SearchView(generics.ListAPIView):
             serializer = serializers.NodeSearchResultSerializer(
                 page, many=True, context={"request": request}
             )
-            return self.get_paginated_response(serializer.data)
+            response_data = serializer.data
+            cache.set(cache_key, response_data, timeout=300)
+            return self.get_paginated_response(response_data)
 
         serializer = serializers.NodeSearchResultSerializer(
             nodes, many=True, context={"request": request}
         )
-        return response.Response(serializer.data)
+        response_data = serializer.data
+        cache.set(cache_key, response_data, timeout=300)
+        return response.Response(response_data)
 
 
 @extend_schema(tags=["Skills"])
@@ -649,3 +687,4 @@ class MethodNodeVersionModelViewSet(views.BaseModelViewSet[models.MethodNodeVers
         if self.action == "retrieve":
             return serializers.MethodNodeVersionDetailSerializer
         return self.serializer_class
+
