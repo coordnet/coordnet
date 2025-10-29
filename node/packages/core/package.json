@@ -18,7 +18,7 @@
     "@tiptap/html": "^3.0.7",
     "@tiptap/starter-kit": "^3.0.7",
     "@xyflow/react": "^12.8.2",
-    "axios": "^1.11.0",
+    "axios": "^1.13.1",
     "elkjs": "^0.10.0",
     "html-entities": "^2.6.0",
     "marked": "^16.1.1",
