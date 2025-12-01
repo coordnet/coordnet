@@ -20,7 +20,7 @@
     "@tiptap/starter-kit": "^3.0.7",
     "dotenv": "^17.2.1",
     "envalid": "^8.1.0",
-    "express": "^5.1.0",
+    "express": "^5.2.0",
     "express-ws": "^5.0.2",
     "knex": "^3.1.0",
     "pg": "^8.16.3",
