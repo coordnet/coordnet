@@ -15,6 +15,7 @@ import {
   Link2Off,
   List,
   RemoveFormatting,
+  Sheet,
   Strikethrough,
   TableCellsMerge,
   TableColumnsSplit,
@@ -180,6 +181,15 @@ export const MenuBar = ({ editor }: { editor?: Editor | null }) => {
             <TableRowsSplit className="size-4" />
           </button>
           <Tooltip id="delete-row">Delete Row</Tooltip>
+          <button
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+            disabled={!editor.can().toggleHeaderRow()}
+            data-tooltip-id="make-row-header"
+            data-tooltip-place="bottom-start"
+          >
+            <Sheet className="size-4" />
+          </button>
+          <Tooltip id="make-row-header">Toggle Header Row</Tooltip>
           <div className="px-1 text-slate-400">|</div>
           <button
             onClick={() => editor.chain().focus().mergeOrSplit().run()}

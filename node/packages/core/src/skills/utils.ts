@@ -23,7 +23,7 @@ import {
   SpaceNode,
   Task,
 } from "../types";
-import { findExtremePositions } from "../utils";
+import { findExtremePositions, getSkillNodePageContent } from "../utils";
 import { getNode } from "./api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -487,4 +487,129 @@ export const documentHasContent = (content: JSONContent | null | undefined): boo
   }
 
   return true;
+};
+
+// Table extraction utilities for Loop (table rows) functionality
+
+/**
+ * Find all tables in a TipTap document
+ */
+export const findTables = (doc: JSONContent): JSONContent[] => {
+  const tables: JSONContent[] = [];
+  const traverse = (node: JSONContent) => {
+    if (node.type === "table") {
+      tables.push(node);
+    }
+    if (node.content && Array.isArray(node.content)) {
+      for (const child of node.content) {
+        traverse(child);
+      }
+    }
+  };
+  traverse(doc);
+  return tables;
+};
+
+/**
+ * Extract header texts from a table
+ */
+export const extractTableHeaders = (table: JSONContent): string[] => {
+  const headers: string[] = [];
+  const firstRow = table.content && table.content[0];
+  if (firstRow && firstRow.type === "tableRow") {
+    for (const cell of firstRow.content || []) {
+      if (cell.type === "tableHeader") {
+        let cellText = "";
+        for (const paragraph of cell.content || []) {
+          if (paragraph.type === "paragraph") {
+            for (const textNode of paragraph.content || []) {
+              if (textNode.type === "text") {
+                cellText += textNode.text;
+              }
+            }
+          }
+        }
+        headers.push(cellText.trim());
+      }
+    }
+  }
+  return headers;
+};
+
+/**
+ * Extract text content from a table cell
+ */
+export const extractCellText = (cell: JSONContent): string => {
+  let cellText = "";
+  if (cell.content && Array.isArray(cell.content)) {
+    for (const paragraph of cell.content) {
+      if (paragraph.type === "paragraph" && paragraph.content) {
+        for (const textNode of paragraph.content) {
+          if (textNode.type === "text" && textNode.text) {
+            cellText += textNode.text;
+          }
+        }
+      }
+    }
+  }
+  return cellText.trim();
+};
+
+/**
+ * Extract table rows data from a table, excluding header row
+ */
+export const extractTableRowsData = (table: JSONContent): Record<string, string>[] => {
+  const headers = extractTableHeaders(table);
+  const rows: Record<string, string>[] = [];
+
+  if (!table.content || headers.length === 0) {
+    return rows;
+  }
+
+  // Skip first row (headers) and process data rows
+  for (let i = 1; i < table.content.length; i++) {
+    const row = table.content[i];
+    if (row.type === "tableRow" && row.content) {
+      const rowData: Record<string, string> = {};
+
+      // Process each cell in the row
+      for (let j = 0; j < Math.min(row.content.length, headers.length); j++) {
+        const cell = row.content[j];
+        if (cell.type === "tableCell") {
+          const cellText = extractCellText(cell);
+          rowData[headers[j]] = cellText;
+        }
+      }
+
+      // Add row index for reference
+      rowData._rowIndex = (i - 1).toString();
+      rows.push(rowData);
+    }
+  }
+
+  return rows;
+};
+
+/**
+ * Extract all table rows from a node's content
+ */
+export const extractTablesFromNode = async (
+  nodeId: string,
+  skillDoc: Y.Doc
+): Promise<Record<string, string>[]> => {
+  const pageContent = (await getSkillNodePageContent(nodeId, skillDoc, "json")) as JSONContent;
+
+  if (!pageContent) {
+    return [];
+  }
+
+  const tables = findTables(pageContent);
+  const allRows: Record<string, string>[] = [];
+
+  for (const table of tables) {
+    const tableRows = extractTableRowsData(table);
+    allRows.push(...tableRows);
+  }
+
+  return allRows;
 };
