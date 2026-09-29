@@ -153,7 +153,7 @@ services:
             - "**/node_modules/**"
 
   minio:
-    image: bitnami/minio:latest
+    image: soldevelo/minio:latest
     container_name: coordnet_local_minio
     env_file:
       - ./.envs/.local/.minio
