@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
         - name: minio
-          image: bitnami/minio:2025.4.22
+          image: soldevelo/minio:2025.4.22
           ports:
             - containerPort: 9000
           env:
